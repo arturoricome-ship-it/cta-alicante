@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="theme-color" content="#0f1828">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CTA Alicante">
+<title>CTA Alicante</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1a2744;--navy-light:#243460;--gold:#c8a84b;--gold-light:#e8c96a;--white:#f0eee8;--gray:#8a93a8;--bg:#0d1623;--card:#182135;--card2:#1f2d47;--border:rgba(255,255,255,0.07)}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);display:flex;flex-direction:column}
+#app-header{background:linear-gradient(160deg,#1a2a4a 0%,var(--bg) 100%);padding:14px 16px 0;flex-shrink:0;z-index:10}
+#app-header::after{content:"";display:block;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-top:10px}
+.header-row{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:flex;align-items:center;justify-content:center;font-family:"Bebas Neue",sans-serif;font-size:17px;color:var(--navy);flex-shrink:0;box-shadow:0 4px 14px rgba(200,168,75,.35)}
+.header-name{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:1.5px;line-height:1}
+.header-sub{font-size:9px;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase}
+.header-portal{font-size:10px;color:var(--gray);letter-spacing:.5px}
+#nav-bar{display:flex;align-items:center;gap:8px;padding:6px 0 8px}
+#btn-back{height:32px;padding:0 12px 0 8px;border-radius:10px;border:1px solid rgba(200,168,75,.35);background:linear-gradient(135deg,rgba(200,168,75,.18),rgba(200,168,75,.08));color:var(--gold);font-size:16px;display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;transition:all .2s;font-family:"Outfit",sans-serif;font-weight:700;letter-spacing:.3px}
+#btn-back::after{content:"Atrás";font-size:11px;font-weight:700;color:var(--gold)}
+#btn-back:hover{background:linear-gradient(135deg,rgba(200,168,75,.32),rgba(200,168,75,.15));border-color:var(--gold);box-shadow:0 2px 10px rgba(200,168,75,.25)}
+#btn-back:disabled{opacity:.2;cursor:default}
+#btn-home{width:32px;height:32px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--white);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .2s}
+#btn-home:hover{background:rgba(200,168,75,.15);border-color:rgba(200,168,75,.4)}
+#btn-home:disabled{opacity:.2;cursor:default}
+#breadcrumb{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--gray);overflow-x:auto;scrollbar-width:none;white-space:nowrap;flex:1}
+#breadcrumb::-webkit-scrollbar{display:none}
+.bc-item{cursor:pointer;transition:color .2s;flex-shrink:0}.bc-item:hover{color:var(--gold-light)}.bc-item.active{color:var(--white);font-weight:600}
+.bc-sep{color:var(--navy-light);font-size:12px;flex-shrink:0;margin:0 2px}
+#tab-bar{display:flex;gap:0;padding:6px 0 0;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+#tab-bar::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:7px 14px;border-radius:100px;font-size:12px;font-weight:600;cursor:pointer;color:var(--gray);background:transparent;border:none;font-family:"Outfit",sans-serif;transition:all .25s;letter-spacing:.3px}
+.tab.active{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);box-shadow:0 4px 12px rgba(200,168,75,.35)}
+#scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 12px 90px;-webkit-overflow-scrolling:touch}
+.panel{display:none;animation:fadeUp .3s ease}.panel.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.folder-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:4px}
+@media(max-width:380px){.folder-grid{grid-template-columns:1fr 1fr}}
+.folder-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 10px 12px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;font-family:"Outfit",sans-serif;color:inherit;width:100%}
+.folder-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.4);border-color:rgba(200,168,75,.3)}
+.fc-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:6px}
+.fc-name{font-size:11px;font-weight:700;line-height:1.3;text-align:center}
+.fc-arr{display:none}
+.drive-list{display:flex;flex-direction:column;gap:7px}
+.drive-item{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:11px 13px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;color:inherit;width:100%;text-align:left;font-family:"Outfit",sans-serif}
+.drive-item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--gold),var(--gold-light));border-radius:3px 0 0 3px;opacity:0;transition:opacity .2s}
+.drive-item:hover{transform:translateX(3px);background:var(--card2)}.drive-item:hover::before{opacity:1}
+.item-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.icon-folder{background:rgba(200,168,75,.15)}.icon-pdf{background:rgba(230,80,70,.15)}.icon-doc{background:rgba(60,130,220,.15)}.icon-other{background:rgba(140,140,160,.12)}
+.item-info{flex:1;min-width:0}.item-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item-meta{font-size:11px;color:var(--gray);margin-top:2px}
+.item-arrow{color:var(--gold);font-size:16px;flex-shrink:0}
+.spinner-wrap{display:flex;align-items:center;justify-content:center;padding:48px 0;flex-direction:column;gap:14px}
+.spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(200,168,75,.2);border-top-color:var(--gold);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner-label{font-size:12px;color:var(--gray)}
+.error-box{background:rgba(230,80,70,.1);border:1px solid rgba(230,80,70,.3);border-radius:14px;padding:16px;text-align:center;font-size:13px;color:#f07070;line-height:1.6}
+.empty-box{text-align:center;padding:36px 20px;font-size:13px;color:var(--gray);line-height:2}
+.section-title{font-family:"Bebas Neue",sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:2px;margin-top:8px}
+.section-sub{font-size:11px;color:var(--gray);margin-bottom:10px}
+.turnos-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:10px}
+@media(max-width:340px){.turnos-cols{grid-template-columns:1fr}}
+.turnos-col-title{font-family:"Bebas Neue",sans-serif;font-size:15px;letter-spacing:1px;color:var(--gold);margin-bottom:8px;text-align:center}
+.turnos-block{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.turnos-header{background:linear-gradient(135deg,var(--navy),var(--navy-light));padding:10px 14px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px}
+.turno-file-row{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .2s;border-top:1px solid var(--border)}
+.turno-file-row:hover{background:var(--card2)}
+.turno-file-name{flex:1;font-size:13px;font-weight:600}
+.turno-file-mes{font-size:11px;color:var(--gold);font-weight:700;background:rgba(200,168,75,.12);padding:3px 9px;border-radius:100px;white-space:nowrap}
+.turno-empty{padding:14px;text-align:center;font-size:12px;color:var(--gray);border-top:1px solid var(--border)}
+.aviso-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px;margin-bottom:9px}
+.aviso-tag{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.aviso-titulo{font-size:14px;font-weight:700;margin-bottom:6px}
+.aviso-texto{font-size:13px;line-height:1.6;color:var(--white)}
+.aviso-urgente{border-color:rgba(230,80,70,.4);background:rgba(230,80,70,.06)}
+.aviso-urgente .aviso-tag{color:#f07070}
+.afil-hero{background:linear-gradient(135deg,var(--navy),var(--navy-light));border:1px solid rgba(200,168,75,.25);border-radius:16px;padding:18px;margin-bottom:14px;text-align:center}
+.afil-title{font-family:"Bebas Neue",sans-serif;font-size:26px;color:var(--gold);letter-spacing:2px;margin-bottom:4px}
+.afil-sub{font-size:11px;color:var(--gray);line-height:1.6;margin-bottom:14px}
+.afil-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:11px;padding:12px 20px;font-family:"Outfit",sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;transition:transform .2s}
+.afil-btn:hover{transform:translateY(-2px)}
+.qr-wrap{background:white;border-radius:14px;padding:14px;display:inline-block;margin-top:10px}
+.qr-wrap img{width:190px;height:190px;display:block}
+.qr-label{font-size:11px;color:var(--gray);margin-top:8px;text-align:center}
+#bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(13,22,35,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);display:flex;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;color:var(--gray);font-family:"Outfit",sans-serif;font-size:9px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;transition:color .2s;padding:2px 0}
+.nav-btn.active{color:var(--gold)}.nav-ico{font-size:20px;line-height:1}
+#install-banner{display:none;position:fixed;bottom:80px;left:12px;right:12px;background:var(--navy-light);border:1px solid rgba(200,168,75,.4);border-radius:16px;padding:12px 14px;z-index:300;flex-direction:row;align-items:center;gap:11px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+#install-banner.show{display:flex}
+.ib-text{flex:1;font-size:13px;font-weight:500}.ib-text small{display:block;color:var(--gray);font-size:10px;margin-top:2px}
+.ib-yes{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:10px;padding:8px 14px;font-family:"Outfit",sans-serif;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0}
+.ib-no{background:none;border:none;color:var(--gray);font-size:18px;cursor:pointer;flex-shrink:0;padding:4px}
+/* LOGIN SCREEN */
+#login-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
+.login-logo{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:flex;align-items:center;justify-content:center;font-family:"Bebas Neue",sans-serif;font-size:28px;color:var(--navy);box-shadow:0 8px 28px rgba(200,168,75,.4);margin-bottom:20px}
+.login-title{font-family:"Bebas Neue",sans-serif;font-size:32px;letter-spacing:2px;color:var(--white);margin-bottom:6px}
+.login-sub{font-size:12px;color:var(--gray);letter-spacing:1px;text-transform:uppercase;margin-bottom:40px}
+.login-card{background:var(--card);border:1px solid rgba(200,168,75,.25);border-radius:20px;padding:28px 24px;width:100%;max-width:320px}
+.login-desc{font-size:13px;color:var(--gray);line-height:1.7;margin-bottom:24px}
+#google-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:white;color:#1f1f1f;border:none;border-radius:12px;padding:13px 20px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;font-family:"Outfit",sans-serif}
+#google-btn:hover{box-shadow:0 4px 16px rgba(200,168,75,.35);transform:translateY(-1px)}
+#google-btn img{width:20px;height:20px}
+.login-status{margin-top:16px;font-size:12px;color:var(--gray);min-height:18px}
+#login-screen.hidden{display:none}
+</style>
+</head>
+<body>
+
+<!-- PANTALLA DE LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">CTA</div>
+  <div class="login-title">CTA Alicante</div>
+  <div class="login-sub">Portal del Afiliado</div>
+  <div class="login-card">
+    <div class="login-desc">Accede con tu cuenta de Google para entrar al portal sindical de CTA Alicante.</div>
+    <button id="google-btn">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+      Entrar con Google
+    </button>
+    <div class="login-status" id="login-status"></div>
+  </div>
+</div>
+
+<div id="app-header">
+  <div class="header-row">
+    <div class="logo">CTA</div>
+    <div>
+      <div class="header-name">CTA Alicante</div>
+      <div class="header-sub">Comision de Trabajadores Asamblearios</div>
+      <div class="header-portal">Portal del Afiliado</div>
+    </div>
+  </div>
+  <div id="nav-bar">
+    <button id="btn-back" disabled>&#8592;</button>
+    <div id="breadcrumb"></div>
+    <button id="btn-home" disabled>&#127968;</button>
+  </div>
+</div>
+
+<div id="tab-bar">
+  <button class="tab active" onclick="switchTab('documentos',this)">&#128194; Documentos</button>
+  <button class="tab" onclick="switchTab('turnos',this)">&#128197; Turnos</button>
+  <button class="tab" onclick="switchTab('avisos',this)">&#128226; Avisos</button>
+  <button class="tab" onclick="switchTab('afiliate',this)">&#9995; Afiliate</button>
+</div>
+
+<div id="scroll-area">
+
+  <div class="panel active" id="panel-documentos">
+    <div id="drive-container"></div>
+  </div>
+
+  <div class="panel" id="panel-turnos">
+    <p class="section-title">Ultimo mes de turnos</p>
+    <p class="section-sub">Por colectivo y tipo de contrato</p>
+    <div id="turnos-container">
+      <div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Buscando turnos...</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-avisos">
+    <p class="section-title">Tablon de Avisos</p>
+    <p class="section-sub">Comunicados y novedades del comite</p>
+    <div id="avisos-container">
+      <div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Cargando avisos...</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-afiliate">
+    <div class="afil-hero">
+      <div class="afil-title">Afiliate a CTA</div>
+      <div class="afil-sub">Comision de Trabajadores Asamblearios<br>Defiende tus derechos laborales con nosotros</div>
+      <a class="afil-btn" id="ficha-btn">&#128196; Descargar ficha de afiliacion</a>
+    </div>
+    <p class="section-title">Como afiliarse</p>
+    <p class="section-sub">Solo 3 pasos</p>
+    <div class="drive-list">
+      <div class="drive-item" style="cursor:default"><div class="item-icon" style="background:rgba(200,168,75,.15);font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold)">1</div><div class="item-info"><div class="item-name">Descarga la ficha</div><div class="item-meta">Pulsa el boton de arriba para descargar el PDF</div></div></div>
+      <div class="drive-item" style="cursor:default"><div class="item-icon" style="background:rgba(200,168,75,.15);font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold)">2</div><div class="item-info"><div class="item-name">Rellena y firma</div><div class="item-meta">Completa todos los datos personales y bancarios</div></div></div>
+      <div class="drive-item" style="cursor:default"><div class="item-icon" style="background:rgba(200,168,75,.15);font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold)">3</div><div class="item-info"><div class="item-name">Entregala</div><div class="item-meta">Entrega a cualquier delegado CTA</div></div></div>
+    </div>
+  </div>
+
+</div>
+
+<nav id="bottom-nav">
+  <button class="nav-btn active" id="nav-documentos" onclick="switchTab('documentos',document.querySelectorAll('.tab')[0],this)"><span class="nav-ico">&#128194;</span>Docs</button>
+  <button class="nav-btn" id="nav-turnos" onclick="switchTab('turnos',document.querySelectorAll('.tab')[1],this)"><span class="nav-ico">&#128197;</span>Turnos</button>
+  <button class="nav-btn" id="nav-avisos" onclick="switchTab('avisos',document.querySelectorAll('.tab')[2],this)"><span class="nav-ico">&#128226;</span>Avisos</button>
+  <button class="nav-btn" id="nav-afiliate" onclick="switchTab('afiliate',document.querySelectorAll('.tab')[3],this)"><span class="nav-ico">&#9995;</span>Afiliate</button>
+</nav>
+
+<div id="install-banner">
+  <span style="font-size:24px">&#128242;</span>
+  <div class="ib-text">Instalar CTA Alicante<small>Aniade la app a tu pantalla de inicio</small></div>
+  <button class="ib-yes" id="ib-yes">Instalar</button>
+  <button class="ib-no" onclick="document.getElementById('install-banner').classList.remove('show')">X</button>
+</div>
+
+<script>
+var API_KEY="AIzaSyBK2GCTdfHt7PPhl-OBa3DTvCdZEQ5mprc";
+var ROOT_ID="1TS5vDO29JBTqd4JsGvO3a39YUIC7stbz";
+var DRIVE_API="https://www.googleapis.com/drive/v3";
+var breadcrumb=[{id:ROOT_ID,name:"Inicio"}];
+
+// Ficha de afiliacion: busca el PDF en la carpeta de Drive y abre directamente
+var FICHA_FOLDER_ID="1XBq0b9IrLv6KxrlaHdIRofuSnQeP87n-";
+(function(){
+  var btn=document.getElementById("ficha-btn");
+  btn.style.cursor="pointer";
+  btn.addEventListener("click",function(e){
+    e.preventDefault();
+    btn.textContent="⏳ Buscando...";
+    fetch(DRIVE_API+"/files?q='"+FICHA_FOLDER_ID+"'+in+parents+and+trashed=false+and+mimeType='application/pdf'&fields=files(id,name)&key="+API_KEY)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var files=d.files||[];
+      if(!files.length){btn.innerHTML="&#128196; Descargar ficha de afiliacion";alert("No se encontro el PDF en Drive.");return;}
+      btn.innerHTML="&#128196; Descargar ficha de afiliacion";
+      window.open("https://drive.google.com/file/d/"+files[0].id+"/view","_blank");
+    })
+    .catch(function(){btn.innerHTML="&#128196; Descargar ficha de afiliacion";alert("Error al acceder a Drive.");});
+  });
+})();
+
+var FM=[
+  {k:["rampa"],                              e:"\u2708\uFE0F",         b:"rgba(60,140,220,.2)"},
+  {k:["administrativ"],                      e:"\uD83D\uDDC4\uFE0F",   b:"rgba(200,168,75,.2)"},
+  {k:["convenio","estatuto","trabajador"],   e:"\u2696\uFE0F",         b:"rgba(120,180,100,.2)"},
+  {k:["modelo","formulario"],                e:"\uD83D\uDCDD",         b:"rgba(100,160,240,.2)"},
+  {k:["manual","south","operacion"],         e:"\uD83D\uDCD6",         b:"rgba(200,120,60,.2)"},
+  {k:["acta","comit"],                       e:"\uD83E\uDD1D",         b:"rgba(160,100,220,.2)"},
+  {k:["fondo","social","ayuda"],             e:"\uD83D\uDC9B",         b:"rgba(220,190,50,.2)"},
+  {k:["frees","guia","tierra"],              e:"\uD83D\uDCCB",         b:"rgba(80,180,160,.2)"},
+  {k:["comunicado","oficial"],               e:"\uD83D\uDCE2",         b:"rgba(220,80,80,.2)"},
+  {k:["boe","derecho"],                      e:"\uD83C\uDFDB\uFE0F",   b:"rgba(140,120,200,.2)"},
+  {k:["plantilla","control","hora","excel"], e:"\uD83D\uDCCA",         b:"rgba(60,180,100,.2)"},
+  {k:["turno"],                              e:"\uD83D\uDDC4\uFE0F",   b:"rgba(200,168,75,.2)"}
+];
+function getFM(name){
+  var l=name.toLowerCase();
+  for(var i=0;i<FM.length;i++){for(var j=0;j<FM[i].k.length;j++){if(l.indexOf(FM[i].k[j])!==-1)return FM[i];}}
+  return{e:"\uD83D\uDCC1",b:"rgba(200,168,75,.15)"};
+}
+
+// cleanName: extrae solo el nombre del mes. "2026_Abril" -> "Abril", "Abril_2026" -> "Abril", etc.
+var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+function cleanName(n){
+  var s=n.replace(/\.[a-zA-Z]{2,5}$/,"").trim();
+  var sl=s.toLowerCase();
+  for(var i=0;i<MESES.length;i++){
+    if(sl.indexOf(MESES[i])!==-1){
+      return MESES[i].charAt(0).toUpperCase()+MESES[i].slice(1);
+    }
+  }
+  // Sin mes: limpiar numeros y años
+  s=s.replace(/^\d{4}\s*[\-_\s]\s*/,"");
+  s=s.replace(/^\d+[a-zA-Z]?\s*[\-_\.\s]+\s*/,"");
+  s=s.replace(/[\s_\-]+\d{4}$/,"");
+  return s.trim();
+}
+function escH(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function fmtDate(iso){if(!iso)return"";return new Date(iso).toLocaleDateString("es-ES",{day:"2-digit",month:"long",year:"numeric"});}
+function fmtSize(b){b=parseInt(b);if(b>1048576)return(b/1048576).toFixed(1)+" MB";if(b>1024)return Math.round(b/1024)+" KB";return b+" B";}
+
+function driveList(params){
+  var qs=Object.keys(params).map(function(k){return k+"="+encodeURIComponent(params[k]);}).join("&");
+  return fetch(DRIVE_API+"/files?"+qs+"&key="+API_KEY).then(function(r){return r.json();});
+}
+
+function switchTab(name,tabEl,navEl){
+  document.querySelectorAll(".panel").forEach(function(p){p.classList.remove("active")});
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active")});
+  document.querySelectorAll(".nav-btn").forEach(function(n){n.classList.remove("active")});
+  document.getElementById("panel-"+name).classList.add("active");
+  if(tabEl)tabEl.classList.add("active");
+  var nv=navEl||document.getElementById("nav-"+name);if(nv)nv.classList.add("active");
+  if(name==="avisos"&&!avisosLoaded)loadAvisos();
+  if(name==="turnos"&&!turnosLoaded)loadTurnos();
+}
+
+function updateNav(){var r=breadcrumb.length<=1;document.getElementById("btn-back").disabled=r;document.getElementById("btn-home").disabled=r;}
+document.getElementById("btn-back").addEventListener("click",function(){
+  if(breadcrumb.length>1){breadcrumb.pop();renderBreadcrumb();renderFolder(breadcrumb[breadcrumb.length-1].id);document.getElementById("scroll-area").scrollTop=0;}
+});
+document.getElementById("btn-home").addEventListener("click",function(){
+  if(breadcrumb.length>1){breadcrumb=[{id:ROOT_ID,name:"Inicio"}];renderBreadcrumb();renderFolder(ROOT_ID);document.getElementById("scroll-area").scrollTop=0;}
+});
+function renderBreadcrumb(){
+  var bc=document.getElementById("breadcrumb");bc.innerHTML="";
+  breadcrumb.forEach(function(c,i){
+    var s=document.createElement("span");
+    s.className="bc-item"+(i===breadcrumb.length-1?" active":"");
+    s.textContent=c.name;
+    (function(idx,id){s.addEventListener("click",function(){
+      if(idx<breadcrumb.length-1){breadcrumb=breadcrumb.slice(0,idx+1);renderBreadcrumb();renderFolder(id);document.getElementById("scroll-area").scrollTop=0;}
+    });})(i,c.id);
+    bc.appendChild(s);
+    if(i<breadcrumb.length-1){var sep=document.createElement("span");sep.className="bc-sep";sep.textContent=" > ";bc.appendChild(sep);}
+  });
+  bc.scrollLeft=bc.scrollWidth;updateNav();
+}
+
+// Abre PDF directamente en el navegador (nueva pestaña) - zoom nativo del SO
+function openFile(file){
+  window.open("https://drive.google.com/file/d/"+file.id+"/view","_blank");
+}
+
+// RENDER FOLDER - oculta avisos.txt de la lista
+function renderFolder(folderId){
+  var container=document.getElementById("drive-container");
+  var isRoot=folderId===ROOT_ID;
+  container.innerHTML="<div class=\"spinner-wrap\"><div class=\"spinner\"></div><div class=\"spinner-label\">Cargando...</div></div>";
+  driveList({q:"'"+folderId+"' in parents and trashed=false",fields:"files(id,name,mimeType,size,modifiedTime)",orderBy:"folder,name"})
+  .then(function(data){
+    if(data.error)throw new Error(data.error.message);
+    var files=(data.files||[]).filter(function(f){
+      // Ocultar avisos.txt de la vista de documentos
+      return f.name.toLowerCase()!=="avisos.txt";
+    });
+    if(!files.length){container.innerHTML="<div class=\"empty-box\">Carpeta vacia.</div>";return;}
+    container.innerHTML="";
+    if(isRoot){
+      var grid=document.createElement("div");grid.className="folder-grid";
+      files.forEach(function(f){
+        var isF=f.mimeType==="application/vnd.google-apps.folder";
+        var disp=cleanName(f.name);
+        var m=getFM(f.name);
+        var card=document.createElement("button");card.className="folder-card";
+        card.innerHTML="<div class=\"fc-icon\" style=\"background:"+m.b+"\">"+m.e+"</div><div class=\"fc-name\">"+escH(disp)+"</div><div class=\"fc-arr\">"+(isF?"Ver &rarr;":"Abrir")+"</div>";
+        (function(fi,d){card.addEventListener("click",function(){
+          if(fi.mimeType==="application/vnd.google-apps.folder"){breadcrumb.push({id:fi.id,name:d});renderBreadcrumb();renderFolder(fi.id);document.getElementById("scroll-area").scrollTop=0;}
+          else openFile({id:fi.id,name:d});
+        });})(f,disp);
+        grid.appendChild(card);
+      });
+      container.appendChild(grid);
+    } else {
+      var list=document.createElement("div");list.className="drive-list";
+      files.forEach(function(f){
+        var isF=f.mimeType==="application/vnd.google-apps.folder";
+        var isPDF=f.mimeType==="application/pdf";
+        var isDoc=f.mimeType&&(f.mimeType.indexOf("document")!==-1||f.mimeType.indexOf("spreadsheet")!==-1);
+        var ic="icon-other",ie="\uD83D\uDCC4";
+        if(isF){ic="icon-folder";ie="\uD83D\uDCC1";}
+        else if(isPDF){ic="icon-pdf";ie="\uD83D\uDCD5";}
+        else if(isDoc){ic="icon-doc";ie="\uD83D\uDCCB";}
+        var disp=cleanName(f.name);
+        var mt=isF?"Carpeta":((f.size?fmtSize(f.size)+" - ":"")+fmtDate(f.modifiedTime));
+        var btn=document.createElement("button");btn.className="drive-item";
+        btn.innerHTML="<div class=\"item-icon "+ic+"\">"+ie+"</div><div class=\"item-info\"><div class=\"item-name\">"+escH(disp)+"</div><div class=\"item-meta\">"+escH(mt)+"</div></div><div class=\"item-arrow\">"+(isF?"\u203A":"\u2197\uFE0F")+"</div>";
+        (function(fi,d){btn.addEventListener("click",function(){
+          if(fi.mimeType==="application/vnd.google-apps.folder"){breadcrumb.push({id:fi.id,name:d});renderBreadcrumb();renderFolder(fi.id);document.getElementById("scroll-area").scrollTop=0;}
+          else openFile({id:fi.id,name:d});
+        });})(f,disp);
+        list.appendChild(btn);
+      });
+      container.appendChild(list);
+    }
+  }).catch(function(err){container.innerHTML="<div class=\"error-box\">Error Drive:<br><small>"+escH(err.message)+"</small></div>";});
+}
+
+// TURNOS
+var turnosLoaded=false;
+function loadTurnos(){
+  if(turnosLoaded)return;turnosLoaded=true;
+  var container=document.getElementById("turnos-container");container.innerHTML="";
+
+  // Layout 2 columnas
+  var cols=document.createElement("div");cols.className="turnos-cols";
+
+  var colRampa=document.createElement("div");
+  var tR=document.createElement("div");tR.className="turnos-col-title";tR.innerHTML="&#9992;&#65039; Rampa";
+  colRampa.appendChild(tR);
+
+  var colAdm=document.createElement("div");
+  var tA=document.createElement("div");tA.className="turnos-col-title";tA.innerHTML="&#128452;&#65039; Administrativos";
+  colAdm.appendChild(tA);
+
+  cols.appendChild(colRampa);
+  cols.appendChild(colAdm);
+  container.appendChild(cols);
+
+  var grupos=[
+    {label:"FTP",   icon:"&#128197;", searchCol:"rampa",         tipo:"FTP",   col:colRampa},
+    {label:"FIJIS", icon:"&#128203;", searchCol:"rampa",         tipo:"FIJIS", col:colRampa},
+    {label:"FTP",   icon:"&#128197;", searchCol:"administrativ", tipo:"FTP",   col:colAdm},
+    {label:"FIJIS", icon:"&#128203;", searchCol:"administrativ", tipo:"FIJIS", col:colAdm}
+  ];
+
+  driveList({q:"'"+ROOT_ID+"' in parents and trashed=false and mimeType='application/vnd.google-apps.folder'",fields:"files(id,name)"})
+  .then(function(data){
+    var rootFolders=data.files||[];
+    grupos.forEach(function(g){
+      var block=makeTurnoBlock(g.icon,g.label);
+      g.col.appendChild(block.el);
+      var colFolder=null;
+      rootFolders.forEach(function(f){if(f.name.toLowerCase().indexOf(g.searchCol)!==-1)colFolder=f;});
+      if(!colFolder){block.setMsg("Sin carpeta");return;}
+      driveList({q:"'"+colFolder.id+"' in parents and trashed=false and mimeType='application/vnd.google-apps.folder'",fields:"files(id,name)"})
+      .then(function(d){
+        var tipoFolder=null;
+        var st=g.tipo.toLowerCase();
+        (d.files||[]).forEach(function(f){if(f.name.toLowerCase().indexOf(st)!==-1)tipoFolder=f;});
+        if(!tipoFolder){block.setMsg("Sin carpeta "+g.tipo);return;}
+        // PDFs: elegir el del mes mas reciente del año (no por modifiedTime)
+        driveList({q:"'"+tipoFolder.id+"' in parents and trashed=false and mimeType='application/pdf'",fields:"files(id,name,modifiedTime)"})
+        .then(function(d2){
+          var pdfs=d2.files||[];
+          if(!pdfs.length){block.setMsg("Sin PDFs");return;}
+          var ORDEN=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+          function mesIdx(nombre){
+            var nl=nombre.toLowerCase();
+            for(var i=0;i<ORDEN.length;i++){if(nl.indexOf(ORDEN[i])!==-1)return i;}
+            return -1;
+          }
+          // Ordenar por indice de mes descendente, el mas alto = mes mas reciente
+          pdfs.sort(function(a,b){return mesIdx(b.name)-mesIdx(a.name);});
+          block.setFile(pdfs[0]);
+        });
+      });
+    });
+  })
+  .catch(function(err){container.innerHTML="<div class=\"error-box\">Error:<br><small>"+escH(err.message)+"</small></div>";});
+}
+
+function makeTurnoBlock(icon,label){
+  var el=document.createElement("div");el.className="turnos-block";
+  el.innerHTML="<div class=\"turnos-header\"><span style=\"font-size:18px\">"+icon+"</span> <span>"+escH(label)+"</span></div><div class=\"tb-body\"></div>";
+  var body=el.querySelector(".tb-body");
+  body.innerHTML="<div class=\"turno-empty\">Buscando...</div>";
+  return{
+    el:el,
+    setMsg:function(msg){body.innerHTML="<div class=\"turno-empty\">"+escH(msg)+"</div>";},
+    setFile:function(file){
+      // cleanName quita "2026_" y cualquier prefijo numerico, dejando solo "Abril", "Marzo", etc.
+      var disp=cleanName(file.name);
+      body.innerHTML="";
+      var row=document.createElement("div");row.className="turno-file-row";
+      row.innerHTML="<span style=\"font-size:22px\">\uD83D\uDCD5</span>"
+        +"<span class=\"turno-file-name\">"+escH(disp)+"</span>"
+        +"<span class=\"turno-file-mes\">"+fmtDate(file.modifiedTime)+"</span>"
+        +"<span style=\"color:var(--gold);font-size:15px;margin-left:8px\">\u2197\uFE0F</span>";
+      row.style.cursor="pointer";
+      (function(f,d){row.addEventListener("click",function(){
+        // Abre directamente en Drive/PDF nativo del dispositivo
+        window.open("https://drive.google.com/file/d/"+f.id+"/view","_blank");
+      });})(file,disp);
+      body.appendChild(row);
+    }
+  };
+}
+
+// AVISOS
+var avisosLoaded=false;
+function loadAvisos(){
+  if(avisosLoaded)return;avisosLoaded=true;
+  var container=document.getElementById("avisos-container");
+  driveList({q:"'"+ROOT_ID+"' in parents and trashed=false and name='avisos.txt'",fields:"files(id,modifiedTime)"})
+  .then(function(data){
+    var files=data.files||[];
+    if(!files.length){renderAvisosDefault(container);return;}
+    return fetch(DRIVE_API+"/files/"+files[0].id+"?alt=media&key="+API_KEY)
+    .then(function(r){return r.text();})
+    .then(function(txt){parseAvisos(container,txt);});
+  })
+  .catch(function(){renderAvisosDefault(container);});
+}
+
+function parseAvisos(container,txt){
+  container.innerHTML="";
+  var bloques=txt.split("---").map(function(b){return b.trim();}).filter(function(b){return b.length>0;});
+  if(!bloques.length){renderAvisosDefault(container);return;}
+  bloques.forEach(function(bloque){
+    var lines=bloque.split("\n").map(function(l){return l.trim();}).filter(Boolean);
+    if(!lines.length)return;
+    var titulo=lines[0];
+    var urgente=titulo.indexOf("[URGENTE]")!==-1;
+    titulo=titulo.replace("[URGENTE]","").trim();
+    var texto=lines.slice(1).join("\n");
+    var card=document.createElement("div");
+    card.className="aviso-card"+(urgente?" aviso-urgente":"");
+    card.innerHTML="<div class=\"aviso-tag\">"+(urgente?"\uD83D\uDEA8 URGENTE":"\uD83D\uDCE2 AVISO")+"</div>"
+      +"<div class=\"aviso-titulo\">"+escH(titulo)+"</div>"
+      +"<div class=\"aviso-texto\">"+escH(texto).replace(/\n/g,"<br>")+"</div>";
+    container.appendChild(card);
+  });
+}
+
+function renderAvisosDefault(container){
+  container.innerHTML="";
+  [{urgente:false,titulo:"Bienvenido al portal CTA Alicante",texto:"Aqui encontraras toda la informacion sindical, turnos y documentos de interes. Navega usando el menu inferior."},
+   {urgente:false,titulo:"Proximamente",texto:"Los avisos y comunicados del comite apareceran aqui en cuanto sean publicados."}
+  ].forEach(function(a){
+    var card=document.createElement("div");
+    card.className="aviso-card"+(a.urgente?" aviso-urgente":"");
+    card.innerHTML="<div class=\"aviso-tag\">"+(a.urgente?"\uD83D\uDEA8 URGENTE":"\uD83D\uDCE2 AVISO")+"</div>"
+      +"<div class=\"aviso-titulo\">"+escH(a.titulo)+"</div>"
+      +"<div class=\"aviso-texto\">"+escH(a.texto)+"</div>";
+    container.appendChild(card);
+  });
+}
+
+// PWA
+var manifest={name:"CTA Alicante",short_name:"CTA",start_url:".",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
+var ml=document.createElement("link");ml.rel="manifest";ml.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/json"}));document.head.appendChild(ml);
+var dp;
+window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;setTimeout(function(){document.getElementById("install-banner").classList.add("show");},4000);});
+document.getElementById("ib-yes").addEventListener("click",function(){document.getElementById("install-banner").classList.remove("show");if(dp){dp.prompt();dp=null;}});
+
+renderBreadcrumb();
+renderFolder(ROOT_ID);
+</script>
+
+<!-- GOOGLE IDENTITY SERVICES -->
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script>
+var CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
+var SHEETS_URL="https://script.google.com/macros/s/AKfycbzbJmPbzcrLoPe59d8LXN0OtGyCLQYYYfGyZxP8NeLXOHFawhyQRteNQcLD7lFnauVK/exec";
+
+function parseJwt(token){
+  try{var b=token.split(".")[1];var d=atob(b.replace(/-/g,"+").replace(/_/g,"/"));return JSON.parse(decodeURIComponent(escape(d)));}
+  catch(e){return null;}
+}
+
+function handleCredentialResponse(response){
+  var status=document.getElementById("login-status");
+  status.textContent="Verificando...";
+  var payload=parseJwt(response.credential);
+  if(!payload){status.textContent="Error al verificar. Inténtalo de nuevo.";return;}
+  var email=payload.email;
+  var nombre=payload.name||email;
+
+  fetch(SHEETS_URL,{
+    method:"POST",
+    body:JSON.stringify({email:email,nombre:nombre}),
+    headers:{"Content-Type":"text/plain"}
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(data.bloqueado){
+      status.style.color="#f07070";
+      status.textContent="⛔ Tu acceso ha sido desactivado. Contacta con CTA.";
+    } else {
+      document.getElementById("login-screen").classList.add("hidden");
+    }
+  })
+  .catch(function(){
+    // Si falla el sheet, dejamos pasar igualmente (no bloqueamos por error de red)
+    document.getElementById("login-screen").classList.add("hidden");
+  });
+}
+
+window.addEventListener("load",function(){
+  google.accounts.id.initialize({
+    client_id:CLIENT_ID,
+    callback:handleCredentialResponse,
+    auto_select:false,
+    cancel_on_tap_outside:false
+  });
+  document.getElementById("google-btn").addEventListener("click",function(){
+    document.getElementById("login-status").textContent="";
+    google.accounts.id.prompt(function(notification){
+      if(notification.isSkippedMoment()||notification.isDismissedMoment()){
+        // Fallback: renderizar botón estándar de Google
+        google.accounts.id.renderButton(
+          document.getElementById("google-btn"),
+          {theme:"outline",size:"large",width:280,text:"signin_with"}
+        );
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
