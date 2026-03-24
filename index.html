@@ -267,20 +267,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
       <div class="afil-sub">Comision de Trabajadores Asamblearios<br>Defiende tus derechos laborales con nosotros</div>
       <a class="afil-btn" id="ficha-btn">&#128196; Descargar ficha de afiliacion</a>
     </div>
-
-    <!-- VUELOS VUELING ALC -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:4px">
-      <p class="section-title" style="margin:0">✈️ Vueling en Alicante</p>
-      <div style="display:flex;gap:6px"><button id="vuelos-filtro" style="background:rgba(60,180,100,.2);border:1px solid rgba(60,180,100,.3);border-radius:8px;color:#5dd88a;font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Outfit',sans-serif">🟢 Activos</button><button id="vuelos-refresh" style="background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);border-radius:8px;color:var(--gold);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Outfit',sans-serif">↻</button></div>
-    </div>
-    <p class="section-sub" id="vuelos-hora"></p>
-    <div style="display:flex;gap:0;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
-      <button class="vuelos-tab active" id="tab-llegadas" onclick="switchVuelos('llegadas')">🛬 Llegadas</button>
-      <button class="vuelos-tab" id="tab-salidas" onclick="switchVuelos('salidas')">🛫 Salidas</button>
-    </div>
-    <div id="vuelos-container"><div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Cargando vuelos...</div></div></div>
-
-    <p class="section-title" style="margin-top:16px">Como afiliarse</p>
+    <p class="section-title">Como afiliarse</p>
     <p class="section-sub">Solo 3 pasos</p>
     <div class="drive-list">
       <div class="drive-item" style="cursor:default"><div class="item-icon" style="background:rgba(200,168,75,.15);font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold)">1</div><div class="item-info"><div class="item-name">Descarga la ficha</div><div class="item-meta">Pulsa el boton de arriba para descargar el PDF</div></div></div>
@@ -881,14 +868,8 @@ function loadVuelos(){
   }).catch(function(){container.innerHTML="<div class='error-box'>Error al cargar vuelos.</div>";});
 }
 
-document.getElementById("vuelos-refresh").addEventListener("click",loadVuelos);
-document.getElementById("vuelos-filtro").addEventListener("click",toggleFiltro);
 
-var _origSwitchTab=switchTab;
-switchTab=function(name,tabEl,navEl){
-  _origSwitchTab(name,tabEl,navEl);
-  if(name==="afiliate"&&!vuelosData.salidas.length)loadVuelos();
-};
+
 
 // LIVE PANEL
 var liveMode="llegadas";
