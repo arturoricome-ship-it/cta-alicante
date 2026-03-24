@@ -91,7 +91,42 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .qr-wrap{background:white;border-radius:14px;padding:14px;display:inline-block;margin-top:10px}
 .qr-wrap img{width:190px;height:190px;display:block}
 .qr-label{font-size:11px;color:var(--gray);margin-top:8px;text-align:center}
-/* GRUPOS */
+/* BADGE AVISOS */
+.tab-wrap{position:relative;flex:1;min-width:0;display:flex;justify-content:center}
+.badge{position:absolute;top:0px;right:4px;background:#e64646;color:white;font-size:9px;font-weight:700;border-radius:100px;padding:1px 5px;min-width:16px;text-align:center;display:none;line-height:14px;z-index:10}
+.badge.show{display:block}
+/* PANEL HOY */
+.hoy-hero{background:linear-gradient(135deg,var(--navy),var(--navy-light));border:1px solid rgba(200,168,75,.25);border-radius:16px;padding:20px;margin-bottom:14px;text-align:center}
+.hoy-fecha{font-family:"Bebas Neue",sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.hoy-dia{font-family:"Bebas Neue",sans-serif;font-size:52px;line-height:1;color:var(--white);letter-spacing:2px}
+.hoy-mes{font-family:"Bebas Neue",sans-serif;font-size:22px;color:var(--gold);letter-spacing:2px;margin-bottom:12px}
+.hoy-badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.hoy-badge{font-size:11px;font-weight:700;padding:4px 12px;border-radius:100px;letter-spacing:.5px}
+.hoy-badge-laboral{background:rgba(60,180,100,.2);color:#5dd88a;border:1px solid rgba(60,180,100,.3)}
+.hoy-badge-finde{background:rgba(200,168,75,.15);color:var(--gold);border:1px solid rgba(200,168,75,.3)}
+.hoy-badge-festivo{background:rgba(230,80,70,.15);color:#f07070;border:1px solid rgba(230,80,70,.3)}
+.hoy-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.hoy-stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
+.hoy-stat-num{font-family:"Bebas Neue",sans-serif;font-size:32px;color:var(--gold);line-height:1}
+.hoy-stat-label{font-size:10px;color:var(--gray);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+/* CALCULADORA FLOTANTE */
+#calc-btn{position:fixed;bottom:80px;right:14px;width:38px;height:38px;border-radius:50%;background:rgba(200,168,75,.18);border:1px solid rgba(200,168,75,.35);color:var(--gold);font-size:16px;cursor:pointer;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;transition:all .2s}
+#calc-btn:hover{background:rgba(200,168,75,.28);transform:scale(1.05)}
+#calc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;backdrop-filter:blur(4px)}
+#calc-overlay.show{display:block}
+#calc-panel{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:24px 20px 40px;z-index:301;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+#calc-panel.show{transform:translateY(0)}
+.calc-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.calc-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px}
+.calc-sub{font-size:11px;color:var(--gray);margin-bottom:20px}
+.calc-row{display:flex;gap:12px;align-items:flex-end;margin-bottom:8px}
+.calc-field{flex:1}
+.calc-label{font-size:10px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.calc-input{width:100%;background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:12px;padding:14px 16px;font-family:"Outfit",sans-serif;font-size:22px;font-weight:700;color:var(--white);outline:none;transition:border-color .2s;text-align:center}
+.calc-input:focus{border-color:rgba(200,168,75,.5)}
+.calc-arrow{font-size:22px;color:var(--gold);flex-shrink:0;padding-bottom:14px}
+.calc-info{text-align:center;font-size:11px;color:var(--gray);margin-top:6px}
+.calc-reset{display:block;width:100%;margin-top:14px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;padding:12px;font-family:"Outfit",sans-serif;font-size:13px;font-weight:600;color:var(--gray);cursor:pointer}
 .grupo-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px}
 .grupo-logo{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0}
 .grupo-logo-tg{background:linear-gradient(135deg,#229ED9,#1a8cbf)}
@@ -161,11 +196,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 </div>
 
 <div id="tab-bar">
-  <button class="tab active" onclick="switchTab('documentos',this)">&#128194; Documentos</button>
-  <button class="tab" onclick="switchTab('turnos',this)">&#128197; Turnos</button>
-  <button class="tab" onclick="switchTab('avisos',this)">&#128226; Avisos</button>
-  <button class="tab" onclick="switchTab('afiliate',this)">&#9995; Afiliate</button>
-  <button class="tab" onclick="switchTab('grupos',this)">&#128172; Grupos</button>
+  <div class="tab-wrap"><button class="tab active" onclick="switchTab('documentos',this)">&#128194; Documentos</button></div>
+  <div class="tab-wrap"><button class="tab" onclick="switchTab('turnos',this)">&#128197; Turnos</button></div>
+  <div class="tab-wrap"><button class="tab" onclick="switchTab('avisos',this)">&#128226; Avisos</button><span class="badge" id="badge-avisos">!</span></div>
+  <div class="tab-wrap"><button class="tab" onclick="switchTab('afiliate',this)">&#9995; Afiliate</button></div>
+  <div class="tab-wrap"><button class="tab" onclick="switchTab('grupos',this)">&#128172; Grupos</button></div>
 </div>
 
 <div id="scroll-area">
@@ -188,6 +223,14 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
     <div id="avisos-container">
       <div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Cargando avisos...</div></div>
     </div>
+  </div>
+
+  <div class="panel" id="panel-hoy">
+    <div class="hoy-hero" id="hoy-hero"></div>
+    <div class="hoy-stats" id="hoy-stats"></div>
+    <p class="section-title">Proximos dias</p>
+    <p class="section-sub">Dias restantes del mes</p>
+    <div id="hoy-calendar"></div>
   </div>
 
   <div class="panel" id="panel-afiliate">
@@ -237,7 +280,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 <nav id="bottom-nav">
   <button class="nav-btn active" id="nav-documentos" onclick="switchTab('documentos',document.querySelectorAll('.tab')[0],this)"><span class="nav-ico">&#128194;</span>Docs</button>
   <button class="nav-btn" id="nav-turnos" onclick="switchTab('turnos',document.querySelectorAll('.tab')[1],this)"><span class="nav-ico">&#128197;</span>Turnos</button>
-  <button class="nav-btn" id="nav-avisos" onclick="switchTab('avisos',document.querySelectorAll('.tab')[2],this)"><span class="nav-ico">&#128226;</span>Avisos</button>
+  <button class="nav-btn" id="nav-avisos" onclick="switchTab('avisos',document.querySelectorAll('.tab')[2],this)" style="position:relative"><span class="nav-ico">&#128226;</span>Avisos<span class="badge" id="badge-avisos-nav">!</span></button>
   <button class="nav-btn" id="nav-afiliate" onclick="switchTab('afiliate',document.querySelectorAll('.tab')[3],this)"><span class="nav-ico">&#9995;</span>Afiliate</button>
   <button class="nav-btn" id="nav-grupos" onclick="switchTab('grupos',document.querySelectorAll('.tab')[4],this)"><span class="nav-ico">&#128172;</span>Grupos</button>
 </nav>
@@ -339,8 +382,17 @@ function switchTab(name,tabEl,navEl){
   document.getElementById("panel-"+name).classList.add("active");
   if(tabEl)tabEl.classList.add("active");
   var nv=navEl||document.getElementById("nav-"+name);if(nv)nv.classList.add("active");
-  if(name==="avisos"&&!avisosLoaded)loadAvisos();
+  if(name==="avisos"){
+    if(!avisosLoaded)loadAvisos();
+    // Marcar avisos como leidos
+    var badge=document.getElementById("badge-avisos");
+    var badgeNav=document.getElementById("badge-avisos-nav");
+    if(badge)badge.classList.remove("show");
+    if(badgeNav)badgeNav.classList.remove("show");
+    localStorage.setItem("avisos_seen", avisosHash);
+  }
   if(name==="turnos"&&!turnosLoaded)loadTurnos();
+  if(name==="hoy")renderHoy();
 }
 
 function updateNav(){var r=breadcrumb.length<=1;document.getElementById("btn-back").disabled=r;document.getElementById("btn-home").disabled=r;}
@@ -522,7 +574,8 @@ function makeTurnoBlock(icon,label){
   };
 }
 
-// AVISOS
+// BADGE AVISOS
+var avisosHash="";
 var avisosLoaded=false;
 function loadAvisos(){
   if(avisosLoaded)return;avisosLoaded=true;
@@ -531,11 +584,105 @@ function loadAvisos(){
   .then(function(data){
     var files=data.files||[];
     if(!files.length){renderAvisosDefault(container);return;}
+    avisosHash=files[0].modifiedTime||"";
+    // Mostrar badge si hay avisos nuevos no vistos
+    var seen=localStorage.getItem("avisos_seen");
+    if(seen!==avisosHash){
+      var b=document.getElementById("badge-avisos");
+      var bn=document.getElementById("badge-avisos-nav");
+      if(b)b.classList.add("show");
+      if(bn)bn.classList.add("show");
+    }
     return fetch(DRIVE_API+"/files/"+files[0].id+"?alt=media&key="+API_KEY)
     .then(function(r){return r.text();})
     .then(function(txt){parseAvisos(container,txt);});
   })
   .catch(function(){renderAvisosDefault(container);});
+}
+
+// Cargar avisos al inicio para detectar badge (sin marcar como visto)
+driveList({q:"'"+ROOT_ID+"' in parents and trashed=false and name='avisos.txt'",fields:"files(id,modifiedTime)"})
+.then(function(data){
+  var files=data.files||[];
+  if(!files.length)return;
+  avisosHash=files[0].modifiedTime||"";
+  var seen=localStorage.getItem("avisos_seen");
+  if(seen!==avisosHash){
+    var b=document.getElementById("badge-avisos");
+    var bn=document.getElementById("badge-avisos-nav");
+    if(b)b.classList.add("show");
+    if(bn)bn.classList.add("show");
+  }
+}).catch(function(){});
+
+// PANEL HOY
+var MESES_LARGO=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+var DIAS_SEMANA=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+var FESTIVOS_ES=["01-01","06-01","19-03","01-05","15-08","12-10","01-11","06-12","08-12","25-12"];
+
+function esFestivo(d){
+  var mm=String(d.getMonth()+1).padStart(2,"0");
+  var dd=String(d.getDate()).padStart(2,"0");
+  return FESTIVOS_ES.indexOf(mm+"-"+dd)!==-1;
+}
+
+function renderHoy(){
+  var hoy=new Date();
+  var diaSem=DIAS_SEMANA[hoy.getDay()];
+  var diaMes=hoy.getDate();
+  var mes=MESES_LARGO[hoy.getMonth()];
+  var anyo=hoy.getFullYear();
+  var finde=hoy.getDay()===0||hoy.getDay()===6;
+  var festivo=esFestivo(hoy);
+
+  var tipoBadge="";
+  if(festivo) tipoBadge='<span class="hoy-badge hoy-badge-festivo">🎉 Festivo</span>';
+  else if(finde) tipoBadge='<span class="hoy-badge hoy-badge-finde">🛋️ Fin de semana</span>';
+  else tipoBadge='<span class="hoy-badge hoy-badge-laboral">💼 Día laborable</span>';
+
+  document.getElementById("hoy-hero").innerHTML=
+    '<div class="hoy-fecha">'+diaSem+'</div>'
+    +'<div class="hoy-dia">'+diaMes+'</div>'
+    +'<div class="hoy-mes">'+mes+' '+anyo+'</div>'
+    +'<div class="hoy-badges">'+tipoBadge+'</div>';
+
+  // Stats
+  var ultimoDia=new Date(anyo,hoy.getMonth()+1,0).getDate();
+  var diasRestantes=ultimoDia-diaMes;
+  var diasTranscurridos=diaMes-1;
+  document.getElementById("hoy-stats").innerHTML=
+    '<div class="hoy-stat"><div class="hoy-stat-num">'+diasRestantes+'</div><div class="hoy-stat-label">Días restantes del mes</div></div>'
+    +'<div class="hoy-stat"><div class="hoy-stat-num">'+diasTranscurridos+'</div><div class="hoy-stat-label">Días transcurridos</div></div>';
+
+  // Mini calendario del mes
+  var cal=document.getElementById("hoy-calendar");
+  cal.innerHTML="";
+  var grid=document.createElement("div");
+  grid.style.cssText="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;";
+  ["L","M","X","J","V","S","D"].forEach(function(d){
+    var h=document.createElement("div");
+    h.style.cssText="text-align:center;font-size:10px;color:var(--gray);font-weight:700;padding:4px 0;";
+    h.textContent=d;grid.appendChild(h);
+  });
+  // Primer dia del mes (lunes=0)
+  var primerDia=new Date(anyo,hoy.getMonth(),1).getDay();
+  var offset=(primerDia===0)?6:primerDia-1;
+  for(var i=0;i<offset;i++){var e=document.createElement("div");grid.appendChild(e);}
+  for(var d2=1;d2<=ultimoDia;d2++){
+    var cell=document.createElement("div");
+    var fecha=new Date(anyo,hoy.getMonth(),d2);
+    var esFin=fecha.getDay()===0||fecha.getDay()===6;
+    var esFest=esFestivo(fecha);
+    var esHoy=d2===diaMes;
+    cell.style.cssText="text-align:center;font-size:12px;padding:5px 2px;border-radius:8px;font-weight:"+(esHoy?"700":"400")+";";
+    if(esHoy) cell.style.cssText+="background:var(--gold);color:var(--navy);";
+    else if(esFest) cell.style.cssText+="color:#f07070;background:rgba(230,80,70,.1);";
+    else if(esFin) cell.style.cssText+="color:var(--gold);";
+    else cell.style.cssText+="color:var(--white);";
+    cell.textContent=d2;
+    grid.appendChild(cell);
+  }
+  cal.appendChild(grid);
 }
 
 function parseAvisos(container,txt){
@@ -593,7 +740,67 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 
 </script>
 
-<!-- GOOGLE IDENTITY SERVICES -->
+<!-- CALCULADORA FLOTANTE -->
+<button id="calc-btn" title="Convertir horas / unidades">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/>
+  </svg>
+</button>
+<div id="calc-overlay"></div>
+<div id="calc-panel">
+  <div class="calc-handle"></div>
+  <div class="calc-title">¿Horas o unidades?</div>
+  <div class="calc-sub">Convierte entre horas trabajadas y unidades cobradas</div>
+  <div class="calc-row">
+    <div class="calc-field">
+      <div class="calc-label">Unidades</div>
+      <input class="calc-input" id="calc-uni" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01">
+    </div>
+    <div class="calc-arrow">⇄</div>
+    <div class="calc-field">
+      <div class="calc-label">Horas</div>
+      <input class="calc-input" id="calc-hrs" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01">
+    </div>
+  </div>
+  <button class="calc-reset" id="calc-reset">Limpiar</button>
+</div>
+
+<script>
+(function(){
+  var btn=document.getElementById("calc-btn");
+  var overlay=document.getElementById("calc-overlay");
+  var panel=document.getElementById("calc-panel");
+  var uniInput=document.getElementById("calc-uni");
+  var hrsInput=document.getElementById("calc-hrs");
+  var RATIO=0.175;
+
+  function openCalc(){panel.classList.add("show");overlay.classList.add("show");}
+  function closeCalc(){panel.classList.remove("show");overlay.classList.remove("show");}
+
+  btn.addEventListener("click",openCalc);
+  overlay.addEventListener("click",closeCalc);
+
+  uniInput.addEventListener("input",function(){
+    var v=parseFloat(uniInput.value);
+    if(isNaN(v)||uniInput.value===""){hrsInput.value="";return;}
+    var hrs=v/RATIO;
+    var h=Math.floor(hrs);
+    var m=Math.round((hrs-h)*60);
+    hrsInput.value=hrs.toFixed(3);
+  });
+
+  hrsInput.addEventListener("input",function(){
+    var v=parseFloat(hrsInput.value);
+    if(isNaN(v)||hrsInput.value===""){uniInput.value="";return;}
+    var uni=v*RATIO;
+    uniInput.value=uni.toFixed(3);
+  });
+
+  document.getElementById("calc-reset").addEventListener("click",function(){
+    uniInput.value="";hrsInput.value="";resultado.textContent="";uniInput.focus();
+  });
+})();
+</script>
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script>
 var CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
