@@ -22,6 +22,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .header-name{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:1.5px;line-height:1}
 .header-sub{font-size:9px;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase}
 .header-portal{font-size:10px;color:var(--gray);letter-spacing:.5px}
+#btn-logout{position:fixed;top:10px;right:10px;z-index:200;background:rgba(13,22,35,.85);border:1px solid var(--border);border-radius:8px;color:var(--gray);font-size:10px;font-weight:600;padding:5px 8px;cursor:pointer;font-family:"Outfit",sans-serif;transition:all .2s;backdrop-filter:blur(8px)}
+#btn-logout:hover{background:rgba(230,80,70,.2);border-color:rgba(230,80,70,.5);color:#f07070}
 #nav-bar{display:flex;align-items:center;gap:8px;padding:6px 0 8px}
 #btn-back{height:32px;padding:0 12px 0 8px;border-radius:10px;border:1px solid rgba(200,168,75,.35);background:linear-gradient(135deg,rgba(200,168,75,.18),rgba(200,168,75,.08));color:var(--gold);font-size:16px;display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;transition:all .2s;font-family:"Outfit",sans-serif;font-weight:700;letter-spacing:.3px}
 #btn-back::after{content:"Atrás";font-size:11px;font-weight:700;color:var(--gold)}
@@ -151,6 +153,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   </div>
 </div>
 
+<button id="btn-logout">🔒 Salir</button>
+
 <div id="app-header">
   <div class="header-row">
     <div class="logo">CTA</div>
@@ -159,7 +163,6 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
       <div class="header-sub">Comision de Trabajadores Asamblearios</div>
       <div class="header-portal">Portal del Afiliado</div>
     </div>
-    <button id="btn-logout" title="Cerrar sesion">&#128274; Salir</button>
   </div>
   <div id="nav-bar">
     <button id="btn-back" disabled>&#8592;</button>
@@ -591,7 +594,28 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   }
 });
 
-// BUSCADOR - obtiene recursivamente IDs de todas las subcarpetas de CTA
+// BUSCADOR - índice local de todos los archivos de CTA
+var searchIndex=[];
+function buildSearchIndex(folderId){
+  return driveList({q:"'"+folderId+"' in parents and trashed=false",fields:"files(id,name,mimeType,size,modifiedTime)"})
+  .then(function(data){
+    var files=data.files||[];
+    var promises=[];
+    files.forEach(function(f){
+      if(f.name.toLowerCase()==="avisos.txt")return;
+      if(f.mimeType==="application/vnd.google-apps.folder"){
+        promises.push(buildSearchIndex(f.id));
+      } else {
+        searchIndex.push(f);
+      }
+    });
+    return Promise.all(promises);
+  });
+}
+
+// Construir índice al cargar
+buildSearchIndex(ROOT_ID).catch(function(){});
+
 function getAllFolderIds(parentId){
   return driveList({q:"'"+parentId+"' in parents and trashed=false and mimeType='application/vnd.google-apps.folder'",fields:"files(id)"})
   .then(function(data){
@@ -611,7 +635,6 @@ function getAllFolderIds(parentId){
   var clear=document.getElementById("search-clear");
   var results=document.getElementById("search-results");
   var container=document.getElementById("drive-container");
-  var timer=null;
 
   function doSearch(q){
     if(!q){
@@ -622,41 +645,32 @@ function getAllFolderIds(parentId){
     clear.style.display="block";
     results.style.display="flex";
     container.style.display="none";
-    results.innerHTML="<div class=\"spinner-wrap\"><div class=\"spinner\"></div><div class=\"spinner-label\">Buscando...</div></div>";
 
-    getAllFolderIds(ROOT_ID).then(function(folderIds){
-      var allIds=folderIds.concat([ROOT_ID]);
-      var inParents=allIds.map(function(id){return "'"+id+"' in parents";}).join(" or ");
-      var query="("+inParents+") and name contains '"+q.replace(/'/g,"\\'")+"' and trashed=false and mimeType!='application/vnd.google-apps.folder'";
-      return driveList({q:query,fields:"files(id,name,mimeType,size,modifiedTime)",orderBy:"name"});
-    })
-    .then(function(data){
-      var files=(data.files||[]).filter(function(f){return f.name.toLowerCase()!=="avisos.txt";});
-      results.innerHTML="";
-      if(!files.length){results.innerHTML="<div class=\"empty-box\">Sin resultados para \""+escH(q)+"\"</div>";return;}
-      files.forEach(function(f){
-        var isPDF=f.mimeType==="application/pdf";
-        var isDoc=f.mimeType&&(f.mimeType.indexOf("document")!==-1||f.mimeType.indexOf("spreadsheet")!==-1);
-        var ic=isPDF?"icon-pdf":isDoc?"icon-doc":"icon-other";
-        var ie=isPDF?"\uD83D\uDCD5":isDoc?"\uD83D\uDCCB":"\uD83D\uDCC4";
-        var disp=cleanDocName(f.name);
-        var mt=(f.size?fmtSize(f.size)+" — ":"")+fmtDate(f.modifiedTime);
-        var btn=document.createElement("button");btn.className="drive-item";
-        btn.innerHTML="<div class=\"item-icon "+ic+"\">"+ie+"</div>"
-          +"<div class=\"item-info\"><div class=\"item-name\">"+escH(disp)+"</div>"
-          +"<div class=\"item-meta\">"+escH(mt)+"</div></div>"
-          +"<div class=\"item-arrow\">\u2197\uFE0F</div>";
-        btn.addEventListener("click",function(){openFile({id:f.id,name:disp});});
-        results.appendChild(btn);
-      });
-    })
-    .catch(function(err){results.innerHTML="<div class=\"error-box\">Error al buscar.<br><small>"+escH(err.message)+"</small></div>";});
+    var ql=q.toLowerCase();
+    var found=searchIndex.filter(function(f){return f.name.toLowerCase().indexOf(ql)!==-1;});
+    results.innerHTML="";
+    if(!found.length){
+      results.innerHTML="<div class=\"empty-box\">Sin resultados para \""+escH(q)+"\"</div>";
+      return;
+    }
+    found.forEach(function(f){
+      var isPDF=f.mimeType==="application/pdf";
+      var isDoc=f.mimeType&&(f.mimeType.indexOf("document")!==-1||f.mimeType.indexOf("spreadsheet")!==-1);
+      var ic=isPDF?"icon-pdf":isDoc?"icon-doc":"icon-other";
+      var ie=isPDF?"\uD83D\uDCD5":isDoc?"\uD83D\uDCCB":"\uD83D\uDCC4";
+      var disp=cleanDocName(f.name);
+      var mt=(f.size?fmtSize(f.size)+" — ":"")+fmtDate(f.modifiedTime);
+      var btn=document.createElement("button");btn.className="drive-item";
+      btn.innerHTML="<div class=\"item-icon "+ic+"\">"+ie+"</div>"
+        +"<div class=\"item-info\"><div class=\"item-name\">"+escH(disp)+"</div>"
+        +"<div class=\"item-meta\">"+escH(mt)+"</div></div>"
+        +"<div class=\"item-arrow\">\u2197\uFE0F</div>";
+      btn.addEventListener("click",function(){openFile({id:f.id,name:disp});});
+      results.appendChild(btn);
+    });
   }
 
-  input.addEventListener("input",function(){
-    clearTimeout(timer);
-    timer=setTimeout(function(){doSearch(input.value.trim());},450);
-  });
+  input.addEventListener("input",function(){doSearch(input.value.trim());});
   clear.addEventListener("click",function(){input.value="";doSearch("");input.focus();});
 })();
 </script>
