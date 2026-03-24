@@ -150,7 +150,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
     <div>
       <div class="header-name">CTA Alicante</div>
       <div class="header-sub">Comision de Trabajadores Asamblearios</div>
-      <div class="header-portal">Portal del Afiliado</div>
+      <div class="header-portal" id="header-welcome">Portal del Afiliado</div>
     </div>
   </div>
   <div id="nav-bar">
@@ -604,9 +604,19 @@ function parseJwt(token){
   catch(e){return null;}
 }
 
+function primerNombre(nombre){
+  var n=(nombre||"").split(/\s+/)[0];
+  return n.charAt(0).toUpperCase()+n.slice(1).toLowerCase();
+}
+function setWelcome(nombre){
+  var el=document.getElementById("header-welcome");
+  if(el)el.textContent="Hola, "+primerNombre(nombre)+" 👋";
+}
+
 function entrar(email,nombre){
   localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
   document.getElementById("login-screen").style.display="none";
+  setWelcome(nombre);
   // Registrar en segundo plano
   fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:email,nombre:nombre}),headers:{"Content-Type":"text/plain"}}).catch(function(){});
 }
@@ -655,6 +665,7 @@ window.addEventListener("load",function(){
             initGoogle();
           }
         }).catch(function(){});
+        setWelcome(s.nombre);
         return;
       }
     }
