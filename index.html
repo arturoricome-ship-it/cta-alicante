@@ -257,12 +257,12 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
     <!-- VUELOS VUELING ALC -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:4px">
       <p class="section-title" style="margin:0">✈️ Vueling en Alicante</p>
-      <button id="vuelos-refresh" style="background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);border-radius:8px;color:var(--gold);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Outfit',sans-serif">↻ Actualizar</button>
+      <div style="display:flex;gap:6px"><button id="vuelos-filtro" style="background:rgba(60,180,100,.2);border:1px solid rgba(60,180,100,.3);border-radius:8px;color:#5dd88a;font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Outfit',sans-serif">🟢 Activos</button><button id="vuelos-refresh" style="background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);border-radius:8px;color:var(--gold);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Outfit',sans-serif">↻</button></div>
     </div>
     <p class="section-sub" id="vuelos-hora"></p>
     <div style="display:flex;gap:0;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
-      <button class="vuelos-tab active" id="tab-salidas" onclick="switchVuelos('salidas')">🛫 Salidas</button>
-      <button class="vuelos-tab" id="tab-llegadas" onclick="switchVuelos('llegadas')">🛬 Llegadas</button>
+      <button class="vuelos-tab active" id="tab-llegadas" onclick="switchVuelos('llegadas')">🛬 Llegadas</button>
+      <button class="vuelos-tab" id="tab-salidas" onclick="switchVuelos('salidas')">🛫 Salidas</button>
     </div>
     <div id="vuelos-container"><div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Cargando vuelos...</div></div></div>
 
@@ -748,21 +748,37 @@ function renderAvisosDefault(container){
 
 // VUELOS VUELING ALC
 var AVIATION_KEY="c69da0d719ab8a9787dc0c391ae414e2";
-var vuelosMode="salidas";
+var vuelosMode="llegadas";
+var vuelosFiltro=true;
 var vuelosData={salidas:[],llegadas:[]};
+
+var CIUDADES={"ALC":"Alicante","BCN":"Barcelona","MAD":"Madrid","VLC":"Valencia","SVQ":"Sevilla","BIO":"Bilbao","PMI":"Palma","IBZ":"Ibiza","MAH":"Menorca","TFN":"Tenerife Norte","TFS":"Tenerife Sur","LPA":"Gran Canaria","ACE":"Lanzarote","FUE":"Fuerteventura","LCG":"A Coruña","SCQ":"Santiago","OVD":"Asturias","VGO":"Vigo","ZAZ":"Zaragoza","GRX":"Granada","AGP":"Málaga","XRY":"Jerez","MRS":"Marsella","LYS":"Lyon","CDG":"París","ORY":"París Orly","LHR":"Londres","LGW":"Londres","STN":"Londres","AMS":"Ámsterdam","FCO":"Roma","MXP":"Milán","VCE":"Venecia","NCE":"Niza","DUB":"Dublín","LIS":"Lisboa","OPO":"Oporto","ATH":"Atenas","IST":"Estambul","BRU":"Bruselas","FRA":"Fráncfort","MUC":"Múnich","VIE":"Viena","WAW":"Varsovia","PRG":"Praga","BUD":"Budapest","GVA":"Ginebra","ZRH":"Zúrich","CPH":"Copenhague","ARN":"Estocolmo","HEL":"Helsinki","OSL":"Oslo","TLV":"Tel Aviv","CAI":"El Cairo","CMN":"Casablanca","RAK":"Marrakech","TUN":"Túnez","ALG":"Argel","ORN":"Orán","BOD":"Burdeos","NTE":"Nantes","TLS":"Toulouse","MPL":"Montpellier","BVA":"París Beauvais","EIN":"Eindhoven","CRL":"Bruselas Sud","GRO":"Gerona","REU":"Reus","SDR":"Santander","LEI":"Almería","RMU":"Murcia","EAS":"San Sebastián","SPC":"La Palma","GMZ":"La Gomera","VDE":"El Hierro","MLN":"Melilla","DAAG":"Argel","GCXO":"Tenerife Norte","LFPO":"París Orly"};
+
+function getCiudad(iata,icao,nombre){
+  if(iata&&CIUDADES[iata])return CIUDADES[iata];
+  if(icao&&CIUDADES[icao])return CIUDADES[icao];
+  if(!nombre)return iata||"--";
+  return nombre.replace("El Prat De Llobregat","Barcelona").replace("Adolfo Suarez","Madrid").replace("Josep Tarradellas","Barcelona").replace("Norte Los Rodeos","Tenerife Norte").replace("Reina Sofia","Tenerife Sur").replace("Miguel Hernandez","Alicante").replace("Altet","Alicante").replace("Charles De Gaulle","París").replace("Heathrow","Londres").replace("Gatwick","Londres").replace("Schiphol","Ámsterdam").replace("Boumediene","Argel").replace("Airport","").replace("International","").replace(/\s+/g," ").trim();
+}
 
 function switchVuelos(mode){
   vuelosMode=mode;
-  document.getElementById("tab-salidas").classList.toggle("active",mode==="salidas");
   document.getElementById("tab-llegadas").classList.toggle("active",mode==="llegadas");
+  document.getElementById("tab-salidas").classList.toggle("active",mode==="salidas");
   renderVuelos();
 }
 
-function fmtHora(iso){
-  if(!iso)return"--:--";
-  var d=new Date(iso);
-  return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+function toggleFiltro(){
+  vuelosFiltro=!vuelosFiltro;
+  var btn=document.getElementById("vuelos-filtro");
+  btn.textContent=vuelosFiltro?"🟢 Activos":"📋 Todos";
+  btn.style.background=vuelosFiltro?"rgba(60,180,100,.2)":"rgba(200,168,75,.15)";
+  btn.style.color=vuelosFiltro?"#5dd88a":"var(--gold)";
+  btn.style.borderColor=vuelosFiltro?"rgba(60,180,100,.3)":"rgba(200,168,75,.3)";
+  renderVuelos();
 }
+
+function fmtHora(iso){if(!iso)return"--:--";var d=new Date(iso);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");}
 
 function estadoLabel(s){
   if(!s)return{t:"Programado",c:"estado-scheduled"};
@@ -776,34 +792,34 @@ function estadoLabel(s){
 
 function renderVuelos(){
   var container=document.getElementById("vuelos-container");
-  var data=vuelosMode==="salidas"?vuelosData.salidas:vuelosData.llegadas;
-  if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos disponibles</div>";return;}
+  var data=(vuelosMode==="salidas"?vuelosData.salidas:vuelosData.llegadas).slice();
+  if(vuelosFiltro){data=data.filter(function(v){var s=(v.flight_status||"").toLowerCase();return s!=="landed"&&s!=="cancelled";});}
+  // Eliminar vuelos operados por IB (código compartido)
+  data=data.filter(function(v){
+    var iata=(v.flight&&v.flight.iata)||"";
+    var codeshared=v.flight&&v.flight.codeshared;
+    if(codeshared&&codeshared.airline_iata&&codeshared.airline_iata.toUpperCase()==="IB")return false;
+    if(iata.toUpperCase().indexOf("IB")===0)return false;
+    return true;
+  });
+  if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(vuelosFiltro?" activos":"")+" disponibles</div>";return;}
   container.innerHTML="";
   data.forEach(function(v){
     var dep=v.departure||{};var arr=v.arrival||{};
     var esS=vuelosMode==="salidas";
-    var dest=esS?(arr.airport||"--"):(dep.airport||"--");
+    var ap=esS?arr:dep;
+    var ciudad=getCiudad(ap.iata,ap.icao,ap.airport);
     var horaProg=esS?dep.scheduled:arr.scheduled;
-    var horaReal=esS?(dep.actual||dep.estimated):( arr.actual||arr.estimated);
+    var horaReal=esS?(dep.actual||dep.estimated):(arr.actual||arr.estimated);
     var estado=estadoLabel(v.flight_status);
     var puerta=esS?dep.gate:arr.gate;
     var baggage=arr.baggage;
-    var num=v.flight?("VY"+(v.flight.number||"")):"VY---";
+    var num=(v.flight&&v.flight.iata)||("VY"+(v.flight&&v.flight.number||""));
+    var horaStr=(horaReal&&horaReal!==horaProg)?('<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+fmtHora(horaProg)+"</span>"+fmtHora(horaReal)):fmtHora(horaProg);
+    var extra=puerta?"Puerta "+puerta:(baggage?"Cinta "+baggage:"");
     var row=document.createElement("div");row.className="vuelo-row";
-    var horaExtra="";
-    if(horaReal&&horaReal!==horaProg){
-      horaExtra=' <span style="color:#f0a070;text-decoration:line-through">'+fmtHora(horaProg)+'</span> '+fmtHora(horaReal);
-    } else {
-      horaExtra=fmtHora(horaProg);
-    }
-    row.innerHTML="<div>"
-      +"<div class='vuelo-num'>"+num+"</div>"
-      +(puerta?"<div class='vuelo-puerta'>Puerta "+puerta+"</div>":(baggage?"<div class='vuelo-puerta'>Cinta "+baggage+"</div>":""))
-      +"</div>"
-      +"<div>"
-      +"<div class='vuelo-dest'>"+dest+"</div>"
-      +"<div class='vuelo-hora'>"+horaExtra+"</div>"
-      +"</div>"
+    row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extra?"<div class='vuelo-puerta'>"+extra+"</div>":"")+"</div>"
+      +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
       +"<div class='vuelo-estado "+estado.c+"'>"+estado.t+"</div>";
     container.appendChild(row);
   });
@@ -813,32 +829,20 @@ function loadVuelos(){
   var container=document.getElementById("vuelos-container");
   var horaEl=document.getElementById("vuelos-hora");
   container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
-
   var base="https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50";
-  var urlSal=base+"&dep_iata=ALC";
-  var urlLle=base+"&arr_iata=ALC";
-
-  Promise.all([
-    fetch(urlSal).then(function(r){return r.json();}),
-    fetch(urlLle).then(function(r){return r.json();})
+  Promise.all([fetch(base+"&dep_iata=ALC").then(function(r){return r.json();}),fetch(base+"&arr_iata=ALC").then(function(r){return r.json();})
   ]).then(function(results){
-    vuelosData.salidas=(results[0].data||[]).sort(function(a,b){
-      return new Date(a.departure&&a.departure.scheduled||0)-new Date(b.departure&&b.departure.scheduled||0);
-    });
-    vuelosData.llegadas=(results[1].data||[]).sort(function(a,b){
-      return new Date(a.arrival&&a.arrival.scheduled||0)-new Date(b.arrival&&b.arrival.scheduled||0);
-    });
+    vuelosData.salidas=(results[0].data||[]).sort(function(a,b){return new Date((a.departure&&a.departure.scheduled)||0)-new Date((b.departure&&b.departure.scheduled)||0);});
+    vuelosData.llegadas=(results[1].data||[]).sort(function(a,b){return new Date((a.arrival&&a.arrival.scheduled)||0)-new Date((b.arrival&&b.arrival.scheduled)||0);});
     var now=new Date();
     horaEl.textContent="Actualizado: "+String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
     renderVuelos();
-  }).catch(function(){
-    container.innerHTML="<div class='error-box'>Error al cargar vuelos. Comprueba tu conexion.</div>";
-  });
+  }).catch(function(){container.innerHTML="<div class='error-box'>Error al cargar vuelos.</div>";});
 }
 
 document.getElementById("vuelos-refresh").addEventListener("click",loadVuelos);
+document.getElementById("vuelos-filtro").addEventListener("click",toggleFiltro);
 
-// Cargar cuando se cambia a pestaña afiliate
 var _origSwitchTab=switchTab;
 switchTab=function(name,tabEl,navEl){
   _origSwitchTab(name,tabEl,navEl);
