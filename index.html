@@ -596,8 +596,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 
 </script>
 
-<!-- GOOGLE IDENTITY SERVICES -->
-<script src="https://accounts.google.com/gsi/client" async></script>
+<!-- GOOGLE AUTH -->
 <script>
 var CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
 var SHEETS_URL="https://script.google.com/macros/s/AKfycbw59yVufbQO0l-MnlLX0328ypr-JO871xmNe1TYzel7EiKOsx5GHlb1LRNn8DOzfmfv/exec";
@@ -680,19 +679,63 @@ window.addEventListener("load",function(){
 });
 
 function initGoogle(){
-  google.accounts.id.initialize({
-    client_id:CLIENT_ID,
-    callback:handleCredentialResponse,
-    auto_select:false,
-    cancel_on_tap_outside:false
-  });
-  document.getElementById("google-btn").addEventListener("click",function(){
-    document.getElementById("login-status").textContent="";
-    document.getElementById("google-btn").textContent="⏳ Abriendo...";
-    google.accounts.id.prompt(function(notification){
-      document.getElementById("google-btn").innerHTML="<img src=\"https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg\" style=\"width:20px;height:20px\"> Entrar con Google";
+  var btn=document.getElementById("google-btn");
+  btn.addEventListener("click",function(){
+    btn.innerHTML="⏳ Abriendo...";
+    // OAuth redirect directo — funciona en todos los dispositivos
+    var params=new URLSearchParams({
+      client_id:CLIENT_ID,
+      redirect_uri:window.location.origin+window.location.pathname,
+      response_type:"token id_token",
+      scope:"openid email profile",
+      nonce:Math.random().toString(36).slice(2),
+      prompt:"select_account"
     });
+    window.location.href="https://accounts.google.com/o/oauth2/v2/auth?"+params.toString();
   });
+
+  // Procesar respuesta OAuth del hash de la URL
+  var hash=window.location.hash;
+  if(hash&&hash.indexOf("id_token")!==-1){
+    var hashParams=new URLSearchParams(hash.slice(1));
+    var idToken=hashParams.get("id_token");
+    if(idToken){
+      // Limpiar hash de la URL
+      history.replaceState(null,"",window.location.pathname);
+      var status=document.getElementById("login-status");
+      status.textContent="Verificando...";
+      var payload=parseJwt(idToken);
+      if(payload){
+        var email=payload.email;
+        var nombre=payload.name||email;
+        var done=false;
+        var timeout=setTimeout(function(){
+          if(!done){done=true;
+            localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
+            document.getElementById("login-screen").style.display="none";
+          }
+        },2000);
+        fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:email,nombre:nombre}),headers:{"Content-Type":"text/plain"}})
+        .then(function(r){return r.json();})
+        .then(function(data){
+          if(done)return;done=true;clearTimeout(timeout);
+          if(data.bloqueado){
+            status.style.color="#f07070";
+            status.textContent="⛔ Tu acceso ha sido desactivado. Contacta con CTA.";
+            localStorage.removeItem("cta_session");
+          } else {
+            localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
+            document.getElementById("login-screen").style.display="none";
+          }
+        })
+        .catch(function(){
+          if(done)return;done=true;clearTimeout(timeout);
+          localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
+          document.getElementById("login-screen").style.display="none";
+        });
+      }
+    }
+  }
 }
 </script>
 </body>
