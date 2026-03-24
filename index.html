@@ -114,14 +114,6 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 /* LOGOUT */
 #btn-logout{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;color:var(--gray);font-size:11px;font-weight:600;padding:5px 9px;cursor:pointer;font-family:"Outfit",sans-serif;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:4px;flex-shrink:0}
 #btn-logout:hover{background:rgba(230,80,70,.15);border-color:rgba(230,80,70,.4);color:#f07070}
-/* BUSCADOR */
-#search-wrap{padding:8px 12px 4px;flex-shrink:0}
-#search-wrap-inner{position:relative}
-#search-input{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:9px 36px 9px 12px;font-family:"Outfit",sans-serif;font-size:13px;color:var(--white);outline:none;transition:border-color .2s;display:block}
-#search-input::placeholder{color:var(--gray)}
-#search-input:focus{border-color:rgba(200,168,75,.4)}
-#search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gray);font-size:16px;cursor:pointer;display:none;padding:2px}
-#search-results{display:none;flex-direction:column;gap:7px;padding-top:4px}
 /* LOGIN SCREEN */
 #login-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
 .login-logo{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:flex;align-items:center;justify-content:center;font-family:"Bebas Neue",sans-serif;font-size:28px;color:var(--navy);box-shadow:0 8px 28px rgba(200,168,75,.4);margin-bottom:20px}
@@ -145,7 +137,10 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div class="login-sub">Portal del Afiliado</div>
   <div class="login-card">
     <div class="login-desc">Accede con tu cuenta de Google para entrar al portal sindical de CTA Alicante.</div>
-    <div id="google-btn-wrap" style="display:flex;justify-content:center;margin-bottom:4px"></div>
+    <button id="google-btn">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+      Entrar con Google
+    </button>
     <div class="login-status" id="login-status"></div>
   </div>
 </div>
@@ -179,13 +174,6 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 <div id="scroll-area">
 
   <div class="panel active" id="panel-documentos">
-    <div id="search-wrap">
-      <div id="search-wrap-inner">
-        <input id="search-input" type="text" placeholder="🔍  Buscar por nombre...">
-        <button id="search-clear">✕</button>
-      </div>
-    </div>
-    <div id="search-results"></div>
     <div id="drive-container"></div>
   </div>
 
@@ -605,97 +593,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   }
 });
 
-// BUSCADOR - índice local, se construye en diferido (3s después de cargar)
-var searchIndex=[];
-var searchIndexReady=false;
-function buildSearchIndex(folderId){
-  return driveList({q:"'"+folderId+"' in parents and trashed=false",fields:"files(id,name,mimeType,size,modifiedTime)"})
-  .then(function(data){
-    var files=data.files||[];
-    var promises=[];
-    files.forEach(function(f){
-      if(f.name.toLowerCase()==="avisos.txt")return;
-      if(f.mimeType==="application/vnd.google-apps.folder"){
-        promises.push(buildSearchIndex(f.id));
-      } else {
-        searchIndex.push(f);
-      }
-    });
-    return Promise.all(promises);
-  });
-}
-// Se llama solo después de login confirmado
-function startSearchIndex(){
-  setTimeout(function(){
-    buildSearchIndex(ROOT_ID).then(function(){searchIndexReady=true;}).catch(function(){});
-  },2000);
-}
 
-function getAllFolderIds(parentId){
-  return driveList({q:"'"+parentId+"' in parents and trashed=false and mimeType='application/vnd.google-apps.folder'",fields:"files(id)"})
-  .then(function(data){
-    var folders=data.files||[];
-    if(!folders.length)return[];
-    return Promise.all(folders.map(function(f){return getAllFolderIds(f.id);}))
-    .then(function(nested){
-      var ids=folders.map(function(f){return f.id;});
-      nested.forEach(function(arr){ids=ids.concat(arr);});
-      return ids;
-    });
-  });
-}
-
-(function(){
-  var input=document.getElementById("search-input");
-  var clear=document.getElementById("search-clear");
-  var results=document.getElementById("search-results");
-  var container=document.getElementById("drive-container");
-
-  function doSearch(q){
-    if(!q){
-      results.style.display="none";results.innerHTML="";
-      container.style.display="";clear.style.display="none";
-      return;
-    }
-    clear.style.display="block";
-    results.style.display="flex";
-    container.style.display="none";
-
-    if(!searchIndexReady){
-      results.innerHTML="<div class=\"spinner-wrap\"><div class=\"spinner\"></div><div class=\"spinner-label\">Preparando buscador...</div></div>";
-      var wait=setInterval(function(){
-        if(searchIndexReady){clearInterval(wait);doSearch(q);}
-      },300);
-      return;
-    }
-
-    var ql=q.toLowerCase();
-    var found=searchIndex.filter(function(f){return f.name.toLowerCase().indexOf(ql)!==-1;});
-    results.innerHTML="";
-    if(!found.length){
-      results.innerHTML="<div class=\"empty-box\">Sin resultados para \""+escH(q)+"\"</div>";
-      return;
-    }
-    found.forEach(function(f){
-      var isPDF=f.mimeType==="application/pdf";
-      var isDoc=f.mimeType&&(f.mimeType.indexOf("document")!==-1||f.mimeType.indexOf("spreadsheet")!==-1);
-      var ic=isPDF?"icon-pdf":isDoc?"icon-doc":"icon-other";
-      var ie=isPDF?"\uD83D\uDCD5":isDoc?"\uD83D\uDCCB":"\uD83D\uDCC4";
-      var disp=cleanDocName(f.name);
-      var mt=(f.size?fmtSize(f.size)+" — ":"")+fmtDate(f.modifiedTime);
-      var btn=document.createElement("button");btn.className="drive-item";
-      btn.innerHTML="<div class=\"item-icon "+ic+"\">"+ie+"</div>"
-        +"<div class=\"item-info\"><div class=\"item-name\">"+escH(disp)+"</div>"
-        +"<div class=\"item-meta\">"+escH(mt)+"</div></div>"
-        +"<div class=\"item-arrow\">\u2197\uFE0F</div>";
-      btn.addEventListener("click",function(){openFile({id:f.id,name:disp});});
-      results.appendChild(btn);
-    });
-  }
-
-  input.addEventListener("input",function(){doSearch(input.value.trim());});
-  clear.addEventListener("click",function(){input.value="";doSearch("");input.focus();});
-})();
 </script>
 
 <!-- GOOGLE IDENTITY SERVICES -->
@@ -723,7 +621,6 @@ function handleCredentialResponse(response){
     if(!done){done=true;
       localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
       document.getElementById("login-screen").classList.add("hidden");
-      startSearchIndex();
     }
   },2000);
 
@@ -742,14 +639,12 @@ function handleCredentialResponse(response){
     } else {
       localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
       document.getElementById("login-screen").classList.add("hidden");
-      startSearchIndex();
     }
   })
   .catch(function(){
     if(done)return;done=true;clearTimeout(timeout);
     localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
     document.getElementById("login-screen").classList.add("hidden");
-    startSearchIndex();
   });
 }
 
@@ -762,7 +657,8 @@ window.addEventListener("load",function(){
     if(saved){
       var s=JSON.parse(saved);
       if(s&&s.ts&&(Date.now()-s.ts)<30*24*60*60*1000){
-        // Sesión válida — verificar si sigue bloqueado en segundo plano
+        // Entrar directo sin mostrar login
+        // Llamar al Sheets en segundo plano para contar entrada y verificar bloqueo
         fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:s.email,nombre:s.nombre}),headers:{"Content-Type":"text/plain"}})
         .then(function(r){return r.json();})
         .then(function(data){
@@ -773,7 +669,6 @@ window.addEventListener("load",function(){
           }
         })
         .catch(function(){});
-        startSearchIndex();
         return; // Entrar directamente, sin mostrar login
       }
     }
@@ -789,14 +684,15 @@ function initGoogle(){
     client_id:CLIENT_ID,
     callback:handleCredentialResponse,
     auto_select:false,
-    cancel_on_tap_outside:false,
-    ux_mode:"popup"
+    cancel_on_tap_outside:false
   });
-  // Renderizar el botón oficial de Google directamente — más fiable que prompt
-  google.accounts.id.renderButton(
-    document.getElementById("google-btn-wrap"),
-    {theme:"filled_blue", size:"large", width:280, text:"signin_with", shape:"rectangular"}
-  );
+  document.getElementById("google-btn").addEventListener("click",function(){
+    document.getElementById("login-status").textContent="";
+    document.getElementById("google-btn").textContent="⏳ Abriendo...";
+    google.accounts.id.prompt(function(notification){
+      document.getElementById("google-btn").innerHTML="<img src=\"https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg\" style=\"width:20px;height:20px\"> Entrar con Google";
+    });
+  });
 }
 </script>
 </body>
