@@ -145,10 +145,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div class="login-sub">Portal del Afiliado</div>
   <div class="login-card">
     <div class="login-desc">Accede con tu cuenta de Google para entrar al portal sindical de CTA Alicante.</div>
-    <button id="google-btn">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-      Entrar con Google
-    </button>
+    <div id="google-btn-wrap" style="display:flex;justify-content:center;margin-bottom:4px"></div>
     <div class="login-status" id="login-status"></div>
   </div>
 </div>
@@ -792,15 +789,14 @@ function initGoogle(){
     client_id:CLIENT_ID,
     callback:handleCredentialResponse,
     auto_select:false,
-    cancel_on_tap_outside:false
+    cancel_on_tap_outside:false,
+    ux_mode:"popup"
   });
-  document.getElementById("google-btn").addEventListener("click",function(){
-    document.getElementById("login-status").textContent="";
-    document.getElementById("google-btn").textContent="⏳ Abriendo...";
-    google.accounts.id.prompt(function(notification){
-      document.getElementById("google-btn").innerHTML="<img src=\"https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg\" style=\"width:20px;height:20px\"> Entrar con Google";
-    });
-  });
+  // Renderizar el botón oficial de Google directamente — más fiable que prompt
+  google.accounts.id.renderButton(
+    document.getElementById("google-btn-wrap"),
+    {theme:"filled_blue", size:"large", width:280, text:"signin_with", shape:"rectangular"}
+  );
 }
 </script>
 </body>
