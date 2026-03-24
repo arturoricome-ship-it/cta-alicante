@@ -64,15 +64,16 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .empty-box{text-align:center;padding:36px 20px;font-size:13px;color:var(--gray);line-height:2}
 .section-title{font-family:"Bebas Neue",sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:2px;margin-top:8px}
 .section-sub{font-size:11px;color:var(--gray);margin-bottom:10px}
-.turnos-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:10px}
+.turnos-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;min-width:0}
 @media(max-width:340px){.turnos-cols{grid-template-columns:1fr}}
-.turnos-col-title{font-family:"Bebas Neue",sans-serif;font-size:15px;letter-spacing:1px;color:var(--gold);margin-bottom:8px;text-align:center}
-.turnos-block{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px}
-.turnos-header{background:linear-gradient(135deg,var(--navy),var(--navy-light));padding:10px 14px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px}
-.turno-file-row{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .2s;border-top:1px solid var(--border)}
+.turnos-col-title{font-family:"Bebas Neue",sans-serif;font-size:14px;letter-spacing:1px;color:var(--gold);margin-bottom:8px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.turnos-block{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px;min-width:0}
+.turnos-header{background:linear-gradient(135deg,var(--navy),var(--navy-light));padding:8px 10px;display:flex;align-items:center;gap:6px;font-weight:700;font-size:12px}
+.turno-file-row{padding:10px 10px;display:flex;flex-direction:column;gap:5px;cursor:pointer;transition:background .2s;border-top:1px solid var(--border)}
 .turno-file-row:hover{background:var(--card2)}
-.turno-file-name{flex:1;font-size:13px;font-weight:600}
-.turno-file-mes{font-size:11px;color:var(--gold);font-weight:700;background:rgba(200,168,75,.12);padding:3px 9px;border-radius:100px;white-space:nowrap}
+.turno-file-name{font-size:13px;font-weight:700;color:var(--white)}
+.turno-file-fecha{font-size:10px;color:var(--gray)}
+.turno-file-fecha span{color:var(--gold);font-weight:600}
 .turno-empty{padding:14px;text-align:center;font-size:12px;color:var(--gray);border-top:1px solid var(--border)}
 .aviso-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px;margin-bottom:9px}
 .aviso-tag{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
@@ -443,10 +444,12 @@ function makeTurnoBlock(icon,label){
       var disp=cleanName(file.name);
       body.innerHTML="";
       var row=document.createElement("div");row.className="turno-file-row";
-      row.innerHTML="<span style=\"font-size:22px\">\uD83D\uDCD5</span>"
+      row.innerHTML="<div style=\"display:flex;align-items:center;gap:8px\">"
+        +"<span style=\"font-size:20px\">\uD83D\uDCD5</span>"
         +"<span class=\"turno-file-name\">"+escH(disp)+"</span>"
-        +"<span class=\"turno-file-mes\">"+fmtDate(file.modifiedTime)+"</span>"
-        +"<span style=\"color:var(--gold);font-size:15px;margin-left:8px\">\u2197\uFE0F</span>";
+        +"<span style=\"color:var(--gold);font-size:14px;margin-left:auto\">\u2197\uFE0F</span>"
+        +"</div>"
+        +"<div class=\"turno-file-fecha\">Publicado: <span>"+fmtDate(file.modifiedTime)+"</span></div>";
       row.style.cursor="pointer";
       (function(f,d){row.addEventListener("click",function(){
         // Abre directamente en Drive/PDF nativo del dispositivo
@@ -547,17 +550,38 @@ function handleCredentialResponse(response){
     if(data.bloqueado){
       status.style.color="#f07070";
       status.textContent="⛔ Tu acceso ha sido desactivado. Contacta con CTA.";
+      localStorage.removeItem("cta_session");
     } else {
+      localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
       document.getElementById("login-screen").classList.add("hidden");
     }
   })
   .catch(function(){
-    // Si falla el sheet, dejamos pasar igualmente (no bloqueamos por error de red)
+    localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
     document.getElementById("login-screen").classList.add("hidden");
   });
 }
 
 window.addEventListener("load",function(){
+  // Comprobar sesión guardada (válida 30 días)
+  try{
+    var saved=localStorage.getItem("cta_session");
+    if(saved){
+      var s=JSON.parse(saved);
+      if(s&&s.ts&&(Date.now()-s.ts)<30*24*60*60*1000){
+        // Verificar si sigue bloqueado
+        fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:s.email,nombre:s.nombre}),headers:{"Content-Type":"text/plain"}})
+        .then(function(r){return r.json();})
+        .then(function(data){
+          if(data.bloqueado){localStorage.removeItem("cta_session");}
+          else{document.getElementById("login-screen").classList.add("hidden");}
+        })
+        .catch(function(){document.getElementById("login-screen").classList.add("hidden");});
+        return;
+      }
+    }
+  }catch(e){}
+
   google.accounts.id.initialize({
     client_id:CLIENT_ID,
     callback:handleCredentialResponse,
@@ -568,7 +592,6 @@ window.addEventListener("load",function(){
     document.getElementById("login-status").textContent="";
     google.accounts.id.prompt(function(notification){
       if(notification.isSkippedMoment()||notification.isDismissedMoment()){
-        // Fallback: renderizar botón estándar de Google
         google.accounts.id.renderButton(
           document.getElementById("google-btn"),
           {theme:"outline",size:"large",width:280,text:"signin_with"}
