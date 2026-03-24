@@ -594,8 +594,9 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   }
 });
 
-// BUSCADOR - índice local de todos los archivos de CTA
+// BUSCADOR - índice local, se construye en diferido (3s después de cargar)
 var searchIndex=[];
+var searchIndexReady=false;
 function buildSearchIndex(folderId){
   return driveList({q:"'"+folderId+"' in parents and trashed=false",fields:"files(id,name,mimeType,size,modifiedTime)"})
   .then(function(data){
@@ -612,9 +613,10 @@ function buildSearchIndex(folderId){
     return Promise.all(promises);
   });
 }
-
-// Construir índice al cargar
-buildSearchIndex(ROOT_ID).catch(function(){});
+// Espera 3s para no interferir con la carga inicial
+setTimeout(function(){
+  buildSearchIndex(ROOT_ID).then(function(){searchIndexReady=true;}).catch(function(){});
+},3000);
 
 function getAllFolderIds(parentId){
   return driveList({q:"'"+parentId+"' in parents and trashed=false and mimeType='application/vnd.google-apps.folder'",fields:"files(id)"})
@@ -645,6 +647,14 @@ function getAllFolderIds(parentId){
     clear.style.display="block";
     results.style.display="flex";
     container.style.display="none";
+
+    if(!searchIndexReady){
+      results.innerHTML="<div class=\"spinner-wrap\"><div class=\"spinner\"></div><div class=\"spinner-label\">Preparando buscador...</div></div>";
+      var wait=setInterval(function(){
+        if(searchIndexReady){clearInterval(wait);doSearch(q);}
+      },300);
+      return;
+    }
 
     var ql=q.toLowerCase();
     var found=searchIndex.filter(function(f){return f.name.toLowerCase().indexOf(ql)!==-1;});
