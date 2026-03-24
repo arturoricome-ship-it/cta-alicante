@@ -13,15 +13,8 @@
 <style>
 :root{--navy:#1a2744;--navy-light:#243460;--gold:#c8a84b;--gold-light:#e8c96a;--white:#f0eee8;--gray:#8a93a8;--bg:#0d1623;--card:#182135;--card2:#1f2d47;--border:rgba(255,255,255,0.07)}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{height:100%;background:#060d18}
-body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;box-shadow:0 0 60px rgba(0,0,0,.8)}
-/* BUSCADOR */
-#search-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0}
-#search-input{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-family:"Outfit",sans-serif;font-size:13px;color:var(--white);outline:none;transition:border-color .2s}
-#search-input::placeholder{color:var(--gray)}
-#search-input:focus{border-color:rgba(200,168,75,.4)}
-#search-clear{background:none;border:none;color:var(--gray);font-size:18px;cursor:pointer;padding:2px 4px;display:none}
-#search-results{display:none;flex-direction:column;gap:7px}
+html,body{height:100%;overflow:hidden}
+body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);display:flex;flex-direction:column}
 #app-header{background:linear-gradient(160deg,#1a2a4a 0%,var(--bg) 100%);padding:14px 16px 0;flex-shrink:0;z-index:10}
 #app-header::after{content:"";display:block;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-top:10px}
 .header-row{display:flex;align-items:center;gap:12px;margin-bottom:4px}
@@ -41,9 +34,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #breadcrumb::-webkit-scrollbar{display:none}
 .bc-item{cursor:pointer;transition:color .2s;flex-shrink:0}.bc-item:hover{color:var(--gold-light)}.bc-item.active{color:var(--white);font-weight:600}
 .bc-sep{color:var(--navy-light);font-size:12px;flex-shrink:0;margin:0 2px}
-#tab-bar{display:flex;gap:2px;padding:6px 0 0;flex-shrink:0;width:100%}
+#tab-bar{display:flex;gap:0;padding:6px 0 0;flex-shrink:0;width:100%}
 #tab-bar::-webkit-scrollbar{display:none}
-.tab{flex:1;min-width:0;padding:7px 2px;border-radius:100px;font-size:10px;font-weight:600;cursor:pointer;color:var(--gray);background:transparent;border:none;font-family:"Outfit",sans-serif;transition:all .25s;letter-spacing:.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab{flex:1;min-width:0;padding:8px 0;border-radius:100px;font-size:11px;font-weight:600;cursor:pointer;color:var(--gray);background:transparent;border:none;font-family:"Outfit",sans-serif;transition:all .25s;letter-spacing:.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
 .tab.active{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);box-shadow:0 4px 12px rgba(200,168,75,.35)}
 #scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 12px 90px;-webkit-overflow-scrolling:touch}
 .panel{display:none;animation:fadeUp .3s ease}.panel.active{display:block}
@@ -133,7 +126,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 <body>
 
 <!-- PANTALLA DE LOGIN -->
-<div id="login-screen">
+<div id="login-screen" style="display:none">
   <div class="login-logo">CTA</div>
   <div class="login-title">CTA Alicante</div>
   <div class="login-sub">Portal del Afiliado</div>
@@ -174,12 +167,6 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 <div id="scroll-area">
 
   <div class="panel active" id="panel-documentos">
-    <div id="search-bar">
-      <span style="font-size:16px;color:var(--gray)">🔍</span>
-      <input id="search-input" type="text" placeholder="Buscar documento...">
-      <button id="search-clear">✕</button>
-    </div>
-    <div id="search-results"></div>
     <div id="drive-container"></div>
   </div>
 
@@ -576,52 +563,6 @@ document.getElementById("ib-yes").addEventListener("click",function(){document.g
 
 renderBreadcrumb();
 renderFolder(ROOT_ID);
-
-// BUSCADOR
-(function(){
-  var input=document.getElementById("search-input");
-  var clear=document.getElementById("search-clear");
-  var results=document.getElementById("search-results");
-  var container=document.getElementById("drive-container");
-  var timer=null;
-
-  function doSearch(q){
-    if(!q){
-      results.style.display="none";results.innerHTML="";
-      container.style.display="";clear.style.display="none";return;
-    }
-    clear.style.display="block";
-    results.style.display="flex";container.style.display="none";
-    results.innerHTML="<div class=\"spinner-wrap\"><div class=\"spinner\"></div><div class=\"spinner-label\">Buscando...</div></div>";
-    driveList({q:"'"+ROOT_ID+"' in parents and trashed=false and fullText contains '"+q.replace(/'/g,"\\'")+"' and mimeType!='application/vnd.google-apps.folder'",fields:"files(id,name,mimeType,size,modifiedTime)",orderBy:"name"})
-    .then(function(data){
-      var files=(data.files||[]).filter(function(f){return f.name.toLowerCase()!=="avisos.txt";});
-      results.innerHTML="";
-      if(!files.length){results.innerHTML="<div class=\"empty-box\">Sin resultados para \""+escH(q)+"\"</div>";return;}
-      files.forEach(function(f){
-        var isPDF=f.mimeType==="application/pdf";
-        var isDoc=f.mimeType&&(f.mimeType.indexOf("document")!==-1||f.mimeType.indexOf("spreadsheet")!==-1);
-        var ic=isPDF?"icon-pdf":isDoc?"icon-doc":"icon-other";
-        var ie=isPDF?"\uD83D\uDCD5":isDoc?"\uD83D\uDCCB":"\uD83D\uDCC4";
-        var disp=cleanDocName(f.name);
-        var mt=(f.size?fmtSize(f.size)+" — ":"")+fmtDate(f.modifiedTime);
-        var btn=document.createElement("button");btn.className="drive-item";
-        btn.innerHTML="<div class=\"item-icon "+ic+"\">"+ie+"</div><div class=\"item-info\"><div class=\"item-name\">"+escH(disp)+"</div><div class=\"item-meta\">"+escH(mt)+"</div></div><div class=\"item-arrow\">\u2197\uFE0F</div>";
-        btn.addEventListener("click",function(){openFile({id:f.id,name:disp});});
-        results.appendChild(btn);
-      });
-    })
-    .catch(function(){results.innerHTML="<div class=\"error-box\">Error al buscar.</div>";});
-  }
-
-  input.addEventListener("input",function(){
-    clearTimeout(timer);
-    timer=setTimeout(function(){doSearch(input.value.trim());},400);
-  });
-  clear.addEventListener("click",function(){
-    input.value="";doSearch("");input.focus();
-  });
-})();
 </script>
 
 <!-- GOOGLE IDENTITY SERVICES -->
@@ -666,25 +607,36 @@ function handleCredentialResponse(response){
 }
 
 window.addEventListener("load",function(){
+  var loginScreen=document.getElementById("login-screen");
+
   // Comprobar sesión guardada (válida 30 días)
   try{
     var saved=localStorage.getItem("cta_session");
     if(saved){
       var s=JSON.parse(saved);
       if(s&&s.ts&&(Date.now()-s.ts)<30*24*60*60*1000){
-        // Verificar si sigue bloqueado
+        // Sesión válida — verificar si sigue bloqueado en segundo plano
         fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:s.email,nombre:s.nombre}),headers:{"Content-Type":"text/plain"}})
         .then(function(r){return r.json();})
         .then(function(data){
-          if(data.bloqueado){localStorage.removeItem("cta_session");}
-          else{document.getElementById("login-screen").classList.add("hidden");}
+          if(data.bloqueado){
+            localStorage.removeItem("cta_session");
+            loginScreen.style.display="flex";
+            initGoogle();
+          }
         })
-        .catch(function(){document.getElementById("login-screen").classList.add("hidden");});
-        return;
+        .catch(function(){});
+        return; // Entrar directamente, sin mostrar login
       }
     }
   }catch(e){}
 
+  // Sin sesión — mostrar pantalla de login
+  loginScreen.style.display="flex";
+  initGoogle();
+});
+
+function initGoogle(){
   google.accounts.id.initialize({
     client_id:CLIENT_ID,
     callback:handleCredentialResponse,
@@ -698,7 +650,7 @@ window.addEventListener("load",function(){
       document.getElementById("google-btn").innerHTML="<img src=\"https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg\" style=\"width:20px;height:20px\"> Entrar con Google";
     });
   });
-});
+}
 </script>
 </body>
 </html>
