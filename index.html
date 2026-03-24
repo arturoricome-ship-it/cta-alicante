@@ -137,10 +137,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div class="login-sub">Portal del Afiliado</div>
   <div class="login-card">
     <div class="login-desc">Accede con tu cuenta de Google para entrar al portal sindical de CTA Alicante.</div>
-    <button id="google-btn">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-      Entrar con Google
-    </button>
+    <div id="google-btn" style="display:flex;justify-content:center;min-height:44px;margin-bottom:4px"></div>
     <div class="login-status" id="login-status"></div>
   </div>
 </div>
@@ -596,7 +593,8 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 
 </script>
 
-<!-- GOOGLE AUTH -->
+<!-- GOOGLE IDENTITY SERVICES -->
+<script src="https://accounts.google.com/gsi/client" async></script>
 <script>
 var CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
 var SHEETS_URL="https://script.google.com/macros/s/AKfycbw59yVufbQO0l-MnlLX0328ypr-JO871xmNe1TYzel7EiKOsx5GHlb1LRNn8DOzfmfv/exec";
@@ -606,58 +604,48 @@ function parseJwt(token){
   catch(e){return null;}
 }
 
+function entrar(email,nombre){
+  localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
+  document.getElementById("login-screen").style.display="none";
+  // Registrar en segundo plano
+  fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:email,nombre:nombre}),headers:{"Content-Type":"text/plain"}}).catch(function(){});
+}
+
 function handleCredentialResponse(response){
   var status=document.getElementById("login-status");
   status.textContent="Verificando...";
   var payload=parseJwt(response.credential);
-  if(!payload){status.textContent="Error al verificar. Inténtalo de nuevo.";return;}
+  if(!payload){status.textContent="Error. Inténtalo de nuevo.";return;}
   var email=payload.email;
   var nombre=payload.name||email;
 
-  // Timeout de 5s — si el Sheets no responde, dejamos pasar
-  var done=false;
-  var timeout=setTimeout(function(){
-    if(!done){done=true;
-      localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
-      document.getElementById("login-screen").classList.add("hidden");
-    }
-  },2000);
-
-  fetch(SHEETS_URL,{
-    method:"POST",
-    body:JSON.stringify({email:email,nombre:nombre}),
-    headers:{"Content-Type":"text/plain"}
-  })
+  fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:email,nombre:nombre}),headers:{"Content-Type":"text/plain"}})
   .then(function(r){return r.json();})
   .then(function(data){
-    if(done)return;done=true;clearTimeout(timeout);
     if(data.bloqueado){
       status.style.color="#f07070";
-      status.textContent="⛔ Tu acceso ha sido desactivado. Contacta con CTA.";
+      status.textContent="⛔ Acceso desactivado. Contacta con CTA.";
       localStorage.removeItem("cta_session");
     } else {
-      localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
-      document.getElementById("login-screen").classList.add("hidden");
+      entrar(email,nombre);
     }
   })
   .catch(function(){
-    if(done)return;done=true;clearTimeout(timeout);
-    localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
-    document.getElementById("login-screen").classList.add("hidden");
+    // Si Sheets falla, entrar igualmente
+    entrar(email,nombre);
   });
 }
 
 window.addEventListener("load",function(){
   var loginScreen=document.getElementById("login-screen");
 
-  // Comprobar sesión guardada (válida 30 días)
+  // Sesión guardada — entrar directo
   try{
     var saved=localStorage.getItem("cta_session");
     if(saved){
       var s=JSON.parse(saved);
       if(s&&s.ts&&(Date.now()-s.ts)<30*24*60*60*1000){
-        // Entrar directo sin mostrar login
-        // Llamar al Sheets en segundo plano para contar entrada y verificar bloqueo
+        // Registrar entrada en segundo plano
         fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:s.email,nombre:s.nombre}),headers:{"Content-Type":"text/plain"}})
         .then(function(r){return r.json();})
         .then(function(data){
@@ -666,76 +654,27 @@ window.addEventListener("load",function(){
             loginScreen.style.display="flex";
             initGoogle();
           }
-        })
-        .catch(function(){});
-        return; // Entrar directamente, sin mostrar login
+        }).catch(function(){});
+        return;
       }
     }
   }catch(e){}
 
-  // Sin sesión — mostrar pantalla de login
   loginScreen.style.display="flex";
   initGoogle();
 });
 
 function initGoogle(){
-  var btn=document.getElementById("google-btn");
-  btn.addEventListener("click",function(){
-    btn.innerHTML="⏳ Abriendo...";
-    // OAuth redirect directo — funciona en todos los dispositivos
-    var params=new URLSearchParams({
-      client_id:CLIENT_ID,
-      redirect_uri:window.location.origin+window.location.pathname,
-      response_type:"token id_token",
-      scope:"openid email profile",
-      nonce:Math.random().toString(36).slice(2),
-      prompt:"select_account"
-    });
-    window.location.href="https://accounts.google.com/o/oauth2/v2/auth?"+params.toString();
+  google.accounts.id.initialize({
+    client_id:CLIENT_ID,
+    callback:handleCredentialResponse,
+    auto_select:false,
+    cancel_on_tap_outside:false
   });
-
-  // Procesar respuesta OAuth del hash de la URL
-  var hash=window.location.hash;
-  if(hash&&hash.indexOf("id_token")!==-1){
-    var hashParams=new URLSearchParams(hash.slice(1));
-    var idToken=hashParams.get("id_token");
-    if(idToken){
-      // Limpiar hash de la URL
-      history.replaceState(null,"",window.location.pathname);
-      var status=document.getElementById("login-status");
-      status.textContent="Verificando...";
-      var payload=parseJwt(idToken);
-      if(payload){
-        var email=payload.email;
-        var nombre=payload.name||email;
-        var done=false;
-        var timeout=setTimeout(function(){
-          if(!done){done=true;
-            localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
-            document.getElementById("login-screen").style.display="none";
-          }
-        },2000);
-        fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:email,nombre:nombre}),headers:{"Content-Type":"text/plain"}})
-        .then(function(r){return r.json();})
-        .then(function(data){
-          if(done)return;done=true;clearTimeout(timeout);
-          if(data.bloqueado){
-            status.style.color="#f07070";
-            status.textContent="⛔ Tu acceso ha sido desactivado. Contacta con CTA.";
-            localStorage.removeItem("cta_session");
-          } else {
-            localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
-            document.getElementById("login-screen").style.display="none";
-          }
-        })
-        .catch(function(){
-          if(done)return;done=true;clearTimeout(timeout);
-          localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
-          document.getElementById("login-screen").style.display="none";
-        });
-      }
-    }
-  }
+  google.accounts.id.renderButton(
+    document.getElementById("google-btn"),
+    {theme:"outline",size:"large",width:260,text:"signin_with",shape:"rectangular"}
+  );
 }
 </script>
 </body>
