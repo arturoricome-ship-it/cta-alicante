@@ -34,9 +34,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #breadcrumb::-webkit-scrollbar{display:none}
 .bc-item{cursor:pointer;transition:color .2s;flex-shrink:0}.bc-item:hover{color:var(--gold-light)}.bc-item.active{color:var(--white);font-weight:600}
 .bc-sep{color:var(--navy-light);font-size:12px;flex-shrink:0;margin:0 2px}
-#tab-bar{display:flex;gap:0;padding:6px 0 0;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+#tab-bar{display:flex;gap:2px;padding:6px 0 0;flex-shrink:0;width:100%}
 #tab-bar::-webkit-scrollbar{display:none}
-.tab{flex:1;padding:7px 6px;border-radius:100px;font-size:11px;font-weight:600;cursor:pointer;color:var(--gray);background:transparent;border:none;font-family:"Outfit",sans-serif;transition:all .25s;letter-spacing:.2px;white-space:nowrap}
+.tab{flex:1;min-width:0;padding:7px 2px;border-radius:100px;font-size:10px;font-weight:600;cursor:pointer;color:var(--gray);background:transparent;border:none;font-family:"Outfit",sans-serif;transition:all .25s;letter-spacing:.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tab.active{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);box-shadow:0 4px 12px rgba(200,168,75,.35)}
 #scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 12px 90px;-webkit-overflow-scrolling:touch}
 .panel{display:none;animation:fadeUp .3s ease}.panel.active{display:block}
@@ -291,7 +291,10 @@ function getFM(name){
   return{e:"\uD83D\uDCC1",b:"rgba(200,168,75,.15)"};
 }
 
-// cleanName: extrae solo el nombre del mes. "2026_Abril" -> "Abril", "Abril_2026" -> "Abril", etc.
+// cleanDocName: para documentos, solo quita la extension, respeta el nombre completo
+function cleanDocName(n){
+  return n.replace(/\.[a-zA-Z]{2,5}$/,"").trim();
+}
 var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 function cleanName(n){
   var s=n.replace(/\.[a-zA-Z]{2,5}$/,"").trim();
@@ -372,7 +375,7 @@ function renderFolder(folderId){
       var grid=document.createElement("div");grid.className="folder-grid";
       files.forEach(function(f){
         var isF=f.mimeType==="application/vnd.google-apps.folder";
-        var disp=cleanName(f.name);
+        var disp=cleanDocName(f.name);
         var m=getFM(f.name);
         var card=document.createElement("button");card.className="folder-card";
         card.innerHTML="<div class=\"fc-icon\" style=\"background:"+m.b+"\">"+m.e+"</div><div class=\"fc-name\">"+escH(disp)+"</div><div class=\"fc-arr\">"+(isF?"Ver &rarr;":"Abrir")+"</div>";
@@ -393,7 +396,7 @@ function renderFolder(folderId){
         if(isF){ic="icon-folder";ie="\uD83D\uDCC1";}
         else if(isPDF){ic="icon-pdf";ie="\uD83D\uDCD5";}
         else if(isDoc){ic="icon-doc";ie="\uD83D\uDCCB";}
-        var disp=cleanName(f.name);
+        var disp=cleanDocName(f.name);
         var mt=isF?"Carpeta":((f.size?fmtSize(f.size)+" - ":"")+fmtDate(f.modifiedTime));
         var btn=document.createElement("button");btn.className="drive-item";
         btn.innerHTML="<div class=\"item-icon "+ic+"\">"+ie+"</div><div class=\"item-info\"><div class=\"item-name\">"+escH(disp)+"</div><div class=\"item-meta\">"+escH(mt)+"</div></div><div class=\"item-arrow\">"+(isF?"\u203A":"\u2197\uFE0F")+"</div>";
@@ -566,7 +569,7 @@ renderFolder(ROOT_ID);
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script>
 var CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
-var SHEETS_URL="https://script.google.com/macros/s/AKfycbzbJmPbzcrLoPe59d8LXN0OtGyCLQYYYfGyZxP8NeLXOHFawhyQRteNQcLD7lFnauVK/exec";
+var SHEETS_URL="https://script.google.com/macros/s/AKfycbw59yVufbQO0l-MnlLX0328ypr-JO871xmNe1TYzel7EiKOsx5GHlb1LRNn8DOzfmfv/exec";
 
 function parseJwt(token){
   try{var b=token.split(".")[1];var d=atob(b.replace(/-/g,"+").replace(/_/g,"/"));return JSON.parse(decodeURIComponent(escape(d)));}
