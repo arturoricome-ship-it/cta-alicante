@@ -313,9 +313,18 @@ function getFM(name){
   return{e:"\uD83D\uDCC1",b:"rgba(200,168,75,.15)"};
 }
 
-// cleanDocName: para documentos, solo quita la extension, respeta el nombre completo
+// cleanDocName: quita extension y prefijos numericos tipo "2026-01_", "01_", etc.
 function cleanDocName(n){
-  return n.replace(/\.[a-zA-Z]{2,5}$/,"").trim();
+  var s=n.replace(/\.[a-zA-Z]{2,5}$/,"").trim();
+  // Quita "2026-01_", "2026_01_", "2026-01 ", etc.
+  s=s.replace(/^\d{4}[\-_]\d{2}[\-_\s]+/,"");
+  // Quita año solo "2026_", "2026-"
+  s=s.replace(/^\d{4}[\-_\s]+/,"");
+  // Quita numero con guion/guion bajo "01_", "1-"
+  s=s.replace(/^\d+[a-zA-Z]?[\-_\s]+/,"");
+  // Quita año al final "_2026", "-2026"
+  s=s.replace(/[\s_\-]+\d{4}$/,"");
+  return s.trim();
 }
 var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 function cleanName(n){
@@ -409,6 +418,11 @@ function renderFolder(folderId){
       });
       container.appendChild(grid);
     } else {
+      // Si estamos dentro de una carpeta de turnos, mostrar solo el mes
+      var enTurnos=breadcrumb.some(function(b){
+        var n=b.name.toLowerCase();
+        return n.indexOf("turno")!==-1||n.indexOf("rampa")!==-1||n.indexOf("administrativ")!==-1||n.indexOf("ftp")!==-1||n.indexOf("fijis")!==-1;
+      });
       var list=document.createElement("div");list.className="drive-list";
       files.forEach(function(f){
         var isF=f.mimeType==="application/vnd.google-apps.folder";
@@ -418,7 +432,7 @@ function renderFolder(folderId){
         if(isF){ic="icon-folder";ie="\uD83D\uDCC1";}
         else if(isPDF){ic="icon-pdf";ie="\uD83D\uDCD5";}
         else if(isDoc){ic="icon-doc";ie="\uD83D\uDCCB";}
-        var disp=cleanDocName(f.name);
+        var disp=(enTurnos&&!isF)?cleanName(f.name):cleanDocName(f.name);
         var mt=isF?"Carpeta":((f.size?fmtSize(f.size)+" - ":"")+fmtDate(f.modifiedTime));
         var btn=document.createElement("button");btn.className="drive-item";
         btn.innerHTML="<div class=\"item-icon "+ic+"\">"+ie+"</div><div class=\"item-info\"><div class=\"item-name\">"+escH(disp)+"</div><div class=\"item-meta\">"+escH(mt)+"</div></div><div class=\"item-arrow\">"+(isF?"\u203A":"\u2197\uFE0F")+"</div>";
@@ -613,10 +627,12 @@ function buildSearchIndex(folderId){
     return Promise.all(promises);
   });
 }
-// Espera 3s para no interferir con la carga inicial
-setTimeout(function(){
-  buildSearchIndex(ROOT_ID).then(function(){searchIndexReady=true;}).catch(function(){});
-},3000);
+// Se llama solo después de login confirmado
+function startSearchIndex(){
+  setTimeout(function(){
+    buildSearchIndex(ROOT_ID).then(function(){searchIndexReady=true;}).catch(function(){});
+  },2000);
+}
 
 function getAllFolderIds(parentId){
   return driveList({q:"'"+parentId+"' in parents and trashed=false and mimeType='application/vnd.google-apps.folder'",fields:"files(id)"})
@@ -704,6 +720,16 @@ function handleCredentialResponse(response){
   var email=payload.email;
   var nombre=payload.name||email;
 
+  // Timeout de 5s — si el Sheets no responde, dejamos pasar
+  var done=false;
+  var timeout=setTimeout(function(){
+    if(!done){done=true;
+      localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
+      document.getElementById("login-screen").classList.add("hidden");
+      startSearchIndex();
+    }
+  },2000);
+
   fetch(SHEETS_URL,{
     method:"POST",
     body:JSON.stringify({email:email,nombre:nombre}),
@@ -711,6 +737,7 @@ function handleCredentialResponse(response){
   })
   .then(function(r){return r.json();})
   .then(function(data){
+    if(done)return;done=true;clearTimeout(timeout);
     if(data.bloqueado){
       status.style.color="#f07070";
       status.textContent="⛔ Tu acceso ha sido desactivado. Contacta con CTA.";
@@ -718,11 +745,14 @@ function handleCredentialResponse(response){
     } else {
       localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
       document.getElementById("login-screen").classList.add("hidden");
+      startSearchIndex();
     }
   })
   .catch(function(){
+    if(done)return;done=true;clearTimeout(timeout);
     localStorage.setItem("cta_session",JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
     document.getElementById("login-screen").classList.add("hidden");
+    startSearchIndex();
   });
 }
 
@@ -746,6 +776,7 @@ window.addEventListener("load",function(){
           }
         })
         .catch(function(){});
+        startSearchIndex();
         return; // Entrar directamente, sin mostrar login
       }
     }
