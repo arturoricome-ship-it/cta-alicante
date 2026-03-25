@@ -103,6 +103,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .turno-file-fecha span{color:var(--gold);font-weight:600}
 .turno-empty{padding:14px;text-align:center;font-size:12px;color:var(--gray);border-top:1px solid var(--border)}
 .aviso-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px;margin-bottom:9px}
+.aviso-card.aviso-nuevo{border-color:rgba(200,168,75,.6);background:rgba(200,168,75,.06);box-shadow:0 0 12px rgba(200,168,75,.15)}
+.aviso-card.aviso-nuevo .aviso-tag::after{content:" · NUEVO";color:var(--gold);font-weight:900}
 .aviso-tag{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
 .aviso-titulo{font-size:14px;font-weight:700;margin-bottom:6px}
 .aviso-texto{font-size:13px;line-height:1.6;color:var(--white)}
@@ -738,6 +740,9 @@ function parseAvisos(container,txt){
   container.innerHTML="";
   var bloques=txt.split("---").map(function(b){return b.trim();}).filter(function(b){return b.length>0;});
   if(!bloques.length){renderAvisosDefault(container);return;}
+  var hayNuevos=localStorage.getItem("avisos_seen")!==avisosHash;
+  // Solo el primer aviso se marca como nuevo
+  var primerNuevo=true;
   bloques.forEach(function(bloque){
     var lines=bloque.split("\n").map(function(l){return l.trim();}).filter(Boolean);
     if(!lines.length)return;
@@ -746,7 +751,9 @@ function parseAvisos(container,txt){
     titulo=titulo.replace("[URGENTE]","").trim();
     var texto=lines.slice(1).join("\n");
     var card=document.createElement("div");
-    card.className="aviso-card"+(urgente?" aviso-urgente":"");
+    var esNuevo=hayNuevos&&primerNuevo;
+    primerNuevo=false;
+    card.className="aviso-card"+(urgente?" aviso-urgente":"")+(esNuevo?" aviso-nuevo":"");
     card.innerHTML="<div class=\"aviso-tag\">"+(urgente?"\uD83D\uDEA8 URGENTE":"\uD83D\uDCE2 AVISO")+"</div>"
       +"<div class=\"aviso-titulo\">"+escH(titulo)+"</div>"
       +"<div class=\"aviso-texto\">"+escH(texto).replace(/\n/g,"<br>")+"</div>";
@@ -833,12 +840,22 @@ function renderLive(){
     return true;
   });
 
-  if(liveFiltro){
-    data=data.filter(function(v){
-      var s=(v.flight_status||"").toLowerCase();
-      if(liveMode==="llegadas") return s!=="landed"&&s!=="cancelled";
-      else return s!=="departed"&&s!=="cancelled"&&s!=="active"&&s!=="en-route";
-    });
+  var s_val=function(v){return(v.flight_status||"").toLowerCase();};
+
+  if(liveMode==="llegadas"){
+    if(liveFiltro){
+      // Activos: solo en vuelo y programados
+      data=data.filter(function(v){var s=s_val(v);return s==="active"||s==="scheduled";});
+    }
+    // Todos: sin filtro (muestra aterrizados también)
+  } else {
+    // Salidas: los aterrizados nunca interesan
+    data=data.filter(function(v){var s=s_val(v);return s!=="landed";});
+    if(liveFiltro){
+      // Activos salidas: solo los que aún no han salido
+      data=data.filter(function(v){var s=s_val(v);return s==="scheduled";});
+    }
+    // Todos salidas: scheduled + active (recién salidos), sin landed
   }
 
   if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
