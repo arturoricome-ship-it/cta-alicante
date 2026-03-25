@@ -831,198 +831,95 @@ function renderLive(){
   var container=document.getElementById("live-container");
   var data=(liveMode==="salidas"?liveData.sal:liveData.lle).slice();
   var esS=liveMode==="salidas";
+  var ahora=Date.now();
 
-  // Filtro Activos / Todos
-  if(liveFiltro){
-    data=data.filter(function(v){
-      var s=v.estadoClass||"";
-      if(liveMode==="llegadas"){
-        return s!=="e-landed"&&s!=="e-cancelled";
-      } else {
-        return s!=="e-active"&&s!=="e-landed"&&s!=="e-cancelled";
-      }
-    });
+  // Solo vuelos de HOY
+  var hoy=new Date();
+  var hoyStr=hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0")+"-"+String(hoy.getDate()).padStart(2,"0");
+  data=data.filter(function(v){
+    var fecha=esS?((v.departure&&v.departure.scheduled)||""):((v.arrival&&v.arrival.scheduled)||"");
+    return fecha.indexOf(hoyStr)===0;
+  });
+
+  // Solo Vueling puro — sin codeshared de ningún tipo
+  data=data.filter(function(v){
+    var iata=(v.flight&&v.flight.iata)||"";
+    var cs=v.flight&&v.flight.codeshared;
+    if(cs&&cs.airline_iata)return false;
+    if(!iata.toUpperCase().match(/^VY/))return false;
+    return true;
+  });
+
+  var s_val=function(v){return(v.flight_status||"").toLowerCase();};
+
+  if(liveMode==="llegadas"){
+    if(liveFiltro){
+      // Activos: excluir landed/cancelled, y excluir los que llevan más de 45 min desde hora programada
+      data=data.filter(function(v){
+        var s=s_val(v);
+        if(s==="landed"||s==="cancelled")return false;
+        var prog=(v.arrival&&v.arrival.scheduled)||"";
+        if(!prog)return true;
+        var diff=(ahora-new Date(prog).getTime())/60000;
+        return diff<45;
+      });
+    }
+    // Todos: sin filtro
+  } else {
+    // Salidas: los aterrizados nunca interesan
+    data=data.filter(function(v){var s=s_val(v);return s!=="landed";});
+    if(liveFiltro){
+      // Activos salidas: solo los que aún no han salido
+      data=data.filter(function(v){var s=s_val(v);return s==="scheduled";});
+    }
+    // Todos salidas: scheduled + active (recién salidos), sin landed
   }
 
   if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
   container.innerHTML="";
 
+  var fmtT=function(iso){if(!iso)return"--:--";var m=iso.match(/T(\d{2}:\d{2})/);return m?m[1]:"--:--";};
+
   data.forEach(function(v){
-    var num=v.numero||"VY---";
-    var ciudad=esS?(v.destino||"--"):(v.origen||"--");
-    var horaStr=v.horaProg||"--:--";
-    if(v.horaReal&&v.horaReal!==v.horaProg){
-      horaStr='<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+v.horaProg+"</span>"+v.horaReal;
+    var dep=v.departure||{};
+    var arr=v.arrival||{};
+    var num=(v.flight&&v.flight.iata)||"VY---";
+
+    // Ciudad
+    var ap=esS?arr:dep;
+    var ciudad=getCiudad(ap.iata,ap.icao,ap.airport);
+
+    // Horas — AviationStack: scheduled, estimated, actual
+    var tiempos=esS?dep:arr;
+    var prog=tiempos.scheduled||"";
+    var real=tiempos.actual||tiempos.estimated||"";
+    var progFmt=fmtT(prog);
+    var realFmt=fmtT(real);
+    var horaStr=progFmt;
+    if(real&&realFmt!==progFmt){
+      horaStr='<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+progFmt+"</span>"+realFmt;
     }
-    var extraLabel="";
-    if(esS&&v.puerta)extraLabel="Puerta "+v.puerta;
-    if(!esS&&v.cinta)extraLabel="Cinta "+v.cinta;
-    if(!esS&&!v.cinta&&v.sala)extraLabel="Sala "+v.sala;
-    var cancelado=v.estadoClass==="e-cancelled";
-    var rowStyle=cancelado?"opacity:.6;border-color:rgba(230,80,70,.3)":"";
+
+    // Estado — AviationStack: scheduled, active, landed, cancelled, diverted, incident
+    var s=(v.flight_status||"").toLowerCase();
+    var estado;
+    if(s==="cancelled")estado={t:"Cancelado",c:"e-cancelled"};
+    else if(s==="landed")estado={t:"Aterrizado",c:"e-landed"};
+    else if(s==="active"||s==="en-route")estado={t:"En vuelo",c:"e-active"};
+    else if(s==="delayed")estado={t:"Retrasado",c:"e-delayed"};
+    else estado={t:"Programado",c:"e-scheduled"};
+
+    // Puerta / cinta
+    var gate=esS?dep.gate:arr.gate;
+    var baggage=arr.baggage;
+    var extraLabel=esS?(gate?"Puerta "+gate:""):(baggage?"Cinta "+baggage:(gate?"Puerta "+gate:""));
+
+    var rowStyle=(s==="cancelled")?"opacity:.6;border-color:rgba(230,80,70,.3)":"";
     var row=document.createElement("div");row.className="vuelo-row";
     if(rowStyle)row.style.cssText=rowStyle;
     row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
       +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
-      +"<div class='vuelo-estado "+(v.estadoClass||"e-scheduled")+"'>"+(v.estado||"Programado")+"</div>";
-    container.appendChild(row);
-  });
-}
-
-function loadLive(){
-  liveLoaded=true;
-  var container=document.getElementById("live-container");
-  container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
-
-  var KEY_ASTACK="ea007c2dc2b2d5f2fb29f8a351aa875a";
-  var base="https://api.aviationstack.com/v1/flights?access_key="+KEY_ASTACK+"&airline_iata=VY&limit=100";
-
-  Promise.all([
-    fetch(base+"&dep_iata=ALC").then(function(r){return r.json();}),
-    fetch(base+"&arr_iata=ALC").then(function(r){return r.json();})
-  ]).then(function(res){
-    // Detectar si AviationStack se ha quedado sin créditos
-    var err0=(res[0].error&&res[0].error.code)||"";
-    var err1=(res[1].error&&res[1].error.code)||"";
-    if(err0==="usage_limit_reached"||err1==="usage_limit_reached"||(!res[0].data&&!res[1].data)){
-      console.log("AviationStack agotado, usando AeroDataBox...");
-      loadLiveFallback();
-      return;
-    }
-    var pad=function(n){return String(n).padStart(2,"0");};
-    liveData.sal=(res[0].data||[]).sort(function(a,b){
-      return((a.departure&&a.departure.scheduled)||"").localeCompare((b.departure&&b.departure.scheduled)||"");
-    });
-    liveData.lle=(res[1].data||[]).sort(function(a,b){
-      return((a.arrival&&a.arrival.scheduled)||"").localeCompare((b.arrival&&b.arrival.scheduled)||"");
-    });
-    var hNow=new Date();
-    document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
-    renderLive();
-  }).catch(function(){
-    console.log("AviationStack error, usando AeroDataBox...");
-    loadLiveFallback();
-  });
-}
-
-function loadLiveFallback(){
-  // Fallback a AeroDataBox (RapidAPI) — ilimitado
-  var container=document.getElementById("live-container");
-  container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
-  var RAPID_KEY="fb315228bcmsh2bcfee0bbe50348p14192bjsn4eaa29f19f69";
-  var headers={"x-rapidapi-key":RAPID_KEY,"x-rapidapi-host":"aerodatabox.p.rapidapi.com"};
-  var now=new Date();
-  vafunction loadLive(){
-  liveLoaded=true;
-  var container=document.getElementById("live-container");
-  container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
-  var RAILWAY="https://aena-vuelos-server-production.up.railway.app";
-  var pad=function(n){return String(n).padStart(2,"0");};
-  Promise.all([
-    fetch(RAILWAY+"/vuelos?tipo=salidas").then(function(r){return r.json();}),
-    fetch(RAILWAY+"/vuelos?tipo=llegadas").then(function(r){return r.json();})
-  ]).then(function(res){
-    liveData.sal=(res[0].vuelos||[]);
-    liveData.lle=(res[1].vuelos||[]);
-    var hNow=new Date();
-    document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
-    renderLive();
-  }).catch(function(e){
-    container.innerHTML="<div class='error-box'>Error al cargar vuelos. Pulsa ↻ para reintentar.</div>";
-    liveLoaded=false;
-  });
-}
-
-
-var manifest={name:"CTA Alicante",short_name:"CTA",start_url:".",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
-var ml=document.createElement("link");ml.rel="manifest";ml.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/json"}));document.head.appendChild(ml);
-var dp;
-window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;setTimeout(function(){document.getElementById("install-banner").classList.add("show");},4000);});
-document.getElementById("ib-yes").addEventListener("click",function(){document.getElementById("install-banner").classList.remove("show");if(dp){dp.prompt();dp=null;}});
-
-renderBreadcrumb();
-renderFolder(ROOT_ID);
-
-// ===== LIVE FLIGHTS =====
-var AVIATION_KEY="c69da0d719ab8a9787dc0c391ae414e2";
-var liveMode="llegadas";
-var liveFiltro=true;
-var liveLoaded=false;
-var liveData={sal:[],lle:[]};
-
-var CIUDADES={"ALC":"Alicante","BCN":"Barcelona","MAD":"Madrid","VLC":"Valencia","SVQ":"Sevilla","BIO":"Bilbao","PMI":"Palma","IBZ":"Ibiza","MAH":"Menorca","TFN":"Tenerife Norte","TFS":"Tenerife Sur","LPA":"Gran Canaria","ACE":"Lanzarote","FUE":"Fuerteventura","LCG":"A Coruña","SCQ":"Santiago","OVD":"Asturias","VGO":"Vigo","ZAZ":"Zaragoza","GRX":"Granada","AGP":"Málaga","XRY":"Jerez","CDG":"París","ORY":"París Orly","LHR":"Londres","LGW":"Londres","STN":"Londres","AMS":"Ámsterdam","FCO":"Roma","MXP":"Milán","VCE":"Venecia","NCE":"Niza","DUB":"Dublín","LIS":"Lisboa","OPO":"Oporto","ATH":"Atenas","IST":"Estambul","BRU":"Bruselas","FRA":"Fráncfort","MUC":"Múnich","VIE":"Viena","WAW":"Varsovia","PRG":"Praga","BUD":"Budapest","GVA":"Ginebra","ZRH":"Zúrich","CPH":"Copenhague","ARN":"Estocolmo","HEL":"Helsinki","OSL":"Oslo","TLV":"Tel Aviv","CMN":"Casablanca","RAK":"Marrakech","TUN":"Túnez","ALG":"Argel","ORN":"Orán","BOD":"Burdeos","NTE":"Nantes","TLS":"Toulouse","MPL":"Montpellier","REU":"Reus","GRO":"Gerona","SDR":"Santander","LEI":"Almería","RMU":"Murcia"};
-
-function getCiudad(iata,icao,nombre){
-  if(iata&&CIUDADES[iata])return CIUDADES[iata];
-  if(!nombre)return iata||"--";
-  return nombre.replace("El Prat De Llobregat","Barcelona").replace("Adolfo Suarez","Madrid").replace("Josep Tarradellas","Barcelona").replace("Norte Los Rodeos","Tenerife Norte").replace("Reina Sofia","Tenerife Sur").replace("Charles De Gaulle","París").replace("Heathrow","Londres").replace("Gatwick","Londres").replace("Schiphol","Ámsterdam").replace("Boumediene","Argel").replace("Airport","").replace("International","").replace(/\s+/g," ").trim();
-}
-
-function fmtH(iso){if(!iso)return"--:--";var m=iso.match(/T(\d{2}:\d{2})/);return m?m[1]:"--:--";}
-
-function eLabel(s){
-  if(!s)return{t:"Programado",c:"e-scheduled"};
-  s=s.toLowerCase();
-  if(s==="active"||s==="en route")return{t:"En vuelo",c:"e-active"};
-  if(s==="landed")return{t:"Aterrizado",c:"e-landed"};
-  if(s==="cancelled")return{t:"Cancelado",c:"e-cancelled"};
-  if(s.indexOf("delay")!==-1)return{t:"Retrasado",c:"e-delayed"};
-  return{t:"Programado",c:"e-scheduled"};
-}
-
-function isIB(v){
-  var iata=(v.flight&&v.flight.iata)||"";
-  var cs=v.flight&&v.flight.codeshared;
-  if(cs&&cs.airline_iata&&cs.airline_iata.toUpperCase()==="IB")return true;
-  if(iata.toUpperCase().indexOf("IB")===0)return true;
-  return false;
-}
-
-function switchLive(mode){
-  liveMode=mode;
-  document.getElementById("live-tab-llegadas").classList.toggle("active",mode==="llegadas");
-  document.getElementById("live-tab-salidas").classList.toggle("active",mode==="salidas");
-  renderLive();
-}
-
-function renderLive(){
-  var container=document.getElementById("live-container");
-  var data=(liveMode==="salidas"?liveData.sal:liveData.lle).slice();
-  var esS=liveMode==="salidas";
-
-  // Filtro Activos / Todos
-  if(liveFiltro){
-    data=data.filter(function(v){
-      var s=v.estadoClass||"";
-      if(liveMode==="llegadas"){
-        return s!=="e-landed"&&s!=="e-cancelled";
-      } else {
-        return s!=="e-active"&&s!=="e-landed"&&s!=="e-cancelled";
-      }
-    });
-  }
-
-  if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
-  container.innerHTML="";
-
-  data.forEach(function(v){
-    var num=v.numero||"VY---";
-    var ciudad=esS?(v.destino||"--"):(v.origen||"--");
-    var horaStr=v.horaProg||"--:--";
-    if(v.horaReal&&v.horaReal!==v.horaProg){
-      horaStr='<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+v.horaProg+"</span>"+v.horaReal;
-    }
-    var extraLabel="";
-    if(esS&&v.puerta)extraLabel="Puerta "+v.puerta;
-    if(!esS&&v.cinta)extraLabel="Cinta "+v.cinta;
-    if(!esS&&!v.cinta&&v.sala)extraLabel="Sala "+v.sala;
-    var cancelado=v.estadoClass==="e-cancelled";
-    var rowStyle=cancelado?"opacity:.6;border-color:rgba(230,80,70,.3)":"";
-    var row=document.createElement("div");row.className="vuelo-row";
-    if(rowStyle)row.style.cssText=rowStyle;
-    row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
-      +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
-      +"<div class='vuelo-estado "+(v.estadoClass||"e-scheduled")+"'>"+(v.estado||"Programado")+"</div>";
+      +"<div class='vuelo-estado "+estado.c+"'>"+estado.t+"</div>";
     container.appendChild(row);
   });
 }
