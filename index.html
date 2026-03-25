@@ -910,6 +910,11 @@ function loadLive(){
     });
     liveData.sal=sal;
     liveData.lle=lle;
+    // LOG para ver estructura real
+    console.log("SAL[0]:", JSON.stringify(sal[0]));
+    console.log("LLE[0]:", JSON.stringify(lle[0]));
+    console.log("Todos los status SAL:", sal.map(function(v){return v.status;}).join(", "));
+    console.log("Todos los status LLE:", lle.map(function(v){return v.status;}).join(", "));
     var hNow=new Date();
     document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
     renderLive();
