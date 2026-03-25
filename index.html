@@ -53,6 +53,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .e-landed{background:rgba(100,100,200,.2);color:#8888ff}
 .e-cancelled{background:rgba(230,80,70,.15);color:#f07070}
 .e-delayed{background:rgba(230,150,50,.15);color:#f0a070}
+.e-boarding{background:rgba(100,200,255,.15);color:#60c8ff}
+.e-gate{background:rgba(180,100,255,.15);color:#c060ff}
 .live-tab{flex:1;padding:9px;background:transparent;border:none;color:var(--gray);font-family:"Outfit",sans-serif;font-size:12px;font-weight:600;cursor:pointer}
 .live-tab.active{background:rgba(200,168,75,.15);color:var(--gold)}
 #breadcrumb{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--gray);overflow-x:auto;scrollbar-width:none;white-space:nowrap;flex:1}
@@ -822,17 +824,23 @@ function renderLive(){
   var container=document.getElementById("live-container");
   var data=(liveMode==="salidas"?liveData.sal:liveData.lle).slice();
 
+  // Status reales de AeroDataBox:
+  // Expected=Programado, GateClosed=Puerta cerrada, Boarding=Embarcando
+  // Approaching=Aproximando, Departed=En vuelo, Landed=Aterrizado, Cancelled=Cancelado
+
   if(liveFiltro){
     data=data.filter(function(v){
-      var s=(v.status||"").toLowerCase();
+      var s=v.status||"";
       if(liveMode==="llegadas"){
-        // Activos llegadas: en vuelo + programados (no aterrizados, no cancelados)
-        return s!=="landed"&&s!=="arrived"&&s!=="cancelled";
+        // Activos: todo menos aterrizados y cancelados
+        return s!=="Landed"&&s!=="Cancelled";
       } else {
-        // Activos salidas: solo programados (no en vuelo, no salidos, no cancelados)
-        return s!=="departed"&&s!=="cancelled"&&s!=="airborne"&&s!=="en-route"&&s!=="active";
+        // Activos: solo los que aún no han salido (Expected, GateClosed, Boarding)
+        return s==="Expected"||s==="GateClosed"||s==="Boarding"||s==="Delayed";
       }
     });
+  } else {
+    data=data.filter(function(v){return v.status!=="Cancelled";});
   }
 
   if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
@@ -842,31 +850,37 @@ function renderLive(){
     var esS=liveMode==="salidas";
     var num=(v.number||"VY---");
 
+    // Ciudad destino/origen
     var apDest=esS?(v.arrival&&v.arrival.airport):(v.departure&&v.departure.airport);
     var ciudad=getCiudad(apDest&&apDest.iata,"",apDest&&apDest.name||apDest&&apDest.iata||"--");
 
-    // Tiempos — probar varias claves que usa AeroDataBox
+    // Tiempos — AeroDataBox usa scheduledTime y revisedTime
     var tiempos=esS?(v.departure||{}):(v.arrival||{});
-    var prog=(tiempos.scheduledTime&&(tiempos.scheduledTime.local||tiempos.scheduledTime.utc))||"";
-    var estimada=(tiempos.estimatedTime&&(tiempos.estimatedTime.local||tiempos.estimatedTime.utc))||"";
-    var actual=(tiempos.actualTime&&(tiempos.actualTime.local||tiempos.actualTime.utc))||"";
-    var real=actual||estimada;
+    var prog=(tiempos.scheduledTime&&tiempos.scheduledTime.local)||"";
+    var revised=(tiempos.revisedTime&&tiempos.revisedTime.local)||"";
     var fmtT=function(s){if(!s)return"--:--";var m=s.match(/(\d{2}:\d{2})/);return m?m[1]:"--:--";};
-    var horaStr=(real&&fmtT(real)!==fmtT(prog))?('<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+fmtT(prog)+"</span>"+fmtT(real)):fmtT(prog);
+    // Mostrar programada + revisada si son diferentes
+    var progFmt=fmtT(prog);
+    var revisedFmt=fmtT(revised);
+    var horaStr=progFmt;
+    if(revised&&revisedFmt!==progFmt){
+      horaStr='<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+progFmt+"</span>"+revisedFmt;
+    }
 
-    // Estado — AeroDataBox usa: Unknown, Expected, EnRoute, CheckIn, Boarding, GateClosed, Departed, Delayed, Approaching, Arrived, Cancelled, Diverted, CanceledUncertain
-    var s=(v.status||"").toLowerCase();
+    // Estado con colores correctos
+    var s=v.status||"";
     var estado;
-    if(s==="cancelled"||s==="canceleduncertain")estado={t:"Cancelado",c:"e-cancelled"};
-    else if(s==="arrived"||s==="landed")estado={t:"Aterrizado",c:"e-landed"};
-    else if(s==="departed"||s==="airborne"||s==="en-route"||s==="enroute"||s==="approaching")estado={t:"En vuelo",c:"e-active"};
-    else if(s==="delayed")estado={t:"Retrasado",c:"e-delayed"};
-    else if(s==="boarding"||s==="gateclosed"||s==="checkin")estado={t:"Embarcando",c:"e-scheduled"};
+    if(s==="Cancelled")estado={t:"Cancelado",c:"e-cancelled"};
+    else if(s==="Landed")estado={t:"Aterrizado",c:"e-landed"};
+    else if(s==="Departed"||s==="Approaching")estado={t:"En vuelo",c:"e-active"};
+    else if(s==="Boarding")estado={t:"Embarcando",c:"e-boarding"};
+    else if(s==="GateClosed")estado={t:"Puerta cerrada",c:"e-gate"};
+    else if(s==="Delayed")estado={t:"Retrasado",c:"e-delayed"};
     else estado={t:"Programado",c:"e-scheduled"};
 
-    // Puerta / cinta — AeroDataBox puede tener gate en departure/arrival directamente
-    var gate=esS?(v.departure&&(v.departure.gate||v.departure.terminal)):(v.arrival&&(v.arrival.baggageClaim||v.arrival.gate)||"");
-    var extraLabel=gate?(esS?"Puerta "+gate:"Cinta "+gate):"";
+    // Puerta (salidas) — está en v.departure.gate
+    var gate=esS?(v.departure&&v.departure.gate)||"":(v.arrival&&v.arrival.terminal)||"";
+    var extraLabel=gate?(esS?"Puerta "+gate:"Terminal "+gate):"";
 
     var row=document.createElement("div");row.className="vuelo-row";
     row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
@@ -910,11 +924,6 @@ function loadLive(){
     });
     liveData.sal=sal;
     liveData.lle=lle;
-    // LOG para ver estructura real
-    console.log("SAL[0]:", JSON.stringify(sal[0]));
-    console.log("LLE[0]:", JSON.stringify(lle[0]));
-    console.log("Todos los status SAL:", sal.map(function(v){return v.status;}).join(", "));
-    console.log("Todos los status LLE:", lle.map(function(v){return v.status;}).join(", "));
     var hNow=new Date();
     document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
     renderLive();
