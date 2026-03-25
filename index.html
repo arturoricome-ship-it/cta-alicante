@@ -820,30 +820,46 @@ function switchLive(mode){
 
 function renderLive(){
   var container=document.getElementById("live-container");
-  var data=(liveMode==="salidas"?liveData.sal:liveData.lle).filter(function(v){return!isIB(v);});
+  var now=Math.floor(Date.now()/1000);
+  var data=(liveMode==="salidas"?liveData.sal:liveData.lle).slice();
+
+  // Filtro activos: OpenSky solo tiene vuelos reales, filtramos por tiempo
   if(liveFiltro){
     data=data.filter(function(v){
-      var s=(v.flight_status||"").toLowerCase();
-      if(liveMode==="llegadas") return s!=="landed"&&s!=="cancelled";
-      else return s!=="landed"&&s!=="cancelled"&&s!=="active"&&s!=="en route";
+      if(liveMode==="llegadas"){
+        // Llegadas: solo los q aun no han llegado (lastSeen en el futuro o reciente)
+        return v.lastSeen>now-1800;
+      } else {
+        // Salidas: solo los q aun no han salido o acaban de salir
+        return v.firstSeen>now-3600;
+      }
     });
   }
+
   if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
   container.innerHTML="";
+
   data.forEach(function(v){
-    var dep=v.departure||{};var arr=v.arrival||{};
     var esS=liveMode==="salidas";
-    var ap=esS?arr:dep;
-    var ciudad=getCiudad(ap.iata,ap.icao,ap.airport);
-    var horaProg=esS?dep.scheduled:arr.scheduled;
-    var horaReal=esS?(dep.actual||dep.estimated):(arr.actual||arr.estimated);
-    var estado=eLabel(v.flight_status);
-    var extra=(esS?dep.gate:arr.gate)||(arr.baggage?("Cinta "+arr.baggage):"");
-    if(extra&&esS)extra="Puerta "+extra;
-    var num=(v.flight&&v.flight.iata)||"VY---";
-    var horaStr=(horaReal&&horaReal!==horaProg)?('<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+fmtH(horaProg)+"</span>"+fmtH(horaReal)):fmtH(horaProg);
+    var callsign=(v.callsign||"").trim();
+    var num=callsign||"VY---";
+    // Destino/origen desde ICAO
+    var destIcao=esS?(v.estArrivalAirport||""):(v.estDepartureAirport||"");
+    var ciudad=getCiudad("",destIcao,destIcao);
+    // Hora desde timestamp unix
+    var ts=esS?v.firstSeen:v.lastSeen;
+    var horaDate=ts?new Date(ts*1000):null;
+    var horaStr=horaDate?(String(horaDate.getHours()).padStart(2,"0")+":"+String(horaDate.getMinutes()).padStart(2,"0")):"--:--";
+    // Estado según tiempo
+    var ahora=Date.now()/1000;
+    var estado;
+    if(esS){
+      estado=v.firstSeen<ahora?{t:"Salido",c:"e-active"}:{t:"Programado",c:"e-scheduled"};
+    } else {
+      estado=v.lastSeen<ahora?{t:"Aterrizado",c:"e-landed"}:{t:"En vuelo",c:"e-active"};
+    }
     var row=document.createElement("div");row.className="vuelo-row";
-    row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extra?"<div class='vuelo-puerta'>"+extra+"</div>":"")+"</div>"
+    row.innerHTML="<div><div class='vuelo-num'>"+num+"</div></div>"
       +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
       +"<div class='vuelo-estado "+estado.c+"'>"+estado.t+"</div>";
     container.appendChild(row);
@@ -854,17 +870,34 @@ function loadLive(){
   liveLoaded=true;
   var container=document.getElementById("live-container");
   container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
-  var KEY=AVIATION_KEY;
-  var urlSal="https://api.aviationstack.com/v1/flights?access_key="+KEY+"&dep_iata=ALC&airline_iata=VY&limit=50";
-  var urlLle="https://api.aviationstack.com/v1/flights?access_key="+KEY+"&arr_iata=ALC&airline_iata=VY&limit=50";
+
+  // OpenSky: vuelos en tiempo real en el aeropuerto de Alicante (LEAL)
+  // begin/end = ventana de 12h centrada en ahora
+  var now=Math.floor(Date.now()/1000);
+  var begin=now-3600*6;
+  var end=now+3600*6;
+
+  var urlSal="https://opensky-network.org/api/flights/departure?airport=LEAL&begin="+begin+"&end="+end;
+  var urlLle="https://opensky-network.org/api/flights/arrival?airport=LEAL&begin="+begin+"&end="+end;
+
   Promise.all([
     fetch(urlSal).then(function(r){return r.json();}),
     fetch(urlLle).then(function(r){return r.json();})
   ]).then(function(res){
-    liveData.sal=(res[0].data||[]).sort(function(a,b){return(a.departure&&a.departure.scheduled||"").localeCompare(b.departure&&b.departure.scheduled||"");});
-    liveData.lle=(res[1].data||[]).sort(function(a,b){return(a.arrival&&a.arrival.scheduled||"").localeCompare(b.arrival&&b.arrival.scheduled||"");});
-    var now=new Date();
-    document.getElementById("live-hora").textContent="Actualizado: "+String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+    // OpenSky devuelve arrays de objetos con: icao24, firstSeen, lastSeen, callsign, estDepartureAirport, estArrivalAirport
+    var sal=(Array.isArray(res[0])?res[0]:[]).filter(function(v){
+      return v.callsign&&v.callsign.trim().toUpperCase().indexOf("VY")===0;
+    });
+    var lle=(Array.isArray(res[1])?res[1]:[]).filter(function(v){
+      return v.callsign&&v.callsign.trim().toUpperCase().indexOf("VY")===0;
+    });
+
+    // Convertir a formato interno
+    liveData.sal=sal.sort(function(a,b){return a.firstSeen-b.firstSeen;});
+    liveData.lle=lle.sort(function(a,b){return a.lastSeen-b.lastSeen;});
+
+    var hNow=new Date();
+    document.getElementById("live-hora").textContent="Actualizado: "+String(hNow.getHours()).padStart(2,"0")+":"+String(hNow.getMinutes()).padStart(2,"0");
     renderLive();
   }).catch(function(){
     container.innerHTML="<div class='error-box'>Error al cargar. Pulsa ↻ para reintentar.</div>";
