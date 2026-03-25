@@ -317,7 +317,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;display:flex;align-items:center;gap:8px"><span class="live-dot"></span>Vueling · Alicante</div>
       <div style="display:flex;gap:6px">
-        <button id="live-filtro" style="background:rgba(60,180,100,.2);border:1px solid rgba(60,180,100,.3);border-radius:8px;color:#5dd88a;font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Outfit',sans-serif">🟢 Activos</button>
+        <button id="live-filtro" style="background:rgba(60,180,100,.2);border:1px solid rgba(60,180,100,.3);border-radius:8px;color:#5dd88a;font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Outfit',sans-serif">Activos</button>
         <button id="live-refresh" style="background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);border-radius:8px;color:var(--gold);font-size:15px;padding:5px 10px;cursor:pointer">↻</button>
       </div>
     </div>
@@ -826,9 +826,11 @@ function renderLive(){
     data=data.filter(function(v){
       var s=(v.status||"").toLowerCase();
       if(liveMode==="llegadas"){
+        // Activos llegadas: en vuelo + programados (no aterrizados, no cancelados)
         return s!=="landed"&&s!=="arrived"&&s!=="cancelled";
       } else {
-        return s!=="departed"&&s!=="cancelled"&&s!=="airborne"&&s!=="en-route";
+        // Activos salidas: solo programados (no en vuelo, no salidos, no cancelados)
+        return s!=="departed"&&s!=="cancelled"&&s!=="airborne"&&s!=="en-route"&&s!=="active";
       }
     });
   }
@@ -840,29 +842,31 @@ function renderLive(){
     var esS=liveMode==="salidas";
     var num=(v.number||"VY---");
 
-    // AeroDataBox estructura: v.departure.airport / v.arrival.airport
     var apDest=esS?(v.arrival&&v.arrival.airport):(v.departure&&v.departure.airport);
     var ciudad=getCiudad(apDest&&apDest.iata,"",apDest&&apDest.name||apDest&&apDest.iata||"--");
 
-    // Tiempos
+    // Tiempos — probar varias claves que usa AeroDataBox
     var tiempos=esS?(v.departure||{}):(v.arrival||{});
     var prog=(tiempos.scheduledTime&&(tiempos.scheduledTime.local||tiempos.scheduledTime.utc))||"";
-    var real=(tiempos.actualTime&&(tiempos.actualTime.local||tiempos.actualTime.utc))||(tiempos.estimatedTime&&(tiempos.estimatedTime.local||tiempos.estimatedTime.utc))||"";
+    var estimada=(tiempos.estimatedTime&&(tiempos.estimatedTime.local||tiempos.estimatedTime.utc))||"";
+    var actual=(tiempos.actualTime&&(tiempos.actualTime.local||tiempos.actualTime.utc))||"";
+    var real=actual||estimada;
     var fmtT=function(s){if(!s)return"--:--";var m=s.match(/(\d{2}:\d{2})/);return m?m[1]:"--:--";};
-    var horaStr=(real&&real!==prog)?('<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+fmtT(prog)+"</span>"+fmtT(real)):fmtT(prog);
+    var horaStr=(real&&fmtT(real)!==fmtT(prog))?('<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+fmtT(prog)+"</span>"+fmtT(real)):fmtT(prog);
 
-    // Estado
+    // Estado — AeroDataBox usa: Unknown, Expected, EnRoute, CheckIn, Boarding, GateClosed, Departed, Delayed, Approaching, Arrived, Cancelled, Diverted, CanceledUncertain
     var s=(v.status||"").toLowerCase();
     var estado;
-    if(s==="cancelled")estado={t:"Cancelado",c:"e-cancelled"};
-    else if(s==="landed"||s==="arrived")estado={t:"Aterrizado",c:"e-landed"};
-    else if(s==="departed"||s==="airborne"||s==="en-route")estado={t:"En vuelo",c:"e-active"};
+    if(s==="cancelled"||s==="canceleduncertain")estado={t:"Cancelado",c:"e-cancelled"};
+    else if(s==="arrived"||s==="landed")estado={t:"Aterrizado",c:"e-landed"};
+    else if(s==="departed"||s==="airborne"||s==="en-route"||s==="enroute"||s==="approaching")estado={t:"En vuelo",c:"e-active"};
     else if(s==="delayed")estado={t:"Retrasado",c:"e-delayed"};
+    else if(s==="boarding"||s==="gateclosed"||s==="checkin")estado={t:"Embarcando",c:"e-scheduled"};
     else estado={t:"Programado",c:"e-scheduled"};
 
-    // Puerta / cinta
-    var puerta=esS?(tiempos.gate||tiempos.terminal):(tiempos.baggageClaim||tiempos.gate||"");
-    var extraLabel=esS?(puerta?"Puerta "+puerta:""):(puerta?"Cinta "+puerta:"");
+    // Puerta / cinta — AeroDataBox puede tener gate en departure/arrival directamente
+    var gate=esS?(v.departure&&(v.departure.gate||v.departure.terminal)):(v.arrival&&(v.arrival.baggageClaim||v.arrival.gate)||"");
+    var extraLabel=gate?(esS?"Puerta "+gate:"Cinta "+gate):"";
 
     var row=document.createElement("div");row.className="vuelo-row";
     row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
@@ -928,7 +932,7 @@ document.getElementById("live-refresh").addEventListener("click",function(){live
 document.getElementById("live-filtro").addEventListener("click",function(){
   liveFiltro=!liveFiltro;
   var btn=this;
-  btn.textContent=liveFiltro?"🟢 Activos":"📋 Todos";
+  btn.textContent=liveFiltro?"Activos":"Todos";
   btn.style.background=liveFiltro?"rgba(60,180,100,.2)":"rgba(200,168,75,.15)";
   btn.style.color=liveFiltro?"#5dd88a":"var(--gold)";
   btn.style.borderColor=liveFiltro?"rgba(60,180,100,.3)":"rgba(200,168,75,.3)";
