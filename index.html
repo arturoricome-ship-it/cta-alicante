@@ -847,6 +847,7 @@ function renderLive(){
     var apDest=esS?(v.arrival&&v.arrival.airport):(v.departure&&v.departure.airport);
     var ciudad=getCiudad(apDest&&apDest.iata,"",apDest&&apDest.name||apDest&&apDest.iata||"--");
 
+    // Tiempos — AeroDataBox usa scheduledTime y revisedTime
     var tiempos=esS?(v.departure||{}):(v.arrival||{});
     var prog=(tiempos.scheduledTime&&tiempos.scheduledTime.local)||"";
     var revised=(tiempos.revisedTime&&tiempos.revisedTime.local)||"";
@@ -858,7 +859,7 @@ function renderLive(){
       horaStr='<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+progFmt+"</span>"+revisedFmt;
     }
 
-    // Estado — valores exactos confirmados de AeroDataBox
+    // Estado — valores exactos de AeroDataBox
     var s=v.status||"";
     var estado;
     if(s==="Cancelled")estado={t:"Cancelado",c:"e-cancelled"};
