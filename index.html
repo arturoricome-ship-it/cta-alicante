@@ -267,7 +267,20 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
       <div class="afil-sub">Comision de Trabajadores Asamblearios<br>Defiende tus derechos laborales con nosotros</div>
       <a class="afil-btn" id="ficha-btn">&#128196; Descargar ficha de afiliacion</a>
     </div>
-    <p class="section-title">Como afiliarse</p>
+
+    <!-- VUELOS VUELING ALC -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:4px">
+      <p class="section-title" style="margin:0">✈️ Vueling en Alicante</p>
+      <div style="display:flex;gap:6px"><button id="vuelos-filtro" style="background:rgba(60,180,100,.2);border:1px solid rgba(60,180,100,.3);border-radius:8px;color:#5dd88a;font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Outfit',sans-serif">🟢 Activos</button><button id="vuelos-refresh" style="background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);border-radius:8px;color:var(--gold);font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Outfit',sans-serif">↻</button></div>
+    </div>
+    <p class="section-sub" id="vuelos-hora"></p>
+    <div style="display:flex;gap:0;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <button class="vuelos-tab active" id="tab-llegadas" onclick="switchVuelos('llegadas')">🛬 Llegadas</button>
+      <button class="vuelos-tab" id="tab-salidas" onclick="switchVuelos('salidas')">🛫 Salidas</button>
+    </div>
+    <div id="vuelos-container"><div class="spinner-wrap"><div class="spinner"></div><div class="spinner-label">Cargando vuelos...</div></div></div>
+
+    <p class="section-title" style="margin-top:16px">Como afiliarse</p>
     <p class="section-sub">Solo 3 pasos</p>
     <div class="drive-list">
       <div class="drive-item" style="cursor:default"><div class="item-icon" style="background:rgba(200,168,75,.15);font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold)">1</div><div class="item-info"><div class="item-name">Descarga la ficha</div><div class="item-meta">Pulsa el boton de arriba para descargar el PDF</div></div></div>
@@ -802,12 +815,7 @@ function toggleFiltro(){
   renderVuelos();
 }
 
-function fmtHora(iso){
-  if(!iso)return"--:--";
-  // La API devuelve hora local con offset, extraemos HH:MM directamente
-  var m=iso.match(/T(\d{2}:\d{2})/);
-  return m?m[1]:"--:--";
-}
+function fmtHora(iso){if(!iso)return"--:--";var m=iso.match(/T(\d{2}:\d{2})/);return m?m[1]:"--:--";}
 
 function estadoLabel(s){
   if(!s)return{t:"Programado",c:"estado-scheduled"};
@@ -859,10 +867,7 @@ function loadVuelos(){
   var horaEl=document.getElementById("vuelos-hora");
   container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
   var base="https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50";
-  var proxyBase="https://api.allorigins.win/get?url=";
-var urlSal=encodeURIComponent("https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50&dep_iata=ALC");
-var urlLle=encodeURIComponent("https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50&arr_iata=ALC");
-Promise.all([fetch(proxyBase+urlSal).then(function(r){return r.json();}).then(function(d){return JSON.parse(d.contents);}),fetch(proxyBase+urlLle).then(function(r){return r.json();}).then(function(d){return JSON.parse(d.contents);})
+  Promise.all([fetch(base+"&dep_iata=ALC").then(function(r){return r.json();}),fetch(base+"&arr_iata=ALC").then(function(r){return r.json();})
   ]).then(function(results){
     vuelosData.salidas=(results[0].data||[]).sort(function(a,b){return new Date((a.departure&&a.departure.scheduled)||0)-new Date((b.departure&&b.departure.scheduled)||0);});
     vuelosData.llegadas=(results[1].data||[]).sort(function(a,b){return new Date((a.arrival&&a.arrival.scheduled)||0)-new Date((b.arrival&&b.arrival.scheduled)||0);});
@@ -872,8 +877,14 @@ Promise.all([fetch(proxyBase+urlSal).then(function(r){return r.json();}).then(fu
   }).catch(function(){container.innerHTML="<div class='error-box'>Error al cargar vuelos.</div>";});
 }
 
+document.getElementById("vuelos-refresh").addEventListener("click",loadVuelos);
+document.getElementById("vuelos-filtro").addEventListener("click",toggleFiltro);
 
-
+var _origSwitchTab=switchTab;
+switchTab=function(name,tabEl,navEl){
+  _origSwitchTab(name,tabEl,navEl);
+  if(name==="afiliate"&&!vuelosData.salidas.length)loadVuelos();
+};
 
 // LIVE PANEL
 var liveMode="llegadas";
@@ -923,10 +934,8 @@ function renderLive(){
     data=data.filter(function(v){
       var s=(v.flight_status||"").toLowerCase();
       if(liveMode==="llegadas"){
-        // Llegadas: ocultar aterrizados y cancelados
         return s!=="landed"&&s!=="cancelled";
       } else {
-        // Salidas: ocultar los q ya salieron (en vuelo, aterrizados) y cancelados
         return s!=="landed"&&s!=="cancelled"&&s!=="active"&&s!=="en route";
       }
     });
@@ -960,10 +969,7 @@ function loadLive(){
   var horaEl=document.getElementById("live-hora");
   container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
   var base="https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50";
-  var proxyBase="https://api.allorigins.win/get?url=";
-var urlSal=encodeURIComponent("https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50&dep_iata=ALC");
-var urlLle=encodeURIComponent("https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50&arr_iata=ALC");
-Promise.all([fetch(proxyBase+urlSal).then(function(r){return r.json();}).then(function(d){return JSON.parse(d.contents);}),fetch(proxyBase+urlLle).then(function(r){return r.json();}).then(function(d){return JSON.parse(d.contents);})
+  Promise.all([fetch(base+"&dep_iata=ALC").then(function(r){return r.json();}),fetch(base+"&arr_iata=ALC").then(function(r){return r.json();})
   ]).then(function(results){
     vuelosData.salidas=(results[0].data||[]).sort(function(a,b){return new Date((a.departure&&a.departure.scheduled)||0)-new Date((b.departure&&b.departure.scheduled)||0);});
     vuelosData.llegadas=(results[1].data||[]).sort(function(a,b){return new Date((a.arrival&&a.arrival.scheduled)||0)-new Date((b.arrival&&b.arrival.scheduled)||0);});
@@ -972,11 +978,7 @@ Promise.all([fetch(proxyBase+urlSal).then(function(r){return r.json();}).then(fu
     if(horaEl)horaEl.textContent="Actualizado: "+h;
     renderLive();
     renderVuelos();
-  }).catch(function(){
-    container.innerHTML="<div class='error-box'>Error al cargar vuelos. Reintentando...</div>";
-    liveLoaded=false;
-    setTimeout(function(){if(liveLoaded===false)loadLive();},3000);
-  });
+  }).catch(function(){container.innerHTML="<div class='error-box'>Error al cargar vuelos.</div>";liveLoaded=false;});
 }
 
 var manifest={name:"CTA Alicante",short_name:"CTA",start_url:".",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
