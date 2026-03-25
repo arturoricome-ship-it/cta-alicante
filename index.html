@@ -824,70 +824,65 @@ function renderLive(){
   var container=document.getElementById("live-container");
   var data=(liveMode==="salidas"?liveData.sal:liveData.lle).slice();
 
+  // Filtrar IB codeshared
+  data=data.filter(function(v){
+    var iata=(v.flight&&v.flight.iata)||"";
+    var cs=v.flight&&v.flight.codeshared;
+    if(cs&&cs.airline_iata&&cs.airline_iata.toUpperCase()==="IB")return false;
+    if(iata.toUpperCase().indexOf("IB")===0)return false;
+    return true;
+  });
+
   if(liveFiltro){
-    // ACTIVOS = presente y futuro (sin aterrizados/salidos pasados, sin cancelados)
     data=data.filter(function(v){
-      var s=v.status||"";
-      if(liveMode==="llegadas"){
-        return s!=="Landed"&&s!=="Cancelled";
-      } else {
-        return s!=="Departed"&&s!=="Cancelled";
-      }
+      var s=(v.flight_status||"").toLowerCase();
+      if(liveMode==="llegadas") return s!=="landed"&&s!=="cancelled";
+      else return s!=="departed"&&s!=="cancelled"&&s!=="active"&&s!=="en-route";
     });
   }
-  // TODOS = todo (pasado presente futuro) — no filtramos nada
 
   if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
   container.innerHTML="";
 
+  var fmtT=function(iso){if(!iso)return"--:--";var m=iso.match(/T(\d{2}:\d{2})/);return m?m[1]:"--:--";};
+
   data.forEach(function(v){
     var esS=liveMode==="salidas";
-    var num=(v.number||"VY---");
+    var dep=v.departure||{};
+    var arr=v.arrival||{};
+    var num=(v.flight&&v.flight.iata)||"VY---";
 
-    var apDest=esS?(v.arrival&&v.arrival.airport):(v.departure&&v.departure.airport);
-    var ciudad=getCiudad(apDest&&apDest.iata,"",apDest&&apDest.name||apDest&&apDest.iata||"--");
+    // Ciudad
+    var ap=esS?arr:dep;
+    var ciudad=getCiudad(ap.iata,ap.icao,ap.airport);
 
-    // Tiempos — AeroDataBox usa scheduledTime y revisedTime
-    var tiempos=esS?(v.departure||{}):(v.arrival||{});
-    var prog=(tiempos.scheduledTime&&tiempos.scheduledTime.local)||"";
-    var revised=(tiempos.revisedTime&&tiempos.revisedTime.local)||"";
-    var fmtT=function(s){if(!s)return"--:--";var m=s.match(/(\d{2}:\d{2})/);return m?m[1]:"--:--";};
+    // Horas — AviationStack: scheduled, estimated, actual
+    var tiempos=esS?dep:arr;
+    var prog=tiempos.scheduled||"";
+    var real=tiempos.actual||tiempos.estimated||"";
     var progFmt=fmtT(prog);
-    var revisedFmt=fmtT(revised);
+    var realFmt=fmtT(real);
     var horaStr=progFmt;
-    if(revised&&revisedFmt!==progFmt){
-      horaStr='<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+progFmt+"</span>"+revisedFmt;
+    if(real&&realFmt!==progFmt){
+      horaStr='<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+progFmt+"</span>"+realFmt;
     }
 
-    // Estado — valores exactos de AeroDataBox
-    var s=v.status||"";
+    // Estado — AviationStack: scheduled, active, landed, cancelled, diverted, incident
+    var s=(v.flight_status||"").toLowerCase();
     var estado;
-    if(s==="Cancelled")estado={t:"Cancelado",c:"e-cancelled"};
-    else if(s==="Landed")estado={t:"Aterrizado",c:"e-landed"};
-    else if(s==="Departed"||s==="Approaching")estado={t:"En vuelo",c:"e-active"};
-    else if(s==="Boarding")estado={t:"Embarcando",c:"e-boarding"};
-    else if(s==="GateClosed")estado={t:"Puerta cerrada",c:"e-gate"};
-    else if(s==="Delayed")estado={t:"Retrasado",c:"e-delayed"};
+    if(s==="cancelled")estado={t:"Cancelado",c:"e-cancelled"};
+    else if(s==="landed")estado={t:"Aterrizado",c:"e-landed"};
+    else if(s==="active"||s==="en-route")estado={t:"En vuelo",c:"e-active"};
+    else if(s==="delayed")estado={t:"Retrasado",c:"e-delayed"};
     else estado={t:"Programado",c:"e-scheduled"};
 
-    // Puerta salidas — confirmado en consola: v.departure.gate
-    // Cinta llegadas — AeroDataBox la da cuando aterriza en v.arrival.baggageClaim
-    var extraLabel="";
-    if(esS){
-      var gate=v.departure&&v.departure.gate;
-      if(gate)extraLabel="Puerta "+gate;
-    } else {
-      var baggage=v.arrival&&v.arrival.baggageClaim;
-      var terminal=v.arrival&&v.arrival.terminal;
-      if(baggage)extraLabel="Cinta "+baggage;
-      else if(terminal)extraLabel="Terminal "+terminal;
-    }
+    // Puerta / cinta
+    var gate=esS?dep.gate:arr.gate;
+    var baggage=arr.baggage;
+    var extraLabel=esS?(gate?"Puerta "+gate:""):(baggage?"Cinta "+baggage:(gate?"Puerta "+gate:""));
 
-    // Fila cancelada en rojo
-    var rowStyle=s==="Cancelled"?"opacity:.6;border-color:rgba(230,80,70,.3)":"";
-
-    var row=document.createElement("div");
-    row.className="vuelo-row";
+    var rowStyle=(s==="cancelled")?"opacity:.6;border-color:rgba(230,80,70,.3)":"";
+    var row=document.createElement("div");row.className="vuelo-row";
     if(rowStyle)row.style.cssText=rowStyle;
     row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
       +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
@@ -901,39 +896,24 @@ function loadLive(){
   var container=document.getElementById("live-container");
   container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
 
-  var RAPID_KEY="fb315228bcmsh2bcfee0bbe50348p14192bjsn4eaa29f19f69";
-  var headers={"x-rapidapi-key":RAPID_KEY,"x-rapidapi-host":"aerodatabox.p.rapidapi.com"};
-
-  var now=new Date();
-  var pad=function(n){return String(n).padStart(2,"0");};
-  var dateStr=now.getFullYear()+"-"+pad(now.getMonth()+1)+"-"+pad(now.getDate());
-  var hh=pad(now.getHours());var mm=pad(now.getMinutes());
-  var fromTime=dateStr+"T"+hh+":00";
-  var end=new Date(now.getTime()+12*3600*1000);
-  var endStr=end.getFullYear()+"-"+pad(end.getMonth()+1)+"-"+pad(end.getDate())+"T"+pad(end.getHours())+":00";
-
-  var base="https://aerodatabox.p.rapidapi.com/flights/airports/iata/ALC/"+fromTime+"/"+endStr;
-  var params="?withLeg=true&withCancelled=true&withCodeshared=false&withCargo=false&withPrivate=false&withLocation=false";
+  var KEY="ea007c2dc2b2d5f2fb29f8a351aa875a";
+  var base="https://api.aviationstack.com/v1/flights?access_key="+KEY+"&airline_iata=VY&limit=100";
 
   Promise.all([
-    fetch(base+params+"&direction=Departure",{headers:headers}).then(function(r){return r.json();}),
-    fetch(base+params+"&direction=Arrival",{headers:headers}).then(function(r){return r.json();})
+    fetch(base+"&dep_iata=ALC").then(function(r){return r.json();}),
+    fetch(base+"&arr_iata=ALC").then(function(r){return r.json();})
   ]).then(function(res){
-    // Filtrar solo Vueling (VY) en el código
-    var sal=((res[0].departures||res[0])||[]).filter(function(v){
-      var num=(v.number||"").toUpperCase();
-      return num.indexOf("VY")===0;
+    var pad=function(n){return String(n).padStart(2,"0");};
+    liveData.sal=(res[0].data||[]).sort(function(a,b){
+      return((a.departure&&a.departure.scheduled)||"").localeCompare((b.departure&&b.departure.scheduled)||"");
     });
-    var lle=((res[1].arrivals||res[1])||[]).filter(function(v){
-      var num=(v.number||"").toUpperCase();
-      return num.indexOf("VY")===0;
+    liveData.lle=(res[1].data||[]).sort(function(a,b){
+      return((a.arrival&&a.arrival.scheduled)||"").localeCompare((b.arrival&&b.arrival.scheduled)||"");
     });
-    liveData.sal=sal;
-    liveData.lle=lle;
     var hNow=new Date();
     document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
     renderLive();
-  }).catch(function(e){
+  }).catch(function(){
     container.innerHTML="<div class='error-box'>Error al cargar. Pulsa ↻ para reintentar.</div>";
     liveLoaded=false;
   });
