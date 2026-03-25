@@ -859,7 +859,10 @@ function loadVuelos(){
   var horaEl=document.getElementById("vuelos-hora");
   container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
   var base="https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50";
-  Promise.all([fetch(base+"&dep_iata=ALC").then(function(r){return r.json();}),fetch(base+"&arr_iata=ALC").then(function(r){return r.json();})
+  var proxyBase="https://api.allorigins.win/get?url=";
+var urlSal=encodeURIComponent("https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50&dep_iata=ALC");
+var urlLle=encodeURIComponent("https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50&arr_iata=ALC");
+Promise.all([fetch(proxyBase+urlSal).then(function(r){return r.json();}).then(function(d){return JSON.parse(d.contents);}),fetch(proxyBase+urlLle).then(function(r){return r.json();}).then(function(d){return JSON.parse(d.contents);})
   ]).then(function(results){
     vuelosData.salidas=(results[0].data||[]).sort(function(a,b){return new Date((a.departure&&a.departure.scheduled)||0)-new Date((b.departure&&b.departure.scheduled)||0);});
     vuelosData.llegadas=(results[1].data||[]).sort(function(a,b){return new Date((a.arrival&&a.arrival.scheduled)||0)-new Date((b.arrival&&b.arrival.scheduled)||0);});
@@ -957,7 +960,10 @@ function loadLive(){
   var horaEl=document.getElementById("live-hora");
   container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
   var base="https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50";
-  Promise.all([fetch(base+"&dep_iata=ALC").then(function(r){return r.json();}),fetch(base+"&arr_iata=ALC").then(function(r){return r.json();})
+  var proxyBase="https://api.allorigins.win/get?url=";
+var urlSal=encodeURIComponent("https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50&dep_iata=ALC");
+var urlLle=encodeURIComponent("https://api.aviationstack.com/v1/flights?access_key="+AVIATION_KEY+"&airline_iata=VY&limit=50&arr_iata=ALC");
+Promise.all([fetch(proxyBase+urlSal).then(function(r){return r.json();}).then(function(d){return JSON.parse(d.contents);}),fetch(proxyBase+urlLle).then(function(r){return r.json();}).then(function(d){return JSON.parse(d.contents);})
   ]).then(function(results){
     vuelosData.salidas=(results[0].data||[]).sort(function(a,b){return new Date((a.departure&&a.departure.scheduled)||0)-new Date((b.departure&&b.departure.scheduled)||0);});
     vuelosData.llegadas=(results[1].data||[]).sort(function(a,b){return new Date((a.arrival&&a.arrival.scheduled)||0)-new Date((b.arrival&&b.arrival.scheduled)||0);});
