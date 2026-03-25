@@ -804,8 +804,9 @@ function toggleFiltro(){
 
 function fmtHora(iso){
   if(!iso)return"--:--";
-  var d=new Date(iso);
-  return d.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit",timeZone:"Europe/Madrid"});
+  // La API devuelve hora local con offset, extraemos HH:MM directamente
+  var m=iso.match(/T(\d{2}:\d{2})/);
+  return m?m[1]:"--:--";
 }
 
 function estadoLabel(s){
@@ -915,7 +916,18 @@ function renderLive(){
     if(iata.toUpperCase().indexOf("IB")===0)return false;
     return true;
   });
-  if(liveFiltro){data=data.filter(function(v){var s=(v.flight_status||"").toLowerCase();return s!=="landed"&&s!=="cancelled";});}
+  if(liveFiltro){
+    data=data.filter(function(v){
+      var s=(v.flight_status||"").toLowerCase();
+      if(liveMode==="llegadas"){
+        // Llegadas: ocultar aterrizados y cancelados
+        return s!=="landed"&&s!=="cancelled";
+      } else {
+        // Salidas: ocultar los q ya salieron (en vuelo, aterrizados) y cancelados
+        return s!=="landed"&&s!=="cancelled"&&s!=="active"&&s!=="en route";
+      }
+    });
+  }
   if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+"</div>";return;}
   container.innerHTML="";
   data.forEach(function(v){
@@ -954,7 +966,11 @@ function loadLive(){
     if(horaEl)horaEl.textContent="Actualizado: "+h;
     renderLive();
     renderVuelos();
-  }).catch(function(){container.innerHTML="<div class='error-box'>Error al cargar vuelos.</div>";liveLoaded=false;});
+  }).catch(function(){
+    container.innerHTML="<div class='error-box'>Error al cargar vuelos. Reintentando...</div>";
+    liveLoaded=false;
+    setTimeout(function(){if(liveLoaded===false)loadLive();},3000);
+  });
 }
 
 var manifest={name:"CTA Alicante",short_name:"CTA",start_url:".",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
