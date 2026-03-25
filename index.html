@@ -839,13 +839,19 @@ function renderLive(){
   data.forEach(function(v){
     var esS=liveMode==="salidas";
     var num=(v.number||"VY---");
-    var ap=esS?(v.arrival||{}):(v.departure||{});
-    var ciudad=getCiudad(ap.airport&&ap.airport.iata,"",ap.airport&&ap.airport.name);
+
+    // AeroDataBox estructura: v.departure.airport / v.arrival.airport
+    var apDest=esS?(v.arrival&&v.arrival.airport):(v.departure&&v.departure.airport);
+    var ciudad=getCiudad(apDest&&apDest.iata,"",apDest&&apDest.name||apDest&&apDest.iata||"--");
+
+    // Tiempos
     var tiempos=esS?(v.departure||{}):(v.arrival||{});
-    var horaProg=(tiempos.scheduledTime&&tiempos.scheduledTime.local)||"";
-    var horaReal=(tiempos.actualTime&&tiempos.actualTime.local)||(tiempos.estimatedTime&&tiempos.estimatedTime.local)||"";
-    var fmtISO=function(s){if(!s)return"--:--";var m=s.match(/(\d{2}:\d{2})/);return m?m[1]:"--:--";};
-    var horaStr=(horaReal&&horaReal!==horaProg)?('<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+fmtISO(horaProg)+"</span>"+fmtISO(horaReal)):fmtISO(horaProg);
+    var prog=(tiempos.scheduledTime&&(tiempos.scheduledTime.local||tiempos.scheduledTime.utc))||"";
+    var real=(tiempos.actualTime&&(tiempos.actualTime.local||tiempos.actualTime.utc))||(tiempos.estimatedTime&&(tiempos.estimatedTime.local||tiempos.estimatedTime.utc))||"";
+    var fmtT=function(s){if(!s)return"--:--";var m=s.match(/(\d{2}:\d{2})/);return m?m[1]:"--:--";};
+    var horaStr=(real&&real!==prog)?('<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+fmtT(prog)+"</span>"+fmtT(real)):fmtT(prog);
+
+    // Estado
     var s=(v.status||"").toLowerCase();
     var estado;
     if(s==="cancelled")estado={t:"Cancelado",c:"e-cancelled"};
@@ -853,8 +859,11 @@ function renderLive(){
     else if(s==="departed"||s==="airborne"||s==="en-route")estado={t:"En vuelo",c:"e-active"};
     else if(s==="delayed")estado={t:"Retrasado",c:"e-delayed"};
     else estado={t:"Programado",c:"e-scheduled"};
-    var puerta=esS?(v.departure&&v.departure.gate):(v.arrival&&v.arrival.baggageClaim);
+
+    // Puerta / cinta
+    var puerta=esS?(tiempos.gate||tiempos.terminal):(tiempos.baggageClaim||tiempos.gate||"");
     var extraLabel=esS?(puerta?"Puerta "+puerta:""):(puerta?"Cinta "+puerta:"");
+
     var row=document.createElement("div");row.className="vuelo-row";
     row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
       +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
@@ -875,25 +884,32 @@ function loadLive(){
   var pad=function(n){return String(n).padStart(2,"0");};
   var dateStr=now.getFullYear()+"-"+pad(now.getMonth()+1)+"-"+pad(now.getDate());
   var hh=pad(now.getHours());var mm=pad(now.getMinutes());
-  var fromTime=dateStr+"T"+hh+":"+mm;
-  // ventana de 12 horas
+  var fromTime=dateStr+"T"+hh+":00";
   var end=new Date(now.getTime()+12*3600*1000);
-  var endStr=end.getFullYear()+"-"+pad(end.getMonth()+1)+"-"+pad(end.getDate())+"T"+pad(end.getHours())+":"+pad(end.getMinutes());
+  var endStr=end.getFullYear()+"-"+pad(end.getMonth()+1)+"-"+pad(end.getDate())+"T"+pad(end.getHours())+":00";
 
-  var base="https://aerodatabox.p.rapidapi.com/flights/airports/iata/ALC/";
-  var urlSal=base+fromTime+"/"+endStr+"?direction=Departure&airline=VY&withLeg=false&withCancelled=true&withCodeshared=false&withCargo=false&withPrivate=false";
-  var urlLle=base+fromTime+"/"+endStr+"?direction=Arrival&airline=VY&withLeg=false&withCancelled=true&withCodeshared=false&withCargo=false&withPrivate=false";
+  var base="https://aerodatabox.p.rapidapi.com/flights/airports/iata/ALC/"+fromTime+"/"+endStr;
+  var params="?withLeg=true&withCancelled=true&withCodeshared=false&withCargo=false&withPrivate=false&withLocation=false";
 
   Promise.all([
-    fetch(urlSal,{headers:headers}).then(function(r){return r.json();}),
-    fetch(urlLle,{headers:headers}).then(function(r){return r.json();})
+    fetch(base+params+"&direction=Departure",{headers:headers}).then(function(r){return r.json();}),
+    fetch(base+params+"&direction=Arrival",{headers:headers}).then(function(r){return r.json();})
   ]).then(function(res){
-    liveData.sal=(res[0].departures||[]).sort(function(a,b){return(a.departure&&a.departure.scheduledTime&&a.departure.scheduledTime.local||"").localeCompare(b.departure&&b.departure.scheduledTime&&b.departure.scheduledTime.local||"");});
-    liveData.lle=(res[1].arrivals||[]).sort(function(a,b){return(a.arrival&&a.arrival.scheduledTime&&a.arrival.scheduledTime.local||"").localeCompare(b.arrival&&b.arrival.scheduledTime&&b.arrival.scheduledTime.local||"");});
+    // Filtrar solo Vueling (VY) en el código
+    var sal=((res[0].departures||res[0])||[]).filter(function(v){
+      var num=(v.number||"").toUpperCase();
+      return num.indexOf("VY")===0;
+    });
+    var lle=((res[1].arrivals||res[1])||[]).filter(function(v){
+      var num=(v.number||"").toUpperCase();
+      return num.indexOf("VY")===0;
+    });
+    liveData.sal=sal;
+    liveData.lle=lle;
     var hNow=new Date();
     document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
     renderLive();
-  }).catch(function(){
+  }).catch(function(e){
     container.innerHTML="<div class='error-box'>Error al cargar. Pulsa ↻ para reintentar.</div>";
     liveLoaded=false;
   });
