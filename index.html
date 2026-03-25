@@ -830,14 +830,22 @@ function switchLive(mode){
 function renderLive(){
   var container=document.getElementById("live-container");
   var data=(liveMode==="salidas"?liveData.sal:liveData.lle).slice();
+  var esS=liveMode==="salidas";
+  var ahora=Date.now();
 
-  // Solo vuelos operados por Vueling puro (VY) — sin codeshared de ningún tipo
+  // Solo vuelos de HOY
+  var hoy=new Date();
+  var hoyStr=hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0")+"-"+String(hoy.getDate()).padStart(2,"0");
+  data=data.filter(function(v){
+    var fecha=esS?((v.departure&&v.departure.scheduled)||""):((v.arrival&&v.arrival.scheduled)||"");
+    return fecha.indexOf(hoyStr)===0;
+  });
+
+  // Solo Vueling puro — sin codeshared de ningún tipo
   data=data.filter(function(v){
     var iata=(v.flight&&v.flight.iata)||"";
     var cs=v.flight&&v.flight.codeshared;
-    // Si tiene codeshared con cualquier aerolínea, fuera
     if(cs&&cs.airline_iata)return false;
-    // El número de vuelo debe empezar por VY
     if(!iata.toUpperCase().match(/^VY/))return false;
     return true;
   });
@@ -846,17 +854,17 @@ function renderLive(){
 
   if(liveMode==="llegadas"){
     if(liveFiltro){
-      // Activos: en vuelo y programados, pero solo si la hora programada no pasó hace más de 90 min
+      // Activos: excluir landed/cancelled, y excluir los que llevan más de 45 min desde hora programada
       data=data.filter(function(v){
         var s=s_val(v);
         if(s==="landed"||s==="cancelled")return false;
         var prog=(v.arrival&&v.arrival.scheduled)||"";
         if(!prog)return true;
-        var diff=(Date.now()-new Date(prog).getTime())/60000;
-        return diff<90; // si pasaron más de 90 min desde la llegada programada, fuera
+        var diff=(ahora-new Date(prog).getTime())/60000;
+        return diff<45;
       });
     }
-    // Todos: sin filtro de tiempo
+    // Todos: sin filtro
   } else {
     // Salidas: los aterrizados nunca interesan
     data=data.filter(function(v){var s=s_val(v);return s!=="landed";});
@@ -873,7 +881,6 @@ function renderLive(){
   var fmtT=function(iso){if(!iso)return"--:--";var m=iso.match(/T(\d{2}:\d{2})/);return m?m[1]:"--:--";};
 
   data.forEach(function(v){
-    var esS=liveMode==="salidas";
     var dep=v.departure||{};
     var arr=v.arrival||{};
     var num=(v.flight&&v.flight.iata)||"VY---";
