@@ -844,10 +844,17 @@ function renderLive(){
 
   if(liveMode==="llegadas"){
     if(liveFiltro){
-      // Activos: solo en vuelo y programados
-      data=data.filter(function(v){var s=s_val(v);return s==="active"||s==="scheduled";});
+      // Activos: en vuelo y programados, pero solo si la hora programada no pasó hace más de 90 min
+      data=data.filter(function(v){
+        var s=s_val(v);
+        if(s==="landed"||s==="cancelled")return false;
+        var prog=(v.arrival&&v.arrival.scheduled)||"";
+        if(!prog)return true;
+        var diff=(Date.now()-new Date(prog).getTime())/60000;
+        return diff<90; // si pasaron más de 90 min desde la llegada programada, fuera
+      });
     }
-    // Todos: sin filtro (muestra aterrizados también)
+    // Todos: sin filtro de tiempo
   } else {
     // Salidas: los aterrizados nunca interesan
     data=data.filter(function(v){var s=s_val(v);return s!=="landed";});
