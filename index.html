@@ -832,15 +832,11 @@ function renderLive(){
   var data=(liveMode==="salidas"?liveData.sal:liveData.lle).slice();
   var esS=liveMode==="salidas";
 
-  // Filtro Activos / Todos
   if(liveFiltro){
     data=data.filter(function(v){
       var s=v.estadoClass||"";
-      if(liveMode==="llegadas"){
-        return s!=="e-landed"&&s!=="e-cancelled";
-      } else {
-        return s!=="e-active"&&s!=="e-landed"&&s!=="e-cancelled";
-      }
+      if(liveMode==="llegadas") return s!=="e-landed"&&s!=="e-cancelled";
+      else return s!=="e-active"&&s!=="e-landed"&&s!=="e-cancelled";
     });
   }
 
@@ -870,49 +866,6 @@ function renderLive(){
 }
 
 function loadLive(){
-  liveLoaded=true;
-  var container=document.getElementById("live-container");
-  container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
-
-  var KEY_ASTACK="ea007c2dc2b2d5f2fb29f8a351aa875a";
-  var base="https://api.aviationstack.com/v1/flights?access_key="+KEY_ASTACK+"&airline_iata=VY&limit=100";
-
-  Promise.all([
-    fetch(base+"&dep_iata=ALC").then(function(r){return r.json();}),
-    fetch(base+"&arr_iata=ALC").then(function(r){return r.json();})
-  ]).then(function(res){
-    // Detectar si AviationStack se ha quedado sin créditos
-    var err0=(res[0].error&&res[0].error.code)||"";
-    var err1=(res[1].error&&res[1].error.code)||"";
-    if(err0==="usage_limit_reached"||err1==="usage_limit_reached"||(!res[0].data&&!res[1].data)){
-      console.log("AviationStack agotado, usando AeroDataBox...");
-      loadLiveFallback();
-      return;
-    }
-    var pad=function(n){return String(n).padStart(2,"0");};
-    liveData.sal=(res[0].data||[]).sort(function(a,b){
-      return((a.departure&&a.departure.scheduled)||"").localeCompare((b.departure&&b.departure.scheduled)||"");
-    });
-    liveData.lle=(res[1].data||[]).sort(function(a,b){
-      return((a.arrival&&a.arrival.scheduled)||"").localeCompare((b.arrival&&b.arrival.scheduled)||"");
-    });
-    var hNow=new Date();
-    document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
-    renderLive();
-  }).catch(function(){
-    console.log("AviationStack error, usando AeroDataBox...");
-    loadLiveFallback();
-  });
-}
-
-function loadLiveFallback(){
-  // Fallback a AeroDataBox (RapidAPI) — ilimitado
-  var container=document.getElementById("live-container");
-  container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
-  var RAPID_KEY="fb315228bcmsh2bcfee0bbe50348p14192bjsn4eaa29f19f69";
-  var headers={"x-rapidapi-key":RAPID_KEY,"x-rapidapi-host":"aerodatabox.p.rapidapi.com"};
-  var now=new Date();
-  vafunction loadLive(){
   liveLoaded=true;
   var container=document.getElementById("live-container");
   container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
@@ -927,174 +880,12 @@ function loadLiveFallback(){
     var hNow=new Date();
     document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
     renderLive();
-  }).catch(function(e){
-    container.innerHTML="<div class='error-box'>Error al cargar vuelos. Pulsa ↻ para reintentar.</div>";
-    liveLoaded=false;
-  });
-}
-
-
-var manifest={name:"CTA Alicante",short_name:"CTA",start_url:".",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
-var ml=document.createElement("link");ml.rel="manifest";ml.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/json"}));document.head.appendChild(ml);
-var dp;
-window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;setTimeout(function(){document.getElementById("install-banner").classList.add("show");},4000);});
-document.getElementById("ib-yes").addEventListener("click",function(){document.getElementById("install-banner").classList.remove("show");if(dp){dp.prompt();dp=null;}});
-
-renderBreadcrumb();
-renderFolder(ROOT_ID);
-
-// ===== LIVE FLIGHTS =====
-var AVIATION_KEY="c69da0d719ab8a9787dc0c391ae414e2";
-var liveMode="llegadas";
-var liveFiltro=true;
-var liveLoaded=false;
-var liveData={sal:[],lle:[]};
-
-var CIUDADES={"ALC":"Alicante","BCN":"Barcelona","MAD":"Madrid","VLC":"Valencia","SVQ":"Sevilla","BIO":"Bilbao","PMI":"Palma","IBZ":"Ibiza","MAH":"Menorca","TFN":"Tenerife Norte","TFS":"Tenerife Sur","LPA":"Gran Canaria","ACE":"Lanzarote","FUE":"Fuerteventura","LCG":"A Coruña","SCQ":"Santiago","OVD":"Asturias","VGO":"Vigo","ZAZ":"Zaragoza","GRX":"Granada","AGP":"Málaga","XRY":"Jerez","CDG":"París","ORY":"París Orly","LHR":"Londres","LGW":"Londres","STN":"Londres","AMS":"Ámsterdam","FCO":"Roma","MXP":"Milán","VCE":"Venecia","NCE":"Niza","DUB":"Dublín","LIS":"Lisboa","OPO":"Oporto","ATH":"Atenas","IST":"Estambul","BRU":"Bruselas","FRA":"Fráncfort","MUC":"Múnich","VIE":"Viena","WAW":"Varsovia","PRG":"Praga","BUD":"Budapest","GVA":"Ginebra","ZRH":"Zúrich","CPH":"Copenhague","ARN":"Estocolmo","HEL":"Helsinki","OSL":"Oslo","TLV":"Tel Aviv","CMN":"Casablanca","RAK":"Marrakech","TUN":"Túnez","ALG":"Argel","ORN":"Orán","BOD":"Burdeos","NTE":"Nantes","TLS":"Toulouse","MPL":"Montpellier","REU":"Reus","GRO":"Gerona","SDR":"Santander","LEI":"Almería","RMU":"Murcia"};
-
-function getCiudad(iata,icao,nombre){
-  if(iata&&CIUDADES[iata])return CIUDADES[iata];
-  if(!nombre)return iata||"--";
-  return nombre.replace("El Prat De Llobregat","Barcelona").replace("Adolfo Suarez","Madrid").replace("Josep Tarradellas","Barcelona").replace("Norte Los Rodeos","Tenerife Norte").replace("Reina Sofia","Tenerife Sur").replace("Charles De Gaulle","París").replace("Heathrow","Londres").replace("Gatwick","Londres").replace("Schiphol","Ámsterdam").replace("Boumediene","Argel").replace("Airport","").replace("International","").replace(/\s+/g," ").trim();
-}
-
-function fmtH(iso){if(!iso)return"--:--";var m=iso.match(/T(\d{2}:\d{2})/);return m?m[1]:"--:--";}
-
-function eLabel(s){
-  if(!s)return{t:"Programado",c:"e-scheduled"};
-  s=s.toLowerCase();
-  if(s==="active"||s==="en route")return{t:"En vuelo",c:"e-active"};
-  if(s==="landed")return{t:"Aterrizado",c:"e-landed"};
-  if(s==="cancelled")return{t:"Cancelado",c:"e-cancelled"};
-  if(s.indexOf("delay")!==-1)return{t:"Retrasado",c:"e-delayed"};
-  return{t:"Programado",c:"e-scheduled"};
-}
-
-function isIB(v){
-  var iata=(v.flight&&v.flight.iata)||"";
-  var cs=v.flight&&v.flight.codeshared;
-  if(cs&&cs.airline_iata&&cs.airline_iata.toUpperCase()==="IB")return true;
-  if(iata.toUpperCase().indexOf("IB")===0)return true;
-  return false;
-}
-
-function switchLive(mode){
-  liveMode=mode;
-  document.getElementById("live-tab-llegadas").classList.toggle("active",mode==="llegadas");
-  document.getElementById("live-tab-salidas").classList.toggle("active",mode==="salidas");
-  renderLive();
-}
-
-function renderLive(){
-  var container=document.getElementById("live-container");
-  var data=(liveMode==="salidas"?liveData.sal:liveData.lle).slice();
-  var esS=liveMode==="salidas";
-
-  // Filtro Activos / Todos
-  if(liveFiltro){
-    data=data.filter(function(v){
-      var s=v.estadoClass||"";
-      if(liveMode==="llegadas"){
-        return s!=="e-landed"&&s!=="e-cancelled";
-      } else {
-        return s!=="e-active"&&s!=="e-landed"&&s!=="e-cancelled";
-      }
-    });
-  }
-
-  if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
-  container.innerHTML="";
-
-  data.forEach(function(v){
-    var num=v.numero||"VY---";
-    var ciudad=esS?(v.destino||"--"):(v.origen||"--");
-    var horaStr=v.horaProg||"--:--";
-    if(v.horaReal&&v.horaReal!==v.horaProg){
-      horaStr='<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+v.horaProg+"</span>"+v.horaReal;
-    }
-    var extraLabel="";
-    if(esS&&v.puerta)extraLabel="Puerta "+v.puerta;
-    if(!esS&&v.cinta)extraLabel="Cinta "+v.cinta;
-    if(!esS&&!v.cinta&&v.sala)extraLabel="Sala "+v.sala;
-    var cancelado=v.estadoClass==="e-cancelled";
-    var rowStyle=cancelado?"opacity:.6;border-color:rgba(230,80,70,.3)":"";
-    var row=document.createElement("div");row.className="vuelo-row";
-    if(rowStyle)row.style.cssText=rowStyle;
-    row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
-      +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
-      +"<div class='vuelo-estado "+(v.estadoClass||"e-scheduled")+"'>"+(v.estado||"Programado")+"</div>";
-    container.appendChild(row);
-  });
-}
-
-function loadLive(){
-  liveLoaded=true;
-  var container=document.getElementById("live-container");
-  container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
-
-  var KEY_ASTACK="ea007c2dc2b2d5f2fb29f8a351aa875a";
-  var base="https://api.aviationstack.com/v1/flights?access_key="+KEY_ASTACK+"&airline_iata=VY&limit=100";
-
-  Promise.all([
-    fetch(base+"&dep_iata=ALC").then(function(r){return r.json();}),
-    fetch(base+"&arr_iata=ALC").then(function(r){return r.json();})
-  ]).then(function(res){
-    // Detectar si AviationStack se ha quedado sin créditos
-    var err0=(res[0].error&&res[0].error.code)||"";
-    var err1=(res[1].error&&res[1].error.code)||"";
-    if(err0==="usage_limit_reached"||err1==="usage_limit_reached"||(!res[0].data&&!res[1].data)){
-      console.log("AviationStack agotado, usando AeroDataBox...");
-      loadLiveFallback();
-      return;
-    }
-    var pad=function(n){return String(n).padStart(2,"0");};
-    liveData.sal=(res[0].data||[]).sort(function(a,b){
-      return((a.departure&&a.departure.scheduled)||"").localeCompare((b.departure&&b.departure.scheduled)||"");
-    });
-    liveData.lle=(res[1].data||[]).sort(function(a,b){
-      return((a.arrival&&a.arrival.scheduled)||"").localeCompare((b.arrival&&b.arrival.scheduled)||"");
-    });
-    var hNow=new Date();
-    document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
-    renderLive();
-  }).catch(function(){
-    console.log("AviationStack error, usando AeroDataBox...");
-    loadLiveFallback();
-  });
-}
-
-function loadLiveFallback(){
-  // Fallback a AeroDataBox (RapidAPI) — ilimitado
-  var container=document.getElementById("live-container");
-  container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
-  var RAPID_KEY="fb315228bcmsh2bcfee0bbe50348p14192bjsn4eaa29f19f69";
-  var headers={"x-rapidapi-key":RAPID_KEY,"x-rapidapi-host":"aerodatabox.p.rapidapi.com"};
-  var now=new Date();
-  var pad=function(n){return String(n).padStart(2,"0");};
-  var dateStr=now.getFullYear()+"-"+pad(now.getMonth()+1)+"-"+pad(now.getDate());
-  var fromTime=dateStr+"T"+pad(now.getHours())+":00";
-  var end=new Date(now.getTime()+12*3600*1000);
-  var endStr=end.getFullYear()+"-"+pad(end.getMonth()+1)+"-"+pad(end.getDate())+"T"+pad(end.getHours())+":00";
-  var base="https://aerodatabox.p.rapidapi.com/flights/airports/iata/ALC/"+fromTime+"/"+endStr;
-  var params="?withLeg=true&withCancelled=true&withCodeshared=false&withCargo=false&withPrivate=false&withLocation=false";
-  Promise.all([
-    fetch(base+params+"&direction=Departure",{headers:headers}).then(function(r){return r.json();}),
-    fetch(base+params+"&direction=Arrival",{headers:headers}).then(function(r){return r.json();})
-  ]).then(function(res){
-    // Convertir formato AeroDataBox a formato AviationStack para reusar renderLive
-    var convDep=function(v){return{flight:{iata:v.number,codeshared:null},flight_status:({Expected:"scheduled",GateClosed:"scheduled",Boarding:"scheduled",Departed:"active",Approaching:"active",Landed:"landed",Cancelled:"cancelled"}[v.status])||"scheduled",departure:{scheduled:v.departure&&v.departure.scheduledTime&&v.departure.scheduledTime.local,estimated:v.departure&&v.departure.revisedTime&&v.departure.revisedTime.local,gate:v.departure&&v.departure.gate},arrival:{scheduled:v.arrival&&v.arrival.scheduledTime&&v.arrival.scheduledTime.local,iata:v.arrival&&v.arrival.airport&&v.arrival.airport.iata,airport:v.arrival&&v.arrival.airport&&v.arrival.airport.name}};};
-    var convArr=function(v){return{flight:{iata:v.number,codeshared:null},flight_status:({Expected:"scheduled",GateClosed:"scheduled",Boarding:"scheduled",Departed:"active",Approaching:"active",Landed:"landed",Cancelled:"cancelled"}[v.status])||"scheduled",departure:{iata:v.departure&&v.departure.airport&&v.departure.airport.iata,airport:v.departure&&v.departure.airport&&v.departure.airport.name},arrival:{scheduled:v.arrival&&v.arrival.scheduledTime&&v.arrival.scheduledTime.local,estimated:v.arrival&&v.arrival.revisedTime&&v.arrival.revisedTime.local,baggage:v.arrival&&v.arrival.baggageClaim,gate:v.arrival&&v.arrival.gate}};};
-    var sal=((res[0].departures||[])).filter(function(v){return v.number&&v.number.indexOf("VY")===0;}).map(convDep);
-    var lle=((res[1].arrivals||[])).filter(function(v){return v.number&&v.number.indexOf("VY")===0;}).map(convArr);
-    liveData.sal=sal;liveData.lle=lle;
-    var hNow=new Date();
-    document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes())+" (backup)";
-    renderLive();
   }).catch(function(){
     container.innerHTML="<div class='error-box'>Error al cargar vuelos. Pulsa ↻ para reintentar.</div>";
     liveLoaded=false;
   });
 }
+
 
 document.getElementById("btn-live").addEventListener("click",function(){
   document.getElementById("live-overlay").classList.add("show");
