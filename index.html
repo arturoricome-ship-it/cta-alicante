@@ -42,11 +42,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #live-panel.show{transform:translateY(0)}
 .live-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:14px auto 12px}
 #live-body{overflow-y:auto;padding:0 14px 40px;flex:1}
-.vuelo-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:8px;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
+.vuelo-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:8px;display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center}
+.vuelo-estado{font-size:10px;font-weight:700;padding:3px 7px;border-radius:100px;white-space:nowrap;min-width:0;text-align:center}
 .vuelo-num{font-family:"Bebas Neue",sans-serif;font-size:16px;color:var(--gold);letter-spacing:1px}
 .vuelo-dest{font-size:13px;font-weight:700}
 .vuelo-hora{font-size:11px;color:var(--gray);margin-top:2px}
-.vuelo-estado{font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px;white-space:nowrap}
 .vuelo-puerta{font-size:10px;color:var(--gray);margin-top:2px}
 .e-active{background:rgba(60,180,100,.2);color:#5dd88a}
 .e-scheduled{background:rgba(200,168,75,.15);color:var(--gold)}
@@ -70,6 +70,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 12px 90px;-webkit-overflow-scrolling:touch}
 .panel{display:none;animation:fadeUp .3s ease}.panel.active{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:400px){.vuelo-estado{font-size:9px;padding:3px 6px}}
 .folder-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:4px}
 @media(max-width:380px){.folder-grid{grid-template-columns:1fr 1fr}}
 .folder-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 10px 12px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;font-family:"Outfit",sans-serif;color:inherit;width:100%}
