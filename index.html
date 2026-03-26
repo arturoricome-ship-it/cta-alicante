@@ -871,19 +871,23 @@ function loadLive(){
   container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
   var RAILWAY="https://aena-vuelos-server-production.up.railway.app";
   var pad=function(n){return String(n).padStart(2,"0");};
-  Promise.all([
-    fetch(RAILWAY+"/vuelos?tipo=salidas").then(function(r){return r.json();}),
-    fetch(RAILWAY+"/vuelos?tipo=llegadas").then(function(r){return r.json();})
-  ]).then(function(res){
-    liveData.sal=(res[0].vuelos||[]);
-    liveData.lle=(res[1].vuelos||[]);
-    var hNow=new Date();
-    document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
-    renderLive();
-  }).catch(function(){
-    container.innerHTML="<div class='error-box'>Error al cargar vuelos. Pulsa ↻ para reintentar.</div>";
-    liveLoaded=false;
-  });
+  // Peticiones secuenciales para evitar bloqueo de AENA
+  fetch(RAILWAY+"/vuelos?tipo=llegadas")
+    .then(function(r){return r.json();})
+    .then(function(resLle){
+      liveData.lle=(resLle.vuelos||[]);
+      return fetch(RAILWAY+"/vuelos?tipo=salidas").then(function(r){return r.json();});
+    })
+    .then(function(resSal){
+      liveData.sal=(resSal.vuelos||[]);
+      var hNow=new Date();
+      document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
+      renderLive();
+    })
+    .catch(function(){
+      container.innerHTML="<div class='error-box'>Error al cargar vuelos. Pulsa ↻ para reintentar.</div>";
+      liveLoaded=false;
+    });
 }
 
 
