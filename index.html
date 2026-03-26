@@ -33,7 +33,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #btn-home:hover{background:rgba(200,168,75,.15);border-color:rgba(200,168,75,.4)}
 #btn-home:disabled{opacity:.2;cursor:default}
 /* LIVE */
-#btn-live{height:28px;padding:0 8px;border-radius:8px;border:1px solid rgba(230,80,70,.3);background:rgba(230,80,70,.08);color:#f07070;font-size:10px;font-weight:700;display:flex;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;font-family:"Outfit",sans-serif;letter-spacing:.5px}
+#btn-live{height:26px;padding:0 8px;border-radius:8px;border:1px solid rgba(230,80,70,.3);background:rgba(230,80,70,.08);color:#f07070;font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;flex-shrink:0;font-family:"Outfit",sans-serif;line-height:1}
 .live-dot{width:6px;height:6px;border-radius:50%;background:#f07070;flex-shrink:0;animation:livepulse 1.8s ease-in-out infinite}
 @keyframes livepulse{0%,100%{opacity:1}50%{opacity:.2}}
 #live-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400}
@@ -221,7 +221,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div id="nav-bar">
     <button id="btn-back" disabled>&#8592;</button>
     <div id="breadcrumb"></div>
-    <button id="btn-live"><span class="live-dot"></span>Live</button>
+    <button id="btn-live"><span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.5px"><span class="live-dot"></span>✈ VUELOS</span><span id="btn-live-fecha" style="font-size:8px;color:rgba(240,112,112,.7);letter-spacing:.3px"></span></button>
     <button id="btn-home" disabled>&#127968;</button>
   </div>
 </div>
@@ -322,7 +322,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div class="live-handle"></div>
   <div style="padding:0 14px 10px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;display:flex;align-items:center;gap:8px"><span class="live-dot"></span>Vueling · Alicante</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;display:flex;align-items:center;gap:8px"><span class="live-dot"></span>Vueling · Alicante</div><div id="live-fecha-panel" style="font-size:11px;color:var(--gold);letter-spacing:1px;margin-top:2px"></div>
       <div style="display:flex;gap:6px">
         <button id="live-filtro" style="background:rgba(60,180,100,.2);border:1px solid rgba(60,180,100,.3);border-radius:8px;color:#5dd88a;font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Outfit',sans-serif">Activos</button>
         <button id="live-refresh" style="background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);border-radius:8px;color:var(--gold);font-size:15px;padding:5px 10px;cursor:pointer">↻</button>
@@ -787,6 +787,18 @@ document.getElementById("ib-yes").addEventListener("click",function(){document.g
 
 renderBreadcrumb();
 renderFolder(ROOT_ID);
+
+// Fecha en botón y panel live
+(function(){
+  var d=new Date();
+  var dias=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+  var meses=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  var txt=dias[d.getDay()]+" "+d.getDate()+" "+meses[d.getMonth()];
+  var f=document.getElementById("btn-live-fecha");
+  var fp=document.getElementById("live-fecha-panel");
+  if(f)f.textContent=txt;
+  if(fp)fp.textContent=txt;
+})();
 
 // ===== LIVE FLIGHTS =====
 var AVIATION_KEY="c69da0d719ab8a9787dc0c391ae414e2";
