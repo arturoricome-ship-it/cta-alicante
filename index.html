@@ -956,8 +956,14 @@ document.getElementById("live-overlay").addEventListener("click",function(){
   document.getElementById("live-panel").classList.remove("show");
 });
 document.getElementById("live-refresh").addEventListener("click",function(){
-  var btn=this;btn.style.opacity=".4";btn.style.pointerEvents="none";
+  var btn=this;
+  btn.style.opacity=".4";btn.style.pointerEvents="none";
+  // Timeout de seguridad: restaurar botón tras 10s aunque falle
+  var timeout=setTimeout(function(){
+    btn.style.opacity="1";btn.style.pointerEvents="auto";
+  }, 10000);
   fetch(RAILWAY+"/refresh").finally(function(){
+    clearTimeout(timeout);
     liveLoaded=false;
     loadLive();
     btn.style.opacity="1";btn.style.pointerEvents="auto";
