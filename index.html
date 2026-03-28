@@ -669,6 +669,8 @@ driveList({q:"'"+ROOT_ID+"' in parents and trashed=false and name='avisos.txt'",
     var bn=document.getElementById("badge-avisos-nav");
     if(b)b.classList.add("show");
     if(bn)bn.classList.add("show");
+    // Notificación si la app está abierta y hay aviso nuevo
+    notificarAvisoNuevo();
   }
 }).catch(function(){});
 
@@ -804,6 +806,30 @@ renderFolder(ROOT_ID);
   if(f)f.textContent=txt;
   if(fp)fp.textContent=txt;
 })();
+
+// ===== NOTIFICACIONES =====
+function pedirPermisoNotificacion(){
+  if(!("Notification" in window))return;
+  if(Notification.permission==="default"){
+    Notification.requestPermission();
+  }
+}
+
+function notificarAvisoNuevo(titulo){
+  if(!("Notification" in window))return;
+  if(Notification.permission!=="granted")return;
+  var n=new Notification("CTA Alicante — Aviso nuevo",{
+    body: titulo||"Hay un nuevo aviso del comité",
+    icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",
+    badge: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",
+    tag: "cta-aviso",
+    renotify: true
+  });
+  n.onclick=function(){ window.focus(); n.close(); };
+}
+
+// Pedir permiso al cargar
+pedirPermisoNotificacion();
 
 // ===== LIVE FLIGHTS =====
 var AVIATION_KEY="c69da0d719ab8a9787dc0c391ae414e2";
