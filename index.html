@@ -442,12 +442,11 @@ function switchTab(name,tabEl,navEl){
   var nv=navEl||document.getElementById("nav-"+name);if(nv)nv.classList.add("active");
   if(name==="avisos"){
     if(!avisosLoaded)loadAvisos();
-    // Marcar avisos como leidos
+    // Solo quitar badge — el localStorage se marca DESPUÉS de renderizar en parseAvisos
     var badge=document.getElementById("badge-avisos");
     var badgeNav=document.getElementById("badge-avisos-nav");
     if(badge)badge.classList.remove("show");
     if(badgeNav)badgeNav.classList.remove("show");
-    localStorage.setItem("avisos_seen", avisosHash);
   }
   if(name==="turnos"&&!turnosLoaded)loadTurnos();
   if(name==="hoy")renderHoy();
@@ -766,6 +765,8 @@ function parseAvisos(container,txt){
       +"<div class=\"aviso-texto\">"+escH(texto).replace(/\n/g,"<br>")+"</div>";
     container.appendChild(card);
   });
+  // Marcar como leído DESPUÉS de renderizar (para que el resaltado se vea esta vez)
+  setTimeout(function(){ localStorage.setItem("avisos_seen", avisosHash); }, 2000);
 }
 
 function renderAvisosDefault(container){
@@ -928,7 +929,14 @@ document.getElementById("live-overlay").addEventListener("click",function(){
   document.getElementById("live-overlay").classList.remove("show");
   document.getElementById("live-panel").classList.remove("show");
 });
-document.getElementById("live-refresh").addEventListener("click",function(){liveLoaded=false;loadLive();});
+document.getElementById("live-refresh").addEventListener("click",function(){
+  var btn=this;btn.style.opacity=".4";btn.style.pointerEvents="none";
+  fetch(RAILWAY+"/refresh").finally(function(){
+    liveLoaded=false;
+    loadLive();
+    btn.style.opacity="1";btn.style.pointerEvents="auto";
+  });
+});
 document.getElementById("live-filtro").addEventListener("click",function(){
   liveFiltro=!liveFiltro;
   var btn=this;
