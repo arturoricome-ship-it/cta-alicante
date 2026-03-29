@@ -920,11 +920,12 @@ function renderLive(){
   });
 }
 
+var RAILWAY="https://aena-vuelos-server-production.up.railway.app";
+
 function loadLive(){
   liveLoaded=true;
   var container=document.getElementById("live-container");
   container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
-  var RAILWAY="https://aena-vuelos-server-production.up.railway.app";
   var pad=function(n){return String(n).padStart(2,"0");};
   // Peticiones secuenciales para evitar bloqueo de AENA
   fetch(RAILWAY+"/vuelos?tipo=llegadas")
