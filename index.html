@@ -32,6 +32,25 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #btn-home{width:32px;height:32px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--white);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .2s}
 #btn-home:hover{background:rgba(200,168,75,.15);border-color:rgba(200,168,75,.4)}
 #btn-home:disabled{opacity:.2;cursor:default}
+#btn-home{display:none!important}
+/* ACCESOS DIRECTOS */
+#btn-accesos{height:26px;padding:0 9px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--gray);font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;font-family:"Outfit",sans-serif;letter-spacing:.3px;transition:all .2s}
+#btn-accesos:hover{border-color:rgba(200,168,75,.3);color:var(--gold);background:rgba(200,168,75,.06)}
+#acceso-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;backdrop-filter:blur(6px);align-items:center;justify-content:center}
+#acceso-overlay.show{display:flex}
+#acceso-panel{background:var(--card);border:1px solid rgba(200,168,75,.2);border-radius:22px;padding:24px 20px;width:calc(100% - 40px);max-width:340px;animation:popIn .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.acceso-panel-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:1.5px;color:var(--gold);margin-bottom:4px;text-align:center}
+.acceso-panel-sub{font-size:11px;color:var(--gray);text-align:center;margin-bottom:18px}
+.acceso-item{display:flex;align-items:center;gap:14px;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:13px 15px;margin-bottom:8px;text-decoration:none;color:inherit;transition:all .2s}
+.acceso-item:last-of-type{margin-bottom:0}
+.acceso-item:hover{border-color:rgba(200,168,75,.35);background:#263050;transform:translateX(3px)}
+.acceso-item:hover .ai-arrow{opacity:1}
+.ai-ico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.ai-info{flex:1}.ai-nombre{font-size:13px;font-weight:700;margin-bottom:2px}.ai-desc{font-size:10px;color:var(--gray);line-height:1.4}
+.ai-arrow{color:var(--gold);font-size:18px;flex-shrink:0;opacity:.3;transition:opacity .2s}
+.acceso-close{display:block;width:100%;margin-top:12px;background:transparent;border:1px solid var(--border);border-radius:11px;padding:10px;font-family:"Outfit",sans-serif;font-size:12px;font-weight:600;color:var(--gray);cursor:pointer;transition:all .2s}
+.acceso-close:hover{border-color:rgba(200,168,75,.3);color:var(--gold)}
 /* LIVE */
 #btn-live{height:26px;padding:0 8px;border-radius:8px;border:1px solid rgba(230,80,70,.3);background:rgba(230,80,70,.08);color:#f07070;font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;flex-shrink:0;font-family:"Outfit",sans-serif;line-height:1}
 .live-dot{width:6px;height:6px;border-radius:50%;background:#f07070;flex-shrink:0;animation:livepulse 1.8s ease-in-out infinite}
@@ -229,8 +248,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div id="nav-bar">
     <button id="btn-back" disabled>&#8592;</button>
     <div id="breadcrumb"></div>
+    <button id="btn-accesos" onclick="toggleAccesoDirecto()">&#128279; Accesos Directos</button>
     <button id="btn-live"><span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.5px"><span class="live-plane">✈</span> VUELOS</span><span id="btn-live-fecha" style="font-size:8px;color:rgba(240,112,112,.7);letter-spacing:.3px"></span></button>
-    <button id="btn-home" disabled>&#127968;</button>
   </div>
 </div>
 
@@ -323,6 +342,35 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <button class="nav-btn" id="nav-afiliate" onclick="switchTab('afiliate',document.querySelectorAll('.tab')[3],this)"><span class="nav-ico">&#9995;</span>Afiliate</button>
   <button class="nav-btn" id="nav-grupos" onclick="switchTab('grupos',document.querySelectorAll('.tab')[4],this)"><span class="nav-ico">&#128172;</span>Grupos</button>
 </nav>
+
+<!-- ACCESOS DIRECTOS -->
+<div id="acceso-overlay" onclick="closeAccesoDirecto()">
+  <div id="acceso-panel" onclick="event.stopPropagation()">
+    <div class="acceso-panel-title">Accesos directos</div>
+    <div class="acceso-panel-sub">Tus herramientas de empresa</div>
+    <a class="acceso-item" href="https://tryp.southeu.com/tryp/website/horarios/calendario" target="_blank">
+      <div class="ai-ico" style="background:rgba(200,168,75,.15)">&#128197;</div>
+      <div class="ai-info"><div class="ai-nombre">Mi calendario personal</div><div class="ai-desc">Turnos y horarios asignados</div></div>
+      <div class="ai-arrow">&#8250;</div>
+    </a>
+    <a class="acceso-item" href="https://tryp.southeu.com/tryp/website/gruposTrabajo/calendario/7557" target="_blank">
+      <div class="ai-ico" style="background:rgba(60,180,100,.15)">&#128101;</div>
+      <div class="ai-info"><div class="ai-nombre">Grupo de trabajo</div><div class="ai-desc">Calendario de tu grupo</div></div>
+      <div class="ai-arrow">&#8250;</div>
+    </a>
+    <a class="acceso-item" href="https://soegs.sharepoint.com/sites/intranet/SitePages/Nominas-empleados.aspx" target="_blank">
+      <div class="ai-ico" style="background:rgba(100,200,100,.15)">&#128176;</div>
+      <div class="ai-info"><div class="ai-nombre">Nóminas</div><div class="ai-desc">Consulta y descarga tus nóminas</div></div>
+      <div class="ai-arrow">&#8250;</div>
+    </a>
+    <a class="acceso-item" href="https://soegs.sharepoint.com/sites/intranet/SitePages/ContentsMap.aspx" target="_blank">
+      <div class="ai-ico" style="background:rgba(100,160,240,.15)">&#127970;</div>
+      <div class="ai-info"><div class="ai-nombre">Intranet corporativa</div><div class="ai-desc">Página principal de la intranet</div></div>
+      <div class="ai-arrow">&#8250;</div>
+    </a>
+    <button class="acceso-close" onclick="closeAccesoDirecto()">Cerrar</button>
+  </div>
+</div>
 
 <!-- LIVE PANEL -->
 <div id="live-overlay"></div>
@@ -983,6 +1031,14 @@ document.getElementById("live-filtro").addEventListener("click",function(){
   btn.style.borderColor=liveFiltro?"rgba(60,180,100,.3)":"rgba(200,168,75,.3)";
   renderLive();
 });
+
+// ACCESOS DIRECTOS
+function toggleAccesoDirecto(){
+  document.getElementById('acceso-overlay').classList.add('show');
+}
+function closeAccesoDirecto(){
+  document.getElementById('acceso-overlay').classList.remove('show');
+}
 
 // LOGOUT
 document.getElementById("btn-logout").addEventListener("click",function(){
