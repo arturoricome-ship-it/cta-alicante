@@ -503,11 +503,11 @@ function switchTab(name,tabEl,navEl){
   if(name==="hoy")renderHoy();
 }
 
-function updateNav(){var r=breadcrumb.length<=1;document.getElementById("btn-back").disabled=r;document.getElementById("btn-home").disabled=r;}
+function updateNav(){var r=breadcrumb.length<=1;document.getElementById("btn-back").disabled=r;var bh=document.getElementById("btn-home");if(bh)bh.disabled=r;}
 document.getElementById("btn-back").addEventListener("click",function(){
   if(breadcrumb.length>1){breadcrumb.pop();renderBreadcrumb();renderFolder(breadcrumb[breadcrumb.length-1].id);document.getElementById("scroll-area").scrollTop=0;}
 });
-document.getElementById("btn-home").addEventListener("click",function(){
+var _bh=document.getElementById("btn-home");if(_bh)_bh.addEventListener("click",function(){
   if(breadcrumb.length>1){breadcrumb=[{id:ROOT_ID,name:"Inicio"}];renderBreadcrumb();renderFolder(ROOT_ID);document.getElementById("scroll-area").scrollTop=0;}
 });
 function renderBreadcrumb(){
