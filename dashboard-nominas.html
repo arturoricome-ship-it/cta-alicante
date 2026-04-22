@@ -3,12 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Dashboard Nóminas">
-<meta name="theme-color" content="#0e1117">
-<link rel="apple-touch-icon" href="https://cta-alicante.es/icon-192.png">
 <title>Dashboard Nóminas · CTA Alicante</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -3183,7 +3177,7 @@ function renderContador(){
   cntMult={ver:mv,inv:mi2,cier:mc,prev:mprev};
   saveCntMult();
 
-  var totalHoras=0,horasVac=0,udsVer=0,udsInv=0;
+  var totalHoras=0,horasVac=0,horasFest=0,udsVer=0,udsInv=0;
   var totalBruto=0,totalNeto=0,totalIrpf=0,totalSS=0;
 
   MONTHS.forEach(function(m,mi){
@@ -3194,6 +3188,7 @@ function renderContador(){
       if(['hfun','baja','rm','nh','bp'].indexOf(tipo)>=0) continue;
       totalHoras+=t;
       if(tipo==='vacaciones') horasVac+=t;// Restar vacaciones del contador
+      if(tipo==='festivo') horasFest+=t;// Festivos: cuentan como trabajadas pero no en contador
     }
     // Unidades por semestre
     var n=calcNomina(m);
@@ -3214,7 +3209,7 @@ function renderContador(){
   var pagaPrev=prevYearUds!==null?prevYearUds*mprev:0;
   var totalConPagas=totalBruto+pagaVer+pagaInv+pagaCier;
 
-  var horasContador=totalHoras-horasVac;
+  var horasContador=totalHoras-horasVac-horasFest;
   var tope=cfg.cont==='TC'?1712:1540;
   var horasFaltan=Math.max(0,tope-horasContador);
 
