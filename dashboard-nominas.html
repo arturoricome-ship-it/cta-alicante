@@ -420,8 +420,42 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
   .mpills,.epills{grid-template-columns:repeat(3,1fr)}
 }
 </style>
+/* ── LOGIN SCREEN ── */
+#dash-login{position:fixed;inset:0;background:#0f1623;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;font-family:'Inter',sans-serif}
+#dash-login.hidden{display:none}
+.dl-logo{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#c8a84b,#e8c96a);display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:20px;box-shadow:0 8px 28px rgba(200,168,75,.4)}
+.dl-title{font-size:26px;font-weight:800;color:#f0f4ff;margin-bottom:4px;letter-spacing:-0.5px}
+.dl-sub{font-size:12px;color:#8899bb;letter-spacing:1px;text-transform:uppercase;margin-bottom:40px}
+.dl-card{background:#1a2235;border:1px solid rgba(200,168,75,.2);border-radius:20px;padding:28px 24px;width:100%;max-width:320px}
+.dl-desc{font-size:13px;color:#8899bb;line-height:1.7;margin-bottom:24px}
+#dl-google-btn{width:100%;display:flex;align-items:center;justify-content:center;min-height:44px;margin-bottom:4px}
+.dl-status{margin-top:14px;font-size:12px;color:#8899bb;min-height:18px}
+.dl-blocked{background:#1a2235;border:1px solid rgba(240,112,112,.3);border-radius:20px;padding:28px 24px;width:100%;max-width:320px;display:none}
+.dl-blocked-ico{font-size:48px;margin-bottom:12px}
+.dl-blocked-title{font-size:18px;font-weight:700;color:#f07070;margin-bottom:8px}
+.dl-blocked-msg{font-size:13px;color:#8899bb;line-height:1.6}
+</style>
+<script src="https://accounts.google.com/gsi/client" async></script>
 </head>
 <body>
+<!-- ── PANTALLA LOGIN ── -->
+<div id="dash-login">
+  <div class="dl-logo">📋</div>
+  <div class="dl-title">Dashboard Nóminas</div>
+  <div class="dl-sub">CTA Alicante · Uso exclusivo afiliados</div>
+
+  <div class="dl-card" id="dl-card-login">
+    <div class="dl-desc">Accede con tu cuenta de Google para verificar que eres afiliado/a de CTA Alicante.</div>
+    <div id="dl-google-btn"></div>
+    <div class="dl-status" id="dl-status"></div>
+  </div>
+
+  <div class="dl-blocked" id="dl-card-blocked">
+    <div class="dl-blocked-ico">⛔</div>
+    <div class="dl-blocked-title">Acceso restringido</div>
+    <div class="dl-blocked-msg">Esta herramienta es de uso exclusivo para afiliados/as de CTA Alicante.<br><br>Si crees que es un error, contacta con el comité.</div>
+  </div>
+</div>
 <div class="hdr">
   <div>
     <div class="hdr-logo" style="display:flex;align-items:center;gap:10px">📅 Horarios <select id="year-sel" onchange="changeYear()" style="background:var(--s2);border:1px solid var(--border);color:var(--blue2);border-radius:5px;font-size:15px;font-weight:700;padding:2px 6px;font-family:'Inter',sans-serif">2026</select></div>
@@ -3572,5 +3606,93 @@ function resetAtrUds(){
     </div>
   </div>
 </div>
+<!-- ── AUTH CTA ── -->
+<script>
+var CTA_CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
+var CTA_SHEETS_URL="https://script.google.com/macros/s/AKfycbw59yVufbQO0l-MnlLX0328ypr-JO871xmNe1TYzel7EiKOsx5GHlb1LRNn8DOzfmfv/exec";
+var SESSION_KEY="cta_dash_session";
+var MAX_AGE=7*24*60*60*1000;
+
+function parseJwt(token){
+  try{var b=token.split(".")[1];var d=atob(b.replace(/-/g,"+").replace(/_/g,"/"));return JSON.parse(decodeURIComponent(escape(d)));}
+  catch(e){return null;}
+}
+
+function showApp(){
+  document.getElementById("dash-login").classList.add("hidden");
+}
+
+function showBlocked(){
+  document.getElementById("dl-card-login").style.display="none";
+  document.getElementById("dl-card-blocked").style.display="block";
+}
+
+function setStatus(msg,color){
+  var el=document.getElementById("dl-status");
+  if(el){el.textContent=msg;if(color)el.style.color=color;}
+}
+
+function handleCredentialResponse(response){
+  setStatus("Verificando acceso...");
+  var payload=parseJwt(response.credential);
+  if(!payload){setStatus("Error. Inténtalo de nuevo.","#f07070");return;}
+  var email=payload.email;
+  var nombre=payload.name||email;
+
+  fetch(CTA_SHEETS_URL,{
+    method:"POST",
+    body:JSON.stringify({email:email,nombre:nombre,accion:"login_dashboard"}),
+    headers:{"Content-Type":"text/plain"}
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(data.bloqueado){
+      showBlocked();
+      localStorage.removeItem(SESSION_KEY);
+    } else {
+      localStorage.setItem(SESSION_KEY,JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
+      // Actualizar nombre en cfg si está vacío
+      try{var cfg2=JSON.parse(localStorage.getItem('cta_cfg26')||'{}');if(!cfg2.nombre){cfg2.nombre=nombre.split(' ')[0];localStorage.setItem('cta_cfg26',JSON.stringify(cfg2));}}catch(e){}
+      showApp();
+    }
+  })
+  .catch(function(){
+    // Si Sheets falla, dejar pasar (no bloquear por error de red)
+    localStorage.setItem(SESSION_KEY,JSON.stringify({email:email,nombre:nombre,ts:Date.now()}));
+    showApp();
+  });
+}
+
+function initDashAuth(){
+  google.accounts.id.initialize({
+    client_id:CTA_CLIENT_ID,
+    callback:handleCredentialResponse,
+    auto_select:false,
+    cancel_on_tap_outside:false
+  });
+  google.accounts.id.renderButton(
+    document.getElementById("dl-google-btn"),
+    {theme:"outline",size:"large",width:260,text:"signin_with",shape:"rectangular"}
+  );
+}
+
+window.addEventListener("load",function(){
+  // Verificar sesión guardada
+  var sess=null;
+  try{sess=JSON.parse(localStorage.getItem(SESSION_KEY));}catch(e){}
+  if(sess&&sess.email&&sess.ts&&(Date.now()-sess.ts)<MAX_AGE){
+    showApp();
+  } else {
+    localStorage.removeItem(SESSION_KEY);
+    // Esperar a que cargue la lib de Google
+    if(typeof google!=="undefined"&&google.accounts){initDashAuth();}
+  }
+});
+
+window.onGoogleLibraryLoad=function(){
+  var login=document.getElementById("dash-login");
+  if(login&&!login.classList.contains("hidden")) initDashAuth();
+};
+</script>
 </body>
 </html>
