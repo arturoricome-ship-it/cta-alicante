@@ -3703,37 +3703,75 @@ window.onGoogleLibraryLoad=function(){
 </script>
 
 <!-- PWA: Banner instalación + Service Worker -->
-<div id="pwa-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:#1e2535;border:1px solid rgba(200,168,75,.4);border-radius:16px;padding:16px 20px;max-width:320px;width:calc(100% - 40px);box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:'Inter',sans-serif">
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-    <img src="/icon-dashboard-192.png" style="width:44px;height:44px;border-radius:10px">
+<div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#1e2535;border-top:1px solid rgba(200,168,75,.4);padding:16px 20px;box-shadow:0 -4px 24px rgba(0,0,0,.5);font-family:'Inter',sans-serif">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+    <img src="/icon-dashboard-192.png" style="width:40px;height:40px;border-radius:10px;flex-shrink:0">
     <div>
-      <div style="font-size:14px;font-weight:700;color:#f0f4ff">Dashboard Nóminas</div>
-      <div style="font-size:11px;color:#8899bb">Instalar como app</div>
+      <div style="font-size:14px;font-weight:700;color:#f0f4ff">Instalar Dashboard Nóminas</div>
+      <div style="font-size:11px;color:#8899bb;margin-top:2px">Accede sin barra del navegador</div>
     </div>
+    <button onclick="cerrarBanner()" style="margin-left:auto;background:none;border:none;color:#8899bb;font-size:20px;cursor:pointer;padding:4px;line-height:1">×</button>
   </div>
-  <div style="font-size:12px;color:#8899bb;margin-bottom:14px">Añade el dashboard a tu pantalla de inicio para acceder sin barra del navegador.</div>
-  <div style="display:flex;gap:8px">
-    <button onclick="instalarPWA()" style="flex:1;background:linear-gradient(135deg,#c8a84b,#e8c96a);color:#0e1117;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">Instalar</button>
-  </div>
+  <div id="pwa-instrucciones" style="display:none;font-size:12px;color:#8899bb;margin-bottom:12px;background:#252d40;border-radius:8px;padding:10px;line-height:1.6"></div>
+  <button id="pwa-btn-instalar" onclick="instalarPWA()" style="width:100%;background:linear-gradient(135deg,#c8a84b,#e8c96a);color:#0e1117;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">📲 Instalar app</button>
 </div>
 
 <script>
 var deferredPrompt=null;
+var esIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+var esAndroid=/android/i.test(navigator.userAgent);
+var yaInstalada=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+
 window.addEventListener('beforeinstallprompt',function(e){
   e.preventDefault();
   deferredPrompt=e;
-  setTimeout(function(){
-    document.getElementById('pwa-banner').style.display='block';
-  }, 3000);
 });
+
+window.addEventListener('load',function(){
+  if(yaInstalada) return; // Ya instalada, no mostrar
+  if(localStorage.getItem('pwa_dash_installed')) return;
+
+  setTimeout(function(){
+    var banner=document.getElementById('pwa-banner');
+    var instr=document.getElementById('pwa-instrucciones');
+    var btn=document.getElementById('pwa-btn-instalar');
+
+    if(deferredPrompt){
+      // Chrome Android — instalación nativa disponible
+      banner.style.display='block';
+    } else if(esIOS){
+      // iOS Safari — instrucciones manuales
+      instr.innerHTML='En Safari pulsa el botón <b style="color:#f0f4ff">Compartir</b> (cuadrado con flecha) y luego <b style="color:#f0f4ff">"Añadir a pantalla de inicio"</b>.';
+      instr.style.display='block';
+      btn.textContent='Entendido';
+      btn.onclick=function(){ cerrarBanner(); };
+      banner.style.display='block';
+    } else if(esAndroid){
+      // Android sin evento — instrucciones manuales
+      instr.innerHTML='Pulsa los <b style="color:#f0f4ff">tres puntitos</b> arriba a la derecha y selecciona <b style="color:#f0f4ff">"Añadir a pantalla de inicio"</b>.';
+      instr.style.display='block';
+      btn.textContent='Entendido';
+      btn.onclick=function(){ cerrarBanner(); };
+      banner.style.display='block';
+    }
+  }, 2500);
+});
+
 function instalarPWA(){
   if(!deferredPrompt) return;
   deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(function(){
+  deferredPrompt.userChoice.then(function(r){
     deferredPrompt=null;
+    if(r.outcome==='accepted') localStorage.setItem('pwa_dash_installed','1');
     document.getElementById('pwa-banner').style.display='none';
   });
 }
+
+function cerrarBanner(){
+  document.getElementById('pwa-banner').style.display='none';
+  localStorage.setItem('pwa_dash_installed','1');
+}
+
 // Registrar Service Worker
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
