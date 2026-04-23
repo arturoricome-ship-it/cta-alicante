@@ -1284,108 +1284,12 @@ function getDow(month0,day){
   return(new Date(YEAR,month0,day).getDay()+6)%7;
 }
 // ════════════════════════════════════════
-// DATOS BASE (del Excel)
+// DATOS BASE
 // ════════════════════════════════════════
-var BASE={
-ENERO:{
-  1:{e1:'08:00',s1:'14:00',tipo:'festivo',total:6},
-  2:{e1:'06:00',s1:'08:30',e2:'09:30',s2:'14:30',tipo:'trabajado',total:7.5},
-  3:{e1:'06:00',s1:'13:00',tipo:'trabajado',total:7},
-  4:{e1:'05:00',s1:'11:00',e2:'12:00',s2:'14:00',tipo:'libre',total:8},
-  5:{e1:'05:30',s1:'11:00',e2:'12:30',s2:'14:30',tipo:'trabajado',total:7.5},
-  6:{tipo:'libre',total:0},7:{tipo:'libre',total:0},
-  8:{e1:'06:00',s1:'08:30',e2:'09:30',s2:'14:30',tipo:'trabajado',total:7.5},
-  9:{e1:'06:00',s1:'11:00',e2:'12:00',s2:'14:00',tipo:'trabajado',total:7},
-  10:{e1:'06:30',s1:'14:30',tipo:'trabajado',total:8},
-  11:{e1:'05:00',s1:'07:00',tipo:'libre',total:2},
-  12:{e1:'05:30',s1:'11:00',tipo:'trabajado',total:5.5},
-  13:{e1:'07:15',s1:'14:00',tipo:'hl',total:6.75},
-  14:{e1:'06:00',s1:'13:15',tipo:'hl',total:7.25},
-  15:{e1:'06:00',s1:'11:00',tipo:'hl',total:5},
-  16:{e1:'06:00',s1:'08:30',tipo:'trabajado',total:2.5},
-  17:{tipo:'libre',total:0},
-  18:{e1:'05:30',s1:'11:00',tipo:'trabajado',total:5.5},
-  19:{e1:'05:00',s1:'11:00',tipo:'trabajado',total:6},
-  20:{e1:'07:15',s1:'11:00',tipo:'hl',total:3.75},
-  21:{e1:'06:00',s1:'14:30',tipo:'hl',total:8.5},
-  22:{e1:'06:00',s1:'14:30',tipo:'trabajado',total:8.5},
-  23:{e1:'06:00',s1:'11:00',tipo:'hl',total:5},
-  24:{tipo:'libre',total:0},25:{tipo:'libre',total:0},26:{tipo:'libre',total:0},27:{tipo:'libre',total:0},
-  28:{e1:'06:00',s1:'08:30',e2:'09:45',s2:'14:15',tipo:'trabajado',total:7},
-  29:{e1:'06:00',s1:'14:30',tipo:'hl',total:8.5},
-  30:{e1:'06:00',s1:'08:30',tipo:'trabajado',total:2.5},
-  31:{e1:'06:00',s1:'13:00',tipo:'trabajado',total:7},
-},
-FEBRERO:{
-  1:{e1:'05:30',s1:'12:00',tipo:'libre',total:6.5},
-  2:{e1:'06:00',s1:'14:30',tipo:'hl',total:8.5},
-  3:{e1:'07:15',s1:'14:30',tipo:'trabajado',total:7.25},
-  4:{tipo:'libre',total:0},5:{tipo:'libre',total:0},
-  6:{e1:'06:00',s1:'11:00',tipo:'trabajado',total:5},
-  7:{e1:'06:15',s1:'14:30',tipo:'trabajado',total:8.25},
-  8:{e1:'05:30',s1:'12:30',tipo:'trabajado',total:7},
-  9:{e1:'05:00',s1:'11:00',tipo:'trabajado',total:6},
-  10:{e1:'06:00',s1:'13:30',tipo:'trabajado',total:7.5},
-  11:{e1:'06:00',s1:'15:00',tipo:'hl',total:9},
-  12:{e1:'06:00',s1:'14:30',tipo:'hl',total:8.5},
-  13:{e1:'06:00',s1:'11:00',tipo:'trabajado',total:5},
-  14:{tipo:'libre',total:0},15:{tipo:'libre',total:0},
-  16:{e1:'05:30',s1:'12:00',tipo:'trabajado',total:6.5},
-  17:{tipo:'libre',total:0},18:{tipo:'libre',total:0},
-  19:{e1:'06:00',s1:'14:30',tipo:'hl',total:8.5},
-  20:{e1:'06:00',s1:'08:30',e2:'09:45',s2:'14:15',tipo:'trabajado',total:7},
-  21:{e1:'06:30',s1:'09:00',e2:'10:00',s2:'14:30',tipo:'trabajado',total:7},
-  22:{e1:'05:30',s1:'12:30',tipo:'trabajado',total:7},
-  23:{e1:'05:00',s1:'11:00',tipo:'trabajado',total:6},
-  24:{e1:'07:15',s1:'15:00',tipo:'hl',total:7.75},
-  25:{e1:'05:00',s1:'13:00',tipo:'trabajado',total:8},
-  26:{tipo:'libre',total:0},27:{tipo:'libre',total:0},
-  28:{e1:'07:00',s1:'09:00',e2:'10:00',s2:'14:30',tipo:'trabajado',total:6.5},
-},
-MARZO:{
-  1:{e1:'05:00',s1:'12:45',tipo:'libre',total:7.75},
-  2:{e1:'05:00',s1:'11:00',tipo:'trabajado',total:6},
-  3:{e1:'06:00',s1:'14:30',tipo:'hl',total:8.5},
-  4:{e1:'05:00',s1:'08:30',tipo:'hl',total:3.5},
-  5:{e1:'06:00',s1:'14:30',tipo:'trabajado',total:8.5},
-  6:{e1:'06:00',s1:'08:30',tipo:'hl',total:2.5},
-  7:{tipo:'libre',total:0},8:{tipo:'libre',total:0},9:{tipo:'libre',total:0},10:{tipo:'libre',total:0},
-  11:{e1:'06:00',s1:'08:30',tipo:'trabajado',total:5},
-  12:{e1:'07:00',s1:'15:00',tipo:'curso',total:8},
-  13:{e1:'08:00',s1:'14:15',tipo:'curso',total:6.25},
-  14:{e1:'06:15',s1:'09:00',e2:'10:00',s2:'14:30',tipo:'trabajado',total:7.25},
-  15:{e1:'05:00',s1:'08:30',tipo:'trabajado',total:3.5},
-  16:{e1:'05:00',s1:'11:00',tipo:'trabajado',total:6},
-  17:{e1:'06:00',s1:'13:30',tipo:'hl',total:7.5},
-  18:{tipo:'libre',total:0},19:{tipo:'libre',total:0},
-  20:{e1:'05:00',s1:'08:45',tipo:'hl',total:6},
-  21:{e1:'06:15',s1:'09:15',tipo:'trabajado',total:5.5},
-  22:{e1:'05:00',s1:'08:30',tipo:'hl',total:6.5},
-  23:{e1:'05:30',s1:'08:30',tipo:'hl',total:5},
-  24:{e1:'06:00',s1:'09:30',tipo:'hl',total:7.25},
-  25:{e1:'06:00',s1:'08:30',tipo:'hl',total:8.25},
-  26:{e1:'06:00',s1:'08:30',tipo:'hl',total:7.25},
-  27:{e1:'06:00',s1:'12:00',tipo:'hlp',total:5},
-  28:{tipo:'libre',total:0},29:{tipo:'libre',total:0},
-  30:{e1:'05:30',s1:'09:30',tipo:'trabajado',total:4},
-  31:{tipo:'libre',total:0},
-},
-ABRIL:{
-  1:{tipo:'libre',total:0},2:{e1:'06:00',s1:'11:00',tipo:'hl',total:5},
-  3:{tipo:'hl',total:0},4:{tipo:'libre',total:0},5:{tipo:'libre',total:0},
-  6:{tipo:'hl',total:0},7:{tipo:'hl',total:0},8:{tipo:'hl',total:0},
-  9:{tipo:'libre',total:0},10:{tipo:'libre',total:0},
-  11:{tipo:'vacaciones',total:0},12:{tipo:'vacaciones',total:0},13:{tipo:'vacaciones',total:0},
-  14:{tipo:'vacaciones',total:0},15:{tipo:'vacaciones',total:0},16:{tipo:'vacaciones',total:0},17:{tipo:'vacaciones',total:0},
-  18:{tipo:'libre',total:0},19:{tipo:'libre',total:0},20:{tipo:'libre',total:0},21:{tipo:'libre',total:0},
-  22:{tipo:'hl',total:0},23:{tipo:'hl',total:0},24:{tipo:'hl',total:0},
-  25:{tipo:'libre',total:0},26:{tipo:'libre',total:0},27:{tipo:'libre',total:0},
-  28:{tipo:'libre',total:0},29:{tipo:'libre',total:0},30:{tipo:'libre',total:0},
-},
-};
+var BASE={};
 (function(){
-  var rest=['MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-  for(var i=0;i<rest.length;i++){var m=rest[i];BASE[m]={};for(var d=1;d<=MDAYS[MONTHS.indexOf(m)];d++)BASE[m][d]={tipo:'libre',total:0}}
+  var all=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  for(var i=0;i<all.length;i++){var m=all[i];BASE[m]={};for(var d=1;d<=MDAYS[i];d++)BASE[m][d]={tipo:'libre',total:0};}
 })();
 
 // ════════════════════════════════════════
