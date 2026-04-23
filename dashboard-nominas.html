@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<link rel="manifest" href="/manifest-dashboard.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dashboard Nóminas">
+<meta name="theme-color" content="#0e1117">
+<link rel="apple-touch-icon" href="/icon-dashboard-192.png">
 <title>Dashboard Nóminas · CTA Alicante</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -453,7 +460,7 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
   <div class="dl-blocked" id="dl-card-blocked">
     <div class="dl-blocked-ico">⛔</div>
     <div class="dl-blocked-title">Acceso restringido</div>
-    <div class="dl-blocked-msg">Esta herramienta es de uso exclusivo para afiliados/as de CTA Alicante.<br><br>Si crees que es un error, contacta con el comité.</div>
+    <div class="dl-blocked-msg">Esta herramienta es de uso exclusivo para afiliados/as de CTA Alicante.<br><br>Si crees que es un error, contacta con un representante de la sección sindical.</div>
   </div>
 </div>
 <div class="hdr">
@@ -3177,7 +3184,7 @@ function renderContador(){
   cntMult={ver:mv,inv:mi2,cier:mc,prev:mprev};
   saveCntMult();
 
-  var totalHoras=0,horasVac=0,horasFest=0,udsVer=0,udsInv=0;
+  var totalHoras=0,horasVac=0,udsVer=0,udsInv=0;
   var totalBruto=0,totalNeto=0,totalIrpf=0,totalSS=0;
 
   MONTHS.forEach(function(m,mi){
@@ -3188,7 +3195,6 @@ function renderContador(){
       if(['hfun','baja','rm','nh','bp'].indexOf(tipo)>=0) continue;
       totalHoras+=t;
       if(tipo==='vacaciones') horasVac+=t;// Restar vacaciones del contador
-      if(tipo==='festivo') horasFest+=t;// Festivos: cuentan como trabajadas pero no en contador
     }
     // Unidades por semestre
     var n=calcNomina(m);
@@ -3209,7 +3215,7 @@ function renderContador(){
   var pagaPrev=prevYearUds!==null?prevYearUds*mprev:0;
   var totalConPagas=totalBruto+pagaVer+pagaInv+pagaCier;
 
-  var horasContador=totalHoras-horasVac-horasFest;
+  var horasContador=totalHoras-horasVac;
   var tope=cfg.cont==='TC'?1712:1540;
   var horasFaltan=Math.max(0,tope-horasContador);
 
@@ -3694,6 +3700,46 @@ window.onGoogleLibraryLoad=function(){
   var login=document.getElementById("dash-login");
   if(login&&!login.classList.contains("hidden")) initDashAuth();
 };
+</script>
+
+<!-- PWA: Banner instalación + Service Worker -->
+<div id="pwa-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;background:#1e2535;border:1px solid rgba(200,168,75,.4);border-radius:16px;padding:16px 20px;max-width:320px;width:calc(100% - 40px);box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:'Inter',sans-serif">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+    <img src="/icon-dashboard-192.png" style="width:44px;height:44px;border-radius:10px">
+    <div>
+      <div style="font-size:14px;font-weight:700;color:#f0f4ff">Dashboard Nóminas</div>
+      <div style="font-size:11px;color:#8899bb">Instalar como app</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#8899bb;margin-bottom:14px">Añade el dashboard a tu pantalla de inicio para acceder sin barra del navegador.</div>
+  <div style="display:flex;gap:8px">
+    <button onclick="instalarPWA()" style="flex:1;background:linear-gradient(135deg,#c8a84b,#e8c96a);color:#0e1117;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">Instalar</button>
+  </div>
+</div>
+
+<script>
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  deferredPrompt=e;
+  setTimeout(function(){
+    document.getElementById('pwa-banner').style.display='block';
+  }, 3000);
+});
+function instalarPWA(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(){
+    deferredPrompt=null;
+    document.getElementById('pwa-banner').style.display='none';
+  });
+}
+// Registrar Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/sw-dashboard.js').catch(function(){});
+  });
+}
 </script>
 </body>
 </html>
