@@ -1386,6 +1386,8 @@ window.addEventListener("load",function(){
     // Sesión válida — entrar directamente
     document.getElementById("login-screen").style.display="none";
     setWelcome(sess.nombre||sess.email);
+    // Registrar acceso en segundo plano
+    fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:sess.email,nombre:sess.nombre||sess.email}),headers:{"Content-Type":"text/plain"}}).catch(function(){});
   } else {
     // Sin sesión — mostrar login
     localStorage.removeItem("cta_session");
