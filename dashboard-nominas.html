@@ -502,26 +502,22 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
   <div class="g2">
     <div class="panel"><div class="pt">Bruto estimado</div><div id="bc-bruto"></div></div>
     <div class="panel"><div class="pt">Neto estimado</div><div id="bc-neto"></div></div>
-  <!-- Gráficas -->
-  <div class="panel" style="margin-top:16px">
-    <div class="pt">GRÁFICAS ANUALES</div>
-    <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px">
-      <div style="background:#0e1420;border:1px solid #1e2535;border-radius:10px;padding:14px">
-        <div style="font-size:10px;color:#8899bb;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📊 Horas totales por mes</div>
-        <div style="height:160px;position:relative"><canvas id="res-chart-meses"></canvas></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div style="background:#0e1420;border:1px solid #1e2535;border-radius:10px;padding:14px">
-          <div style="font-size:10px;color:#8899bb;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📅 Horas por día semana</div>
-          <div style="height:150px;position:relative"><canvas id="res-chart-diasem"></canvas></div>
-        </div>
-        <div style="background:#0e1420;border:1px solid #1e2535;border-radius:10px;padding:14px">
-          <div style="font-size:10px;color:#8899bb;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📈 Media h/semana por mes</div>
-          <div style="height:150px;position:relative"><canvas id="res-chart-media"></canvas></div>
-        </div>
-      </div>
-    </div>
   </div>
+  <!-- GRÁFICAS ANUALES -->
+  <div class="st" style="margin-top:16px">Gráficas anuales</div>
+  <div class="panel" style="margin-bottom:12px">
+    <div class="pt">📊 Horas totales por mes</div>
+    <div style="height:180px;position:relative;margin-top:10px"><canvas id="res-chart-meses"></canvas></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div class="panel">
+      <div class="pt">📅 H. por día semana</div>
+      <div style="height:160px;position:relative;margin-top:10px"><canvas id="res-chart-diasem"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="pt">📈 Media h/sem por mes</div>
+      <div style="height:160px;position:relative;margin-top:10px"><canvas id="res-chart-media"></canvas></div>
+    </div>
   </div>
 </div>
 
