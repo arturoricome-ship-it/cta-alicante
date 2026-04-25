@@ -1257,7 +1257,7 @@ function changeYear(){
   renderEdit();
   if(nomUnlocked) renderNomina();
   // Recargar multiplicadores del contador para el nuevo año
-  loadCntMult();loadCntReal();loadCntPrevUds();
+  loadCntMult();loadCntReal();loadCntPrevUds();loadNomUds();
   var mv=document.getElementById('cnt-mult-ver');if(mv)mv.value=cntMult.ver||'';
   var mi2=document.getElementById('cnt-mult-inv');if(mi2)mi2.value=cntMult.inv||'';
   var mc=document.getElementById('cnt-mult-cier');if(mc)mc.value=cntMult.cier||'';
@@ -1324,6 +1324,7 @@ var nomIrpf={};
 var nomCutoff={};
 var atrUds={};// ajuste manual unidades en atrasos (hoja 2, desde mes anterior)
 var nomUds={};// unidades segun PDF empresa (si difieren del calendario)
+function loadNomUds(){try{var s=localStorage.getItem('cta_nom_uds26');if(s)nomUds=JSON.parse(s);}catch(e){nomUds={};}}
 function loadCfg(){
   try{var s=localStorage.getItem('cta_cfg26');if(s)cfg=Object.assign({},cfg,JSON.parse(s))}catch(e){}
   try{var s2=localStorage.getItem('cta_nirpf26');if(s2)nomIrpf=JSON.parse(s2)}catch(e){}
@@ -2425,7 +2426,7 @@ function renderNomina(){
     '<td class="cm" style="font-size:9px;color:var(--amber2)">PDF</td>'+
     '<td style="font-size:10px;color:var(--amber2)">📄 Uds. según PDF empresa</td>'+
     '<td style="text-align:center">'+
-    '<input class="cinput" type="number" id="nom-pdf-uds" value="" step="0.001" min="0" max="999" '+
+    '<input class="cinput" type="number" id="nom-pdf-uds" value="'+(getNomUds(m)!==null?getNomUds(m):'')+'" step="0.001" min="0" max="999" '+
     'onchange="saveNomUdsInput()" style="width:100%;font-size:11px;text-align:center" placeholder="'+fmt(n.udsCalendario,3)+'" '+
     'title="Uds. que pone el PDF. La diferencia va a atrasos de '+nextMes+'">'+
     '</td>'+
@@ -3137,13 +3138,25 @@ function cntPrevUdsChange(){
 }
 
 function renderContador(){
-  // Leer multiplicadores del input y guardar
-  var mv=parseFloat(document.getElementById('cnt-mult-ver').value)||0;
-  var mi2=parseFloat(document.getElementById('cnt-mult-inv').value)||0;
-  var mc=parseFloat(document.getElementById('cnt-mult-cier').value)||0;
-  var mprev=parseFloat(document.getElementById('cnt-mult-prev').value)||0;
-  cntMult={ver:mv,inv:mi2,cier:mc,prev:mprev};
-  saveCntMult();
+  // Leer multiplicadores del input y guardar — solo si la pestaña está abierta
+  var _mv=document.getElementById('cnt-mult-ver');
+  var _mi2=document.getElementById('cnt-mult-inv');
+  var _mc=document.getElementById('cnt-mult-cier');
+  var _mprev=document.getElementById('cnt-mult-prev');
+  var tabOpen=document.getElementById('page-contador')&&document.getElementById('page-contador').classList.contains('on');
+  if(tabOpen&&_mv){
+    cntMult={
+      ver:_mv.value!==''?parseFloat(_mv.value)||0:cntMult.ver,
+      inv:_mi2&&_mi2.value!==''?parseFloat(_mi2.value)||0:cntMult.inv,
+      cier:_mc&&_mc.value!==''?parseFloat(_mc.value)||0:cntMult.cier,
+      prev:_mprev&&_mprev.value!==''?parseFloat(_mprev.value)||0:cntMult.prev
+    };
+    saveCntMult();
+  }
+  var mv=cntMult.ver||0;
+  var mi2=cntMult.inv||0;
+  var mc=cntMult.cier||0;
+  var mprev=cntMult.prev||0;
 
   var totalHoras=0,horasVac=0,horasFest=0,udsVer=0,udsInv=0;
   var totalBruto=0,totalNeto=0,totalIrpf=0,totalSS=0;
@@ -3181,10 +3194,12 @@ function renderContador(){
   var tope=cfg.cont==='TC'?1712:1540;
   var horasFaltan=Math.max(0,tope-horasContador);
 
-  // Calcular meses restantes del año (desde el mes actual hasta Diciembre)
-  var hoy=new Date();
-  var mesActual=hoy.getMonth();// 0=ene...11=dic
-  var mesesRestantes=Math.max(1,12-mesActual);// incluyendo mes actual
+  // Calcular meses restantes = 12 menos los meses que ya tienen datos
+  var mesesConDatos=MONTHS.filter(function(m){
+    for(var d=1;d<=MDAYS[MONTHS.indexOf(m)];d++){var day=gd(m,d);if((day.total||0)>0)return true;}
+    return false;
+  }).length;
+  var mesesRestantes=Math.max(1,12-mesesConDatos);
   var mediaRestante=horasFaltan/mesesRestantes;
 
   // Actualizar UI
@@ -3201,7 +3216,13 @@ function renderContador(){
   document.getElementById('cnt-tope-bar').style.width=Math.min(100,horasContador/tope*100).toFixed(1)+'%';
   document.getElementById('cnt-tope-pct').textContent=Math.min(100,horasContador/tope*100).toFixed(1)+'%';
   document.getElementById('cnt-media-mes').textContent=mediaRestante.toFixed(2)+'h/mes';
-  document.getElementById('cnt-meses-rest').textContent=mesesRestantes+' meses restantes';
+  var mesesPendientes=MONTHS.filter(function(m){
+    var mi2=MONTHS.indexOf(m);
+    for(var d=1;d<=MDAYS[mi2];d++){var day=gd(m,d);if((day.total||0)>0)return false;}
+    return true;
+  });
+  var mesesPendTxt=mesesPendientes.length>0?mesesPendientes.map(function(m){return m.slice(0,3);}).join(', '):'Todos completados';
+  document.getElementById('cnt-meses-rest').textContent=mesesConDatos+' con datos · '+mesesRestantes+' restantes: '+mesesPendTxt;
   document.getElementById('cnt-uds-total').textContent=udsTotal.toFixed(3);
   document.getElementById('cnt-uds-ver').textContent=udsVer.toFixed(3)+' uds';
   document.getElementById('cnt-uds-inv').textContent=udsInv.toFixed(3)+' uds';
