@@ -447,7 +447,7 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
 </head>
 <body>
 <!-- ── PANTALLA LOGIN ── -->
-<div id="dash-login">
+<div id="dash-login" class="hidden">
   <div class="dl-logo">📋</div>
   <div class="dl-title">Dashboard Nóminas</div>
   <div class="dl-sub">CTA Alicante · Uso exclusivo afiliados</div>
@@ -3673,27 +3673,28 @@ window.addEventListener("load",function(){
   var sess=null;
   try{sess=JSON.parse(localStorage.getItem(SESSION_KEY));}catch(e){}
   if(sess&&sess.email&&sess.ts&&(Date.now()-sess.ts)<MAX_AGE){
-    // Verificar con el script antes de mostrar app (por si fue bloqueado después)
-    fetch(CTA_SHEETS_URL,{
-      method:"POST",
-      body:JSON.stringify({email:sess.email,nombre:sess.nombre||sess.email,accion:"login_dashboard"}),
-      headers:{"Content-Type":"text/plain"}
-    })
+    // Ocultar login y mostrar spinner mientras verifica
+    document.getElementById("dash-login").classList.add("hidden");
+    var sp=document.createElement("div");
+    sp.id="dash-checking";
+    sp.style.cssText="position:fixed;inset:0;background:#0f1623;z-index:9998;display:flex;align-items:center;justify-content:center";
+    sp.innerHTML='<div style="width:36px;height:36px;border:3px solid #1e2535;border-top-color:#c8a84b;border-radius:50%;animation:spin 0.8s linear infinite"></div>';
+    document.body.appendChild(sp);
+    if(!document.getElementById("spin-style")){var st=document.createElement("style");st.id="spin-style";st.textContent="@keyframes spin{to{transform:rotate(360deg)}}";document.head.appendChild(st);}
+    fetch(CTA_SHEETS_URL,{method:"POST",body:JSON.stringify({email:sess.email,nombre:sess.nombre||sess.email,accion:"login_dashboard"}),headers:{"Content-Type":"text/plain"}})
     .then(function(r){return r.json();})
-    .then(function(data){
-      if(data.bloqueado){
-        localStorage.removeItem(SESSION_KEY);
-        showBlocked();
-      } else {
-        showApp();
-      }
+    .then(function(d){
+      document.getElementById("dash-checking").remove();
+      if(d.bloqueado){localStorage.removeItem(SESSION_KEY);showBlocked();}
+      else{showApp();}
     })
     .catch(function(){
-      // Si falla la red, dejar pasar con sesión válida
+      document.getElementById("dash-checking").remove();
       showApp();
     });
   } else {
     localStorage.removeItem(SESSION_KEY);
+    document.getElementById("dash-login").classList.remove("hidden");
     // Esperar a que cargue la lib de Google
     if(typeof google!=="undefined"&&google.accounts){initDashAuth();}
   }
@@ -3701,6 +3702,7 @@ window.addEventListener("load",function(){
 
 window.onGoogleLibraryLoad=function(){
   var login=document.getElementById("dash-login");
+  login.classList.remove("hidden");
   if(login&&!login.classList.contains("hidden")) initDashAuth();
 };
 </script>
