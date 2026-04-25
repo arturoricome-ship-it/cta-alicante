@@ -3673,9 +3673,25 @@ window.addEventListener("load",function(){
   var sess=null;
   try{sess=JSON.parse(localStorage.getItem(SESSION_KEY));}catch(e){}
   if(sess&&sess.email&&sess.ts&&(Date.now()-sess.ts)<MAX_AGE){
-    showApp();
-    // Registrar acceso en segundo plano
-    fetch(CTA_SHEETS_URL,{method:"POST",body:JSON.stringify({email:sess.email,nombre:sess.nombre||sess.email,accion:"login_dashboard"}),headers:{"Content-Type":"text/plain"}}).catch(function(){});
+    // Verificar con el script antes de mostrar app (por si fue bloqueado después)
+    fetch(CTA_SHEETS_URL,{
+      method:"POST",
+      body:JSON.stringify({email:sess.email,nombre:sess.nombre||sess.email,accion:"login_dashboard"}),
+      headers:{"Content-Type":"text/plain"}
+    })
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.bloqueado){
+        localStorage.removeItem(SESSION_KEY);
+        showBlocked();
+      } else {
+        showApp();
+      }
+    })
+    .catch(function(){
+      // Si falla la red, dejar pasar con sesión válida
+      showApp();
+    });
   } else {
     localStorage.removeItem(SESSION_KEY);
     // Esperar a que cargue la lib de Google
