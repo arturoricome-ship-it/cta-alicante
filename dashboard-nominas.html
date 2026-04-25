@@ -3690,9 +3690,13 @@ window.addEventListener("load",function(){
 });
 
 window.onGoogleLibraryLoad=function(){
+  // Solo mostrar login si NO hay sesión válida
+  var sess=null;
+  try{sess=JSON.parse(localStorage.getItem(SESSION_KEY));}catch(e){}
+  if(sess&&sess.email&&sess.ts&&(Date.now()-sess.ts)<MAX_AGE) return;
   var login=document.getElementById("dash-login");
   login.classList.remove("hidden");
-  if(login&&!login.classList.contains("hidden")) initDashAuth();
+  initDashAuth();
 };
 </script>
 
