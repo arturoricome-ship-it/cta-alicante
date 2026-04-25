@@ -1257,7 +1257,7 @@ function changeYear(){
   renderEdit();
   if(nomUnlocked) renderNomina();
   // Recargar multiplicadores del contador para el nuevo año
-  loadCntMult();loadCntReal();loadCntPrevUds();loadNomUds();
+  loadCntMult();loadCntReal();loadCntPrevUds();
   var mv=document.getElementById('cnt-mult-ver');if(mv)mv.value=cntMult.ver||'';
   var mi2=document.getElementById('cnt-mult-inv');if(mi2)mi2.value=cntMult.inv||'';
   var mc=document.getElementById('cnt-mult-cier');if(mc)mc.value=cntMult.cier||'';
@@ -1325,6 +1325,7 @@ var nomCutoff={};
 var atrUds={};// ajuste manual unidades en atrasos (hoja 2, desde mes anterior)
 var nomUds={};// unidades segun PDF empresa (si difieren del calendario)
 function loadNomUds(){try{var s=localStorage.getItem('cta_nom_uds26');if(s)nomUds=JSON.parse(s);}catch(e){nomUds={};}}
+loadNomUds();// cargar aquí, después de declarar nomUds
 function loadCfg(){
   try{var s=localStorage.getItem('cta_cfg26');if(s)cfg=Object.assign({},cfg,JSON.parse(s))}catch(e){}
   try{var s2=localStorage.getItem('cta_nirpf26');if(s2)nomIrpf=JSON.parse(s2)}catch(e){}
