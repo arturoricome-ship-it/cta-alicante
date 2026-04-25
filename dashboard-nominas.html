@@ -443,6 +443,7 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
 .dl-blocked-msg{font-size:13px;color:#8899bb;line-height:1.6}
 </style>
 <script src="https://accounts.google.com/gsi/client" async></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
 <body>
 <!-- ── PANTALLA LOGIN ── -->
@@ -501,6 +502,26 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
   <div class="g2">
     <div class="panel"><div class="pt">Bruto estimado</div><div id="bc-bruto"></div></div>
     <div class="panel"><div class="pt">Neto estimado</div><div id="bc-neto"></div></div>
+  <!-- Gráficas -->
+  <div class="panel" style="margin-top:16px">
+    <div class="pt">GRÁFICAS ANUALES</div>
+    <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px">
+      <div style="background:#0e1420;border:1px solid #1e2535;border-radius:10px;padding:14px">
+        <div style="font-size:10px;color:#8899bb;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📊 Horas totales por mes</div>
+        <div style="height:160px;position:relative"><canvas id="res-chart-meses"></canvas></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="background:#0e1420;border:1px solid #1e2535;border-radius:10px;padding:14px">
+          <div style="font-size:10px;color:#8899bb;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📅 Horas por día semana</div>
+          <div style="height:150px;position:relative"><canvas id="res-chart-diasem"></canvas></div>
+        </div>
+        <div style="background:#0e1420;border:1px solid #1e2535;border-radius:10px;padding:14px">
+          <div style="font-size:10px;color:#8899bb;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📈 Media h/semana por mes</div>
+          <div style="height:150px;position:relative"><canvas id="res-chart-media"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
   </div>
 </div>
 
@@ -1919,9 +1940,10 @@ function bc(id,items,ca,cb){
   el.innerHTML=items.map(function(i){
     var pct=Math.max(0,Math.round(i.v/max*100));
     var badge=i.badge?'<span class="br-badge">'+i.badge+'</span>':'';
+    var blurCls=i.blur?' blur-eur':'';
     return'<div class="br"><div class="brl">'+i.l+'</div><div class="brt"><div class="brf" style="--ba:'+(ca||'var(--blue)')+';--bb:'+(cb||'var(--blue2)')+';width:'+pct+'%">'+
-      (pct>12?'<span class="brfv">'+(i.d||i.v)+'</span>':'')+'</div></div>'+
-      (pct<=12&&i.v>0?'<span class="bro">'+(i.d||i.v)+'</span>':'')+badge+'</div>';
+      (pct>12?'<span class="brfv'+blurCls+'">'+(i.d||i.v)+'</span>':'')+'</div></div>'+
+      (pct<=12&&i.v>0?'<span class="bro'+blurCls+'">'+(i.d||i.v)+'</span>':'')+badge+'</div>';
   }).join('');
 }
 
@@ -1957,8 +1979,49 @@ function renderResumen(){
     var s=mStats(m),dt=mDiasTrabajados(m);
     return{l:m.slice(0,3),v:s.dias,d:s.dias,badge:dt>=24?'+2🎉':null};
   }),'var(--teal)','var(--teal2)');
-  bc('bc-bruto',MONTHS.map(function(m){var n=calcNomina(m);return{l:m.slice(0,3),v:(n.bruto||0)+(n.atrDev||0),d:'••••€'}}),'var(--amber)','var(--amber2)');
-  bc('bc-neto',MONTHS.map(function(m){var n=calcNomina(m);return{l:m.slice(0,3),v:n.liquidoTotal||0,d:'••••€'}}),'var(--green)','var(--green2)');
+  bc('bc-bruto',MONTHS.map(function(m){var n=calcNomina(m);var v=(n.bruto||0)+(n.atrDev||0);return{l:m.slice(0,3),v:v,d:nomUnlocked?v.toFixed(0)+'€':'••••€',blur:!nomUnlocked}}),'var(--amber)','var(--amber2)');
+  bc('bc-neto',MONTHS.map(function(m){var n=calcNomina(m);var v=n.liquidoTotal||0;return{l:m.slice(0,3),v:v,d:nomUnlocked?v.toFixed(0)+'€':'••••€',blur:!nomUnlocked}}),'var(--green)','var(--green2)');
+  // ── GRÁFICAS ──
+  // Calcular datos
+  var _horasMes=MONTHS.map(function(m){return mStats(m).horas;});
+  var _diasSem=[0,0,0,0,0,0,0]; // Lun-Dom
+  var _semCount=MONTHS.map(function(_){return 0;});
+  var _semHoras=MONTHS.map(function(_){return 0;});
+  MONTHS.forEach(function(m,mi){
+    var days=MDAYS[mi];
+    for(var d=1;d<=days;d++){
+      var dt=new Date(YEAR,mi,d),dow=(dt.getDay()+6)%7;
+      var day=gd(m,d);
+      if(day&&ACTIVOS.indexOf(day.tipo)>=0&&day.total>0) _diasSem[dow]+=day.total;
+    }
+    // media h/semana por mes
+    var semsMes=MDAYS[mi]/7;
+    _semHoras[mi]=semsMes>0?Math.round(mStats(m).horas/semsMes*100)/100:0;
+  });
+
+  // Destruir charts anteriores
+  ['_chartMeses','_chartDiaSem','_chartMedia'].forEach(function(k){
+    if(window[k]){window[k].destroy();window[k]=null;}
+  });
+
+  var chartOpts={
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e2535',borderColor:'#2a3347',borderWidth:1,titleColor:'#f0f4ff',bodyColor:'#c8a84b',padding:10}},
+    scales:{
+      x:{grid:{color:'#1a2235'},ticks:{color:'#8899bb',font:{size:10}}},
+      y:{grid:{color:'#1a2235'},ticks:{color:'#8899bb',font:{size:10},callback:function(v){return v+'h';}}}
+    }
+  };
+
+  var c1=document.getElementById('res-chart-meses');
+  var c2=document.getElementById('res-chart-diasem');
+  var c3=document.getElementById('res-chart-media');
+  if(c1&&c2&&c3&&window.Chart){
+    window._chartMeses=new Chart(c1,{type:'bar',data:{labels:MONTHS.map(function(m){return m.slice(0,3);}),datasets:[{data:_horasMes,backgroundColor:_horasMes.map(function(v){return v>0?'rgba(82,160,255,0.85)':'rgba(82,160,255,0.1)';}),borderRadius:5,borderSkipped:false}]},options:chartOpts});
+    window._chartDiaSem=new Chart(c2,{type:'bar',data:{labels:['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'],datasets:[{data:_diasSem,backgroundColor:['rgba(82,255,168,.85)','rgba(82,255,168,.75)','rgba(82,255,168,.7)','rgba(82,255,168,.85)','rgba(82,255,168,.7)','rgba(255,180,82,.85)','rgba(255,180,82,.85)'],borderRadius:5,borderSkipped:false}]},options:chartOpts});
+    window._chartMedia=new Chart(c3,{type:'line',data:{labels:MONTHS.map(function(m){return m.slice(0,3);}),datasets:[{data:_semHoras,borderColor:'#c8a84b',backgroundColor:'rgba(200,168,75,0.12)',borderWidth:2,pointBackgroundColor:'#c8a84b',pointRadius:4,tension:0.3,fill:true}]},options:Object.assign({},chartOpts,{plugins:Object.assign({},chartOpts.plugins,{tooltip:Object.assign({},chartOpts.plugins.tooltip,{callbacks:{label:function(ctx){return' '+ctx.parsed.y.toFixed(2)+'h/sem';}}})})})});
+  }
+
 }
 
 // ════════════════════════════════════════
@@ -3511,7 +3574,7 @@ function resetAtrUds(){
     </div>
     <div id="imp-preview" style="display:none" class="imp-preview"></div>
     <div class="imp-opts">
-      <label class="imp-opt"><input type="checkbox" id="imp-overwrite" checked> Sobreescribir días que ya tengan datos</label>
+      <label class="imp-opt"><input type="checkbox" id="imp-overwrite"> Sobreescribir días que ya tengan datos</label>
       <label class="imp-opt"><input type="checkbox" id="imp-skip-empty" checked> Ignorar meses sin datos (Mayo-Dic vacíos)</label>
     </div>
     <div class="imp-actions">
