@@ -1365,7 +1365,7 @@ function handleCredentialResponse(response){
   .then(function(data){
     if(data.bloqueado){
       status.style.color="#f07070";
-      status.textContent="⛔ Acceso desactivado. Contacta con CTA.";
+      status.innerHTML="⛔ Acceso desactivado. Contacta con CTA.<br><span style='font-size:11px;color:#8899bb'>Si crees que se trata de un error, comunícalo a un representante de la sección sindical.</span>";
       localStorage.removeItem("cta_session");
     } else {
       entrar(email,nombre);
@@ -1386,8 +1386,17 @@ window.addEventListener("load",function(){
     // Sesión válida — entrar directamente
     document.getElementById("login-screen").style.display="none";
     setWelcome(sess.nombre||sess.email);
-    // Registrar acceso en segundo plano
-    fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:sess.email,nombre:sess.nombre||sess.email}),headers:{"Content-Type":"text/plain"}}).catch(function(){});
+    // Verificar con script al entrar y echar si bloqueado
+    function verificarAcceso(){
+      var s=null;try{s=JSON.parse(localStorage.getItem("cta_session"));}catch(e){}
+      if(!s||!s.email) return;
+      fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:s.email,nombre:s.nombre||s.email}),headers:{"Content-Type":"text/plain"}})
+      .then(function(r){return r.json();})
+      .then(function(d){if(d.bloqueado){localStorage.removeItem("cta_session");location.reload();}})
+      .catch(function(){});
+    }
+    verificarAcceso();
+    setInterval(verificarAcceso, 3*60*1000);
   } else {
     // Sin sesión — mostrar login
     localStorage.removeItem("cta_session");
