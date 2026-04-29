@@ -811,38 +811,38 @@ const DOW=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 const UDS_FACTOR=0.175;
 
 const SAL={
-  '1F':{sb:490.46, ppu:16.3487, pp:122.62, pppu:4.0873, ct:475.63, ctpu:15.8543, noct:2.28, fest:3.17, sbh:2.355275, trih:0.154695},
-  '1E':{sb:510.52, ppu:17.0173, pp:127.63, pppu:4.2543, ct:464.94, ctpu:15.4980, noct:2.38, fest:3.32, sbh:2.466282, trih:0.166170},
-  '1D':{sb:519.29, ppu:17.3097, pp:129.82, pppu:4.3273, ct:503.60, ctpu:16.7867, noct:2.41, fest:3.36, sbh:2.493821, trih:0.163795},
-  '1C':{sb:540.56, ppu:18.0187, pp:135.14, pppu:4.5047, ct:492.28, ctpu:16.4093, noct:2.53, fest:3.52, sbh:2.611358, trih:0.175945},
-  '1B':{sb:548.13, ppu:18.2710, pp:137.03, pppu:4.5677, ct:531.57, ctpu:17.7190, noct:2.55, fest:3.55, sbh:2.632368, trih:0.172892},
-  '1A':{sb:570.56, ppu:19.0187, pp:142.64, pppu:4.7547, ct:519.67, ctpu:17.3223, noct:2.67, fest:3.71, sbh:2.756435, trih:0.185720},
-  '1': {sb:576.98, ppu:19.2327, pp:144.25, pppu:4.8083, ct:559.56, ctpu:18.6520, noct:2.68, fest:3.73, sbh:2.770914, trih:0.181992},
-  '2': {sb:588.74, ppu:19.6247, pp:147.19, pppu:4.9063, ct:553.86, ctpu:18.4620, noct:2.71, fest:3.78, sbh:2.803311, trih:0.184240},
-  '3': {sb:600.62, ppu:20.0207, pp:150.16, pppu:5.0053, ct:547.00, ctpu:18.2333, noct:2.81, fest:3.91, sbh:2.901511, trih:0.195491},
-  '4B':{sb:566.92, ppu:18.8973, pp:141.73, pppu:4.7243, ct:469.56, ctpu:15.6520, noct:2.71, fest:3.78, sbh:2.801885, trih:0.184854},
-  '4A':{sb:598.41, ppu:19.9470, pp:149.60, pppu:4.9867, ct:495.64, ctpu:16.5213, noct:2.86, fest:3.99, sbh:2.957545, trih:0.195123},
-  '4': {sb:629.91, ppu:20.9970, pp:157.48, pppu:5.2493, ct:521.73, ctpu:17.3910, noct:3.01, fest:4.20, sbh:3.113205, trih:0.205393},
-  '5': {sb:666.20, ppu:22.2067, pp:166.55, pppu:5.5517, ct:501.53, ctpu:16.7177, noct:3.20, fest:4.46, sbh:3.308789, trih:0.219884},
-  '6': {sb:721.10, ppu:24.0367, pp:180.28, pppu:6.0093, ct:479.73, ctpu:15.9910, noct:3.50, fest:4.88, sbh:3.618406, trih:0.244364},
-  '7': {sb:760.55, ppu:25.3517, pp:190.14, pppu:6.3380, ct:463.46, ctpu:15.4487, noct:3.70, fest:5.16, sbh:3.830005, trih:0.259934},
-  '8': {sb:811.35, ppu:27.0450, pp:202.84, pppu:6.7613, ct:477.20, ctpu:15.9067, noct:3.97, fest:5.53, sbh:4.107495, trih:0.279379},
-  '9': {sb:854.87, ppu:28.4957, pp:213.72, pppu:7.1240, ct:500.10, ctpu:16.6700, noct:4.22, fest:5.88, sbh:4.368150, trih:0.299269},
-  '10':{sb:896.38, ppu:29.8793, pp:224.10, pppu:7.4700, ct:523.13, ctpu:17.4377, noct:4.42, fest:6.17, sbh:4.580201, trih:0.316908},
-  '11':{sb:948.22, ppu:31.6073, pp:237.06, pppu:7.9020, ct:519.75, ctpu:17.3250, noct:4.71, fest:6.56, sbh:4.873443, trih:0.338239},
-  '12':{sb:997.94, ppu:33.2647, pp:249.49, pppu:8.3163, ct:517.13, ctpu:17.2377, noct:4.99, fest:6.97, sbh:5.166862, trih:0.360114},
-  '13':{sb:1079.44,ppu:35.9813, pp:269.86, pppu:8.9953, ct:492.32, ctpu:16.4107, noct:5.47, fest:7.62, sbh:5.655771, trih:0.395214},
-  '14':{sb:1181.61,ppu:39.3870, pp:295.40, pppu:9.8467, ct:504.17, ctpu:16.8057, noct:6.02, fest:8.41, sbh:6.242875, trih:0.436077},
-  '15':{sb:1259.84,ppu:41.9947, pp:314.96, pppu:10.4987,ct:544.62, ctpu:18.1540, noct:6.46, fest:9.00, sbh:6.682828, trih:0.471178},
-  '16':{sb:1303.63,ppu:43.4543, pp:325.91, pppu:10.8637,ct:550.63, ctpu:18.3543, noct:6.71, fest:9.35, sbh:6.943661, trih:0.493771},
-  '17':{sb:1399.80,ppu:46.6600, pp:349.95, pppu:11.6650,ct:567.96, ctpu:18.9320, noct:7.27, fest:10.14,sbh:7.530589, trih:0.534545},
-  '18':{sb:1425.40,ppu:47.5133, pp:356.35, pppu:11.8783,ct:604.05, ctpu:20.1350, noct:7.43, fest:10.36,sbh:7.693406, trih:0.547686},
-  '19':{sb:1531.41,ppu:51.0470, pp:382.85, pppu:12.7617,ct:686.27, ctpu:22.8757, noct:8.03, fest:11.20,sbh:8.312735, trih:0.596736},
-  '20':{sb:1626.47,ppu:54.2157, pp:406.62, pppu:13.5540,ct:826.76, ctpu:27.5587, noct:8.64, fest:12.05,sbh:8.948263, trih:0.643991},
-  '21':{sb:1615.17,ppu:53.8390, pp:403.79, pppu:13.4597,ct:841.99, ctpu:28.0663, noct:8.80, fest:12.28,sbh:9.111446, trih:0.656145},
-  '22':{sb:1674.67,ppu:55.8223, pp:418.67, pppu:13.9557,ct:869.15, ctpu:28.9717, noct:9.20, fest:12.83,sbh:9.526012, trih:0.689440},
-  '23':{sb:1738.89,ppu:57.9630, pp:434.72, pppu:14.4907,ct:964.37, ctpu:32.1457, noct:9.64, fest:13.44,sbh:9.975409, trih:0.722835},
-  '24':{sb:1807.30,ppu:60.2433, pp:451.83, pppu:15.0610,ct:1054.33,ctpu:35.1443, noct:10.03,fest:13.99,sbh:10.382774,trih:0.755416},
+  '1F':{sb:495.114956, ppu:16.740284, pp:125.556994, pppu:4.185199, ct:480.326371, ctpu:16.010845, noct:2.298536, fest:3.198559, sbh:2.377629, trih:0.15455},
+  '1E':{sb:515.365345, ppu:17.424898, pp:130.686994, pppu:4.356199, ct:469.530818, ctpu:15.651027, noct:2.399349, fest:3.34991, sbh:2.489689, trih:0.166014},
+  '1D':{sb:524.218581, ppu:17.724302, pp:132.929449, pppu:4.430947, ct:508.572546, ctpu:16.952452, noct:2.429593, fest:3.39027, sbh:2.51749, trih:0.163642},
+  '1C':{sb:545.690455, ppu:18.450284, pp:138.376873, pppu:4.612597, ct:497.140773, ctpu:16.571325, noct:2.550569, fest:3.551712, sbh:2.636142, trih:0.17578},
+  '1B':{sb:553.332302, ppu:18.708627, pp:140.312143, pppu:4.677106, ct:536.818722, ctpu:17.893957, noct:2.570731, fest:3.581982, sbh:2.657352, trih:0.17273},
+  '1A':{sb:575.975185, ppu:19.474236, pp:146.056513, pppu:4.868585, ct:524.801222, ctpu:17.49334, noct:2.691707, fest:3.743423, sbh:2.782596, trih:0.185546},
+  '1': {sb:582.456117, ppu:19.693362, pp:147.705076, pppu:4.923468, ct:565.085095, ctpu:18.83617, noct:2.701788, fest:3.763604, sbh:2.797213, trih:0.181821},
+  '2': {sb:594.327731, ppu:20.094751, pp:150.715495, pppu:5.023816, ct:559.328814, ctpu:18.644294, noct:2.732032, fest:3.814054, sbh:2.829917, trih:0.184067},
+  '3': {sb:606.320484, ppu:20.500236, pp:153.756632, pppu:5.125187, ct:552.401078, ctpu:18.413336, noct:2.832845, fest:3.945225, sbh:2.929049, trih:0.195308},
+  '4B':{sb:572.300638, ppu:19.349928, pp:145.124717, pppu:4.837456, ct:474.196435, ctpu:15.806548, noct:2.732032, fest:3.814054, sbh:2.828478, trih:0.184681},
+  '4A':{sb:604.089509, ppu:20.424771, pp:153.183219, pppu:5.106141, ct:500.533949, ctpu:16.684431, noct:2.883252, fest:4.025946, sbh:2.985615, trih:0.19494},
+  '4': {sb:635.888476, ppu:21.49992, pp:161.251961, pppu:5.375031, ct:526.881562, ctpu:17.562719, noct:3.034471, fest:4.237838, sbh:3.142752, trih:0.205201},
+  '5': {sb:672.522904, ppu:22.738595, pp:170.539206, pppu:5.684674, ct:506.482107, ctpu:16.882771, noct:3.226016, fest:4.50018, sbh:3.340193, trih:0.219678},
+  '6': {sb:727.94396, ppu:24.612427, pp:184.598067, pppu:6.153235, ct:484.466854, ctpu:16.148895, noct:3.528455, fest:4.923964, sbh:3.652748, trih:0.244135},
+  '7': {sb:767.76838, ppu:25.958924, pp:194.694233, pppu:6.489808, ct:468.036204, ctpu:15.60124, noct:3.730081, fest:5.206486, sbh:3.866356, trih:0.25969},
+  '8': {sb:819.050523, ppu:27.692782, pp:207.698424, pppu:6.923247, ct:481.911873, ctpu:16.063763, noct:4.002276, fest:5.57982, sbh:4.146479, trih:0.279117},
+  '9': {sb:862.983571, ppu:29.178229, pp:218.839021, pppu:7.294634, ct:505.037987, ctpu:16.8346, noct:4.254309, fest:5.932973, sbh:4.409608, trih:0.298989},
+  '10':{sb:904.887543, ppu:30.594969, pp:229.467643, pppu:7.648921, ct:528.295386, ctpu:17.60988, noct:4.455935, fest:6.225586, sbh:4.623672, trih:0.316611},
+  '11':{sb:957.219556, ppu:32.364358, pp:242.738061, pppu:8.091269, ct:524.882011, ctpu:17.496067, noct:4.748292, fest:6.619099, sbh:4.919697, trih:0.337922},
+  '12':{sb:1007.411449, ppu:34.061456, pp:255.465784, pppu:8.515492, ct:522.236142, ctpu:17.407905, noct:5.030569, fest:7.032793, sbh:5.215901, trih:0.359777},
+  '13':{sb:1089.684965,ppu:36.843124, pp:276.323687, pppu:9.210755, ct:497.181168, ctpu:16.572739, noct:5.514471, fest:7.688649, sbh:5.70945, trih:0.394844},
+  '14':{sb:1192.824661,ppu:40.330397, pp:302.475421, pppu:10.082548, ct:509.148175, ctpu:16.971639, noct:6.068943, fest:8.485766, sbh:6.302126, trih:0.435668},
+  '15':{sb:1271.797141,ppu:43.000557, pp:322.503922, pppu:10.750165,ct:549.997578, ctpu:18.333253, noct:6.51252, fest:9.081081, sbh:6.746255, trih:0.470737},
+  '16':{sb:1316.002752,ppu:44.495117, pp:333.716196, pppu:11.123907,ct:556.066921, ctpu:18.53553, noct:6.764552, fest:9.434234, sbh:7.009563, trih:0.493308},
+  '17':{sb:1413.085502,ppu:47.7776, pp:358.332002, pppu:11.9444,ct:573.568037, ctpu:19.118935, noct:7.329105, fest:10.231351,sbh:7.602062, trih:0.534044},
+  '18':{sb:1438.928471,ppu:48.651339, pp:364.885295, pppu:12.162809,ct:610.01439, ctpu:20.333813, noct:7.490406, fest:10.453333,sbh:7.766424, trih:0.547173},
+  '19':{sb:1545.944612,ppu:52.269678, pp:392.020023, pppu:13.067368,ct:693.04623, ctpu:23.101575, noct:8.095284, fest:11.300901,sbh:8.391631, trih:0.596177},
+  '20':{sb:1641.906827,ppu:55.514274, pp:416.359362, pppu:13.878645,ct:834.923428, ctpu:27.830815, noct:8.710243, fest:12.158558,sbh:9.033191, trih:0.643388},
+  '21':{sb:1630.499578,ppu:55.128552, pp:413.461578, pppu:13.782087,ct:850.303809, ctpu:28.343427, noct:8.871544, fest:12.390631,sbh:9.197923, trih:0.65553},
+  '22':{sb:1690.564293,ppu:57.159356, pp:428.697984, pppu:14.289967,ct:877.731987, ctpu:29.257767, noct:9.274796, fest:12.945585,sbh:9.616423, trih:0.688794},
+  '23':{sb:1755.393805,ppu:59.35133, pp:445.132413, pppu:14.837781,ct:973.892189, ctpu:32.463107, noct:9.718373, fest:13.561081,sbh:10.070086, trih:0.722158},
+  '24':{sb:1824.453084,ppu:61.686248, pp:462.652232, pppu:15.421741,ct:1064.740454,ctpu:35.491315, noct:10.111544,fest:14.116036,sbh:10.481317,trih:0.754708},
 };
 
 const SAL_SECTOR={
@@ -1653,10 +1653,10 @@ function calcNomina(month,overrideIrpf){
   // DEVENGOS FIJOS (mes completo)
   var tri12=Math.min(cfg.tri,12);// máx 12 trienios (Art.126)
   var ib003Tar=(r.sb/30)*0.008*tri12;// 0,8% SB mensual × trienios / 30 uds
-  var ib001=uds*ppu30,ib003=uds*ib003Tar,ib009=uds*2.10,ib010=uds*ctpu30;
-  var ib033=uds*pppu30,ib036=uds*3.5717,ib321=uds*0.6997;
+  var ib001=uds*ppu30,ib003=uds*ib003Tar,ib009=uds*2.18,ib010=uds*ctpu30;
+  var ib033=uds*pppu30,ib036=uds*3.61172,ib321=uds*0.7097;
   // IB160 FTP (solo TP) / IB046 Jornada Irregular (solo TC)
-  var ib160=isTC?0:uds*4.249;// Plus FACTP: 127,47€/mes ÷ 30 = 4,249€/ud (BOE 15/04/2026)
+  var ib160=isTC?0:uds*4.76888;// Plus FACTP actualizado
   var ib046Tar=232.45/30;// Grat. Jornada Irregular Alicante (230-236 días): 232,45€/mes ÷ 30 (BOE 15/04/2026)
   var ib046=isTC?uds*ib046Tar:0;
   var ib176=asist*66.50,ib080=9.46;
@@ -1677,14 +1677,14 @@ function calcNomina(month,overrideIrpf){
   // TC: pluses del período actual = 0 en nómina (van a atrasos siguiente mes)
   // TP: pluses del período actual (días 1 al cutoff) sí van en esta nómina
   var ib023=isTC?0:p.festH*r.fest;
-  var ib026=isTC?0:(p.factpCorto+p.factpLargo)*10.11;
+  var ib026=isTC?0:(p.factpCorto+p.factpLargo)*10.21;
   var ib038=isTC?0:p.factpLargo*13.92;
   var ib054=isTC?0:p.ib054total;
   var ib055=isTC?0:p.ib055total;
   var ib106=isTC?0:p.noctH*r.noct;
-  var ib110=isTC?0:p.superMadrugue*7.46;
-  var ib126=isTC?0:p.madrugue*7.46;
-  var ib179=isTC?0:p.madrugue*8.63;
+  var ib110=isTC?0:p.superMadrugue*7.53;
+  var ib126=isTC?0:p.madrugue*7.53;
+  var ib179=isTC?0:p.madrugue*8.71;
   var ib118cur=isTC?0:ib118; ib118=ib118cur;// TC: perentorias tb a atrasos
 
   // ATRASOS DEL MES ANTERIOR
@@ -1736,9 +1736,9 @@ function calcNomina(month,overrideIrpf){
   var udsPrevPDF=getNomUds(prevMonth);
   var diffPrev=udsPrevPDF!==null?(udsPrevCalendario-udsPrevPDF):0;
   var adjUdsTotal=adjUds!==null?adjUds:diffPrev;// si manual: exacto; si auto: diffPrev
-  var aIB001=adjUdsTotal*ppu30, aIB003=adjUdsTotal*ib003Tar, aIB009=adjUdsTotal*2.10;
-  var aIB010=adjUdsTotal*ctpu30, aIB033=adjUdsTotal*pppu30, aIB036=adjUdsTotal*3.5717;
-  var aIB160=isTC?0:adjUdsTotal*4.249, aIB046=isTC?adjUdsTotal*ib046Tar:0, aIB321=adjUdsTotal*0.6997;
+  var aIB001=adjUdsTotal*ppu30, aIB003=adjUdsTotal*ib003Tar, aIB009=adjUdsTotal*2.18;
+  var aIB010=adjUdsTotal*ctpu30, aIB033=adjUdsTotal*pppu30, aIB036=adjUdsTotal*3.61172;
+  var aIB160=isTC?0:adjUdsTotal*4.76888, aIB046=isTC?adjUdsTotal*ib046Tar:0, aIB321=adjUdsTotal*0.7097;
   var aIB085=adjUdsTotal*1.16, aIB086=adjUdsTotal*0.089;
   // IB106b y IB304 también si corresponden
   var aIB106b=adjUdsTotal*r.plusFunTar;
