@@ -871,7 +871,7 @@ const SAL_SECTOR={
   '23':{sb:1691.22,ppu:56.37, pp:429.95, pppu:14.33,ct:937.93, ctpu:31.26, noct:8.28, fest:14.97,sbh:9.701933, trih:0.703018},
   '24':{sb:1757.75,ppu:58.59, pp:446.86, pppu:14.90,ct:1025.43,ctpu:34.18, noct:8.63, fest:15.59,sbh:10.098130,trih:0.734706},
 };
-const TAR={festivo:4.315,factp:10.11,interrup:13.92,pp:4.95,area:3.5717,noct:2.388,madrug:7.46,mdiet:7.46,mtransp:8.63,factp2:4.249,asist:66.50,dsa:0.6997,comidas:7.46,desayuno:2.32,transp:7.23};
+const TAR={festivo:4.315,factp:10.21,interrup:13.92,pp:4.95,area:3.61172,noct:2.388,madrug:7.53,mdiet:7.53,mtransp:8.71,factp2:4.76888,asist:66.50,dsa:0.7097,comidas:7.46,desayuno:2.32,transp:7.23};
 
 // ═══════════════════════════════════════════════════════
 // V CONVENIO SECTOR HANDLING — TABLAS 2026 (BOE 26/03/2026)
@@ -1692,14 +1692,14 @@ function calcNomina(month,overrideIrpf){
   // TP: atrasos = pluses días 16-fin del mes anterior (como hasta ahora)
   var atrP=isTC?calcPluses(prevMonth,1,MDAYS[prevMi]):atr;
   var a023=atrP.festH*r.fest;
-  var a026=(atrP.factpCorto+atrP.factpLargo)*10.11;
+  var a026=(atrP.factpCorto+atrP.factpLargo)*10.21;
   var a038=atrP.factpLargo*13.92;
   var a054=atrP.ib054total;
   var a055=atrP.ib055total;
   var a106=atrP.noctH*r.noct;
-  var a110=atrP.superMadrugue*7.46;
-  var a126=atrP.madrugue*7.46;
-  var a179=atrP.madrugue*8.63;
+  var a110=atrP.superMadrugue*7.53;
+  var a126=atrP.madrugue*7.53;
+  var a179=atrP.madrugue*8.71;
   var atr118=atrP.perenCobrarH*pt.cobrar+atrP.perenLibrarH*pt.librar;
   var atrasosTotal=a023+a026+a038+a054+a055+a106+a110+a126+a179+(isTC?atr118:0);
 
