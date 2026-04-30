@@ -1024,15 +1024,16 @@ function calcPlusesSector(month,dayFrom,dayTo){
 
     daysWorked++;
     var dow=getDow(mi,d);
-    // Iberia: domingo SIEMPRE es festivo
-    var esDom=(dow===6);
-    var esFest=(tipo==='festivo')||esFestivoOficial(month,d)||!!(day.esFestivo)||esDom;
+    // Sector: festivo = festH, domingo = domH (no acumulables, festivo prevalece)
+    var esFest=(tipo==='festivo')||esFestivoOficial(month,d)||!!(day.esFestivo);
+    var esDom=(dow===6&&!esFest);
 
     var e1m=toM(day.e1||''),s1m=toM(day.s1||'');
     var e2m=toM(day.e2||''),s2m=toM(day.s2||'');
     var tienePartido=(e2m!==null&&s2m!==null&&day.e2&&day.s2);
 
     if(esFest) festH+=t;
+    else if(esDom) domH+=t;
 
     // Nocturnidad 22:00–06:00
     if(e1m!==null&&s1m!==null) noctH+=calcHorasNocturnas(e1m,s1m);
@@ -1564,7 +1565,10 @@ function calcPluses(month, dayFrom, dayTo){
       else perenLibrarH+=pd_gen.gen;// 7N: pago a tarifa librar + acumula banco
     }
     asist=1;
-    if(tipo==='festivo'||esFestivoOficial(month,d)||!!(day.esFestivo)) festH+=t;
+    var dow_ib=getDow(mi,d);
+    // Iberia: domingo SIEMPRE festivo + esFestivo marcado manualmente
+    var esFest_ib=(tipo==='festivo')||esFestivoOficial(month,d)||!!(day.esFestivo)||(dow_ib===6);
+    if(esFest_ib) festH+=t;
 
     var e1m=toM(day.e1||''),s1m=toM(day.s1||'');
     var e2m=toM(day.e2||''),s2m=toM(day.s2||'');
