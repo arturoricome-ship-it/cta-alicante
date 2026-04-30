@@ -1025,7 +1025,8 @@ function calcPlusesSector(month,dayFrom,dayTo){
     daysWorked++;
     var dow=getDow(mi,d);
     // Iberia: domingo SIEMPRE es festivo
-    var esFest=(tipo==='festivo')||esFestivoOficial(month,d)||!!(day.esFestivo)||(dow===6);
+    var esDom=(dow===6);
+    var esFest=(tipo==='festivo')||esFestivoOficial(month,d)||!!(day.esFestivo)||esDom;
 
     var e1m=toM(day.e1||''),s1m=toM(day.s1||'');
     var e2m=toM(day.e2||''),s2m=toM(day.s2||'');
@@ -2135,7 +2136,10 @@ function openM(month,day){
     '<br><b>Banco peren.:</b> '+per.disp.toFixed(2)+'h disponibles';
   document.getElementById('m-tipo').value=d.tipo||'libre';
   var festChk=document.getElementById('m-esfestivo');
+  var festRow=document.getElementById('m-fest-row');
+  var esDomingo=(getDow(MONTHS.indexOf(month),day)===6);
   if(festChk) festChk.checked=!!(d.esFestivo);
+  if(festRow) festRow.style.display=esDomingo?'none':'';
   document.getElementById('m-e1').value=d.e1||'';
   document.getElementById('m-s1').value=d.s1||'';
   document.getElementById('m-e2').value=d.e2||'';
