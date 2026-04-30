@@ -763,10 +763,10 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
         <div><label>Entrada 1</label><input class="fi" type="text" id="m-e1" placeholder="06:00" oninput="calcM()"></div>
         <div><label>Salida 1</label><input class="fi" type="text" id="m-s1" placeholder="14:00" oninput="calcM()"></div>
       </div>
-      <div class="frow" id="m-fest-row" style="display:none">
+      <div class="frow" id="m-fest-row">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.85rem">
           <input type="checkbox" id="m-esfestivo" style="width:15px;height:15px;accent-color:var(--amber)">
-          <span style="color:var(--amber2)">⭐ es Festivo</span>
+          <span style="color:var(--amber2)">es Festivo</span>
         </label>
         <div class="mhint" style="margin-top:2px">Las horas de este día se cobrarán como festivas en la nómina.</div>
       </div>
@@ -878,7 +878,7 @@ const SAL_SECTOR={
   '23':{sb:1691.22,ppu:56.37, pp:429.95, pppu:14.33,ct:937.93, ctpu:31.26, noct:8.28, fest:14.97,sbh:9.701933, trih:0.703018},
   '24':{sb:1757.75,ppu:58.59, pp:446.86, pppu:14.90,ct:1025.43,ctpu:34.18, noct:8.63, fest:15.59,sbh:10.098130,trih:0.734706},
 };
-const TAR={festivo:4.315,factp:10.21,interrup:14.06,pp:4.95,area:3.61172,noct:2.388,madrug:7.53,mdiet:7.53,mtransp:8.71,factp2:4.76888,asist:66.50,dsa:0.7097,comidas:7.46,desayuno:2.32,transp:7.23};
+const TAR={festivo:4.315,factp:10.21,interrup:14.05,pp:4.95,area:3.61172,noct:2.388,madrug:7.53,mdiet:7.53,mtransp:8.71,factp2:4.76888,asist:66.50,dsa:0.7097,comidas:7.46,desayuno:2.32,transp:7.23};
 
 // ═══════════════════════════════════════════════════════
 // V CONVENIO SECTOR HANDLING — TABLAS 2026 (BOE 26/03/2026)
@@ -1023,7 +1023,7 @@ function calcPlusesSector(month,dayFrom,dayTo){
 
     daysWorked++;
     var dow=getDow(mi,d);
-    var esFest=(tipo==='festivo')||esFestivoOficial(month,d)||(!!(day.esFestivo)&&tipo==='trabajado');
+    var esFest=(tipo==='festivo')||esFestivoOficial(month,d)||!!(day.esFestivo);
     var esDOM=(dow===6&&!esFest);// domingo (no si ya es festivo)
 
     var e1m=toM(day.e1||''),s1m=toM(day.s1||'');
@@ -1564,7 +1564,7 @@ function calcPluses(month, dayFrom, dayTo){
       else perenLibrarH+=pd_gen.gen;// 7N: pago a tarifa librar + acumula banco
     }
     asist=1;
-    if(tipo==='festivo'||esFestivoOficial(month,d)||(!!(day.esFestivo)&&tipo==='trabajado')) festH+=t;
+    if(tipo==='festivo'||esFestivoOficial(month,d)||!!(day.esFestivo)) festH+=t;
 
     var e1m=toM(day.e1||''),s1m=toM(day.s1||'');
     var e2m=toM(day.e2||''),s2m=toM(day.s2||'');
@@ -1685,7 +1685,7 @@ function calcNomina(month,overrideIrpf){
   // TP: pluses del período actual (días 1 al cutoff) sí van en esta nómina
   var ib023=isTC?0:p.festH*r.fest;
   var ib026=isTC?0:(p.factpCorto+p.factpLargo)*10.21;
-  var ib038=isTC?0:p.factpLargo*14.06;
+  var ib038=isTC?0:p.factpLargo*14.05;
   var ib054=isTC?0:p.ib054total;
   var ib055=isTC?0:p.ib055total;
   var ib106=isTC?0:p.noctH*r.noct;
@@ -1700,7 +1700,7 @@ function calcNomina(month,overrideIrpf){
   var atrP=isTC?calcPluses(prevMonth,1,MDAYS[prevMi]):atr;
   var a023=atrP.festH*r.fest;
   var a026=(atrP.factpCorto+atrP.factpLargo)*10.21;
-  var a038=atrP.factpLargo*14.06;
+  var a038=atrP.factpLargo*14.05;
   var a054=atrP.ib054total;
   var a055=atrP.ib055total;
   var a106=atrP.noctH*r.noct;
@@ -1769,7 +1769,7 @@ function calcNomina(month,overrideIrpf){
   devengos.push({cod:'IB010',desc:'Complemento Transitorio',uds:uds.toFixed(3),tar:ctpu30.toFixed(2),tot:ib010});
   if(ib023>0) devengos.push({cod:'IB023',desc:'Plus Festividad',uds:p.festH.toFixed(2)+'h',tar:r.fest.toFixed(2),tot:ib023});
   if(ib026>0) devengos.push({cod:'IB026',desc:'Periodo Horario FACTP',uds:(p.factpCorto+p.factpLargo)+'',tar:'10.21',tot:ib026});
-  if(ib038>0) devengos.push({cod:'IB038',desc:'Grt Interrupcion Jornada (P.Largo >= 2.5h)',uds:p.factpLargo+'',tar:'14.06',tot:ib038});
+  if(ib038>0) devengos.push({cod:'IB038',desc:'Grt Interrupcion Jornada (P.Largo >= 2.5h)',uds:p.factpLargo+'',tar:'14.05',tot:ib038});
   devengos.push({cod:'IB033',desc:'Prima Productividad',uds:uds.toFixed(3),tar:pppu30.toFixed(2),tot:ib033});
   devengos.push({cod:'IB036',desc:'Plus Area',uds:uds.toFixed(3),tar:'3.61',tot:ib036});
   if(ib054>0) devengos.push({cod:'IB054',desc:'Desayunos y Comidas',uds:'—',tar:'—',tot:ib054});
@@ -1807,7 +1807,7 @@ function calcNomina(month,overrideIrpf){
   if(a026>0){devengosAtrasos.push({cod:'IB026',desc:'Periodo Horario FACTP',uds:(atrP.factpCorto+atrP.factpLargo)+'',tar:'10.21',tot:a026});}
   if(au!==0){devengosAtrasos.push({cod:'IB033',desc:'Prima Productividad',uds:au.toFixed(3),tar:pppu30.toFixed(2),tot:aIB033});}
   if(au!==0){devengosAtrasos.push({cod:'IB036',desc:'Plus Area',uds:au.toFixed(3),tar:'3.61',tot:aIB036});}
-  if(a038>0){devengosAtrasos.push({cod:'IB038',desc:'Grt Interrupcion Jornada (P.Largo >= 2.5h)',uds:atrP.factpLargo+'',tar:'14.06',tot:a038});}
+  if(a038>0){devengosAtrasos.push({cod:'IB038',desc:'Grt Interrupcion Jornada (P.Largo >= 2.5h)',uds:atrP.factpLargo+'',tar:'14.05',tot:a038});}
   if(a054>0){devengosAtrasos.push({cod:'IB054',desc:'Desayunos y Comidas',uds:'—',tar:'—',tot:a054});}
   if(a055>0){devengosAtrasos.push({cod:'IB055',desc:'Gastos Transporte Labora',uds:'—',tar:'7.23',tot:a055});}
   if(a106>0){devengosAtrasos.push({cod:'IB106',desc:'Plus Nocturnidad Jornada',uds:atrP.noctH.toFixed(2)+'h',tar:r.noct.toFixed(2),tot:a106});}
@@ -2135,9 +2135,7 @@ function openM(month,day){
     ' &nbsp;·&nbsp; <b>Horas:</b> '+(d.total>0?d.total+'h':'—')+
     '<br><b>Banco peren.:</b> '+per.disp.toFixed(2)+'h disponibles';
   document.getElementById('m-tipo').value=d.tipo||'libre';
-  var festRow=document.getElementById('m-fest-row');
   var festChk=document.getElementById('m-esfestivo');
-  if(festRow) festRow.style.display=(d.tipo==='trabajado')?'':'none';
   if(festChk) festChk.checked=!!(d.esFestivo);
   document.getElementById('m-e1').value=d.e1||'';
   document.getElementById('m-s1').value=d.s1||'';
@@ -2179,8 +2177,6 @@ function mPgenChange(){
 }
 function mTipoChange(){
   var tipo=document.getElementById('m-tipo').value;
-  var festRow=document.getElementById('m-fest-row');
-  if(festRow) festRow.style.display=(tipo==='trabajado')?'':'none';
   var t=document.getElementById('m-tipo').value;
   var isW=['trabajado','hl','h6','curso','festivo','hfun','rm'].indexOf(t)>=0;
   var isP=t==='perentorias';
@@ -2198,7 +2194,7 @@ function saveModal(){
   var total=calcH(e1,s1,e2,s2)||(tipo==='perentorias'?8:0);
   var pgen=parseFloat(document.getElementById('m-pgen').value)||0;
   var pgasto=tipo==='perentorias'?(parseFloat(document.getElementById('m-pgasto').value)||total):0;
-  var esFestivo=tipo==='trabajado'&&document.getElementById('m-esfestivo')&&document.getElementById('m-esfestivo').checked;
+  var esFestivo=document.getElementById('m-esfestivo')&&document.getElementById('m-esfestivo').checked;
   sd(mm,dd,{e1:e1||undefined,s1:s1||undefined,e2:e2||undefined,s2:s2||undefined,tipo:tipo,total:total,esFestivo:esFestivo||undefined});
   var key=mm+':'+dd;
   var pmode=document.querySelector('input[name="pmode"]:checked');
