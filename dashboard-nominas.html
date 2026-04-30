@@ -670,7 +670,7 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
       <div class="cfgr"><div><div class="cfgl">Convenio</div><div class="cfgsub" id="convenio-note"></div></div><select class="csel" id="cfg-convenio" onchange="cfgSave()"><option value="iberia" selected>Iberia XXII</option><option value="sector">V Convenio Sector</option></select></div>
       <!-- Opciones exclusivas convenio sector -->
       <div id="cfg-sector-opts" style="display:none">
-        <div class="cfgr"><div><div class="cfgl">FTP — Plus Fijo Tiempo Parcial</div><div class="cfgsub">102,90€/mes — contrato TP en turnos</div></div><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="cfg-sector-ftp" onchange="cfgSave()" style="width:16px;height:16px"><span style="font-size:12px">Tengo FTP</span></label></div>
+        <div class="cfgr"><div><div class="cfgl">FTP — Plus Fijo Tiempo Parcial</div><div class="cfgsub">114,30€/mes — contrato TP en turnos</div></div><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="cfg-sector-ftp" onchange="cfgSave()" style="width:16px;height:16px"><span style="font-size:12px">Tengo FTP</span></label></div>
         <div class="cfgr"><div><div class="cfgl">FIJI — Plus Jornada Irregular</div><div class="cfgsub">148,63€/mes — TC con jornada irregular</div></div><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="cfg-sector-fiji" onchange="cfgSave()" style="width:16px;height:16px"><span style="font-size:12px">Tengo FIJI</span></label></div>
       </div>
       <div class="cfgr"><div><div class="cfgl">Contrato</div></div><select class="csel" id="cfg-cont" onchange="cfgSave()"><option value="TP" selected>TP (parcial)</option><option value="TC">TC (completo)</option></select></div>
@@ -1102,7 +1102,7 @@ function calcNominaSector(month,overrideIrpf){
   if(p.noctH>0) devengos.push({cod:'SE106',desc:'Plus Nocturnidad Jornada',uds:p.noctH.toFixed(2)+'h',tar:r.noct.toFixed(2),tot:p.noctH*r.noct});
   if(se118>0) devengos.push({cod:'SE118',desc:'Horas Perentorias N'+r.nivel+' (7D)',uds:p.perenCobrarH.toFixed(2)+'h',tar:ptPeren.toFixed(2),tot:se118});
   if(p.madDays>0) devengos.push({cod:'SE126',desc:'Plus de Madruge',uds:p.madDays+'',tar:r.madrug.toFixed(2),tot:p.madDays*r.madrug});
-  if(ftpTot>0) devengos.push({cod:'SE160',desc:'Plus de FACTP/ Plus de FTP',uds:uds.toFixed(3),tar:r.ftpMes.toFixed(2),tot:ftpTot});
+  if(ftpTot>0) devengos.push({cod:'SE160',desc:'Plus de FACTP/ Plus de FTP',uds:uds.toFixed(3),tar:(r.ftpMes/30).toFixed(2),tot:ftpTot});
   if(fijiTot>0) devengos.push({cod:'FIJI',desc:'Plus Jornada Irregular',uds:uds.toFixed(3),tar:r.fijiMes.toFixed(2),tot:fijiTot});
   if(cargoTot>0){var cl=cfg.cargo==='supervisor'?'Supervisión':'Ag. Jefe / Jefatura';var cc=cfg.cargo==='supervisor'?'SUP':'AJEFE';devengos.push({cod:cc,desc:cl,uds:uds.toFixed(3),tar:(r.cargoMes/30).toFixed(2),tot:cargoTot});}
 
