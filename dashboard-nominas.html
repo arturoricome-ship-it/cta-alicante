@@ -1024,17 +1024,14 @@ function calcPlusesSector(month,dayFrom,dayTo){
 
     daysWorked++;
     var dow=getDow(mi,d);
-    var esFest=(tipo==='festivo')||esFestivoOficial(month,d)||!!(day.esFestivo);
-    var esDOM=(dow===6&&!esFest);// domingo (no si ya es festivo)
-    if(esDOM) esFest=true;// Iberia: domingo siempre cuenta como festivo
+    // Iberia: domingo SIEMPRE es festivo
+    var esFest=(tipo==='festivo')||esFestivoOficial(month,d)||!!(day.esFestivo)||(dow===6);
 
     var e1m=toM(day.e1||''),s1m=toM(day.s1||'');
     var e2m=toM(day.e2||''),s2m=toM(day.s2||'');
     var tienePartido=(e2m!==null&&s2m!==null&&day.e2&&day.s2);
 
-    // Festivo (excl. domingos) / Domingo — no acumulables, festivo prevalece
     if(esFest) festH+=t;
-    else if(esDOM) domH+=t;
 
     // Nocturnidad 22:00–06:00
     if(e1m!==null&&s1m!==null) noctH+=calcHorasNocturnas(e1m,s1m);
