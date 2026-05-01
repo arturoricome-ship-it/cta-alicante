@@ -445,9 +445,10 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
 /* ── POPUP DESGLOSE DÍAS ── */
 .uds-link{cursor:pointer;border-bottom:1px dashed var(--text3);color:var(--text3);white-space:nowrap}
 .uds-link:hover{color:var(--blue2);border-color:var(--blue2)}
-#dias-popup-overlay{display:none;position:fixed;inset:0;z-index:9000}
-#dias-popup-overlay.on{display:block}
-#dias-popup{position:absolute;background:#1a2235;border:1px solid rgba(82,160,255,.3);border-radius:10px;padding:12px 14px;min-width:130px;max-width:210px;box-shadow:0 8px 32px rgba(0,0,0,.7);z-index:9001}
+#dias-popup-overlay{display:none;position:fixed;inset:0;z-index:99999;pointer-events:none}
+#dias-popup-overlay.on{pointer-events:auto}
+#dias-popup-overlay.on{display:block;pointer-events:auto}
+#dias-popup{position:fixed;background:#1a2235;border:1px solid rgba(82,160,255,.3);border-radius:10px;padding:12px 14px;min-width:130px;max-width:210px;box-shadow:0 8px 32px rgba(0,0,0,.7);z-index:100000}
 #dias-popup-title{font-size:10px;color:#8899bb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2a3347;display:flex;justify-content:space-between;align-items:center}
 #dias-popup-title span{cursor:pointer;font-size:14px;line-height:1;color:#8899bb}
 #dias-popup-title span:hover{color:#f0f4ff}
@@ -3800,7 +3801,8 @@ if('serviceWorker' in navigator){
 </div>
 <script>
 function _showDias(e) {
-  var el = e.currentTarget;
+  var el = e.target.closest ? e.target.closest('[data-cod]') : e.target;
+  if(!el) return;
   var cod = el.getAttribute('data-cod');
   var dias = JSON.parse(decodeURIComponent(el.getAttribute('data-dias')));
   var overlay = document.getElementById('dias-popup-overlay');
@@ -3813,15 +3815,14 @@ function _showDias(e) {
     : '<div style="color:var(--text3);font-size:11px">Sin días</div>';
   overlay.classList.add('on');
   var rect = el.getBoundingClientRect();
-  var top = rect.bottom + window.scrollY + 4;
-  var left = rect.left + window.scrollX;
+  // Posicionar a la derecha del elemento para no tapar las filas de abajo
+  var left = rect.right + 8;
+  var top = rect.top;
+  // Si no cabe a la derecha, poner debajo
+  if (left + 220 > window.innerWidth) { left = Math.max(8, rect.left - 220); }
+  if (top + 200 > window.innerHeight) { top = Math.max(8, window.innerHeight - 210); }
   popup.style.top = top + 'px';
   popup.style.left = left + 'px';
-  requestAnimationFrame(function(){
-    var pw = popup.offsetWidth, ph = popup.offsetHeight;
-    if (left + pw > window.innerWidth - 8) popup.style.left = (window.innerWidth - pw - 8) + 'px';
-    if (rect.bottom + ph + 8 > window.innerHeight) popup.style.top = (rect.top + window.scrollY - ph - 4) + 'px';
-  });
   e.stopPropagation();
 }
 function cerrarDiasPopup() {
