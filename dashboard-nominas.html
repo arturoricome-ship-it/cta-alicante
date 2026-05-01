@@ -2483,7 +2483,7 @@ function renderNomina(){
     if(rv.tot===0) return;
     dtot+=rv.tot;
     var _udsCell=rv.dias&&rv.dias.length>0
-      ?('<span class="uds-link" onclick="mostrarDiasPopup(event,\'' + rv.cod + '\','+JSON.stringify(rv.dias)+')">' + rv.uds + '</span>')
+      ?('<span class="uds-link" data-cod="'+rv.cod+'" data-dias="'+encodeURIComponent(JSON.stringify(rv.dias))+'" onclick="_showDias(event)">' + rv.uds + '</span>')
       :rv.uds;
     dh+='<tr><td class="cm" style="font-size:10px">'+rv.cod+'</td>'+
         '<td>'+rv.desc+'</td>'+
@@ -3799,7 +3799,10 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 <script>
-function mostrarDiasPopup(e, cod, dias) {
+function _showDias(e) {
+  var el = e.currentTarget;
+  var cod = el.getAttribute('data-cod');
+  var dias = JSON.parse(decodeURIComponent(el.getAttribute('data-dias')));
   var overlay = document.getElementById('dias-popup-overlay');
   var popup = document.getElementById('dias-popup');
   var title = document.getElementById('dias-popup-title');
@@ -3809,7 +3812,7 @@ function mostrarDiasPopup(e, cod, dias) {
     ? dias.map(function(d){ return '<div class="dias-popup-day">' + d + '</div>'; }).join('')
     : '<div style="color:var(--text3);font-size:11px">Sin días</div>';
   overlay.classList.add('on');
-  var rect = e.target.getBoundingClientRect();
+  var rect = el.getBoundingClientRect();
   var top = rect.bottom + window.scrollY + 4;
   var left = rect.left + window.scrollX;
   popup.style.top = top + 'px';
