@@ -441,6 +441,18 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
 .dl-blocked-ico{font-size:48px;margin-bottom:12px}
 .dl-blocked-title{font-size:18px;font-weight:700;color:#f07070;margin-bottom:8px}
 .dl-blocked-msg{font-size:13px;color:#8899bb;line-height:1.6}
+
+/* ── POPUP DESGLOSE DÍAS ── */
+.uds-link{cursor:pointer;border-bottom:1px dashed var(--text3);color:var(--text3);white-space:nowrap}
+.uds-link:hover{color:var(--blue2);border-color:var(--blue2)}
+#dias-popup-overlay{display:none;position:fixed;inset:0;z-index:9000}
+#dias-popup-overlay.on{display:block}
+#dias-popup{position:absolute;background:#1a2235;border:1px solid rgba(82,160,255,.3);border-radius:10px;padding:12px 14px;min-width:130px;max-width:210px;box-shadow:0 8px 32px rgba(0,0,0,.7);z-index:9001}
+#dias-popup-title{font-size:10px;color:#8899bb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2a3347;display:flex;justify-content:space-between;align-items:center}
+#dias-popup-title span{cursor:pointer;font-size:14px;line-height:1;color:#8899bb}
+#dias-popup-title span:hover{color:#f0f4ff}
+.dias-popup-day{font-size:12px;color:#f0f4ff;padding:3px 0;display:flex;align-items:center;gap:6px}
+.dias-popup-day::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--blue2);flex-shrink:0}
 </style>
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -1002,6 +1014,7 @@ function calcPlusesSector(month,dayFrom,dayTo){
   var maxDay=Math.min(dayTo,MDAYS[mi]);
   var noctH=0,festH=0,domH=0,fracDays=0,madDays=0,transpDays=0,manutenDays=0,daysWorked=0;
   var perenCobrarH=0,perenLibrarH=0;
+  var dias_fest=[],dias_dom=[],dias_noct=[],dias_frac=[],dias_mad=[],dias_transp=[],dias_manuten=[];
 
   for(var d=dayFrom;d<=maxDay;d++){
     var day=gd(month,d),t=day.total||0,tipo=day.tipo||'libre';
@@ -1032,21 +1045,21 @@ function calcPlusesSector(month,dayFrom,dayTo){
     var e2m=toM(day.e2||''),s2m=toM(day.s2||'');
     var tienePartido=(e2m!==null&&s2m!==null&&day.e2&&day.s2);
 
-    if(esFest) festH+=t;
-    else if(esDom) domH+=t;
+    if(esFest){festH+=t;dias_fest.push('Día '+d);}
+    else if(esDom){domH+=t;dias_dom.push('Día '+d);}
 
     // Nocturnidad 22:00–06:00
-    if(e1m!==null&&s1m!==null) noctH+=calcHorasNocturnas(e1m,s1m);
+    if(e1m!==null&&s1m!==null){var nh_s=calcHorasNocturnas(e1m,s1m);if(nh_s>0)dias_noct.push('Día '+d+' ('+nh_s.toFixed(1)+'h)');noctH+=nh_s;}
     if(tienePartido&&e2m!==null&&s2m!==null) noctH+=calcHorasNocturnas(e2m,s2m);
 
     // SE013 Jornada Fraccionada: turno partido (día/noche), 1 tipo único
-    if(tienePartido) fracDays++;
+    if(tienePartido){fracDays++;dias_frac.push('Día '+d);}
 
     // SE126 Madrugue: entrada ANTES de 06:00 (360 min)
-    if(e1m!==null&&e1m<360) madDays++;
+    if(e1m!==null&&e1m<360){madDays++;dias_mad.push('Día '+d);}
 
     // SE055 Transporte: cada día trabajado (Art.28.8)
-    transpDays++;
+    transpDays++;dias_transp.push('Día '+d);
 
     // SE054 Manutención / Comidas y Cenas (Art.28.9):
     // Jornada continuada (no partido) ≥ 6h que incluya EN SU TOTALIDAD
@@ -1055,13 +1068,15 @@ function calcPlusesSector(month,dayFrom,dayTo){
       var fin=s1m<e1m?s1m+1440:s1m;
       var cubre1416=(e1m<=840&&fin>=960);  // incluye 14:00-16:00 completo
       var cubre2123=(e1m<=1260&&fin>=1380);// incluye 21:00-23:00 completo
-      if(cubre1416||cubre2123) manutenDays++;
+      if(cubre1416||cubre2123){manutenDays++;dias_manuten.push('Día '+d);}
     }
   }
   return{noctH:Math.round(noctH*100)/100,festH:festH,domH:domH,
     fracDays:fracDays,madDays:madDays,transpDays:transpDays,
     manutenDays:manutenDays,daysWorked:daysWorked,
-    perenCobrarH:perenCobrarH,perenLibrarH:perenLibrarH};
+    perenCobrarH:perenCobrarH,perenLibrarH:perenLibrarH,
+    dias_fest:dias_fest,dias_dom:dias_dom,dias_noct:dias_noct,
+    dias_frac:dias_frac,dias_mad:dias_mad,dias_transp:dias_transp,dias_manuten:dias_manuten};
 }
 
 function calcNominaSector(month,overrideIrpf){
@@ -1102,14 +1117,14 @@ function calcNominaSector(month,overrideIrpf){
   var devengos=[];
   var se001=uds*r.tarSB;
   devengos.push({cod:'SE001',desc:'Sueldo Base (N'+r.nivel+' '+SECTOR_2026[r.grupo].label+')',uds:uds.toFixed(3),tar:r.tarSB.toFixed(2),tot:se001});
-  if(p.fracDays>0) devengos.push({cod:'SE013',desc:'Grat. Jornada Fraccionada',uds:p.fracDays+'',tar:r.frac.toFixed(2),tot:p.fracDays*r.frac});
-  if(p.festH>0) devengos.push({cod:'SE021',desc:'Plus Festividad',uds:p.festH.toFixed(2)+'h',tar:r.fest.toFixed(2),tot:p.festH*r.fest});
-  if(p.domH>0) devengos.push({cod:'SE023',desc:'Plus Domingo',uds:p.domH.toFixed(2)+'h',tar:r.dom.toFixed(2),tot:p.domH*r.dom});
-  if(p.manutenDays>0) devengos.push({cod:'SE054',desc:'Importe Comidas y Cenas',uds:p.manutenDays+'',tar:r.manuten.toFixed(2),tot:p.manutenDays*r.manuten});
-  if(p.transpDays>0) devengos.push({cod:'SE055',desc:'Gastos Transporte Laboral',uds:p.transpDays+'',tar:r.transp.toFixed(2),tot:p.transpDays*r.transp});
-  if(p.noctH>0) devengos.push({cod:'SE106',desc:'Plus Nocturnidad Jornada',uds:p.noctH.toFixed(2)+'h',tar:r.noct.toFixed(2),tot:p.noctH*r.noct});
+  if(p.fracDays>0) devengos.push({cod:'SE013',desc:'Grat. Jornada Fraccionada',uds:p.fracDays+'',tar:r.frac.toFixed(2),tot:p.fracDays*r.frac,dias:p.dias_frac});
+  if(p.festH>0) devengos.push({cod:'SE021',desc:'Plus Festividad',uds:p.festH.toFixed(2)+'h',tar:r.fest.toFixed(2),tot:p.festH*r.fest,dias:p.dias_fest});
+  if(p.domH>0) devengos.push({cod:'SE023',desc:'Plus Domingo',uds:p.domH.toFixed(2)+'h',tar:r.dom.toFixed(2),tot:p.domH*r.dom,dias:p.dias_dom});
+  if(p.manutenDays>0) devengos.push({cod:'SE054',desc:'Importe Comidas y Cenas',uds:p.manutenDays+'',tar:r.manuten.toFixed(2),tot:p.manutenDays*r.manuten,dias:p.dias_manuten});
+  if(p.transpDays>0) devengos.push({cod:'SE055',desc:'Gastos Transporte Laboral',uds:p.transpDays+'',tar:r.transp.toFixed(2),tot:p.transpDays*r.transp,dias:p.dias_transp});
+  if(p.noctH>0) devengos.push({cod:'SE106',desc:'Plus Nocturnidad Jornada',uds:p.noctH.toFixed(2)+'h',tar:r.noct.toFixed(2),tot:p.noctH*r.noct,dias:p.dias_noct});
   if(se118>0) devengos.push({cod:'SE118',desc:'Horas Perentorias N'+r.nivel+' (7D)',uds:p.perenCobrarH.toFixed(2)+'h',tar:ptPeren.toFixed(2),tot:se118});
-  if(p.madDays>0) devengos.push({cod:'SE126',desc:'Plus de Madruge',uds:p.madDays+'',tar:r.madrug.toFixed(2),tot:p.madDays*r.madrug});
+  if(p.madDays>0) devengos.push({cod:'SE126',desc:'Plus de Madruge',uds:p.madDays+'',tar:r.madrug.toFixed(2),tot:p.madDays*r.madrug,dias:p.dias_mad});
   if(ftpTot>0) devengos.push({cod:'SE160',desc:'Plus de FACTP/ Plus de FTP',uds:uds.toFixed(3),tar:(r.ftpMes/30).toFixed(2),tot:ftpTot});
   if(fijiTot>0) devengos.push({cod:'FIJI',desc:'Plus Jornada Irregular',uds:uds.toFixed(3),tar:r.fijiMes.toFixed(2),tot:fijiTot});
   if(cargoTot>0){var cl=cfg.cargo==='supervisor'?'Supervisión':'Ag. Jefe / Jefatura';var cc=cfg.cargo==='supervisor'?'SUP':'AJEFE';devengos.push({cod:cc,desc:cl,uds:uds.toFixed(3),tar:(r.cargoMes/30).toFixed(2),tot:cargoTot});}
@@ -1543,6 +1558,7 @@ function calcPluses(month, dayFrom, dayTo){
   var festH=0,superMadrugue=0,madrugue=0;
   var factpCorto=0,factpLargo=0,noctH=0,asist=0;
   var ib054total=0,ib055total=0;
+  var dias_fest=[],dias_factp=[],dias_factp_largo=[],dias_madrugue=[],dias_superMadrugue=[],dias_noct=[];
 
   var perenLibrarH=0,perenCobrarH=0;
   for(var d=dayFrom;d<=maxDay;d++){
@@ -1568,7 +1584,7 @@ function calcPluses(month, dayFrom, dayTo){
     var dow_ib=getDow(mi,d);
     // Iberia: domingo SIEMPRE festivo + esFestivo marcado manualmente
     var esFest_ib=(tipo==='festivo')||esFestivoOficial(month,d)||!!(day.esFestivo)||(dow_ib===6);
-    if(esFest_ib) festH+=t;
+    if(esFest_ib){festH+=t;dias_fest.push('Día '+d);}
 
     var e1m=toM(day.e1||''),s1m=toM(day.s1||'');
     var e2m=toM(day.e2||''),s2m=toM(day.s2||'');
@@ -1576,20 +1592,22 @@ function calcPluses(month, dayFrom, dayTo){
 
     // MADRUGUE
     if(e1m!==null){
-      if(e1m<360){ superMadrugue++; madrugue++; }
-      else if(e1m===360){ madrugue++; }
+      if(e1m<360){ superMadrugue++;dias_superMadrugue.push('Día '+d); madrugue++;dias_madrugue.push('Día '+d); }
+      else if(e1m===360){ madrugue++;dias_madrugue.push('Día '+d); }
     }
 
     // TURNO PARTIDO
     var gap=0,gapH=0;
     if(tienePartido&&s1m!==null){
       gap=e2m-s1m; if(gap<0) gap+=1440; gapH=gap/60;
-      if(gapH<2.5) factpCorto++; else factpLargo++;
+      if(gapH<2.5){factpCorto++;dias_factp.push('Día '+d);}else{factpLargo++;dias_factp_largo.push('Día '+d);dias_factp.push('Día '+d);}
     }
 
     // NOCTURNIDAD
     if(e1m!==null&&s1m!==null){
-      noctH+=calcHorasNocturnas(e1m,s1m);
+      var nh_d=calcHorasNocturnas(e1m,s1m);
+      if(nh_d>0) dias_noct.push('Día '+d+' ('+nh_d.toFixed(1)+'h)');
+      noctH+=nh_d;
       if(tienePartido&&e2m!==null&&s2m!==null)
         noctH+=calcHorasNocturnas(e2m,s2m);
     }
@@ -1624,7 +1642,9 @@ function calcPluses(month, dayFrom, dayTo){
     festH:festH,superMadrugue:superMadrugue,madrugue:madrugue,
     factpCorto:factpCorto,factpLargo:factpLargo,noctH:noctH,asist:asist,
     ib054total:ib054total,ib055total:ib055total,
-    perenLibrarH:perenLibrarH,perenCobrarH:perenCobrarH
+    perenLibrarH:perenLibrarH,perenCobrarH:perenCobrarH,
+    dias_fest:dias_fest,dias_factp:dias_factp,dias_factp_largo:dias_factp_largo,
+    dias_madrugue:dias_madrugue,dias_superMadrugue:dias_superMadrugue,dias_noct:dias_noct
   };
 }
 
@@ -1771,15 +1791,15 @@ function calcNomina(month,overrideIrpf){
   devengos.push({cod:'IB003',desc:'Premio de Antiguedad ('+tri12+' tri. × 0,8% SB)',uds:uds.toFixed(3),tar:ib003Tar.toFixed(4),tot:ib003});
   devengos.push({cod:'IB009',desc:'Gratificacion Adicional',uds:uds.toFixed(3),tar:'2.18',tot:ib009});
   devengos.push({cod:'IB010',desc:'Complemento Transitorio',uds:uds.toFixed(3),tar:ctpu30.toFixed(2),tot:ib010});
-  if(ib023>0) devengos.push({cod:'IB023',desc:'Plus Festividad',uds:p.festH.toFixed(2)+'h',tar:r.fest.toFixed(2),tot:ib023});
-  if(ib026>0) devengos.push({cod:'IB026',desc:'Periodo Horario FACTP',uds:(p.factpCorto+p.factpLargo)+'',tar:'10.21',tot:ib026});
-  if(ib038>0) devengos.push({cod:'IB038',desc:'Grt Interrupcion Jornada (P.Largo >= 2.5h)',uds:p.factpLargo+'',tar:'14.05',tot:ib038});
+  if(ib023>0) devengos.push({cod:'IB023',desc:'Plus Festividad',uds:p.festH.toFixed(2)+'h',tar:r.fest.toFixed(2),tot:ib023,dias:p.dias_fest});
+  if(ib026>0) devengos.push({cod:'IB026',desc:'Periodo Horario FACTP',uds:(p.factpCorto+p.factpLargo)+'',tar:'10.21',tot:ib026,dias:p.dias_factp});
+  if(ib038>0) devengos.push({cod:'IB038',desc:'Grt Interrupcion Jornada (P.Largo >= 2.5h)',uds:p.factpLargo+'',tar:'14.05',tot:ib038,dias:p.dias_factp_largo});
   devengos.push({cod:'IB033',desc:'Prima Productividad',uds:uds.toFixed(3),tar:pppu30.toFixed(2),tot:ib033});
   devengos.push({cod:'IB036',desc:'Plus Area',uds:uds.toFixed(3),tar:'3.61',tot:ib036});
   if(ib054>0) devengos.push({cod:'IB054',desc:'Desayunos y Comidas',uds:'—',tar:'—',tot:ib054});
   if(ib055>0) devengos.push({cod:'IB055',desc:'Gastos Transporte Labora',uds:'—',tar:'7.23',tot:ib055});
-  if(ib106>0) devengos.push({cod:'IB106',desc:'Plus Nocturnidad Jornada',uds:p.noctH.toFixed(2)+'h',tar:r.noct.toFixed(2),tot:ib106});
-  if(ib110>0) devengos.push({cod:'IB110',desc:'Plus Adicional Madrugue (entrada < 06:00)',uds:p.superMadrugue+'',tar:'7.53',tot:ib110});
+  if(ib106>0) devengos.push({cod:'IB106',desc:'Plus Nocturnidad Jornada',uds:p.noctH.toFixed(2)+'h',tar:r.noct.toFixed(2),tot:ib106,dias:p.dias_noct});
+  if(ib110>0) devengos.push({cod:'IB110',desc:'Plus Adicional Madrugue (entrada < 06:00)',uds:p.superMadrugue+'',tar:'7.53',tot:ib110,dias:p.dias_superMadrugue});
   if(ib118>0){
     var pDesc='N'+pt.nPeren+' · '+
               (p.perenCobrarH>0?'7D:'+p.perenCobrarH.toFixed(2)+'h×'+pt.cobrar.toFixed(2)+'€':'')+
@@ -1787,12 +1807,12 @@ function calcNomina(month,overrideIrpf){
               (p.perenLibrarH>0?'7N:'+p.perenLibrarH.toFixed(2)+'h×'+pt.librar.toFixed(2)+'€':'');
     devengos.push({cod:'IB118',desc:'Horas Estructurales ('+pDesc+')',uds:(p.perenCobrarH+p.perenLibrarH).toFixed(2),tar:pt.cobrar.toFixed(2)+'/'+pt.librar.toFixed(2),tot:ib118});
   }
-  if(ib126>0) devengos.push({cod:'IB126',desc:'Madrugue (Dieta) (entrada <= 06:00)',uds:p.madrugue+'',tar:'7.53',tot:ib126});
+  if(ib126>0) devengos.push({cod:'IB126',desc:'Madrugue (Dieta) (entrada <= 06:00)',uds:p.madrugue+'',tar:'7.53',tot:ib126,dias:p.dias_madrugue});
   devengos.push({cod:'IB160',desc:'Plus de FACTP/ Plus de FTP',uds:uds.toFixed(3),tar:'4.77',tot:ib160});
   if(ib046>0) devengos.push({cod:'IB046',desc:'Grat. Plus Jornada Irre',uds:uds.toFixed(3),tar:ib046Tar.toFixed(2),tot:ib046});
   devengos.push({cod:'IB176',desc:'Plus de Asistencia',uds:asist+'',tar:'66.50',tot:ib176});
   if(ib106b>0) devengos.push({cod:'IB106b',desc:'Plus de Funcion ('+(cfg.cargo==='supervisor'?'Superv.':'Ag.Jefe')+')',uds:uds.toFixed(3),tar:r.plusFunTar.toFixed(2),tot:ib106b});
-  if(ib179>0) devengos.push({cod:'IB179',desc:'Madrugue (Transporte) (entrada <= 06:00)',uds:p.madrugue+'',tar:'8.71',tot:ib179});
+  if(ib179>0) devengos.push({cod:'IB179',desc:'Madrugue (Transporte) (entrada <= 06:00)',uds:p.madrugue+'',tar:'8.71',tot:ib179,dias:p.dias_madrugue});
   if(ib303>0) devengos.push({cod:'IB303',desc:'Compl. Antigüedad ad personam (Disp.Trans.22ª)',uds:uds.toFixed(3),tar:r.ib303Tar.toFixed(4),tot:ib303});
   if(ib304>0) devengos.push({cod:'IB304',desc:'Compl. Compensatorio Antiguedad ('+r.ib304Tri+' tri. post-2013 × 1,775)',uds:uds.toFixed(3),tar:r.ib304Tar.toFixed(4),tot:ib304});
   devengos.push({cod:'IB321',desc:'Devengo 321 PLUS DSA',uds:uds.toFixed(3),tar:'0.71',tot:ib321});
@@ -2462,9 +2482,12 @@ function renderNomina(){
   n.devengos.forEach(function(rv){
     if(rv.tot===0) return;
     dtot+=rv.tot;
+    var _udsCell=rv.dias&&rv.dias.length>0
+      ?('<span class="uds-link" onclick="mostrarDiasPopup(event,\'' + rv.cod + '\','+JSON.stringify(rv.dias)+')">' + rv.uds + '</span>')
+      :rv.uds;
     dh+='<tr><td class="cm" style="font-size:10px">'+rv.cod+'</td>'+
         '<td>'+rv.desc+'</td>'+
-        '<td style="text-align:center;color:var(--text3)">'+rv.uds+'</td>'+
+        '<td style="text-align:center;color:var(--text3)">'+_udsCell+'</td>'+
         '<td style="text-align:center;color:var(--text3)">'+rv.tar+'€</td>'+
         '<td style="text-align:center;color:var(--green2)">'+fmtE(rv.tot)+'</td></tr>';
   });
@@ -3765,6 +3788,41 @@ if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
     navigator.serviceWorker.register('/sw-dashboard.js').catch(function(){});
   });
+}
+</script>
+
+<!-- Popup desglose días -->
+<div id="dias-popup-overlay" onclick="cerrarDiasPopup()">
+  <div id="dias-popup" onclick="event.stopPropagation()">
+    <div id="dias-popup-title">Días <span onclick="cerrarDiasPopup()">✕</span></div>
+    <div id="dias-popup-content"></div>
+  </div>
+</div>
+<script>
+function mostrarDiasPopup(e, cod, dias) {
+  var overlay = document.getElementById('dias-popup-overlay');
+  var popup = document.getElementById('dias-popup');
+  var title = document.getElementById('dias-popup-title');
+  var cont = document.getElementById('dias-popup-content');
+  title.innerHTML = '<b style="color:var(--blue2)">' + cod + '</b> — ' + dias.length + ' días <span onclick="cerrarDiasPopup()">✕</span>';
+  cont.innerHTML = dias.length > 0
+    ? dias.map(function(d){ return '<div class="dias-popup-day">' + d + '</div>'; }).join('')
+    : '<div style="color:var(--text3);font-size:11px">Sin días</div>';
+  overlay.classList.add('on');
+  var rect = e.target.getBoundingClientRect();
+  var top = rect.bottom + window.scrollY + 4;
+  var left = rect.left + window.scrollX;
+  popup.style.top = top + 'px';
+  popup.style.left = left + 'px';
+  requestAnimationFrame(function(){
+    var pw = popup.offsetWidth, ph = popup.offsetHeight;
+    if (left + pw > window.innerWidth - 8) popup.style.left = (window.innerWidth - pw - 8) + 'px';
+    if (rect.bottom + ph + 8 > window.innerHeight) popup.style.top = (rect.top + window.scrollY - ph - 4) + 'px';
+  });
+  e.stopPropagation();
+}
+function cerrarDiasPopup() {
+  document.getElementById('dias-popup-overlay').classList.remove('on');
 }
 </script>
 </body>
