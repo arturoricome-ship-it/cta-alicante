@@ -255,6 +255,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   .cal-dow,.cal-g{min-width:580px}
   /* Panel general */
   .panel{padding:10px 10px!important}
+  #nom-dev-tbl-wrap.panel{padding:0!important}
   /* Modal importar: pantalla completa en móvil, botones siempre visibles */
   .imp-modal{align-items:flex-end!important}
   .imp-box{
@@ -295,6 +296,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
   /* Nómina tabla: sin scroll, encaja en pantalla */
   #page-nomina .panel{overflow-x:visible!important}
+  #page-nomina #nom-dev-tbl-wrap{overflow:hidden!important;padding:0!important}
   #page-nomina .tbl{table-layout:fixed!important;width:100%!important;min-width:0!important}
   /* Col 1: concepto (cod+desc) — ocupa todo el espacio libre */
   #page-nomina .tbl td:nth-child(1),
@@ -606,7 +608,7 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
     </div>
     <div class="kr" id="nom-kpis"></div>
     <div class="st">Devengos estimados</div>
-    <div class="panel" style="padding:0;overflow:hidden"><table class="tbl" id="nom-dev-tbl"></table></div>
+    <div class="panel" id="nom-dev-tbl-wrap" style="padding:0!important;overflow:hidden!important"><table class="tbl" id="nom-dev-tbl"></table></div>
     <table id="nom-ded-tbl" style="display:none"></table>
     <div class="st">Evolución anual estimada</div>
     <div class="g2">
