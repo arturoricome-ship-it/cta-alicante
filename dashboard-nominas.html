@@ -296,23 +296,20 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   /* Nómina tabla: sin scroll, encaja en pantalla */
   #page-nomina .panel{overflow-x:visible!important}
   #page-nomina .tbl{table-layout:fixed!important;width:100%!important;min-width:0!important}
-  /* Col 1: código IB — muy estrecho, solo el número */
+  /* Col 1: cod+desc juntos — ancho auto */
   #page-nomina .tbl td:nth-child(1),
-  #page-nomina .tbl th:nth-child(1){width:32px!important;font-size:9px!important;padding:4px 2px 4px 0!important;color:var(--text3);overflow:hidden}
-  /* Col 2: descripción — todo el espacio libre, fuente pequeña, solo rompe en espacios */
-  #page-nomina .tbl td:nth-child(2),
-  #page-nomina .tbl th:nth-child(2){width:auto!important;font-size:10px!important;padding:4px 3px!important;overflow-wrap:break-word;word-break:normal;white-space:normal!important;line-height:1.35}
-  /* Col 3: Uds — excluir celdas de deducciones (nom-ded-amt es la 3ª td en esas filas) */
+  #page-nomina .tbl th:nth-child(1){width:40%!important;font-size:10px!important;padding:5px 4px 5px 0!important;overflow:hidden}
+  /* Col 2: Uds */
+  #page-nomina .tbl td:nth-child(2):not(.nom-ded-amt),
+  #page-nomina .tbl th:nth-child(2){width:18%!important;font-size:10px!important;padding:5px 2px!important;text-align:center!important;white-space:nowrap;overflow:hidden}
+  /* Col 3: Tarifa */
   #page-nomina .tbl td:nth-child(3):not(.nom-ded-amt),
-  #page-nomina .tbl th:nth-child(3){width:42px!important;font-size:10px!important;padding:4px 2px!important;text-align:center!important;white-space:nowrap;overflow:hidden}
-  /* Col 4: Tarifa */
-  #page-nomina .tbl td:nth-child(4):not(.nom-ded-amt),
-  #page-nomina .tbl th:nth-child(4){width:44px!important;font-size:10px!important;padding:4px 2px!important;text-align:center!important;white-space:nowrap;overflow:hidden}
-  /* Col 5: Total */
-  #page-nomina .tbl td:nth-child(5),
-  #page-nomina .tbl th:nth-child(5){width:60px!important;font-size:11px!important;padding:4px 0 4px 2px!important;text-align:right!important;white-space:nowrap}
-  /* Deducciones Total: siempre a la derecha, mayor especificidad al ser último */
-  #page-nomina .tbl td.nom-ded-amt{text-align:right!important;padding:4px 0 4px 2px!important;white-space:nowrap;font-size:11px!important}
+  #page-nomina .tbl th:nth-child(3){width:20%!important;font-size:10px!important;padding:5px 2px!important;text-align:center!important;white-space:nowrap;overflow:hidden}
+  /* Col 4: Total */
+  #page-nomina .tbl td:nth-child(4),
+  #page-nomina .tbl th:nth-child(4){width:22%!important;font-size:11px!important;padding:5px 0 5px 2px!important;text-align:right!important;white-space:nowrap}
+  /* Deducciones */
+  #page-nomina .tbl td.nom-ded-amt{text-align:right!important;padding:5px 0 5px 2px!important;white-space:nowrap;font-size:11px!important}
   /* KPIs nómina en 2 cols */
   #nom-kpis{grid-template-columns:repeat(2,1fr)!important}
   /* IRPF/cutoff en columna */
@@ -2437,10 +2434,10 @@ function renderNomina(){
   dh+='<thead><tr>'+
     '<th colspan="5" style="background:rgba(59,130,246,.15);color:var(--blue2);text-align:left;padding:8px 12px">'+
     'HOJA 1 — Período '+m+' (Nómina Mensual)</th></tr>'+
-    '<tr><th>Descripción</th><th></th>'+
+    '<tr><th>Concepto</th>'+
     '<th style="text-align:center">Uds.</th>'+
     '<th style="text-align:center">Tarifa</th>'+
-    '<th style="text-align:center">Total</th></tr></thead><tbody>'+
+    '<th style="text-align:right">Total</th></tr></thead><tbody>'+
     '<tr style="background:rgba(251,191,36,.06)">'+
     '<td class="cm" style="font-size:9px;color:var(--amber2)">PDF</td>'+
     '<td style="font-size:10px;color:var(--amber2)">📄 Uds. según PDF empresa</td>'+
@@ -2462,11 +2459,10 @@ function renderNomina(){
   n.devengos.forEach(function(rv){
     if(rv.tot===0) return;
     dtot+=rv.tot;
-    dh+='<tr><td class="cm" style="font-size:10px">'+rv.cod+'</td>'+
-        '<td>'+rv.desc+'</td>'+
+    dh+='<tr><td><span style="font-size:9px;color:var(--text3);display:block">'+rv.cod+'</span><span style="font-size:10px">'+rv.desc+'</span></td>'+
         '<td style="text-align:center;color:var(--text3)">'+rv.uds+'</td>'+
         '<td style="text-align:center;color:var(--text3)">'+rv.tar+'€</td>'+
-        '<td style="text-align:center;color:var(--green2)">'+fmtE(rv.tot)+'</td></tr>';
+        '<td style="text-align:right;color:var(--green2)">'+fmtE(rv.tot)+'</td></tr>';
   });
   dh+='</tbody><tfoot><tr class="ft"><td colspan="4">TOTAL DEVENGADO</td>'+
       '<td style="text-align:right;font-weight:700;color:var(--amber2)">'+fmtE(dtot)+'</td></tr></tfoot>';
@@ -2494,7 +2490,7 @@ function renderNomina(){
     dh+='<thead><tr>'+
       '<th colspan="5" style="background:rgba(168,85,247,.15);color:var(--purple2);text-align:left;padding:8px 12px;border-top:3px solid var(--purple)">'+
       'HOJA 2 — Período '+n.atrasosMonth+' (Atrasos)</th></tr>'+
-      '<tr><th>Descripción</th><th></th>'+
+      '<tr><th>Concepto</th>'+
       '<th style="text-align:center">Uds.</th>'+
       '<th style="text-align:center">Tarifa</th>'+
       '<th style="text-align:center">Total</th></tr></thead><tbody>'+
@@ -2520,11 +2516,10 @@ function renderNomina(){
       atot+=rv.tot;
       var col=rv.tot<0?'var(--red2)':'var(--purple2)';
       dh+='<tr style="background:rgba(168,85,247,.04)">'+
-          '<td class="cm" style="font-size:10px">'+rv.cod+'</td>'+
-          '<td>'+rv.desc+'</td>'+
+          '<td><span style="font-size:9px;color:var(--text3);display:block">'+rv.cod+'</span><span style="font-size:10px">'+rv.desc+'</span></td>'+
           '<td style="text-align:center;color:var(--text3)">'+rv.uds+'</td>'+
           '<td style="text-align:center;color:var(--text3)">'+rv.tar+'€</td>'+
-          '<td style="text-align:center;color:'+col+'">'+fmtE(rv.tot)+'</td></tr>';
+          '<td style="text-align:right;color:'+col+'">'+fmtE(rv.tot)+'</td></tr>';
     });
     dh+='</tbody><tfoot><tr class="ft" style="color:var(--purple2)"><td colspan="4">TOTAL DEVENGADO ATRASOS</td>'+
         '<td style="text-align:right;font-weight:700;color:var(--purple2)">'+fmtE(n.atrDev)+'</td></tr></tfoot>';
