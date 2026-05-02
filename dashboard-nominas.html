@@ -2570,7 +2570,7 @@ function renderNomina(){
           '<tr><td style="padding:5px 8px;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase">Descripción</td><td style="padding:5px 8px;font-size:10px;font-weight:600;color:var(--text3);text-align:right;letter-spacing:.5px;text-transform:uppercase" colspan="2">Base</td><td style="padding:5px 8px;font-size:10px;font-weight:600;color:var(--text3);text-align:right;letter-spacing:.5px;text-transform:uppercase">Total</td></tr></thead><tbody>';
       n.dedAtrasos.forEach(function(da){
         atrDedTot+=da.tot;
-        dh+='<tr style="background:rgba(168,85,247,.04)"><td colspan="2">'+da.desc+'</td>'+
+        dh+='<tr style="background:rgba(168,85,247,.04)"><td colspan="2" style="font-size:11px;color:var(--text3)">'+da.desc+'</td>'+
             '<td style="text-align:right;color:var(--text3)">'+da.base+'€</td>'+
             '<td class="nom-ded-amt" style="text-align:right;color:var(--red2)">'+fmtE(da.tot)+'</td></tr>';
       });
@@ -2587,9 +2587,14 @@ function renderNomina(){
 
   // ─── TOTAL LÍQUIDO GLOBAL ────────────────────────────────
   var liquidoTotal=liquidoH1+(tieneAtrasos?liquidoH2:0);
-  dh+='<tfoot><tr class="ft" style="background:rgba(34,197,94,.15);border-top:3px solid var(--green)">'+
+  var brutoTotal=n.dev+(tieneAtrasos?(n.atrDev||0):0);
+  dh+='<tfoot>'+
+      '<tr class="ft"><td colspan="3" style="color:var(--amber2)">TOTAL DEVENGADO (H1+H2)</td>'+
+      '<td style="text-align:right;font-weight:700;color:var(--amber2)">'+fmtE(brutoTotal)+'</td></tr>'+
+      '<tr class="ft" style="background:rgba(34,197,94,.15);border-top:3px solid var(--green)">'+
       '<td colspan="3" style="color:var(--green2);font-size:13px;font-weight:800">💰 TOTAL LÍQUIDO A PERCIBIR</td>'+
-      '<td style="text-align:right;font-weight:900;font-size:16px;color:var(--green2)">'+fmtE(liquidoTotal)+'</td></tr></tfoot>';
+      '<td style="text-align:right;font-weight:900;font-size:16px;color:var(--green2)">'+fmtE(liquidoTotal)+'</td></tr>'+
+      '</tfoot>';
 
   dtbl.innerHTML=dh;
   var detbl=document.getElementById('nom-ded-tbl');if(detbl)detbl.innerHTML='';
