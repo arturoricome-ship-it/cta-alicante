@@ -2488,7 +2488,7 @@ function renderNomina(){
   var liquidoH1=n.neto;
   dh+='</tbody><tfoot>'+
       '<tr class="ft" style="color:var(--red2)"><td colspan="3">TOTAL A DEDUCIR</td><td style="text-align:right;font-weight:700;color:var(--red2)">'+fmtE(detot)+'</td></tr>'+
-      '<tr class="ft" style="background:rgba(59,130,246,.08)"><td colspan="4" style="color:var(--blue2);font-weight:700">LÍQUIDO TOTAL A PERCIBIR — HOJA 1</td>'+
+      '<tr class="ft" style="background:rgba(59,130,246,.08)"><td colspan="3" style="color:var(--blue2);font-weight:700">LÍQUIDO TOTAL A PERCIBIR — HOJA 1</td>'+
       '<td style="text-align:right;font-weight:800;color:var(--blue2)">'+fmtE(liquidoH1)+'</td></tr></tfoot>';
 
   // ─── HOJA 2: ATRASOS ────────────────────────────────────
@@ -2533,7 +2533,7 @@ function renderNomina(){
           '<td style="text-align:center;color:var(--text3)">'+rv.tar+'€</td>'+
           '<td style="text-align:right;color:'+col+';padding-right:8px">'+fmtE(rv.tot)+'</td></tr>';
     });
-    dh+='</tbody><tfoot><tr class="ft" style="color:var(--purple2)"><td colspan="4">TOTAL DEVENGADO ATRASOS</td>'+
+    dh+='</tbody><tfoot><tr class="ft" style="color:var(--purple2)"><td colspan="3">TOTAL DEVENGADO ATRASOS</td>'+
         '<td style="text-align:right;font-weight:700;color:var(--purple2)">'+fmtE(n.atrDev)+'</td></tr></tfoot>';
     // Deducciones hoja 2
     if(n.dedAtrasos&&n.dedAtrasos.length>0&&Math.abs(n.atrDev)>0.01){
@@ -2548,9 +2548,9 @@ function renderNomina(){
       });
       liquidoH2=n.atrNeto;
       dh+='</tbody><tfoot>'+
-          '<tr class="ft" style="color:var(--red2)"><td colspan="4">TOTAL A DEDUCIR ATRASOS</td>'+
+          '<tr class="ft" style="color:var(--red2)"><td colspan="3">TOTAL A DEDUCIR ATRASOS</td>'+
           '<td style="text-align:right;font-weight:700;color:var(--red2)">'+fmtE(atrDedTot)+'</td></tr>'+
-          '<tr class="ft" style="background:rgba(168,85,247,.1)"><td colspan="4" style="color:var(--purple2);font-weight:700">LÍQUIDO TOTAL A PERCIBIR — HOJA 2</td>'+
+          '<tr class="ft" style="background:rgba(168,85,247,.1)"><td colspan="3" style="color:var(--purple2);font-weight:700">LÍQUIDO TOTAL A PERCIBIR — HOJA 2</td>'+
           '<td style="text-align:right;font-weight:800;color:var(--purple2)">'+fmtE(liquidoH2)+'</td></tr></tfoot>';
     } else {
       liquidoH2=n.atrDev;// sin deducciones significativas
@@ -2560,7 +2560,7 @@ function renderNomina(){
   // ─── TOTAL LÍQUIDO GLOBAL ────────────────────────────────
   var liquidoTotal=liquidoH1+(tieneAtrasos?liquidoH2:0);
   dh+='<tfoot><tr class="ft" style="background:rgba(34,197,94,.15);border-top:3px solid var(--green)">'+
-      '<td colspan="4" style="color:var(--green2);font-size:13px;font-weight:800">💰 TOTAL LÍQUIDO A PERCIBIR</td>'+
+      '<td colspan="3" style="color:var(--green2);font-size:13px;font-weight:800">💰 TOTAL LÍQUIDO A PERCIBIR</td>'+
       '<td style="text-align:right;font-weight:900;font-size:16px;color:var(--green2)">'+fmtE(liquidoTotal)+'</td></tr></tfoot>';
 
   dtbl.innerHTML=dh;
@@ -3814,3 +3814,12 @@ function cerrarDiasPopup() {
 </script>
 </body>
 </html>
+/* ── TABLA NÓMINA GLOBAL (PC y móvil) ── */
+#nom-dev-tbl{table-layout:fixed;width:100%}
+#nom-dev-tbl td:nth-child(2),#nom-dev-tbl th:nth-child(2){width:80px;text-align:center;white-space:nowrap}
+#nom-dev-tbl td:nth-child(3),#nom-dev-tbl th:nth-child(3){width:90px;text-align:center;white-space:nowrap}
+#nom-dev-tbl td:nth-child(4),#nom-dev-tbl th:nth-child(4){width:90px;text-align:right;white-space:nowrap;padding-right:12px}
+#nom-dev-tbl td.nom-ded-amt{text-align:right;white-space:nowrap;padding-right:12px}
+#nom-dev-tbl td:nth-child(1),#nom-dev-tbl th:nth-child(1){padding-left:8px}
+#nom-ded-tbl{width:100%;table-layout:auto}
+
