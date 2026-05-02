@@ -615,7 +615,7 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
     <div class="kr" id="nom-kpis"></div>
     <div class="st">Devengos estimados</div>
     <div id="nom-dev-tbl-wrap"><table class="tbl" id="nom-dev-tbl" style="width:100%;min-width:0"></table></div>
-    <div id="nom-ded-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table id="nom-ded-tbl" style="display:none;width:100%"></table></div>
+    <div id="nom-ded-wrap"><table id="nom-ded-tbl" style="display:none;width:100%;table-layout:fixed"></table></div>
     <div class="st">Evolución anual estimada</div>
     <div class="g2">
       <div class="panel"><div class="pt">Bruto por mes</div><div id="bc-nom-bruto"></div></div>
@@ -2487,8 +2487,9 @@ function renderNomina(){
       '<td style="text-align:right;font-weight:700;color:var(--amber2);padding-right:8px">'+fmtE(dtot)+'</td></tr></tfoot>';
   // Deducciones hoja 1
   var detot=0;
-  dh+='<thead><tr><th colspan="4" style="background:rgba(239,68,68,.08);color:var(--red2);text-align:left;padding:6px 12px">DEDUCCIONES</th></tr>'+
-      '<tr><th>Descripción</th><th></th><th></th><th style="text-align:right">Base</th><th style="text-align:right">Total</th></tr></thead><tbody>';
+  dh='<colgroup><col style="width:52%"><col style="width:14%"><col style="width:17%"><col style="width:17%"></colgroup>'+
+    '<thead><tr><th colspan="4" style="background:rgba(239,68,68,.08);color:var(--red2);text-align:left;padding:6px 12px">DEDUCCIONES</th></tr>'+
+      '<tr><th>Descripción</th><th></th><th style="text-align:right">Base</th><th style="text-align:right">Total</th></tr></thead><tbody>';
   n.deducciones.forEach(function(rd){
     detot+=rd.tot;
     dh+='<tr><td colspan="2">'+rd.desc+'</td>'+
