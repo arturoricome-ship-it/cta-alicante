@@ -293,26 +293,23 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   #nom-atr-uds,#nom-pdf-uds{width:100%!important;font-size:11px!important}
   #nom-atr-uds-hint,#nom-pdf-uds-hint{font-size:10px!important;white-space:normal!important;display:block}
 
-  /* Nómina tabla: sin scroll, encaja en pantalla */
+  /* Nómina tabla: sin scroll, encaja en pantalla — layout 4 columnas */
   #page-nomina .panel{overflow-x:visible!important}
   #page-nomina .tbl{table-layout:fixed!important;width:100%!important;min-width:0!important}
-  /* Col 1: código IB — muy estrecho, solo el número */
+  /* Col 1: descripción (incluye código IB como span encima) */
   #page-nomina .tbl td:nth-child(1),
-  #page-nomina .tbl th:nth-child(1){width:32px!important;font-size:9px!important;padding:4px 2px 4px 0!important;color:var(--text3);overflow:hidden}
-  /* Col 2: descripción — todo el espacio libre, fuente pequeña, solo rompe en espacios */
-  #page-nomina .tbl td:nth-child(2),
-  #page-nomina .tbl th:nth-child(2){width:auto!important;font-size:10px!important;padding:4px 3px!important;overflow-wrap:break-word;word-break:normal;white-space:normal!important;line-height:1.35}
-  /* Col 3: Uds — excluir celdas de deducciones (nom-ded-amt es la 3ª td en esas filas) */
+  #page-nomina .tbl th:nth-child(1){width:auto!important;font-size:12px!important;padding:4px 4px 4px 6px!important;overflow-wrap:break-word;word-break:normal;white-space:normal!important;line-height:1.35}
+  /* Col 2: Uds */
+  #page-nomina .tbl td:nth-child(2):not(.nom-ded-amt),
+  #page-nomina .tbl th:nth-child(2){width:38px!important;font-size:10px!important;padding:4px 2px!important;text-align:center!important;white-space:nowrap;overflow:hidden}
+  /* Col 3: Tarifa */
   #page-nomina .tbl td:nth-child(3):not(.nom-ded-amt),
   #page-nomina .tbl th:nth-child(3){width:42px!important;font-size:10px!important;padding:4px 2px!important;text-align:center!important;white-space:nowrap;overflow:hidden}
-  /* Col 4: Tarifa */
-  #page-nomina .tbl td:nth-child(4):not(.nom-ded-amt),
-  #page-nomina .tbl th:nth-child(4){width:44px!important;font-size:10px!important;padding:4px 2px!important;text-align:center!important;white-space:nowrap;overflow:hidden}
-  /* Col 5: Total */
-  #page-nomina .tbl td:nth-child(5),
-  #page-nomina .tbl th:nth-child(5){width:60px!important;font-size:11px!important;padding:4px 0 4px 2px!important;text-align:right!important;white-space:nowrap}
-  /* Deducciones Total: siempre a la derecha, mayor especificidad al ser último */
-  #page-nomina .tbl td.nom-ded-amt{text-align:right!important;padding:4px 0 4px 2px!important;white-space:nowrap;font-size:11px!important}
+  /* Col 4: Total — siempre a la derecha */
+  #page-nomina .tbl td:nth-child(4),
+  #page-nomina .tbl th:nth-child(4){width:58px!important;font-size:11px!important;padding:4px 4px 4px 2px!important;text-align:right!important;white-space:nowrap}
+  /* Deducciones Total: siempre a la derecha, mayor especificidad */
+  #page-nomina .tbl td.nom-ded-amt{text-align:right!important;padding:4px 4px 4px 2px!important;white-space:nowrap;font-size:11px!important}
   #nom-dev-tbl-wrap{overflow:visible!important}
   /* KPIs nómina en 2 cols */
   #nom-kpis{grid-template-columns:repeat(2,1fr)!important}
@@ -1795,13 +1792,13 @@ function calcNomina(month,overrideIrpf){
   devengos.push({cod:'IB010',desc:'Complemento Transitorio',uds:uds.toFixed(3),tar:ctpu30.toFixed(2),tot:ib010});
   if(ib023>0) devengos.push({cod:'IB023',desc:'Plus Festividad',uds:p.festH.toFixed(2)+'h',tar:r.fest.toFixed(2),tot:ib023,dias:p.dias_fest});
   if(ib026>0) devengos.push({cod:'IB026',desc:'Periodo Horario FACTP',uds:(p.factpCorto+p.factpLargo)+'',tar:'10.21',tot:ib026,dias:p.dias_factp});
-  if(ib038>0) devengos.push({cod:'IB038',desc:'Grt Interrupcion Jornada (P.Largo >= 2.5h)',uds:p.factpLargo+'',tar:'14.05',tot:ib038,dias:p.dias_factp_largo});
+  if(ib038>0) devengos.push({cod:'IB038',desc:'Grt Interrupcion Jornada ≥2:30h',uds:p.factpLargo+'',tar:'14.05',tot:ib038,dias:p.dias_factp_largo});
   devengos.push({cod:'IB033',desc:'Prima Productividad',uds:uds.toFixed(3),tar:pppu30.toFixed(2),tot:ib033});
   devengos.push({cod:'IB036',desc:'Plus Area',uds:uds.toFixed(3),tar:'3.61',tot:ib036});
   if(ib054>0) devengos.push({cod:'IB054',desc:'Desayunos y Comidas',uds:'—',tar:'—',tot:ib054});
   if(ib055>0) devengos.push({cod:'IB055',desc:'Gastos Transporte Labora',uds:'—',tar:'7.23',tot:ib055});
   if(ib106>0) devengos.push({cod:'IB106',desc:'Plus Nocturnidad Jornada',uds:p.noctH.toFixed(2)+'h',tar:r.noct.toFixed(2),tot:ib106,dias:p.dias_noct});
-  if(ib110>0) devengos.push({cod:'IB110',desc:'Plus Adicional Madrugue (entrada < 06:00)',uds:p.superMadrugue+'',tar:'7.53',tot:ib110,dias:p.dias_superMadrugue});
+  if(ib110>0) devengos.push({cod:'IB110',desc:'Plus Adicional Madrugue < 06:00',uds:p.superMadrugue+'',tar:'7.53',tot:ib110,dias:p.dias_superMadrugue});
   if(ib118>0){
     var pDesc='N'+pt.nPeren+' · '+
               (p.perenCobrarH>0?'7D:'+p.perenCobrarH.toFixed(2)+'h×'+pt.cobrar.toFixed(2)+'€':'')+
@@ -1809,12 +1806,12 @@ function calcNomina(month,overrideIrpf){
               (p.perenLibrarH>0?'7N:'+p.perenLibrarH.toFixed(2)+'h×'+pt.librar.toFixed(2)+'€':'');
     devengos.push({cod:'IB118',desc:'Horas Estructurales ('+pDesc+')',uds:(p.perenCobrarH+p.perenLibrarH).toFixed(2),tar:pt.cobrar.toFixed(2)+'/'+pt.librar.toFixed(2),tot:ib118});
   }
-  if(ib126>0) devengos.push({cod:'IB126',desc:'Madrugue (Dieta) (entrada <= 06:00)',uds:p.madrugue+'',tar:'7.53',tot:ib126,dias:p.dias_madrugue});
+  if(ib126>0) devengos.push({cod:'IB126',desc:'Madrugue (Dieta) ≤06:00',uds:p.madrugue+'',tar:'7.53',tot:ib126,dias:p.dias_madrugue});
   devengos.push({cod:'IB160',desc:'Plus de FACTP/ Plus de FTP',uds:uds.toFixed(3),tar:'4.77',tot:ib160});
   if(ib046>0) devengos.push({cod:'IB046',desc:'Grat. Plus Jornada Irre',uds:uds.toFixed(3),tar:ib046Tar.toFixed(2),tot:ib046});
   devengos.push({cod:'IB176',desc:'Plus de Asistencia',uds:asist+'',tar:'66.50',tot:ib176});
   if(ib106b>0) devengos.push({cod:'IB106b',desc:'Plus de Funcion ('+(cfg.cargo==='supervisor'?'Superv.':'Ag.Jefe')+')',uds:uds.toFixed(3),tar:r.plusFunTar.toFixed(2),tot:ib106b});
-  if(ib179>0) devengos.push({cod:'IB179',desc:'Madrugue (Transporte) (entrada <= 06:00)',uds:p.madrugue+'',tar:'8.71',tot:ib179,dias:p.dias_madrugue});
+  if(ib179>0) devengos.push({cod:'IB179',desc:'Madrugue (Transporte) ≤06:00',uds:p.madrugue+'',tar:'8.71',tot:ib179,dias:p.dias_madrugue});
   if(ib303>0) devengos.push({cod:'IB303',desc:'Compl. Antigüedad ad personam (Disp.Trans.22ª)',uds:uds.toFixed(3),tar:r.ib303Tar.toFixed(4),tot:ib303});
   if(ib304>0) devengos.push({cod:'IB304',desc:'Compl. Compensatorio Antiguedad ('+r.ib304Tri+' tri. post-2013 × 1,775)',uds:uds.toFixed(3),tar:r.ib304Tar.toFixed(4),tot:ib304});
   devengos.push({cod:'IB321',desc:'Devengo 321 PLUS DSA',uds:uds.toFixed(3),tar:'0.71',tot:ib321});
@@ -1833,16 +1830,16 @@ function calcNomina(month,overrideIrpf){
   if(a026>0){devengosAtrasos.push({cod:'IB026',desc:'Periodo Horario FACTP',uds:(atrP.factpCorto+atrP.factpLargo)+'',tar:'10.21',tot:a026,dias:atrP.dias_factp});}
   if(au!==0){devengosAtrasos.push({cod:'IB033',desc:'Prima Productividad',uds:au.toFixed(3),tar:pppu30.toFixed(2),tot:aIB033});}
   if(au!==0){devengosAtrasos.push({cod:'IB036',desc:'Plus Area',uds:au.toFixed(3),tar:'3.61',tot:aIB036});}
-  if(a038>0){devengosAtrasos.push({cod:'IB038',desc:'Grt Interrupcion Jornada (P.Largo >= 2.5h)',uds:atrP.factpLargo+'',tar:'14.05',tot:a038,dias:atrP.dias_factp_largo});}
+  if(a038>0){devengosAtrasos.push({cod:'IB038',desc:'Grt Interrupcion Jornada ≥2:30h',uds:atrP.factpLargo+'',tar:'14.05',tot:a038,dias:atrP.dias_factp_largo});}
   if(a054>0){devengosAtrasos.push({cod:'IB054',desc:'Desayunos y Comidas',uds:'—',tar:'—',tot:a054});}
   if(a055>0){devengosAtrasos.push({cod:'IB055',desc:'Gastos Transporte Labora',uds:'—',tar:'7.23',tot:a055});}
   if(a106>0){devengosAtrasos.push({cod:'IB106',desc:'Plus Nocturnidad Jornada',uds:atrP.noctH.toFixed(2)+'h',tar:r.noct.toFixed(2),tot:a106,dias:atrP.dias_noct});}
   if(au!==0&&aIB106b!==0){devengosAtrasos.push({cod:'IB106b',desc:'Plus de Funcion',uds:au.toFixed(3),tar:r.plusFunTar.toFixed(2),tot:aIB106b});}
-  if(a110>0){devengosAtrasos.push({cod:'IB110',desc:'Plus Adicional Madrugue (entrada < 06:00)',uds:atrP.superMadrugue+'',tar:'7.53',tot:a110,dias:atrP.dias_superMadrugue});}
-  if(a126>0){devengosAtrasos.push({cod:'IB126',desc:'Madrugue (Dieta) (entrada <= 06:00)',uds:atrP.madrugue+'',tar:'7.53',tot:a126,dias:atrP.dias_madrugue});}
+  if(a110>0){devengosAtrasos.push({cod:'IB110',desc:'Plus Adicional Madrugue < 06:00',uds:atrP.superMadrugue+'',tar:'7.53',tot:a110,dias:atrP.dias_superMadrugue});}
+  if(a126>0){devengosAtrasos.push({cod:'IB126',desc:'Madrugue (Dieta) ≤06:00',uds:atrP.madrugue+'',tar:'7.53',tot:a126,dias:atrP.dias_madrugue});}
   if(au!==0&&aIB160!==0){devengosAtrasos.push({cod:'IB160',desc:'Plus de FACTP/ Plus de FTP',uds:au.toFixed(3),tar:'4.77',tot:aIB160});}
   if(au!==0&&aIB046!==0){devengosAtrasos.push({cod:'IB046',desc:'Grat. Plus Jornada Irre',uds:au.toFixed(3),tar:ib046Tar.toFixed(2),tot:aIB046});}
-  if(a179>0){devengosAtrasos.push({cod:'IB179',desc:'Madrugue (Transporte) (entrada <= 06:00)',uds:atrP.madrugue+'',tar:'8.71',tot:a179,dias:atrP.dias_madrugue});}
+  if(a179>0){devengosAtrasos.push({cod:'IB179',desc:'Madrugue (Transporte) ≤06:00',uds:atrP.madrugue+'',tar:'8.71',tot:a179,dias:atrP.dias_madrugue});}
   if(isTC&&atr118>0){
     var atrPDesc='N'+pt.nPeren+' · '+(atrP.perenCobrarH>0?'7D:'+atrP.perenCobrarH.toFixed(2)+'h×'+pt.cobrar.toFixed(2)+'€':'')+
                  (atrP.perenCobrarH>0&&atrP.perenLibrarH>0?' ':'')+
@@ -2563,7 +2560,7 @@ function renderNomina(){
           '<tr><td style="padding:5px 8px;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase">Descripción</td><td style="padding:5px 8px;font-size:10px;font-weight:600;color:var(--text3);text-align:right;letter-spacing:.5px;text-transform:uppercase" colspan="2">Base</td><td style="padding:5px 8px;font-size:10px;font-weight:600;color:var(--text3);text-align:right;letter-spacing:.5px;text-transform:uppercase">Total</td></tr></thead><tbody>';
       n.dedAtrasos.forEach(function(da){
         atrDedTot+=da.tot;
-        dh+='<tr style="background:rgba(168,85,247,.04)"><td colspan="3">'+da.desc+'</td>'+
+        dh+='<tr style="background:rgba(168,85,247,.04)"><td colspan="2">'+da.desc+'</td>'+
             '<td style="text-align:right;color:var(--text3)">'+da.base+'€</td>'+
             '<td class="nom-ded-amt" style="text-align:right;color:var(--red2)">'+fmtE(da.tot)+'</td></tr>';
       });
