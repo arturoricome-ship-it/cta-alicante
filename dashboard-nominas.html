@@ -288,17 +288,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   .page{padding:8px!important}
   .panel{padding:8px!important}
   /* Deducciones: forzar alineación derecha independiente de nth-child */
-  /* ── TABLA NÓMINA: scroll horizontal en móvil, sin romper líneas ── */
-  #nom-dev-tbl-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch;padding:0!important}
-  #page-nomina .tbl{table-layout:auto!important;width:100%!important;min-width:560px!important;white-space:nowrap}
-  #page-nomina .tbl td,#page-nomina .tbl th{white-space:nowrap!important}
-  /* Col concepto: mínimo 200px y flexible */
-  #page-nomina .tbl td:nth-child(1),#page-nomina .tbl th:nth-child(1){min-width:200px}
-  /* Totales alineados a la derecha */
-  #page-nomina .tbl td:nth-child(5),#page-nomina .tbl th:nth-child(5){text-align:right!important}
-  #page-nomina .tbl td.nom-ded-amt{text-align:right!important}
-  /* Deducciones tabla igual ancho */
-  #nom-ded-tbl{width:100%;min-width:560px;overflow-x:auto}
+  /* ── TABLA NÓMINA ── */
+  #nom-dev-tbl-wrap,#nom-ded-wrap{padding:0!important;overflow:visible!important}
+  #nom-dev-tbl{table-layout:fixed!important;width:100%!important}
+  #nom-dev-tbl td:nth-child(2),#nom-dev-tbl th:nth-child(2){width:52px!important;text-align:center!important;white-space:nowrap;font-size:11px!important}
+  #nom-dev-tbl td:nth-child(3),#nom-dev-tbl th:nth-child(3){width:60px!important;text-align:center!important;white-space:nowrap;font-size:11px!important}
+  #nom-dev-tbl td:nth-child(4),#nom-dev-tbl th:nth-child(4){width:68px!important;text-align:right!important;white-space:nowrap;font-size:11px!important;padding-right:8px!important}
+  #nom-dev-tbl td.nom-ded-amt{text-align:right!important;white-space:nowrap;font-size:11px!important;padding-right:8px!important}
+  #nom-ded-tbl{width:100%}
   /* KPIs nómina en 2 cols */
   #nom-kpis{grid-template-columns:repeat(2,1fr)!important}
   /* IRPF/cutoff en columna */
@@ -2472,27 +2469,26 @@ function renderNomina(){
     var _udsCell=rv.dias&&rv.dias.length>0
       ?('<span class="uds-link" data-cod="'+rv.cod+'" data-dias="'+encodeURIComponent(JSON.stringify(rv.dias))+'" onclick="_showDias(event)">' + rv.uds + '</span>')
       :rv.uds;
-    dh+='<tr><td class="cm" style="font-size:10px">'+rv.cod+'</td>'+
-        '<td>'+rv.desc+'</td>'+
+    dh+='<tr><td style="padding:4px 6px 4px 8px"><span style="font-size:9px;color:var(--text3);display:block;line-height:1.3">'+rv.cod+'</span><span style="font-size:12px;white-space:nowrap">'+rv.desc+'</span></td>'+
         '<td style="text-align:center;color:var(--text3)">'+_udsCell+'</td>'+
         '<td style="text-align:center;color:var(--text3)">'+rv.tar+'€</td>'+
-        '<td style="text-align:center;color:var(--green2)">'+fmtE(rv.tot)+'</td></tr>';
+        '<td style="text-align:right;color:var(--green2);padding-right:8px">'+fmtE(rv.tot)+'</td></tr>';
   });
-  dh+='</tbody><tfoot><tr class="ft"><td colspan="4">TOTAL DEVENGADO</td>'+
-      '<td style="text-align:right;font-weight:700;color:var(--amber2)">'+fmtE(dtot)+'</td></tr></tfoot>';
+  dh+='</tbody><tfoot><tr class="ft"><td colspan="3">TOTAL DEVENGADO</td>'+
+      '<td style="text-align:right;font-weight:700;color:var(--amber2);padding-right:8px">'+fmtE(dtot)+'</td></tr></tfoot>';
   // Deducciones hoja 1
   var detot=0;
   dh+='<thead><tr><th colspan="5" style="background:rgba(239,68,68,.08);color:var(--red2);text-align:left;padding:6px 12px">DEDUCCIONES</th></tr>'+
       '<tr><th>Descripción</th><th></th><th></th><th style="text-align:right">Base</th><th style="text-align:right">Total</th></tr></thead><tbody>';
   n.deducciones.forEach(function(rd){
     detot+=rd.tot;
-    dh+='<tr><td colspan="3">'+rd.desc+'</td>'+
+    dh+='<tr><td colspan="2">'+rd.desc+'</td>'+
         '<td style="text-align:right;color:var(--text3)">'+rd.base+(rd.base!=='—'?'€':'')+'</td>'+
         '<td class="nom-ded-amt" style="text-align:right;color:var(--red2)">'+fmtE(rd.tot)+'</td></tr>';
   });
   var liquidoH1=n.neto;
   dh+='</tbody><tfoot>'+
-      '<tr class="ft" style="color:var(--red2)"><td colspan="4">TOTAL A DEDUCIR</td><td style="text-align:right;font-weight:700;color:var(--red2)">'+fmtE(detot)+'</td></tr>'+
+      '<tr class="ft" style="color:var(--red2)"><td colspan="3">TOTAL A DEDUCIR</td><td style="text-align:right;font-weight:700;color:var(--red2)">'+fmtE(detot)+'</td></tr>'+
       '<tr class="ft" style="background:rgba(59,130,246,.08)"><td colspan="4" style="color:var(--blue2);font-weight:700">LÍQUIDO TOTAL A PERCIBIR — HOJA 1</td>'+
       '<td style="text-align:right;font-weight:800;color:var(--blue2)">'+fmtE(liquidoH1)+'</td></tr></tfoot>';
 
@@ -2534,11 +2530,10 @@ function renderNomina(){
         ?('<span class="uds-link" data-cod="'+rv.cod+'" data-dias="'+encodeURIComponent(JSON.stringify(_atrDias))+'" onclick="_showDias(event)">'+rv.uds+'</span>')
         :rv.uds;
       dh+='<tr style="background:rgba(168,85,247,.04)">'+
-          '<td class="cm" style="font-size:10px">'+rv.cod+'</td>'+
-          '<td>'+rv.desc+'</td>'+
+          '<td style="padding:4px 6px 4px 8px"><span style="font-size:9px;color:var(--text3);display:block;line-height:1.3">'+rv.cod+'</span><span style="font-size:12px;white-space:nowrap">'+rv.desc+'</span></td>'+
           '<td style="text-align:center;color:var(--text3)">'+_atrUdsCell+'</td>'+
           '<td style="text-align:center;color:var(--text3)">'+rv.tar+'€</td>'+
-          '<td style="text-align:center;color:'+col+'">'+fmtE(rv.tot)+'</td></tr>';
+          '<td style="text-align:right;color:'+col+';padding-right:8px">'+fmtE(rv.tot)+'</td></tr>';
     });
     dh+='</tbody><tfoot><tr class="ft" style="color:var(--purple2)"><td colspan="4">TOTAL DEVENGADO ATRASOS</td>'+
         '<td style="text-align:right;font-weight:700;color:var(--purple2)">'+fmtE(n.atrDev)+'</td></tr></tfoot>';
