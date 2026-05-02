@@ -2056,17 +2056,17 @@ function renderResumen(){
 // ════════════════════════════════════════
 // CALENDARIO
 // ════════════════════════════════════════
-var calM=0;
+var calM=parseInt(localStorage.getItem('cta_calM')||'0')||0;
 function initCalPills(){
   var c=document.getElementById('cal-pills');c.innerHTML='';
   MONTHS.forEach(function(m,i){
     var btn=document.createElement('div');
-    btn.className='mpill hd'+(i===0?' on':'');btn.textContent=m.slice(0,3);
-    (function(idx){btn.onclick=function(){calM=idx;document.querySelectorAll('#cal-pills .mpill').forEach(function(p){p.classList.remove('on')});btn.classList.add('on');renderCal()}})(i);
+    btn.className='mpill hd'+(i===calM?' on':'');btn.textContent=m.slice(0,3);
+    (function(idx){btn.onclick=function(){calM=idx;localStorage.setItem('cta_calM',calM);document.querySelectorAll('#cal-pills .mpill').forEach(function(p){p.classList.remove('on')});btn.classList.add('on');renderCal()}})(i);
     c.appendChild(btn);
   });
 }
-function calNav(delta){calM=(calM+delta+12)%12;document.querySelectorAll('#cal-pills .mpill').forEach(function(p,i){p.classList.toggle('on',i===calM)});renderCal()}
+function calNav(delta){calM=(calM+delta+12)%12;localStorage.setItem('cta_calM',calM);document.querySelectorAll('#cal-pills .mpill').forEach(function(p,i){p.classList.toggle('on',i===calM)});renderCal()}
 
 function getWeekHours(year,month0,startDay){
   var total=0;
