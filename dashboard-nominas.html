@@ -2456,16 +2456,16 @@ function renderNomina(){
   // ─── HOJA 1: NÓMINA MENSUAL ─────────────────────────────
   var dtot=0;
   var nextMes=MONTHS[(MONTHS.indexOf(m)+1)%12];
-  dh='<colgroup><col style="width:50%"><col style="width:15%"><col style="width:17%"><col style="width:18%"></colgroup>'+
-    '<thead><tr>'+
-    '<th colspan="4" style="background:rgba(59,130,246,.15);color:var(--blue2);text-align:left;padding:8px 12px">'+
+  dh+='<thead><tr>'+
+    '<th colspan="5" style="background:rgba(59,130,246,.15);color:var(--blue2);text-align:left;padding:8px 12px">'+
     'HOJA 1 — Período '+m+' (Nómina Mensual)</th></tr>'+
     '<tr><th>Descripción</th><th></th>'+
     '<th style="text-align:center">Uds.</th>'+
     '<th style="text-align:center">Tarifa</th>'+
     '<th style="text-align:center">Total</th></tr></thead><tbody>'+
     '<tr style="background:rgba(251,191,36,.06)">'+
-    '<td style="padding:4px 6px 4px 8px"><span style="font-size:9px;color:var(--amber2);display:block">PDF</span><span style="font-size:11px;color:var(--amber2)">📄 Uds. según PDF empresa</span></td>'+
+    '<td class="cm" style="font-size:9px;color:var(--amber2)">PDF</td>'+
+    '<td style="font-size:10px;color:var(--amber2)">📄 Uds. según PDF empresa</td>'+
     '<td style="text-align:center">'+
     '<input class="cinput" type="number" id="nom-pdf-uds" value="'+(getNomUds(m)!==null?getNomUds(m):'')+'" step="0.001" min="0" max="999" '+
     'onchange="saveNomUdsInput()" style="width:100%;font-size:11px;text-align:center" placeholder="'+fmt(n.udsCalendario,3)+'" '+
@@ -2475,9 +2475,10 @@ function renderNomina(){
     '<button onclick="resetPdfUds()" '+
     'style="background:var(--s3);border:1px solid var(--border2);color:var(--text3);border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;white-space:nowrap">↺ reset</button>'+
     '</td>'+
+    '<td></td>'+
     '</tr>'+
     '<tr style="background:rgba(251,191,36,.04);border-bottom:1px solid rgba(251,191,36,.25)">'+
-    '<td colspan="4" style="padding:2px 8px 5px;font-size:10px;color:var(--text3)">'+
+    '<td colspan="5" style="padding:2px 8px 5px;font-size:10px;color:var(--text3)">'+
     '<span id="nom-pdf-uds-hint">—</span></td>'+
     '</tr>';
   n.devengos.forEach(function(rv){
@@ -2486,27 +2487,28 @@ function renderNomina(){
     var _udsCell=rv.dias&&rv.dias.length>0
       ?('<span class="uds-link" data-cod="'+rv.cod+'" data-dias="'+encodeURIComponent(JSON.stringify(rv.dias))+'" onclick="_showDias(event)">' + rv.uds + '</span>')
       :rv.uds;
-    dh+='<tr><td style="padding:4px 6px 4px 8px"><span style="font-size:9px;color:var(--text3);display:block;line-height:1.3">'+rv.cod+'</span>'+rv.desc+'</td>'+
+    dh+='<tr><td class="cm" style="font-size:10px">'+rv.cod+'</td>'+
+        '<td>'+rv.desc+'</td>'+
         '<td style="text-align:center;color:var(--text3)">'+_udsCell+'</td>'+
         '<td style="text-align:center;color:var(--text3)">'+rv.tar+'€</td>'+
-        '<td style="text-align:right;color:var(--green2);padding-right:8px">'+fmtE(rv.tot)+'</td></tr>';
+        '<td style="text-align:center;color:var(--green2)">'+fmtE(rv.tot)+'</td></tr>';
   });
-  dh+='</tbody><tfoot><tr class="ft"><td colspan="3">TOTAL DEVENGADO</td>'+
+  dh+='</tbody><tfoot><tr class="ft"><td colspan="4">TOTAL DEVENGADO</td>'+
       '<td style="text-align:right;font-weight:700;color:var(--amber2)">'+fmtE(dtot)+'</td></tr></tfoot>';
   // Deducciones hoja 1
   var detot=0;
-  dh+='<thead><tr><th colspan="4" style="background:rgba(239,68,68,.08);color:var(--red2);text-align:left;padding:6px 12px">DEDUCCIONES</th></tr>'+
-      '<tr><th>Descripción</th><th style="text-align:right">Base</th><th></th><th style="text-align:right">Total</th></tr></thead><tbody>';
+  dh+='<thead><tr><th colspan="5" style="background:rgba(239,68,68,.08);color:var(--red2);text-align:left;padding:6px 12px">DEDUCCIONES</th></tr>'+
+      '<tr><th>Descripción</th><th></th><th></th><th style="text-align:right">Base</th><th style="text-align:right">Total</th></tr></thead><tbody>';
   n.deducciones.forEach(function(rd){
     detot+=rd.tot;
-    dh+='<tr><td colspan="2">'+rd.desc+'</td>'+
+    dh+='<tr><td colspan="3">'+rd.desc+'</td>'+
         '<td style="text-align:right;color:var(--text3)">'+rd.base+(rd.base!=='—'?'€':'')+'</td>'+
-        '<td class="nom-ded-amt" style="text-align:right;color:var(--red2);padding-right:8px">'+fmtE(rd.tot)+'</td></tr>';
+        '<td class="nom-ded-amt" style="text-align:right;color:var(--red2)">'+fmtE(rd.tot)+'</td></tr>';
   });
   var liquidoH1=n.neto;
   dh+='</tbody><tfoot>'+
-      '<tr class="ft" style="color:var(--red2)"><td colspan="3">TOTAL A DEDUCIR</td><td style="text-align:right;font-weight:700;color:var(--red2);padding-right:8px">'+fmtE(detot)+'</td></tr>'+
-      '<tr class="ft" style="background:rgba(59,130,246,.08)"><td colspan="3" style="color:var(--blue2);font-weight:700">LÍQUIDO TOTAL A PERCIBIR — HOJA 1</td>'+
+      '<tr class="ft" style="color:var(--red2)"><td colspan="4">TOTAL A DEDUCIR</td><td style="text-align:right;font-weight:700;color:var(--red2)">'+fmtE(detot)+'</td></tr>'+
+      '<tr class="ft" style="background:rgba(59,130,246,.08)"><td colspan="4" style="color:var(--blue2);font-weight:700">LÍQUIDO TOTAL A PERCIBIR — HOJA 1</td>'+
       '<td style="text-align:right;font-weight:800;color:var(--blue2)">'+fmtE(liquidoH1)+'</td></tr></tfoot>';
 
   // ─── HOJA 2: ATRASOS ────────────────────────────────────
@@ -2515,14 +2517,15 @@ function renderNomina(){
   if(tieneAtrasos){
     var atot=0;
     dh+='<thead><tr>'+
-      '<th colspan="4" style="background:rgba(168,85,247,.15);color:var(--purple2);text-align:left;padding:8px 12px;border-top:3px solid var(--purple)">'+
+      '<th colspan="5" style="background:rgba(168,85,247,.15);color:var(--purple2);text-align:left;padding:8px 12px;border-top:3px solid var(--purple)">'+
       'HOJA 2 — Período '+n.atrasosMonth+' (Atrasos)</th></tr>'+
       '<tr><th>Descripción</th><th></th>'+
       '<th style="text-align:center">Uds.</th>'+
       '<th style="text-align:center">Tarifa</th>'+
       '<th style="text-align:center">Total</th></tr></thead><tbody>'+
       '<tr style="background:rgba(168,85,247,.06)">'+
-      '<td style="padding:4px 6px 4px 8px"><span style="font-size:9px;color:var(--purple2);display:block">ADJ</span><span style="font-size:11px;color:var(--purple2)">📐 Uds. ajuste manual</span></td>'+
+      '<td class="cm" style="font-size:9px;color:var(--purple2)">ADJ</td>'+
+      '<td style="font-size:10px;color:var(--purple2)">📐 Uds. ajuste manual</td>'+
       '<td style="text-align:center">'+
       '<input class="cinput" type="number" id="nom-atr-uds" value="0" step="0.01" min="-99" max="99" '+
       'onchange="saveAtrUdsInput()" style="width:100%;font-size:11px;text-align:center" title="Corrección manual de unidades en atrasos">'+
@@ -2534,7 +2537,7 @@ function renderNomina(){
       '<td></td>'+
       '</tr>'+
       '<tr style="background:rgba(168,85,247,.04);border-bottom:1px solid rgba(168,85,247,.25)">'+
-      '<td colspan="4" style="padding:2px 8px 5px;font-size:10px;color:var(--text3)">'+
+      '<td colspan="5" style="padding:2px 8px 5px;font-size:10px;color:var(--text3)">'+
       '<span id="nom-atr-uds-hint">—</span></td>'+
       '</tr>';
     n.devengosAtrasos.forEach(function(rv){
@@ -2546,18 +2549,19 @@ function renderNomina(){
         ?('<span class="uds-link" data-cod="'+rv.cod+'" data-dias="'+encodeURIComponent(JSON.stringify(_atrDias))+'" onclick="_showDias(event)">'+rv.uds+'</span>')
         :rv.uds;
       dh+='<tr style="background:rgba(168,85,247,.04)">'+
-          '<td style="padding:4px 6px 4px 8px"><span style="font-size:9px;color:var(--text3);display:block;line-height:1.3">'+rv.cod+'</span>'+rv.desc+'</td>'+
+          '<td class="cm" style="font-size:10px">'+rv.cod+'</td>'+
+          '<td>'+rv.desc+'</td>'+
           '<td style="text-align:center;color:var(--text3)">'+_atrUdsCell+'</td>'+
           '<td style="text-align:center;color:var(--text3)">'+rv.tar+'€</td>'+
-          '<td style="text-align:right;color:'+col+';padding-right:8px">'+fmtE(rv.tot)+'</td></tr>';
+          '<td style="text-align:center;color:'+col+'">'+fmtE(rv.tot)+'</td></tr>';
     });
-    dh+='</tbody><tfoot><tr class="ft" style="color:var(--purple2)"><td colspan="3">TOTAL DEVENGADO ATRASOS</td>'+
+    dh+='</tbody><tfoot><tr class="ft" style="color:var(--purple2)"><td colspan="4">TOTAL DEVENGADO ATRASOS</td>'+
         '<td style="text-align:right;font-weight:700;color:var(--purple2)">'+fmtE(n.atrDev)+'</td></tr></tfoot>';
     // Deducciones hoja 2
     if(n.dedAtrasos&&n.dedAtrasos.length>0&&Math.abs(n.atrDev)>0.01){
       var atrDedTot=0;
-      dh+='<thead><tr><th colspan="4" style="background:rgba(239,68,68,.08);color:var(--red2);text-align:left;padding:6px 12px">DEDUCCIONES ATRASOS</th></tr>'+
-          '<tr><th>Descripción</th><th style="text-align:right">Base</th><th></th><th style="text-align:right">Total</th></tr></thead><tbody>';
+      dh+='<thead><tr><th colspan="5" style="background:rgba(239,68,68,.08);color:var(--red2);text-align:left;padding:6px 12px">DEDUCCIONES ATRASOS</th></tr>'+
+          '<tr><th>Descripción</th><th></th><th></th><th style="text-align:right">Base</th><th style="text-align:right">Total</th></tr></thead><tbody>';
       n.dedAtrasos.forEach(function(da){
         atrDedTot+=da.tot;
         dh+='<tr style="background:rgba(168,85,247,.04)"><td colspan="3">'+da.desc+'</td>'+
@@ -2566,9 +2570,9 @@ function renderNomina(){
       });
       liquidoH2=n.atrNeto;
       dh+='</tbody><tfoot>'+
-          '<tr class="ft" style="color:var(--red2)"><td colspan="3">TOTAL A DEDUCIR ATRASOS</td>'+
+          '<tr class="ft" style="color:var(--red2)"><td colspan="4">TOTAL A DEDUCIR ATRASOS</td>'+
           '<td style="text-align:right;font-weight:700;color:var(--red2)">'+fmtE(atrDedTot)+'</td></tr>'+
-          '<tr class="ft" style="background:rgba(168,85,247,.1)"><td colspan="3" style="color:var(--purple2);font-weight:700">LÍQUIDO TOTAL A PERCIBIR — HOJA 2</td>'+
+          '<tr class="ft" style="background:rgba(168,85,247,.1)"><td colspan="4" style="color:var(--purple2);font-weight:700">LÍQUIDO TOTAL A PERCIBIR — HOJA 2</td>'+
           '<td style="text-align:right;font-weight:800;color:var(--purple2)">'+fmtE(liquidoH2)+'</td></tr></tfoot>';
     } else {
       liquidoH2=n.atrDev;// sin deducciones significativas
@@ -2578,7 +2582,7 @@ function renderNomina(){
   // ─── TOTAL LÍQUIDO GLOBAL ────────────────────────────────
   var liquidoTotal=liquidoH1+(tieneAtrasos?liquidoH2:0);
   dh+='<tfoot><tr class="ft" style="background:rgba(34,197,94,.15);border-top:3px solid var(--green)">'+
-      '<td colspan="3" style="color:var(--green2);font-size:13px;font-weight:800">💰 TOTAL LÍQUIDO A PERCIBIR</td>'+
+      '<td colspan="4" style="color:var(--green2);font-size:13px;font-weight:800">💰 TOTAL LÍQUIDO A PERCIBIR</td>'+
       '<td style="text-align:right;font-weight:900;font-size:16px;color:var(--green2)">'+fmtE(liquidoTotal)+'</td></tr></tfoot>';
 
   dtbl.innerHTML=dh;
