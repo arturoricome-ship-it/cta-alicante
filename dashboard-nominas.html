@@ -288,32 +288,17 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   .page{padding:8px!important}
   .panel{padding:8px!important}
   /* Deducciones: forzar alineación derecha independiente de nth-child */
-  .nom-ded-amt{text-align:right!important;width:60px}
-  /* Atrasos inputs: ocupan la celda entera */
-  #nom-atr-uds,#nom-pdf-uds{width:100%!important;font-size:11px!important}
-  #nom-atr-uds-hint,#nom-pdf-uds-hint{font-size:10px!important;white-space:normal!important;display:block}
-
-  /* Nómina tabla: sin scroll, encaja en pantalla */
-  #page-nomina .panel{overflow-x:visible!important}
-  #page-nomina .tbl{table-layout:fixed!important;width:100%!important;min-width:0!important}
-  /* Col 1: código IB — muy estrecho, solo el número */
-  #page-nomina .tbl td:nth-child(1),
-  #page-nomina .tbl th:nth-child(1){width:32px!important;font-size:9px!important;padding:4px 2px 4px 0!important;color:var(--text3);overflow:hidden}
-  /* Col 2: descripción — todo el espacio libre, fuente pequeña, solo rompe en espacios */
-  #page-nomina .tbl td:nth-child(2),
-  #page-nomina .tbl th:nth-child(2){width:auto!important;font-size:10px!important;padding:4px 3px!important;overflow-wrap:break-word;word-break:normal;white-space:normal!important;line-height:1.35}
-  /* Col 3: Uds — excluir celdas de deducciones (nom-ded-amt es la 3ª td en esas filas) */
-  #page-nomina .tbl td:nth-child(3):not(.nom-ded-amt),
-  #page-nomina .tbl th:nth-child(3){width:42px!important;font-size:10px!important;padding:4px 2px!important;text-align:center!important;white-space:nowrap;overflow:hidden}
-  /* Col 4: Tarifa */
-  #page-nomina .tbl td:nth-child(4):not(.nom-ded-amt),
-  #page-nomina .tbl th:nth-child(4){width:44px!important;font-size:10px!important;padding:4px 2px!important;text-align:center!important;white-space:nowrap;overflow:hidden}
-  /* Col 5: Total */
-  #page-nomina .tbl td:nth-child(5),
-  #page-nomina .tbl th:nth-child(5){width:60px!important;font-size:11px!important;padding:4px 0 4px 2px!important;text-align:right!important;white-space:nowrap}
-  /* Deducciones Total: siempre a la derecha, mayor especificidad al ser último */
-  #page-nomina .tbl td.nom-ded-amt{text-align:right!important;padding:4px 0 4px 2px!important;white-space:nowrap;font-size:11px!important}
-  #nom-dev-tbl-wrap{overflow:visible!important}
+  /* ── TABLA NÓMINA: scroll horizontal en móvil, sin romper líneas ── */
+  #nom-dev-tbl-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch;padding:0!important}
+  #page-nomina .tbl{table-layout:auto!important;width:100%!important;min-width:560px!important;white-space:nowrap}
+  #page-nomina .tbl td,#page-nomina .tbl th{white-space:nowrap!important}
+  /* Col concepto: mínimo 200px y flexible */
+  #page-nomina .tbl td:nth-child(1),#page-nomina .tbl th:nth-child(1){min-width:200px}
+  /* Totales alineados a la derecha */
+  #page-nomina .tbl td:nth-child(5),#page-nomina .tbl th:nth-child(5){text-align:right!important}
+  #page-nomina .tbl td.nom-ded-amt{text-align:right!important}
+  /* Deducciones tabla igual ancho */
+  #nom-ded-tbl{width:100%;min-width:560px;overflow-x:auto}
   /* KPIs nómina en 2 cols */
   #nom-kpis{grid-template-columns:repeat(2,1fr)!important}
   /* IRPF/cutoff en columna */
@@ -624,7 +609,7 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
     <div class="kr" id="nom-kpis"></div>
     <div class="st">Devengos estimados</div>
     <div class="panel" id="nom-dev-tbl-wrap" style="padding:0"><table class="tbl" id="nom-dev-tbl"></table></div>
-    <table id="nom-ded-tbl" style="display:none"></table>
+    <div id="nom-ded-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table id="nom-ded-tbl" style="display:none;width:100%;min-width:560px"></table></div>
     <div class="st">Evolución anual estimada</div>
     <div class="g2">
       <div class="panel"><div class="pt">Bruto por mes</div><div id="bc-nom-bruto"></div></div>
