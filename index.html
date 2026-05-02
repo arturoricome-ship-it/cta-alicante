@@ -275,7 +275,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .tw-popup-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .tw-popup-ico{font-size:28px;line-height:1}
 .tw-popup-info{flex:1}
-.tw-popup-times{font-size:22px;font-weight:700;color:var(--white);line-height:1;margin-bottom:4px}
+.tw-popup-times{font-size:16px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:4px;word-break:keep-all}
 .tw-popup-detail{font-size:12px;color:var(--gold)}
 .tw-popup-dur{font-size:12px;color:var(--gray);margin-top:2px}
 .tw-popup-empty{font-size:13px;color:var(--gray);text-align:center;padding:20px 0}
@@ -1572,7 +1572,7 @@ function initGoogle(){
     }
 
     var pct=totalMin>0?Math.min(100,Math.round(elapsedMin/totalMin*100)):0;
-    var timeStr=d.e1+' → '+(d.s2||d.s1||'?');
+    var timeStr=(e2!==null&&s2!==null)?(d.e1+'→'+d.s1+' / '+d.e2+'→'+d.s2):(d.e1+' → '+(d.s1||'?'));
     var color,remain;
 
     if(e1!==null&&nowMin<e1){
@@ -1611,7 +1611,7 @@ function initGoogle(){
       var totalMin=0;
       if(e1!==null&&s1!==null){var sp1=s1>=e1?s1-e1:s1+1440-e1;totalMin+=sp1;}
       if(e2!==null&&s2!==null){var sp2=s2>=e2?s2-e2:s2+1440-e2;totalMin+=sp2;}
-      var timeStr=d.e1+' → '+(d.s2||d.s1||'?');
+      var timeStr=(e2!==null&&s2!==null)?(d.e1+'→'+d.s1+' / '+d.e2+'→'+d.s2):(d.e1+' → '+(d.s1||'?'));
       var subtipo=(_LABEL[d.tipo]||d.tipo)+(d.e2?' · Partido':'');
       var dur=totalMin>0?('Duración: '+fmtHM(totalMin)):'';
       cont.innerHTML='<div class="tw-popup-row">'+
