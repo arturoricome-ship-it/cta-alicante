@@ -247,6 +247,39 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .dash-dl-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:14px;padding:16px 20px;font-family:"Outfit",sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:transform .2s;margin-bottom:10px}
 .dash-dl-btn:hover{transform:translateY(-1px)}
 .dash-tryp-img{width:100%;border-radius:10px;border:1px solid rgba(200,168,75,.2);margin-top:8px;display:block}
+
+/* ─── TURNO BOTTOM BAR ─────────────────────────────────────────── */
+#bottom-turno{display:none;flex-shrink:0;background:rgba(13,22,35,.98);border-top:1px solid rgba(255,255,255,.08);padding:8px 14px 12px}
+.tw-main{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.tw-ico-wrap{width:36px;height:36px;border-radius:10px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.18);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.tw-info{flex:1;min-width:0}
+.tw-lbl{font-size:8px;color:var(--gray);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px}
+.tw-times{font-size:13px;font-weight:700;color:var(--white);line-height:1;white-space:nowrap}
+.tw-subtipo{font-size:9px;color:var(--gold);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tw-right{text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.tw-pct{font-size:22px;font-weight:800;line-height:1}
+.tw-remain{font-size:9px;color:var(--gray);line-height:1.2}
+.tw-manana-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--gray);font-family:"Outfit",sans-serif;font-size:8px;font-weight:600;padding:2px 6px;cursor:pointer;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
+.tw-manana-btn:active{background:rgba(255,255,255,.13)}
+.tw-bar-row{display:flex;align-items:center;gap:8px}
+.tw-bar-wrap{flex:1;background:rgba(255,255,255,.08);border-radius:100px;height:5px;overflow:hidden}
+.tw-bar-fill{height:100%;border-radius:100px;transition:width 1s ease}
+.tw-bar-lbl{font-size:9px;color:var(--gray);white-space:nowrap;flex-shrink:0}
+
+/* ─── POPUP MAÑANA ──────────────────────────────────────────────── */
+#tw-popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#tw-popup{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:22px 22px 0 0;padding:20px 20px 32px;z-index:501;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
+#tw-popup.open{transform:translateY(0)}
+.tw-popup-handle{width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 18px}
+.tw-popup-title{font-size:11px;color:var(--gray);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+.tw-popup-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.tw-popup-ico{font-size:28px;line-height:1}
+.tw-popup-info{flex:1}
+.tw-popup-times{font-size:22px;font-weight:700;color:var(--white);line-height:1;margin-bottom:4px}
+.tw-popup-detail{font-size:12px;color:var(--gold)}
+.tw-popup-dur{font-size:12px;color:var(--gray);margin-top:2px}
+.tw-popup-empty{font-size:13px;color:var(--gray);text-align:center;padding:20px 0}
+.tw-popup-close{display:block;width:100%;margin-top:16px;background:none;border:1px solid var(--border);border-radius:12px;padding:11px;font-family:"Outfit",sans-serif;font-size:13px;color:var(--gray);cursor:pointer}
 </style>
 </head>
 <body>
@@ -450,6 +483,37 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
     </div>
   </div>
 
+</div>
+
+
+<!-- ─── TURNO BOTTOM BAR ─── -->
+<div id="bottom-turno">
+  <div class="tw-main">
+    <div class="tw-ico-wrap" id="tw-ico">⚙️</div>
+    <div class="tw-info">
+      <div class="tw-lbl">Turno hoy</div>
+      <div class="tw-times" id="tw-times">—</div>
+      <div class="tw-subtipo" id="tw-subtipo"></div>
+    </div>
+    <div class="tw-right">
+      <div class="tw-pct" id="tw-pct">0%</div>
+      <div class="tw-remain" id="tw-remain">—</div>
+      <button class="tw-manana-btn" onclick="twShowManana()">mañana ›</button>
+    </div>
+  </div>
+  <div class="tw-bar-row">
+    <div class="tw-bar-wrap"><div class="tw-bar-fill" id="tw-bar" style="width:0%"></div></div>
+    <div class="tw-bar-lbl" id="tw-bar-lbl"></div>
+  </div>
+</div>
+
+<!-- ─── POPUP MAÑANA ─── -->
+<div id="tw-popup-bg" onclick="twCloseManana()"></div>
+<div id="tw-popup">
+  <div class="tw-popup-handle"></div>
+  <div class="tw-popup-title">☀️ Turno de mañana</div>
+  <div id="tw-popup-content"></div>
+  <button class="tw-popup-close" onclick="twCloseManana()">Cerrar</button>
 </div>
 
 <nav id="bottom-nav">
@@ -1343,6 +1407,7 @@ function primerNombre(nombre){
 function setWelcome(nombre){
   var el=document.getElementById("header-welcome");
   if(el)el.textContent="Hola, "+primerNombre(nombre)+" 👋";
+  if(typeof initTurnoWidget==="function")initTurnoWidget();
 }
 
 function entrar(email,nombre){
@@ -1451,5 +1516,135 @@ function initGoogle(){
   );
 }
 </script>
+
+// ═══════════════════════════════════════════════════════════════════
+// TURNO WIDGET — lee cta_ed_YYYY del dashboard de nóminas
+// ═══════════════════════════════════════════════════════════════════
+(function(){
+  var _MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  var _ICO={trabajado:'⚙️',festivo:'🎉',hl:'🤝',hlp:'🤝',h6:'📋',curso:'📚',vacaciones:'🏖️',perentorias:'⏱️',hfun:'🏛️',baja:'🏥',rm:'🔄',nh:'🌙',bp:'💆',libre:'🌙'};
+  var _LABEL={trabajado:'Trabajado',festivo:'Festivo',hl:'H. Libre',hlp:'H. Libre Plus',h6:'Art. 6',curso:'Curso',vacaciones:'Vacaciones',perentorias:'Perentorias',hfun:'H. Función',baja:'Baja',rm:'R. Médico',nh:'Noche',bp:'Bienestar'};
+  var _timer=null;
+
+  function toMin(t){if(!t||t.indexOf(':')<0)return null;var p=t.split(':');return +p[0]*60+ +p[1];}
+  function fmtLeft(min){var h=Math.floor(min/60),m=min%60;return h>0?(h+'h'+(m?' '+m+'m':'')):(m+'m');}
+  function fmtHM(min){var h=Math.floor(min/60),m=min%60;return h+'h'+(m?' '+m+'m':'');}
+
+  function getDay(year,monthIdx,day){
+    var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(e){return null;}
+    if(!raw)return null;
+    var data;try{data=JSON.parse(raw);}catch(e){return null;}
+    var m=data[_MONTHS[monthIdx]];
+    return m?m[day]||null:null;
+  }
+
+  function renderBar(pct,color){
+    var el=document.getElementById('tw-bar');
+    if(el){el.style.width=pct+'%';el.style.background=color;}
+  }
+
+  function renderWidget(){
+    var now=new Date();
+    var d=getDay(now.getFullYear(),now.getMonth(),now.getDate());
+    var bar=document.getElementById('bottom-turno');
+    var nav=document.getElementById('bottom-nav');
+
+    if(!d||!d.tipo||d.tipo==='libre'||!d.e1){
+      if(bar)bar.style.display='none';
+      if(nav)nav.style.display='flex';
+      return;
+    }
+    if(nav)nav.style.display='none';
+    if(bar)bar.style.display='block';
+
+    var nowMin=now.getHours()*60+now.getMinutes();
+    var e1=toMin(d.e1),s1=toMin(d.s1||'');
+    var e2=toMin(d.e2||''),s2=toMin(d.s2||'');
+    var totalMin=0,elapsedMin=0,shiftEnd=s1;
+
+    if(e1!==null&&s1!==null){
+      var sp1=s1>=e1?s1-e1:s1+1440-e1;totalMin+=sp1;
+      if(nowMin>=e1)elapsedMin+=Math.min(nowMin-e1,sp1);
+    }
+    if(e2!==null&&s2!==null){
+      var sp2=s2>=e2?s2-e2:s2+1440-e2;totalMin+=sp2;shiftEnd=s2;
+      if(nowMin>=e2)elapsedMin+=Math.min(nowMin-e2,sp2);
+    }
+
+    var pct=totalMin>0?Math.min(100,Math.round(elapsedMin/totalMin*100)):0;
+    var timeStr=d.e1+' → '+(d.s2||d.s1||'?');
+    var color,remain;
+
+    if(e1!==null&&nowMin<e1){
+      remain='Empieza en '+fmtLeft(e1-nowMin);color='#60a5fa';pct=0;
+    } else if(shiftEnd!==null&&nowMin>=shiftEnd){
+      remain='Finalizado ✓';color='#22c55e';pct=100;
+    } else {
+      remain='Quedan '+fmtLeft(Math.max(0,totalMin-elapsedMin));color='#c8a84b';
+    }
+
+    var tipo=_ICO[d.tipo]||'📅';
+    var subtipo=(_LABEL[d.tipo]||d.tipo)+(e2!==null?' · Partido':'');
+    var barLbl=fmtHM(elapsedMin)+' / '+fmtHM(totalMin);
+
+    document.getElementById('tw-ico').textContent=tipo;
+    document.getElementById('tw-times').textContent=timeStr;
+    document.getElementById('tw-subtipo').textContent=subtipo;
+    var pctEl=document.getElementById('tw-pct');
+    pctEl.textContent=pct+'%';pctEl.style.color=color;
+    document.getElementById('tw-remain').textContent=remain;
+    document.getElementById('tw-bar-lbl').textContent=barLbl;
+    renderBar(pct,color);
+  }
+
+  // ── Popup mañana ──────────────────────────────────────
+  window.twShowManana=function(){
+    var now=new Date();
+    var tom=new Date(now);tom.setDate(tom.getDate()+1);
+    var d=getDay(tom.getFullYear(),tom.getMonth(),tom.getDate());
+    var cont=document.getElementById('tw-popup-content');
+    if(!d||!d.tipo||d.tipo==='libre'||!d.e1){
+      cont.innerHTML='<div class="tw-popup-empty">Día libre 🌙</div>';
+    } else {
+      var e2=toMin(d.e2||''),s2=toMin(d.s2||'');
+      var e1=toMin(d.e1||''),s1=toMin(d.s1||'');
+      var totalMin=0;
+      if(e1!==null&&s1!==null){var sp1=s1>=e1?s1-e1:s1+1440-e1;totalMin+=sp1;}
+      if(e2!==null&&s2!==null){var sp2=s2>=e2?s2-e2:s2+1440-e2;totalMin+=sp2;}
+      var timeStr=d.e1+' → '+(d.s2||d.s1||'?');
+      var subtipo=(_LABEL[d.tipo]||d.tipo)+(d.e2?' · Partido':'');
+      var dur=totalMin>0?('Duración: '+fmtHM(totalMin)):'';
+      cont.innerHTML='<div class="tw-popup-row">'+
+        '<div class="tw-popup-ico">'+(_ICO[d.tipo]||'📅')+'</div>'+
+        '<div class="tw-popup-info">'+
+          '<div class="tw-popup-times">'+timeStr+'</div>'+
+          '<div class="tw-popup-detail">'+subtipo+'</div>'+
+          '<div class="tw-popup-dur">'+dur+'</div>'+
+        '</div></div>';
+    }
+    document.getElementById('tw-popup-bg').style.display='block';
+    setTimeout(function(){document.getElementById('tw-popup').classList.add('open');},10);
+  };
+
+  window.twCloseManana=function(){
+    document.getElementById('tw-popup').classList.remove('open');
+    setTimeout(function(){document.getElementById('tw-popup-bg').style.display='none';},280);
+  };
+
+  // ── Init ────────────────────────────────────────────
+  window.initTurnoWidget=function(){
+    renderWidget();
+    if(_timer)clearInterval(_timer);
+    _timer=setInterval(renderWidget,60000);
+  };
+
+  // Auto-init (si ya hay sesión, no espera a login)
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',window.initTurnoWidget);
+  } else {
+    window.initTurnoWidget();
+  }
+})();
+
 </body>
 </html>
