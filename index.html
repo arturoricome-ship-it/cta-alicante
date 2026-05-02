@@ -1165,7 +1165,8 @@ function renderLive(){
       container.appendChild(sep);
     }
     var num=v.numero||"VY---";
-    var ciudad=esS?(v.destino||"--"):(v.origen||"--");
+    var _ciu=esS?(v.destino||"--"):(v.origen||"--");
+    var ciudad=_ciu.split("-")[0].trim()||_ciu;
     var horaStr=v.horaProg||"--:--";
     if(v.horaReal&&v.horaReal!==v.horaProg){
       horaStr='<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+v.horaProg+"</span>"+v.horaReal;
