@@ -2427,7 +2427,7 @@ function mcRenderSummary(ue){
       var effMins=mins>0?mins:(day.total?Math.round(day.total*60):0);
       if(anualTypes.indexOf(day.tipo)>=0)anualMin+=effMins;
       if(anualContTypes.indexOf(day.tipo)>=0)anualContMin+=effMins;
-      if(day.perenDur&&day.perenDur!=='0:00')anualContMin+=_mcDuration(day.perenDur);
+      // perentorias excluidas del contador anual
     });
   });
   var hasData=totalMin>0||perenMin>0;
