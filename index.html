@@ -249,7 +249,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .dash-tryp-img{width:100%;border-radius:10px;border:1px solid rgba(200,168,75,.2);margin-top:8px;display:block}
 
 /* ─── TURNO BOTTOM BAR ─────────────────────────────────────────── */
-#bottom-turno{display:none;flex-shrink:0;background:rgba(13,22,35,.98);border-top:1px solid rgba(255,255,255,.08);padding:8px 14px 12px}
+#bottom-turno{display:none;position:fixed;bottom:57px;left:0;right:0;background:rgba(13,22,35,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(200,168,75,.2);padding:7px 14px 8px;z-index:99}
 .tw-main{display:flex;align-items:center;gap:10px;margin-bottom:7px}
 .tw-ico-wrap{width:36px;height:36px;border-radius:10px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.18);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
 .tw-info{flex:1;min-width:0}
@@ -568,10 +568,6 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div id="acceso-panel" onclick="event.stopPropagation()">
     <div class="acceso-panel-title">Accesos directos</div>
     <div class="acceso-panel-sub">Tus herramientas de empresa</div>
-    <div class="acceso-item" onclick="closeAccesoDirecto();openTrypImport()" style="cursor:pointer">
-      <span style="font-size:20px">📥</span>
-      <span>Importar TRYP</span>
-    </div>
     <a class="acceso-item" href="https://tryp.southeu.com/tryp/website/horarios/calendario" target="_blank">
       <div class="ai-ico" style="background:rgba(200,168,75,.15)">&#128197;</div>
       <div class="ai-info"><div class="ai-nombre">Mi calendario personal</div><div class="ai-desc">Turnos y horarios asignados</div></div>
@@ -592,7 +588,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
       <div class="ai-info"><div class="ai-nombre">Intranet corporativa</div><div class="ai-desc">Página principal de la intranet</div></div>
       <div class="ai-arrow">&#8250;</div>
     </a>
-    <button class="acceso-item" onclick="closeAccesoDirecto();openTrypImport()" style="border:1px solid rgba(200,168,75,.35);cursor:pointer;width:100%;text-align:left;background:rgba(200,168,75,.06)">
+    <button class="acceso-item" onclick="closeAccesoDirecto();openTrypImport()" style="border:1px solid rgba(200,168,75,.35);cursor:pointer;width:100%;text-align:left;background:rgba(200,168,75,.06);margin-top:10px">
       <div class="ai-icon" style="background:rgba(200,168,75,.15);font-size:18px">📥</div>
       <div style="flex:1"><div class="ai-name" style="color:var(--gold)">Importar TRYP</div><div class="ai-desc">Importa tu calendario desde el Excel del Tryp</div></div>
       <span class="ai-arrow" style="opacity:1;color:var(--gold)">›</span>
@@ -1599,15 +1595,13 @@ function initGoogle(){
 
     if(!d||!d.tipo||d.tipo==='libre'||!d.e1){
       if(bar)bar.style.display='none';
-      if(nav)nav.style.display='flex';
       var cb2=document.getElementById('calc-btn');if(cb2)cb2.style.bottom='80px';
       var sa2=document.getElementById('scroll-area');if(sa2)sa2.style.paddingBottom='90px';
       return;
     }
-    if(nav)nav.style.display='none';
     if(bar)bar.style.display='block';
     var cb=document.getElementById('calc-btn');if(cb)cb.style.bottom='215px';
-    var sa=document.getElementById('scroll-area');if(sa)sa.style.paddingBottom='8px';
+    var sa=document.getElementById('scroll-area');if(sa)sa.style.paddingBottom='150px';
 
     var nowMin=now.getHours()*60+now.getMinutes();
     var e1=toMin(d.e1),s1=toMin(d.s1||'');
