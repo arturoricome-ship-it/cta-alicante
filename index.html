@@ -446,7 +446,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div id="mc-summary" style="display:none;margin-top:4px;margin-bottom:16px;background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border)">
     <div style="font-size:10px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px" id="mc-sum-label">Resumen mes</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-total">—</div><div class="mc-stat-lbl">Horas trabajadas</div></div>
+      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-total">—</div><div class="mc-stat-lbl">Horas totales</div></div>
       <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-contador">—</div><div class="mc-stat-lbl">Horas contador</div></div>
       <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-anual">—</div><div class="mc-stat-lbl">Horas anuales</div></div>
       <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-peren">—</div><div class="mc-stat-lbl">Perentorias mes</div></div>
@@ -2337,23 +2337,25 @@ function mcRenderSummary(ue){
     if(day.perenDur&&day.perenDur!=='0:00'){
       perenMin+=_mcDuration(day.perenDur);
     }
-    if(day.tipo==='trabajado'){
-      totalMin+=mins; contadorMin+=mins;
-    } else if(day.tipo==='festivo'){
-      totalMin+=mins; // total ✓, NO contador
+    var totalTypes=['trabajado','hl','hlp','vacaciones','festivo','h6','curso'];
+    if(totalTypes.indexOf(day.tipo)>=0){
+      totalMin+=mins; // horas totales ✓
     }
-    // hl/hlp/vacaciones/baja/rm/h6/hfun/bp/cp/libre → 0h
+    if(day.tipo==='trabajado'){
+      contadorMin+=mins; // contador solo trabajado ✓
+    }
+    // baja/rm/bp/cp/libre/nh → 0h
   });
   // Annual total: all months up to current year
   var anualMin=0;
+  var anualTypes=['trabajado','hl','hlp','vacaciones','festivo','h6','curso'];
   _MC_MONTHS.forEach(function(mk){
     var md=(ue&&ue[mk])||{};
     Object.keys(md).forEach(function(d){
       var day=md[d];
       if(!day||!day.tipo)return;
       var mins=_mcMin(day.e1,day.s1)+_mcMin(day.e2,day.s2);
-      if(day.tipo==='trabajado')anualMin+=mins;
-      // festivos: no cuentan para anual contador
+      if(anualTypes.indexOf(day.tipo)>=0)anualMin+=mins;
     });
   });
   var hasData=totalMin>0||perenMin>0;
@@ -2451,8 +2453,17 @@ function mcEditSave(){
     // If day was libre, mark as trabajado so shift shows
     if(!ue[month][day].tipo||ue[month][day].tipo==='libre')ue[month][day].tipo='trabajado';
   } else {
-    // Normal day: clear any peren overlay
-    ue[month][day]={tipo:tipoVal,e1:e1,s1:s1,e2:e2,s2:s2,total:existingDay.total||0};
+    // Keep existing shift times — only update tipo and clear peren overlay
+    ue[month][day]={
+      tipo:tipoVal,
+      e1:existingDay.e1||e1,
+      s1:existingDay.s1||s1,
+      e2:existingDay.e2||e2,
+      s2:existingDay.s2||s2,
+      total:existingDay.total||0
+    };
+    delete ue[month][day].perenDur;
+    delete ue[month][day].perenTipo;
   }
   try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(er){alert('Error: '+er.message);}
   mcEditClose();
