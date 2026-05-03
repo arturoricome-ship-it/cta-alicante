@@ -159,7 +159,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .hoy-stat-num{font-family:"Bebas Neue",sans-serif;font-size:32px;color:var(--gold);line-height:1}
 .hoy-stat-label{font-size:10px;color:var(--gray);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
 /* CALCULADORA FLOTANTE */
-#calc-btn{position:fixed;bottom:80px;right:14px;width:38px;height:38px;border-radius:50%;background:rgba(200,168,75,.18);border:1px solid rgba(200,168,75,.35);color:var(--gold);font-size:16px;cursor:pointer;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;transition:all .2s}
+#calc-btn{position:fixed;bottom:175px;right:14px;width:38px;height:38px;border-radius:50%;background:rgba(200,168,75,.18);border:1px solid rgba(200,168,75,.35);color:var(--gold);font-size:16px;cursor:pointer;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;transition:all .2s}
 #calc-btn:hover{background:rgba(200,168,75,.28);transform:scale(1.05)}
 #calc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;backdrop-filter:blur(4px)}
 #calc-overlay.show{display:block}
@@ -280,7 +280,32 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .tw-popup-dur{font-size:12px;color:var(--gray);margin-top:2px}
 .tw-popup-empty{font-size:13px;color:var(--gray);text-align:center;padding:20px 0}
 .tw-popup-close{display:block;width:100%;margin-top:16px;background:none;border:1px solid var(--border);border-radius:12px;padding:11px;font-family:"Outfit",sans-serif;font-size:13px;color:var(--gray);cursor:pointer}
+
+/* ─── MINI CALENDARIO ─────────────────────────────────────── */
+#mini-cal{margin-bottom:18px}
+.mc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.mc-month{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1.2px;color:var(--gold)}
+.mc-nav{background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;width:30px;height:30px;color:var(--gray);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.mc-dow{font-size:8px;font-weight:700;color:var(--gray);text-align:center;padding:3px 0;letter-spacing:.3px}
+.mc-day{border-radius:6px;padding:3px 1px;text-align:center;min-height:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:default;font-size:10px}
+.mc-day.empty{background:none}
+.mc-day.libre{background:rgba(255,255,255,.03);color:rgba(255,255,255,.2)}
+.mc-day.trabajado{background:rgba(34,197,94,.12);color:#4ade80}
+.mc-day.vacaciones{background:rgba(56,189,248,.12);color:#38bdf8}
+.mc-day.festivo{background:rgba(251,191,36,.14);color:#fbbf24}
+.mc-day.hl,.mc-day.hlp{background:rgba(168,85,247,.14);color:#c084fc}
+.mc-day.baja{background:rgba(239,68,68,.1);color:#f87171}
+.mc-day.perentorias{background:rgba(251,146,60,.12);color:#fb923c}
+.mc-day.h6,.mc-day.hfun{background:rgba(99,102,241,.12);color:#818cf8}
+.mc-day.bp,.mc-day.rm,.mc-day.nh{background:rgba(20,184,166,.1);color:#2dd4bf}
+.mc-day.hoy{box-shadow:0 0 0 2px var(--gold)!important}
+.mc-day-num{font-weight:700;font-size:11px;line-height:1}
+.mc-day-ico{font-size:9px;line-height:1}
+.mc-day-time{font-size:7px;line-height:1;opacity:.8;white-space:nowrap}
+.mc-no-data{text-align:center;padding:20px 0;font-size:12px;color:var(--gray);line-height:1.6}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -374,6 +399,20 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   </div>
 
   <div class="panel" id="panel-afiliate">
+
+  <!-- Mini calendario -->
+  <div id="mini-cal">
+    <div class="mc-header">
+      <button class="mc-nav" onclick="mcPrev()">‹</button>
+      <div class="mc-month" id="mc-title">—</div>
+      <button class="mc-nav" onclick="mcNext()">›</button>
+    </div>
+    <div class="mc-grid" id="mc-grid"></div>
+    <div id="mc-nodata" class="mc-no-data" style="display:none">
+      📅 No hay turnos importados para este mes.<br>
+      <span style="font-size:11px">Importa tu calendario desde <b style="color:var(--gold)">Accesos Directos → Importar TRYP</b></span>
+    </div>
+  </div>
     <div class="afil-hero">
       <div class="afil-title">Afiliate a CTA</div>
       <div class="afil-sub">Comision de Trabajadores Asamblearios<br>Defiende tus derechos laborales con nosotros</div>
@@ -529,6 +568,10 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div id="acceso-panel" onclick="event.stopPropagation()">
     <div class="acceso-panel-title">Accesos directos</div>
     <div class="acceso-panel-sub">Tus herramientas de empresa</div>
+    <div class="acceso-item" onclick="closeAccesoDirecto();openTrypImport()" style="cursor:pointer">
+      <span style="font-size:20px">📥</span>
+      <span>Importar TRYP</span>
+    </div>
     <a class="acceso-item" href="https://tryp.southeu.com/tryp/website/horarios/calendario" target="_blank">
       <div class="ai-ico" style="background:rgba(200,168,75,.15)">&#128197;</div>
       <div class="ai-info"><div class="ai-nombre">Mi calendario personal</div><div class="ai-desc">Turnos y horarios asignados</div></div>
@@ -549,6 +592,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
       <div class="ai-info"><div class="ai-nombre">Intranet corporativa</div><div class="ai-desc">Página principal de la intranet</div></div>
       <div class="ai-arrow">&#8250;</div>
     </a>
+    <button class="acceso-item" onclick="closeAccesoDirecto();openTrypImport()" style="border:1px solid rgba(200,168,75,.35);cursor:pointer;width:100%;text-align:left;background:rgba(200,168,75,.06)">
+      <div class="ai-icon" style="background:rgba(200,168,75,.15);font-size:18px">📥</div>
+      <div style="flex:1"><div class="ai-name" style="color:var(--gold)">Importar TRYP</div><div class="ai-desc">Importa tu calendario desde el Excel del Tryp</div></div>
+      <span class="ai-arrow" style="opacity:1;color:var(--gold)">›</span>
+    </button>
     <button class="acceso-close" onclick="closeAccesoDirecto()">Cerrar</button>
 
   </div>
@@ -1552,10 +1600,14 @@ function initGoogle(){
     if(!d||!d.tipo||d.tipo==='libre'||!d.e1){
       if(bar)bar.style.display='none';
       if(nav)nav.style.display='flex';
+      var cb2=document.getElementById('calc-btn');if(cb2)cb2.style.bottom='80px';
+      var sa2=document.getElementById('scroll-area');if(sa2)sa2.style.paddingBottom='90px';
       return;
     }
     if(nav)nav.style.display='none';
     if(bar)bar.style.display='block';
+    var cb=document.getElementById('calc-btn');if(cb)cb.style.bottom='215px';
+    var sa=document.getElementById('scroll-area');if(sa)sa.style.paddingBottom='8px';
 
     var nowMin=now.getHours()*60+now.getMinutes();
     var e1=toMin(d.e1),s1=toMin(d.s1||'');
@@ -1645,6 +1697,576 @@ function initGoogle(){
     window.initTurnoWidget();
   }
 })();
+</script>
+
+
+<!-- ─── TRYP IMPORT MODAL ──────────────────────────────────── -->
+<div id="tryp-import-bg" onclick="closeTrypImport()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;backdrop-filter:blur(6px)"></div>
+<div id="tryp-import-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;padding:20px 18px 36px;z-index:601;max-height:88vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
+  <div style="width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 16px"></div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:var(--gold);margin-bottom:2px">📥 Importar Turnos TRYP</div>
+  <div style="font-size:11px;color:var(--gray);margin-bottom:16px">Importa tu calendario desde el archivo Excel exportado del Tryp</div>
+
+  <!-- Selector año -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+    <span style="font-size:12px;color:var(--gray);white-space:nowrap">Año destino:</span>
+    <select id="ti-year" style="flex:1;background:#1f2d47;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#f0eee8;font-family:'Outfit',sans-serif;font-size:13px;padding:7px 10px">
+      <option value="2025">2025</option>
+      <option value="2026" selected>2026</option>
+      <option value="2027">2027</option>
+    </select>
+  </div>
+
+  <!-- Drop zone -->
+  <div id="ti-drop" onclick="document.getElementById('ti-file').click()" ondragover="event.preventDefault();this.style.borderColor='var(--gold)'" ondragleave="this.style.borderColor='rgba(255,255,255,.12)'" ondrop="tiHandleDrop(event)"
+    style="border:2px dashed rgba(255,255,255,.12);border-radius:14px;padding:22px 16px;text-align:center;cursor:pointer;margin-bottom:12px;transition:border-color .2s">
+    <div style="font-size:28px;margin-bottom:6px">📂</div>
+    <div id="ti-drop-txt" style="font-size:13px;color:var(--gray)">Toca para seleccionar el archivo .xlsx del Tryp</div>
+  </div>
+  <input type="file" id="ti-file" accept=".xlsx,.xls" style="display:none" onchange="tiHandleFile(this.files[0])">
+
+  <!-- Opciones -->
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+    <label style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--gray);cursor:pointer">
+      <input type="checkbox" id="ti-overwrite" checked style="width:16px;height:16px;accent-color:var(--gold)">
+      Sobreescribir días existentes
+    </label>
+    <label style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--gray);cursor:pointer">
+      <input type="checkbox" id="ti-skip-empty" checked style="width:16px;height:16px;accent-color:var(--gold)">
+      Omitir meses sin datos
+    </label>
+  </div>
+
+  <!-- Preview -->
+  <div id="ti-preview" style="display:none;background:rgba(0,0,0,.3);border-radius:10px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--gray);line-height:2"></div>
+
+  <!-- Botones -->
+  <button id="ti-apply-btn" onclick="tiApply()" disabled style="width:100%;background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.4);border-radius:12px;padding:13px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--gold);cursor:pointer;margin-bottom:8px;opacity:.5;transition:opacity .2s">
+    ✅ Importar turnos
+  </button>
+  <button onclick="closeTrypImport()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--gray);cursor:pointer">
+    Cancelar
+  </button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// TRYP IMPORT
+// ═══════════════════════════════════════════════════════════════
+var _tiParsed=null;
+var _MONTHS_ALL=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+var _MONTHS_MAP={'enero':'ENERO','febrero':'FEBRERO','marzo':'MARZO','abril':'ABRIL','mayo':'MAYO','junio':'JUNIO','julio':'JULIO','agosto':'AGOSTO','septiembre':'SEPTIEMBRE','octubre':'OCTUBRE','noviembre':'NOVIEMBRE','diciembre':'DICIEMBRE'};
+var _NOTA_TIPO={
+  'FT':'festivo','7B':'trabajado','7C':'trabajado','CCE':'trabajado','DA':'trabajado',
+  'V':'vacaciones','V-':'vacaciones','V+':'vacaciones',
+  'AL':'perentorias','H6':'h6','HL':'hl','HLP':'hlp','HFUN8':'hfun',
+  'B0':'baja','B1':'baja','B2':'baja','B4':'baja','B6':'baja','AC':'baja','ACI':'baja',
+  'BP':'bp','BL':'bp','PP':'nh','NH':'nh','MA':'libre','FM':'libre','FY':'libre','RM':'rm'
+};
+
+function openTrypImport(){
+  _tiParsed=null;
+  document.getElementById('ti-drop-txt').textContent='Toca para seleccionar el archivo .xlsx del Tryp';
+  document.getElementById('ti-preview').style.display='none';
+  document.getElementById('ti-preview').innerHTML='';
+  document.getElementById('ti-apply-btn').disabled=true;
+  document.getElementById('ti-apply-btn').style.opacity='.5';
+  document.getElementById('ti-file').value='';
+  document.getElementById('tryp-import-bg').style.display='block';
+  var panel=document.getElementById('tryp-import-panel');
+  panel.style.display='block';
+  setTimeout(function(){panel.style.transform='translateY(0)';},10);
+}
+function closeTrypImport(){
+  var panel=document.getElementById('tryp-import-panel');
+  panel.style.transform='translateY(100%)';
+  setTimeout(function(){
+    panel.style.display='none';
+    document.getElementById('tryp-import-bg').style.display='none';
+  },300);
+}
+function tiHandleDrop(e){
+  e.preventDefault();
+  document.getElementById('ti-drop').style.borderColor='rgba(255,255,255,.12)';
+  var f=e.dataTransfer.files[0];if(f)tiHandleFile(f);
+}
+function tiHandleFile(file){
+  if(!file)return;
+  document.getElementById('ti-drop-txt').textContent='Procesando: '+file.name+'...';
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var data=new Uint8Array(ev.target.result);
+      var wb=XLSX.read(data,{type:'array',cellText:true,cellStyles:true});
+      var sheet=wb.Sheets['Calendario empleado']||wb.Sheets[wb.SheetNames[0]];
+      tiParseSheet(sheet,file.name);
+    }catch(err){alert('Error al leer el archivo: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+function tiCellVal(sheet,row,col){
+  var addr=XLSX.utils.encode_cell({r:row,c:col});
+  var cell=sheet[addr];if(!cell)return null;
+  var v=cell.w||cell.v;if(v===null||v===undefined)return null;
+  return String(v).trim();
+}
+function tiColorToTipo(sheet,row,col){
+  var addr=XLSX.utils.encode_cell({r:row,c:col});
+  var cell=sheet[addr];
+  if(!cell||!cell.s)return null;
+  var fg=cell.s.fgColor;if(!fg)return null;
+  var rgb=fg.rgb||fg.argb||'';
+  if(rgb.length===8)rgb=rgb.slice(2);
+  rgb=rgb.toUpperCase();
+  if(rgb==='A9D0F5')return'hl';
+  if(rgb==='AEFC04')return'vacaciones';
+  return null;
+}
+function tiParseCell(raw){
+  if(!raw||raw==='')return null;
+  var s=raw.split('\n').join('').trim();
+  if(!s||s===' ')return null;
+  if(s==='DL')return{tipo:'libre',e1:'',s1:'',e2:'',s2:''};
+  var times=s.match(/[0-9]{2}:[0-9]{2}/g)||[];
+  var notes=s.match(/\(([^)]+)\)/g)||[];
+  var noteVals=notes.map(function(n){return n.replace(/[()]/g,'').toUpperCase().trim();});
+  var tipo='trabajado';
+  for(var i=0;i<noteVals.length;i++){if(_NOTA_TIPO[noteVals[i]]){tipo=_NOTA_TIPO[noteVals[i]];break;}}
+  var perenMode=null;
+  if(noteVals.indexOf('7N')>=0)perenMode='librar';
+  if(noteVals.indexOf('7D')>=0)perenMode='cobrar';
+  if(times.length===0)return{tipo:tipo,e1:'',s1:'',e2:'',s2:'',perenMode:perenMode};
+  if(times.length>=4)return{tipo:tipo,e1:times[0],s1:times[1],e2:times[2],s2:times[3],perenMode:perenMode};
+  if(times.length>=2)return{tipo:tipo,e1:times[0],s1:times[1],e2:'',s2:'',perenMode:perenMode};
+  return{tipo:tipo,e1:times[0],s1:'',e2:'',s2:'',perenMode:perenMode};
+}
+function tiParseSheet(sheet,filename){
+  var result={},stats=[];
+  for(var row=3;row<=14;row++){
+    var monthRaw=tiCellVal(sheet,row,0);
+    if(!monthRaw)continue;
+    var monthKey=_MONTHS_MAP[monthRaw.toLowerCase()];
+    if(!monthKey)continue;
+    var days={},cW=0,cL=0,cE=0;
+    for(var col=1;col<=31;col++){
+      var raw=tiCellVal(sheet,row,col);
+      var colorTipo=tiColorToTipo(sheet,row,col);
+      var isEmpty=!raw||raw.split(' ').join('').split(String.fromCharCode(10)).join('')==='';
+      if(isEmpty){
+        if(colorTipo){
+          if(colorTipo==='vacaciones')cL++;else cW++;
+          days[col]={tipo:colorTipo,e1:'',s1:'',e2:'',s2:'',total:0};
+        }else{cE++;}
+        continue;
+      }
+      var parsed=tiParseCell(raw);
+      if(!parsed){cE++;continue;}
+      if(colorTipo&&parsed.tipo==='trabajado')parsed.tipo=colorTipo;
+      if(parsed.tipo==='libre')cL++;else cW++;
+      var tot=0;
+      if(parsed.e1&&parsed.s1){var a=tiToMin(parsed.e1),b=tiToMin(parsed.s1);if(a!==null&&b!==null){var dd=b<a?b+1440-a:b-a;tot+=Math.round(dd/60*100)/100;}}
+      if(parsed.e2&&parsed.s2){var a2=tiToMin(parsed.e2),b2=tiToMin(parsed.s2);if(a2!==null&&b2!==null){var dd2=b2<a2?b2+1440-a2:b2-a2;tot+=Math.round(dd2/60*100)/100;}}
+      parsed.total=tot;
+      days[col]=parsed;
+    }
+    result[monthKey]=days;
+    stats.push({month:monthKey,work:cW,libre:cL,empty:cE,hasData:cW>0||cL>0});
+  }
+  _tiParsed={data:result,stats:stats,filename:filename};
+  var skipEmpty=document.getElementById('ti-skip-empty').checked;
+  var prev=document.getElementById('ti-preview');
+  prev.style.display='block';
+  var html='<b style="color:#f0eee8">'+filename+'</b><br><br>';
+  stats.forEach(function(s){
+    var skip=skipEmpty&&!s.hasData;
+    html+='<span style="color:'+(skip?'rgba(255,255,255,.2)':'#4ade80')+'">'+s.month+': '+(skip?'sin datos (omitido)':s.work+' trab · '+s.libre+' libres')+'</span><br>';
+  });
+  prev.innerHTML=html;
+  document.getElementById('ti-apply-btn').disabled=false;
+  document.getElementById('ti-apply-btn').style.opacity='1';
+  document.getElementById('ti-drop-txt').textContent='✅ Cargado: '+filename;
+}
+function tiToMin(t){if(!t||t.indexOf(':')<0)return null;var p=t.split(':');return+p[0]*60+ +p[1];}
+function tiApply(){
+  if(!_tiParsed)return;
+  var overwrite=document.getElementById('ti-overwrite').checked;
+  var skipEmpty=document.getElementById('ti-skip-empty').checked;
+  var year=parseInt(document.getElementById('ti-year').value);
+  var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(e){raw=null;}
+  var ue;try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
+  var imported=0,skipped=0;
+  Object.keys(_tiParsed.data).forEach(function(month){
+    var mdays=_tiParsed.data[month];
+    var hasData=Object.keys(mdays).some(function(k){return mdays[k].tipo!=='libre'||mdays[k].e1;});
+    if(skipEmpty&&!hasData)return;
+    if(!ue[month])ue[month]={};
+    Object.keys(mdays).forEach(function(ds){
+      var d=parseInt(ds),pd=mdays[ds];
+      if(!overwrite&&ue[month][d]&&ue[month][d].tipo&&ue[month][d].tipo!=='libre'){skipped++;return;}
+      var obj={tipo:pd.tipo,total:pd.total||0};
+      if(pd.e1)obj.e1=pd.e1;if(pd.s1)obj.s1=pd.s1;
+      if(pd.e2)obj.e2=pd.e2;if(pd.s2)obj.s2=pd.s2;
+      ue[month][d]=obj;imported++;
+    });
+  });
+  try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(e){alert('Error al guardar: '+e.message);return;}
+  closeTrypImport();
+  // Refresh widget and calendar
+  if(typeof renderWidget==='function')renderWidget();
+  if(typeof mcRender==='function')mcRender();
+  alert('✅ Importados '+imported+' días al año '+year+(skipped?' ('+skipped+' omitidos)':''));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MINI CALENDARIO — en pestaña Afiliate
+// ═══════════════════════════════════════════════════════════════
+var _mcYear=new Date().getFullYear();
+var _mcMonth=new Date().getMonth(); // 0-based
+var _MC_ICO={trabajado:'⚙️',festivo:'🎉',hl:'🤝',hlp:'🤝',h6:'📋',curso:'📚',vacaciones:'🏖️',perentorias:'⏱️',hfun:'🏛️',baja:'🏥',rm:'🔄',nh:'🌙',bp:'💆',libre:'🌙'};
+var _MC_MNAMES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var _MC_MONTHS_KEY=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+var _MC_DOW=['L','M','X','J','V','S','D'];
+
+function mcGetData(year,monthIdx){
+  var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(e){return null;}
+  if(!raw)return null;
+  var data;try{data=JSON.parse(raw);}catch(e){return null;}
+  return data[_MC_MONTHS_KEY[monthIdx]]||null;
+}
+function mcPrev(){if(_mcMonth===0){_mcMonth=11;_mcYear--;}else{_mcMonth--;} mcRender();}
+function mcNext(){if(_mcMonth===11){_mcMonth=0;_mcYear++;}else{_mcMonth++;} mcRender();}
+function mcRender(){
+  var title=document.getElementById('mc-title');
+  var grid=document.getElementById('mc-grid');
+  var nodata=document.getElementById('mc-nodata');
+  if(!title||!grid)return;
+  title.textContent=_MC_MNAMES[_mcMonth]+' '+_mcYear;
+  var mdata=mcGetData(_mcYear,_mcMonth);
+  var today=new Date();
+  var todayYear=today.getFullYear(),todayMonth=today.getMonth(),todayDay=today.getDate();
+  var isCurrentMonth=(_mcYear===todayYear&&_mcMonth===todayMonth);
+  // Day of week of 1st (0=Sun→shift to Mon-first)
+  var firstDow=new Date(_mcYear,_mcMonth,1).getDay();
+  firstDow=(firstDow+6)%7; // Mon=0
+  var daysInMonth=new Date(_mcYear,_mcMonth+1,0).getDate();
+  var hasAnyData=mdata&&Object.keys(mdata).length>0;
+  if(!hasAnyData){
+    grid.innerHTML='';
+    nodata.style.display='block';
+    // Still render day headers
+    var hdr='';
+    _MC_DOW.forEach(function(d){hdr+='<div class="mc-dow">'+d+'</div>';});
+    grid.innerHTML=hdr;
+    return;
+  }
+  nodata.style.display='none';
+  var html='';
+  _MC_DOW.forEach(function(d){html+='<div class="mc-dow">'+d+'</div>';});
+  // Empty cells before 1st
+  for(var i=0;i<firstDow;i++)html+='<div class="mc-day empty"></div>';
+  for(var day=1;day<=daysInMonth;day++){
+    var d=mdata?mdata[day]:null;
+    var tipo=d?d.tipo:'libre';
+    var cls=tipo||'libre';
+    var isToday=isCurrentMonth&&day===todayDay;
+    var ico=d&&d.tipo&&d.tipo!=='libre'?(_MC_ICO[d.tipo]||''):'';
+    var timeStr='';
+    if(d&&d.e1&&d.s1){
+      if(d.e2&&d.s2){timeStr=d.e1+'·'+d.e2;}
+      else{timeStr=d.e1+'·'+d.s1;}
+    }
+    html+='<div class="mc-day '+cls+(isToday?' hoy':'')+'">'+
+      '<span class="mc-day-num">'+day+'</span>'+
+      (ico?'<span class="mc-day-ico">'+ico+'</span>':'')+
+      (timeStr?'<span class="mc-day-time">'+timeStr+'</span>':'')+
+    '</div>';
+  }
+  grid.innerHTML=html;
+}
+
+// Init calendar when afiliate tab is selected
+var _mcInited=false;
+var _origSwitchTab=null;
+document.addEventListener('DOMContentLoaded',function(){
+  _origSwitchTab=window.switchTab;
+  window.switchTab=function(tab,tabEl,navEl){
+    if(_origSwitchTab)_origSwitchTab(tab,tabEl,navEl);
+    if(tab==='afiliate'){mcRender();}
+  };
+  // Also hook the nav buttons
+  var navAfil=document.getElementById('nav-afiliate');
+  if(navAfil){
+    var oldClick=navAfil.onclick;
+    navAfil.onclick=function(e){
+      if(oldClick)oldClick.call(this,e);
+      mcRender();
+    };
+  }
+});
+</script>
+
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// TRYP IMPORT — funciones completas
+// ═══════════════════════════════════════════════════════════════════
+var _tiParsed = null;
+
+var _TI_MONTHS_MAP = {
+  'enero':'ENERO','febrero':'FEBRERO','marzo':'MARZO','abril':'ABRIL',
+  'mayo':'MAYO','junio':'JUNIO','julio':'JULIO','agosto':'AGOSTO',
+  'septiembre':'SEPTIEMBRE','octubre':'OCTUBRE','noviembre':'NOVIEMBRE','diciembre':'DICIEMBRE'
+};
+var _TI_NOTA_TIPO = {
+  'FT':'festivo','7B':'trabajado','7C':'trabajado','CCE':'trabajado','DA':'trabajado',
+  'V':'vacaciones','V-':'vacaciones','V+':'vacaciones',
+  'AL':'perentorias',
+  'H6':'h6','HL':'hl','hl':'hl','HLP':'hlp','HFUN8':'hfun',
+  'B0':'baja','B1':'baja','B2':'baja','B4':'baja','B6':'baja','AC':'baja','ACI':'baja',
+  'BP':'bp','BL':'bp','PP':'nh','NH':'nh','MA':'libre',
+  'FM':'libre','FY':'libre','RM':'rm',
+  'D0':'curso','D6':'curso','D8':'curso','D9':'curso',
+  'LF':'libre','H8':'libre','_PC':'libre','G2':'libre','SES':'libre',
+  'AI':'libre','INJ':'libre','TI':'libre','A2':'libre',
+  'EO':'libre','ES':'libre','EX':'libre','EXC':'libre','SO':'libre','TJ':'libre',
+  'DL':'libre','VAC':'vacaciones','BAJA':'baja'
+};
+
+function openTrypImport(){
+  var bg=document.getElementById('tryp-import-bg');
+  var panel=document.getElementById('tryp-import-panel');
+  if(!bg||!panel) return;
+  bg.style.display='block';
+  panel.style.display='block';
+  setTimeout(function(){panel.style.transform='translateY(0)';},10);
+}
+function closeTrypImport(){
+  var panel=document.getElementById('tryp-import-panel');
+  if(panel){panel.style.transform='translateY(100%)';}
+  setTimeout(function(){
+    var bg=document.getElementById('tryp-import-bg');
+    if(bg)bg.style.display='none';
+    if(panel)panel.style.display='none';
+    _tiParsed=null;
+    var prev=document.getElementById('ti-preview');
+    if(prev){prev.style.display='none';prev.innerHTML='';}
+    var btn=document.getElementById('ti-apply-btn');
+    if(btn){btn.disabled=true;btn.style.opacity='.5';}
+    var dtxt=document.getElementById('ti-drop-txt');
+    if(dtxt)dtxt.textContent='Toca para seleccionar el archivo .xlsx del Tryp';
+    var fi=document.getElementById('ti-file');
+    if(fi)fi.value='';
+  },320);
+}
+function tiHandleDrop(e){
+  e.preventDefault();
+  document.getElementById('ti-drop').style.borderColor='rgba(255,255,255,.12)';
+  var f=e.dataTransfer.files[0];if(f)tiHandleFile(f);
+}
+function tiHandleFile(file){
+  if(!file)return;
+  document.getElementById('ti-drop-txt').textContent='Procesando: '+file.name+'...';
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var data=new Uint8Array(ev.target.result);
+      var wb=XLSX.read(data,{type:'array',cellText:true,cellStyles:true});
+      var sheet=wb.Sheets['Calendario empleado']||wb.Sheets[wb.SheetNames[0]];
+      _tiParseSheet(sheet,file.name);
+    }catch(err){alert('Error al leer el archivo: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+function _tiCellVal(sheet,row,col){
+  var addr=XLSX.utils.encode_cell({r:row,c:col});
+  var cell=sheet[addr];if(!cell)return null;
+  var v=cell.w||cell.v;if(v===null||v===undefined)return null;
+  return String(v).trim();
+}
+function _tiColorToTipo(sheet,row,col){
+  var addr=XLSX.utils.encode_cell({r:row,c:col});
+  var cell=sheet[addr];
+  if(!cell||!cell.s)return null;
+  var fg=cell.s.fgColor;if(!fg)return null;
+  var rgb=fg.rgb||fg.argb||'';rgb=rgb.toUpperCase();
+  if(rgb.length===8)rgb=rgb.slice(2);
+  if(rgb==='A9D0F5')return 'hl';
+  if(rgb==='AEFC04')return 'vacaciones';
+  return null;
+}
+function _tiParseCell(raw){
+  if(!raw||raw==='')return null;
+  var s=raw.split('\n').join('').trim();
+  if(!s||s===' ')return null;
+  if(s==='DL')return{tipo:'libre',e1:'',s1:'',e2:'',s2:''};
+  var times=s.match(/[0-9]{2}:[0-9]{2}/g)||[];
+  var notes=s.match(/\(([^)]+)\)/g)||[];
+  var noteVals=notes.map(function(n){return n.replace(/[()]/g,'').toUpperCase().trim();});
+  var tipo='trabajado',perenMode=null;
+  for(var i=0;i<noteVals.length;i++){
+    if(_TI_NOTA_TIPO[noteVals[i]]){tipo=_TI_NOTA_TIPO[noteVals[i]];break;}
+  }
+  if(noteVals.indexOf('7N')>=0)perenMode='librar';
+  if(noteVals.indexOf('7D')>=0)perenMode='cobrar';
+  if(times.length===0)return{tipo:tipo,e1:'',s1:'',e2:'',s2:'',perenMode:perenMode};
+  if(times.length>=4)return{tipo:tipo,e1:times[0],s1:times[1],e2:times[2],s2:times[3],perenMode:perenMode};
+  if(times.length>=2)return{tipo:tipo,e1:times[0],s1:times[1],e2:'',s2:'',perenMode:perenMode};
+  return{tipo:tipo,e1:times[0],s1:'',e2:'',s2:'',perenMode:perenMode};
+}
+function _tiToM(t){if(!t)return null;var p=t.split(':');var h=+p[0],m=+p[1];if(isNaN(h)||isNaN(m))return null;return h*60+m;}
+function _tiParseSheet(sheet,filename){
+  var result={},stats=[];
+  for(var row=3;row<=14;row++){
+    var monthRaw=_tiCellVal(sheet,row,0);if(!monthRaw)continue;
+    var monthKey=_TI_MONTHS_MAP[monthRaw.toLowerCase()];if(!monthKey)continue;
+    var days={},cW=0,cL=0;
+    for(var col=1;col<=31;col++){
+      var raw=_tiCellVal(sheet,row,col);
+      var colorTipo=_tiColorToTipo(sheet,row,col);
+      var isEmpty=!raw||raw.replace(/\s/g,'').replace(/\n/g,'').length===0;
+      if(isEmpty){
+        if(colorTipo){
+          days[col]={tipo:colorTipo,e1:'',s1:'',e2:'',s2:'',total:0};
+          if(colorTipo==='vacaciones')cL++;else cW++;
+        }
+        continue;
+      }
+      var parsed=_tiParseCell(raw);
+      if(!parsed)continue;
+      if(colorTipo&&parsed.tipo==='trabajado')parsed.tipo=colorTipo;
+      if(parsed.tipo==='libre')cL++;else cW++;
+      var tot=0;
+      if(parsed.e1&&parsed.s1){var a=_tiToM(parsed.e1),b=_tiToM(parsed.s1);if(a!==null&&b!==null){tot+=Math.round((b<a?b+1440-a:b-a)/60*100)/100;}}
+      if(parsed.e2&&parsed.s2){var a2=_tiToM(parsed.e2),b2=_tiToM(parsed.s2);if(a2!==null&&b2!==null){tot+=Math.round((b2<a2?b2+1440-a2:b2-a2)/60*100)/100;}}
+      parsed.total=tot;
+      days[col]=parsed;
+    }
+    result[monthKey]=days;
+    stats.push({month:monthKey,work:cW,libre:cL,hasData:cW>0||cL>0});
+  }
+  _tiParsed={data:result,stats:stats,filename:filename};
+  var skip=document.getElementById('ti-skip-empty').checked;
+  var prev=document.getElementById('ti-preview');
+  prev.style.display='block';
+  var html='<strong style="color:var(--white)">'+filename+'</strong><br><br>';
+  stats.forEach(function(s){
+    var omit=skip&&!s.hasData;
+    html+='<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.05)">'+
+      '<span>'+s.month+'</span>'+
+      (omit?'<span style="color:var(--gray)">Sin datos</span>':
+             '<span style="color:#4ade80">'+s.work+' trabajo · <span style="color:#38bdf8">'+s.libre+' libres</span></span>')+
+      '</div>';
+  });
+  prev.innerHTML=html;
+  var btn=document.getElementById('ti-apply-btn');
+  btn.disabled=false;btn.style.opacity='1';
+  document.getElementById('ti-drop-txt').textContent='✅ '+filename;
+}
+function tiApply(){
+  if(!_tiParsed)return;
+  var overwrite=document.getElementById('ti-overwrite').checked;
+  var skip=document.getElementById('ti-skip-empty').checked;
+  var year=parseInt(document.getElementById('ti-year').value)||new Date().getFullYear();
+  var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(e){raw=null;}
+  var ue;try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
+  var imported=0;
+  Object.keys(_tiParsed.data).forEach(function(month){
+    var mDays=_tiParsed.data[month];
+    var hasData=Object.keys(mDays).some(function(k){return mDays[k].tipo!=='libre'||mDays[k].e1;});
+    if(skip&&!hasData)return;
+    if(!ue[month])ue[month]={};
+    Object.keys(mDays).forEach(function(dayStr){
+      var d=parseInt(dayStr),p=mDays[dayStr];
+      if(!overwrite&&ue[month][d]&&ue[month][d].tipo&&ue[month][d].tipo!=='libre')return;
+      var obj={tipo:p.tipo,total:p.total||0};
+      if(p.e1)obj.e1=p.e1;if(p.s1)obj.s1=p.s1;
+      if(p.e2)obj.e2=p.e2;if(p.s2)obj.s2=p.s2;
+      ue[month][d]=obj;imported++;
+    });
+  });
+  try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(e){alert('Error al guardar: '+e.message);return;}
+  closeTrypImport();
+  setTimeout(function(){
+    alert('✅ '+imported+' días importados para '+year+'.\nAhora verás tu turno del día en la barra inferior.');
+    mcRender();
+    if(typeof initTurnoWidget==='function')initTurnoWidget();
+  },350);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MINI CALENDARIO — renderizado en pestaña Afiliate
+// ═══════════════════════════════════════════════════════════════════
+var _MC_MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+var _MC_NAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+var _MC_ICO={trabajado:'⚙️',festivo:'🎉',hl:'🤝',hlp:'🤝',h6:'📋',curso:'📚',vacaciones:'🏖️',perentorias:'⏱️',hfun:'🏛️',baja:'🏥',rm:'🔄',nh:'🌙',bp:'💆',libre:''};
+var _mcYear=new Date().getFullYear();
+var _mcMonth=new Date().getMonth(); // 0-based
+
+function mcPrev(){
+  _mcMonth--;if(_mcMonth<0){_mcMonth=11;_mcYear--;}
+  mcRender();
+}
+function mcNext(){
+  _mcMonth++;if(_mcMonth>11){_mcMonth=0;_mcYear++;}
+  mcRender();
+}
+function mcRender(){
+  var title=document.getElementById('mc-title');
+  var grid=document.getElementById('mc-grid');
+  var nodata=document.getElementById('mc-nodata');
+  if(!title||!grid)return;
+  title.textContent=_MC_NAMES[_mcMonth]+' '+_mcYear;
+  // Load data
+  var raw;try{raw=localStorage.getItem('cta_ed_'+_mcYear);}catch(e){raw=null;}
+  var ue;try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
+  var mData=ue[_MC_MONTHS[_mcMonth]]||{};
+  var hasAnyData=Object.keys(mData).length>0;
+  // Day of week headers
+  var dows=['L','M','X','J','V','S','D'];
+  var html=dows.map(function(d){return '<div class="mc-dow">'+d+'</div>';}).join('');
+  // First day of month (0=Sun → convert to Mon-based)
+  var firstDate=new Date(_mcYear,_mcMonth,1);
+  var startDow=(firstDate.getDay()+6)%7; // Mon=0
+  var daysInMonth=new Date(_mcYear,_mcMonth+1,0).getDate();
+  var today=new Date();
+  var isThisMonth=today.getFullYear()===_mcYear&&today.getMonth()===_mcMonth;
+  // Empty cells before day 1
+  for(var i=0;i<startDow;i++)html+='<div class="mc-day empty"></div>';
+  for(var d=1;d<=daysInMonth;d++){
+    var dayObj=mData[d];
+    var tipo=dayObj?dayObj.tipo:'libre';
+    var cls='mc-day '+(tipo||'libre');
+    if(isThisMonth&&d===today.getDate())cls+=' hoy';
+    var ico=_MC_ICO[tipo]||'';
+    var timeStr='';
+    if(dayObj&&dayObj.e1&&dayObj.s1){
+      timeStr=dayObj.e1.replace(':','h');
+      if(dayObj.e2&&dayObj.s2)timeStr+='·'+dayObj.e2.replace(':','h');
+    }
+    html+='<div class="'+cls+'">'+
+      '<div class="mc-day-num">'+d+'</div>'+
+      (ico?'<div class="mc-day-ico">'+ico+'</div>':'')+
+      (timeStr?'<div class="mc-day-time">'+timeStr+'</div>':'')+
+      '</div>';
+  }
+  grid.innerHTML=html;
+  if(nodata)nodata.style.display=hasAnyData?'none':'block';
+}
+
+// Init calendar when afiliate tab is opened
+var _mcInited=false;
+var _origSwitchTab=null;
+document.addEventListener('DOMContentLoaded',function(){
+  // Patch switchTab to trigger mcRender when afiliate tab opens
+  if(typeof switchTab==='function'){
+    _origSwitchTab=switchTab;
+    window.switchTab=function(tab,el,navEl){
+      _origSwitchTab.call(this,tab,el,navEl);
+      if(tab==='afiliate')mcRender();
+    };
+  }
+});
 </script>
 
 </body>
