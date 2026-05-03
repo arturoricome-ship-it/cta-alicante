@@ -747,7 +747,7 @@ function switchTab(name,tabEl,navEl){
   }
   if(name==="turnos"&&!turnosLoaded)loadTurnos();
   if(name==="hoy")renderHoy();
-  if(name==="afiliate"&&typeof mcRender==="function")mcRender();
+  if(name==="afiliate"){if(typeof mcRender==="function")mcRender();logActividad('ver_calendario');}
   // Habilitar btn-back si estamos en dashboard
   var bb=document.getElementById("btn-back");
   if(bb) bb.disabled=(name!=="dashboard"&&breadcrumb.length<=1);
@@ -1961,6 +1961,7 @@ function tiDoExport(){
   a.href=url;
   var fecha=new Date().toISOString().slice(0,10);
   a.download='horarios_backup_'+fecha+'.json';
+  logActividad('exportar');
   document.body.appendChild(a);a.click();
   setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},1000);
 }
@@ -2071,6 +2072,17 @@ function tiApplyBackup(){
   },350);
 }
 
+
+// ─── Log de actividad → Sheets ────────────────────────────────────
+function logActividad(tipo){
+  var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
+  if(!sess||!sess.email)return;
+  fetch(SHEETS_URL,{
+    method:'POST',
+    body:JSON.stringify({accion:'log_accion',email:sess.email,nombre:sess.nombre||'',tipo:tipo}),
+    headers:{'Content-Type':'text/plain'}
+  }).catch(function(){});
+}
 // ═══════════════════════════════════════════════════════════════
 // TRYP IMPORT
 // ═══════════════════════════════════════════════════════════════
