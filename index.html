@@ -323,6 +323,12 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-time-row input{width:100%;background:#1f2d47;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#f0eee8;font-family:'Outfit',sans-serif;font-size:14px;padding:7px 8px;text-align:center}
 .mc-edit-save{width:100%;background:rgba(200,168,75,.2);border:1px solid rgba(200,168,75,.4);border-radius:12px;padding:13px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--gold);cursor:pointer;margin-bottom:8px}
 .mc-edit-cancel{width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--gray);cursor:pointer}
+
+/* ─── Monthly summary stats ──────────────────────────────── */
+.mc-stat{background:var(--card2);border-radius:10px;padding:10px 12px;border:1px solid var(--border)}
+.mc-stat-val{font-size:18px;font-weight:700;color:var(--gold);line-height:1;margin-bottom:2px}
+.mc-stat-lbl{font-size:9px;color:var(--gray);letter-spacing:.4px;text-transform:uppercase}
+.mc-day.cp{background:rgba(251,146,60,.1);color:#fb923c}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -376,7 +382,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div class="tab-wrap"><button class="tab active" onclick="switchTab('documentos',this)">&#128194; Documentos</button></div>
   <div class="tab-wrap"><button class="tab" onclick="switchTab('turnos',this)">&#128197; Turnos</button></div>
   <div class="tab-wrap"><button class="tab" onclick="switchTab('avisos',this)">&#128226; Avisos</button><span class="badge" id="badge-avisos">!</span></div>
-  <div class="tab-wrap"><button class="tab" onclick="switchTab('afiliate',this)">&#9995; Afiliate</button></div>
+  <div class="tab-wrap"><button class="tab" onclick="switchTab('afiliate',this)">📅 Calendario</button></div>
   <div class="tab-wrap"><button class="tab" onclick="switchTab('grupos',this)">&#128172; Grupos</button></div>
 </div>
 
@@ -432,18 +438,18 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
       <span style="font-size:11px">Importa tu calendario desde <b style="color:var(--gold)">Accesos Directos → Importar TRYP</b></span>
     </div>
   </div>
-    <div class="afil-hero">
-      <div class="afil-title">Afiliate a CTA</div>
-      <div class="afil-sub">Comision de Trabajadores Asamblearios<br>Defiende tus derechos laborales con nosotros</div>
-      <a class="afil-btn" id="ficha-btn">&#128196; Descargar ficha de afiliacion</a>
+
+  <!-- ── Resumen mensual ── -->
+  <div id="mc-summary" style="display:none;margin-top:4px;margin-bottom:16px;background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border)">
+    <div style="font-size:10px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px" id="mc-sum-label">Resumen mes</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-total">—</div><div class="mc-stat-lbl">Horas trabajadas</div></div>
+      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-contador">—</div><div class="mc-stat-lbl">Horas contador</div></div>
+      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-anual">—</div><div class="mc-stat-lbl">Horas anuales</div></div>
+      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-peren">—</div><div class="mc-stat-lbl">Perentorias mes</div></div>
     </div>
-    <p class="section-title">Como afiliarse</p>
-    <p class="section-sub">Solo 3 pasos</p>
-    <div class="drive-list">
-      <div class="drive-item" style="cursor:default"><div class="item-icon" style="background:rgba(200,168,75,.15);font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold)">1</div><div class="item-info"><div class="item-name">Descarga la ficha</div><div class="item-meta">Pulsa el boton de arriba para descargar el PDF</div></div></div>
-      <div class="drive-item" style="cursor:default"><div class="item-icon" style="background:rgba(200,168,75,.15);font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold)">2</div><div class="item-info"><div class="item-name">Rellena y firma</div><div class="item-meta">Completa todos los datos personales y bancarios</div></div></div>
-      <div class="drive-item" style="cursor:default"><div class="item-icon" style="background:rgba(200,168,75,.15);font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold)">3</div><div class="item-info"><div class="item-name">Entregala</div><div class="item-meta">Entrega a cualquier delegado CTA</div></div></div>
-    </div>
+  </div>
+  
   </div>
 
   <div class="panel" id="panel-grupos">
@@ -578,7 +584,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <button class="nav-btn active" id="nav-documentos" onclick="switchTab('documentos',document.querySelectorAll('.tab')[0],this)"><span class="nav-ico">&#128194;</span>Docs</button>
   <button class="nav-btn" id="nav-turnos" onclick="switchTab('turnos',document.querySelectorAll('.tab')[1],this)"><span class="nav-ico">&#128197;</span>Turnos</button>
   <button class="nav-btn" id="nav-avisos" onclick="switchTab('avisos',document.querySelectorAll('.tab')[2],this)" style="position:relative"><span class="nav-ico">&#128226;</span>Avisos<span class="badge" id="badge-avisos-nav">!</span></button>
-  <button class="nav-btn" id="nav-afiliate" onclick="switchTab('afiliate',document.querySelectorAll('.tab')[3],this)"><span class="nav-ico">&#9995;</span>Afiliate</button>
+  <button class="nav-btn" id="nav-afiliate" onclick="switchTab('afiliate',document.querySelectorAll('.tab')[3],this)"><span class="nav-ico">📅</span>Calendario</button>
   <button class="nav-btn" id="nav-grupos" onclick="switchTab('grupos',document.querySelectorAll('.tab')[4],this)"><span class="nav-ico">&#128172;</span>Grupos</button>
 </nav>
 
@@ -2148,7 +2154,7 @@ function tiApply(){
 // ═══════════════════════════════════════════════════════════════════
 var _MC_MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 var _MC_NAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-var _MC_ICO={trabajado:'⚙️',festivo:'🎉',hl:'🤝',hlp:'🤝',h6:'📋',curso:'📚',vacaciones:'🏖️',perentorias:'⏱️',hfun:'🏛️',baja:'🏥',rm:'🔄',nh:'🌙',bp:'💆',libre:''};
+var _MC_ICO={trabajado:'⚙️',festivo:'🎉',hl:'🤝',hlp:'🤝',h6:'📋',curso:'📚',vacaciones:'🏖️',perentorias:'⏱️',cp:'↩️',hfun:'🏛️',baja:'🏥',rm:'🔄',nh:'🌙',bp:'💆',libre:''};
 var _mcYear=new Date().getFullYear();
 var _mcMonth=new Date().getMonth(); // 0-based
 
@@ -2195,6 +2201,61 @@ function mcRender(){
   }
   grid.innerHTML=html;
   if(nodata)nodata.style.display=hasAnyData?'none':'block';
+  mcRenderSummary(ue);
+}
+
+function _mcMin(e,s){
+  if(!e||!s)return 0;
+  var ep=e.split(':'),sp=s.split(':');
+  if(ep.length<2||sp.length<2)return 0;
+  var em=+ep[0]*60+ +ep[1],sm=+sp[0]*60+ +sp[1];
+  return sm>=em?sm-em:sm+1440-em;
+}
+function _mcFmtH(min){
+  var h=Math.floor(min/60),m=min%60;
+  return h+'h'+(m?(' '+m+'m'):'');
+}
+function mcRenderSummary(ue){
+  var sumEl=document.getElementById('mc-summary');
+  if(!sumEl)return;
+  // Current month
+  var mKey=_MC_MONTHS[_mcMonth];
+  var mData=(ue&&ue[mKey])||{};
+  var totalMin=0,contadorMin=0,perenMin=0;
+  // No-counter types (festivo, vacaciones, hl, hlp, baja, rm, bp, cp, hfun, h6, libre)
+  var noCounter=['festivo','vacaciones','hl','hlp','baja','rm','bp','cp','hfun','h6','libre','nh'];
+  Object.keys(mData).forEach(function(d){
+    var day=mData[d];
+    if(!day||!day.tipo)return;
+    var mins=_mcMin(day.e1,day.s1)+_mcMin(day.e2,day.s2);
+    if(day.tipo==='trabajado'){
+      totalMin+=mins; contadorMin+=mins;
+    } else if(day.tipo==='perentorias'){
+      totalMin+=mins; perenMin+=mins;
+    } else if(day.tipo==='festivo'){
+      totalMin+=mins; // cuenta para total pero no contador
+    }
+  });
+  // Annual total: all months up to current year
+  var anualMin=0;
+  _MC_MONTHS.forEach(function(mk){
+    var md=(ue&&ue[mk])||{};
+    Object.keys(md).forEach(function(d){
+      var day=md[d];
+      if(!day||!day.tipo)return;
+      var mins=_mcMin(day.e1,day.s1)+_mcMin(day.e2,day.s2);
+      if(day.tipo==='trabajado')anualMin+=mins;
+      else if(day.tipo==='perentorias')anualMin+=mins;
+    });
+  });
+  var hasData=totalMin>0||perenMin>0;
+  sumEl.style.display=hasData?'block':'none';
+  var names=_MC_NAMES;
+  document.getElementById('mc-sum-label').textContent='Resumen — '+names[_mcMonth]+' '+_mcYear;
+  document.getElementById('mc-sum-total').textContent=totalMin>0?_mcFmtH(totalMin):'0h';
+  document.getElementById('mc-sum-contador').textContent=contadorMin>0?_mcFmtH(contadorMin):'0h';
+  document.getElementById('mc-sum-anual').textContent=anualMin>0?_mcFmtH(anualMin):'0h';
+  document.getElementById('mc-sum-peren').textContent=perenMin>0?_mcFmtH(perenMin):'—';
 }
 
 // ─── Day edit modal ──────────────────────────────────────────────
@@ -2244,10 +2305,16 @@ function mcEditSave(){
   var tipo=document.querySelector('.mc-tipo-btn.sel');
   if(!tipo)return;
   var tipoVal=tipo.dataset.tipo;
-  var e1=document.getElementById('mc-edit-e1').value.trim();
-  var s1=document.getElementById('mc-edit-s1').value.trim();
-  var e2=document.getElementById('mc-edit-e2').value.trim();
-  var s2=document.getElementById('mc-edit-s2').value.trim();
+  var e1='',s1='',e2='',s2='';
+  if(tipoVal==='trabajado'){
+    e1=document.getElementById('mc-edit-e1').value.trim();
+    s1=document.getElementById('mc-edit-s1').value.trim();
+    e2=document.getElementById('mc-edit-e2').value.trim();
+    s2=document.getElementById('mc-edit-s2').value.trim();
+  } else if(tipoVal==='perentorias'||tipoVal==='cp'){
+    e1=document.getElementById('mc-peren-e1').value.trim();
+    s1=document.getElementById('mc-peren-s1').value.trim();
+  }
   var year=_mcEditYear,month=_MC_MONTHS[_mcEditMonth],day=_mcEditDay;
   var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(er){raw=null;}
   var ue;try{ue=raw?JSON.parse(raw):{};}catch(er){ue={};}
@@ -2261,8 +2328,20 @@ function mcTipoSel(btn){
   document.querySelectorAll('.mc-tipo-btn').forEach(function(b){b.classList.remove('sel');});
   btn.classList.add('sel');
   var v=btn.dataset.tipo;
-  var needTime=['trabajado','perentorias'];
-  document.getElementById('mc-edit-times').style.display=needTime.indexOf(v)>-1?'block':'none';
+  var showTimes=document.getElementById('mc-edit-times');
+  var showPeren=document.getElementById('mc-edit-peren');
+  if(v==='trabajado'){
+    showTimes.style.display='block';
+    showPeren.style.display='none';
+  } else if(v==='perentorias'||v==='cp'){
+    showTimes.style.display='none';
+    showPeren.style.display='block';
+    var perenLbl=document.getElementById('mc-peren-label');
+    if(perenLbl)perenLbl.textContent=v==='cp'?'Horas compensadas (banco)':'Horas de perentorias realizadas';
+  } else {
+    showTimes.style.display='none';
+    showPeren.style.display='none';
+  }
 }
 
 // mcRender already hooked into switchTab directly
@@ -2276,17 +2355,16 @@ function mcTipoSel(btn){
   <div class="mc-edit-title-bar" id="mc-edit-title">Editar día</div>
   <div class="mc-tipo-grid" id="mc-tipo-grid">
     <button class="mc-tipo-btn" data-tipo="trabajado" onclick="mcTipoSel(this)"><span class="t-ico">⚙️</span><span class="t-lbl">Trabajado</span></button>
-    <button class="mc-tipo-btn" data-tipo="hl" onclick="mcTipoSel(this)"><span class="t-ico">🤝</span><span class="t-lbl">H. Libre</span></button>
-    <button class="mc-tipo-btn" data-tipo="hlp" onclick="mcTipoSel(this)"><span class="t-ico">🤝</span><span class="t-lbl">HL Plus</span></button>
     <button class="mc-tipo-btn" data-tipo="vacaciones" onclick="mcTipoSel(this)"><span class="t-ico">🏖️</span><span class="t-lbl">Vacaciones</span></button>
     <button class="mc-tipo-btn" data-tipo="festivo" onclick="mcTipoSel(this)"><span class="t-ico">🎉</span><span class="t-lbl">Festivo</span></button>
     <button class="mc-tipo-btn" data-tipo="baja" onclick="mcTipoSel(this)"><span class="t-ico">🏥</span><span class="t-lbl">Baja</span></button>
-    <button class="mc-tipo-btn" data-tipo="perentorias" onclick="mcTipoSel(this)"><span class="t-ico">⏱️</span><span class="t-lbl">Perentorias</span></button>
+    <button class="mc-tipo-btn" data-tipo="perentorias" onclick="mcTipoSel(this)"><span class="t-ico">⏱️</span><span class="t-lbl">+ Perentorias</span></button>
+    <button class="mc-tipo-btn" data-tipo="cp" onclick="mcTipoSel(this)"><span class="t-ico">↩️</span><span class="t-lbl">Comp. Peren.</span></button>
     <button class="mc-tipo-btn" data-tipo="h6" onclick="mcTipoSel(this)"><span class="t-ico">📋</span><span class="t-lbl">Art. 6</span></button>
     <button class="mc-tipo-btn" data-tipo="hfun" onclick="mcTipoSel(this)"><span class="t-ico">🏛️</span><span class="t-lbl">H. Función</span></button>
     <button class="mc-tipo-btn" data-tipo="rm" onclick="mcTipoSel(this)"><span class="t-ico">🔄</span><span class="t-lbl">R. Médico</span></button>
-    <button class="mc-tipo-btn" data-tipo="bp" onclick="mcTipoSel(this)"><span class="t-ico">💆</span><span class="t-lbl">Bienestar</span></button>
     <button class="mc-tipo-btn" data-tipo="libre" onclick="mcTipoSel(this)"><span class="t-ico">🌙</span><span class="t-lbl">Libre</span></button>
+    <button class="mc-tipo-btn" data-tipo="hl" onclick="mcTipoSel(this)"><span class="t-ico">🤝</span><span class="t-lbl">HL</span></button>
   </div>
   <div class="mc-edit-times" id="mc-edit-times">
     <div class="mc-time-row">
@@ -2296,6 +2374,13 @@ function mcTipoSel(btn){
     <div class="mc-time-row">
       <div><label>Entrada 2 (partido)</label><input type="time" id="mc-edit-e2"></div>
       <div><label>Salida 2</label><input type="time" id="mc-edit-s2"></div>
+    </div>
+  </div>
+  <div class="mc-edit-peren" id="mc-edit-peren" style="display:none;margin-bottom:12px">
+    <div style="font-size:11px;color:var(--gray);margin-bottom:6px" id="mc-peren-label">Horas de perentorias realizadas</div>
+    <div class="mc-time-row">
+      <div><label>Inicio</label><input type="time" id="mc-peren-e1"></div>
+      <div><label>Fin</label><input type="time" id="mc-peren-s1"></div>
     </div>
   </div>
   <button class="mc-edit-save" onclick="mcEditSave()">✅ Guardar</button>
