@@ -456,7 +456,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
       <div class="mc-stat gold"><div class="mc-stat-val" id="mc-sum-total">—</div><div class="mc-stat-lbl">Horas totales mes</div></div>
       <div class="mc-stat blue"><div class="mc-stat-val" id="mc-sum-anual">—</div><div class="mc-stat-lbl">Horas totales año</div></div>
       <div class="mc-stat green" style="grid-column:span 2"><div class="mc-stat-val" id="mc-sum-anual-cont">—</div><div class="mc-stat-lbl">Contador anual</div></div>
-      <div class="mc-stat peren" style="grid-column:span 2"><div class="mc-stat-val" id="mc-sum-peren">—</div><div class="mc-stat-lbl">Perentorias mes</div></div>
+      <div class="mc-stat peren"><div class="mc-stat-val" id="mc-sum-peren">—</div><div class="mc-stat-lbl">Perentorias mes</div></div>
+      <div class="mc-stat peren"><div class="mc-stat-val" id="mc-sum-peren-anual">—</div><div class="mc-stat-lbl">Perentorias año</div></div>
     </div>
   </div>
   
@@ -2383,7 +2384,7 @@ function mcRender(){
       timeLines='<div class="mc-day-time">'+dayObj.e1+'-'+dayObj.s1+'</div>';
       if(dayObj.e2&&dayObj.s2)timeLines+='<div class="mc-day-time">'+dayObj.e2+'-'+dayObj.s2+'</div>';
     }
-    if(hasPeren)timeLines+='<div class="mc-day-time" style="color:#fb923c">+'+dayObj.perenDur+'</div>';
+    if(hasPeren)timeLines+='<div class="mc-day-time" style="color:#fb923c">'+(dayObj.perenTipo==='cp'?'-':'+')+dayObj.perenDur+'</div>';
     if(hasHfun)timeLines+='<div class="mc-day-time" style="color:#818cf8">+'+dayObj.hfunDur+'</div>';
     html+='<div class="'+dispCls+'" onclick="mcEditDay('+d+',event)">'+
       '<div class="mc-day-num">'+d+'</div>'+
@@ -2419,8 +2420,8 @@ function mcRenderSummary(ue){
   // totales año:  same
   // contador año: trabajado, hl, hlp, baja, rm
   // perentorias:  perenDur overlay (tracked separately)
-  var totalTypes=['trabajado','vacaciones','festivo','hl','hlp','baja','rm','hfun'];
-  var contTypes= ['trabajado','hl','hlp','baja','rm'];
+  var totalTypes=['trabajado','vacaciones','festivo','hl','hlp','baja','rm','hfun','curso'];
+  var contTypes= ['trabajado','hl','hlp','baja','rm','curso'];
   var anualMin=0;
 
   Object.keys(mData).forEach(function(d){
@@ -2450,10 +2451,22 @@ function mcRenderSummary(ue){
   sumEl.style.display=hasData?'block':'none';
   var names=_MC_NAMES;
   document.getElementById('mc-sum-label').textContent='Resumen — '+names[_mcMonth]+' '+_mcYear;
+  // Annual perentorias
+  var anualPerenMin=0;
+  _MC_MONTHS.forEach(function(mk){
+    var md2=(ue&&ue[mk])||{};
+    Object.keys(md2).forEach(function(dd){
+      var dy=md2[dd];if(!dy||!dy.perenDur||dy.perenDur==='0:00')return;
+      if(dy.perenTipo==='cp')anualPerenMin-=_mcDuration(dy.perenDur);
+      else anualPerenMin+=_mcDuration(dy.perenDur);
+    });
+  });
   document.getElementById('mc-sum-total').textContent=totalMin>0?_mcFmtH(totalMin):'0h';
   document.getElementById('mc-sum-anual').textContent=anualMin>0?_mcFmtH(anualMin):'0h';
   document.getElementById('mc-sum-anual-cont').textContent=anualContMin>0?_mcFmtH(anualContMin):'0h';
-  document.getElementById('mc-sum-peren').textContent=perenMin>0?_mcFmtH(perenMin):'—';
+  document.getElementById('mc-sum-peren').textContent=perenMin!==0?_mcFmtH(Math.abs(perenMin))+(perenMin<0?' (compensado)':''):'—';
+  var apEl=document.getElementById('mc-sum-peren-anual');
+  if(apEl)apEl.textContent=anualPerenMin>0?_mcFmtH(anualPerenMin):anualPerenMin<0?_mcFmtH(Math.abs(anualPerenMin))+' comp.':'—';
 }
 
 // ─── Day edit modal ──────────────────────────────────────────────
@@ -2577,17 +2590,25 @@ function mcTipoSel(btn){
   var v=btn.dataset.tipo;
   var showTimes=document.getElementById('mc-edit-times');
   var showPeren=document.getElementById('mc-edit-peren');
-  if(v==='trabajado'){
+  var showHfun=document.getElementById('mc-edit-hfun');
+  if(v==='trabajado'||v==='curso'){
     showTimes.style.display='block';
     showPeren.style.display='none';
+    if(showHfun)showHfun.style.display='none';
   } else if(v==='perentorias'||v==='cp'){
     showTimes.style.display='none';
     showPeren.style.display='block';
+    if(showHfun)showHfun.style.display='none';
     var perenLbl=document.getElementById('mc-peren-label');
     if(perenLbl)perenLbl.textContent=v==='cp'?'Horas compensadas (banco)':'Horas de perentorias realizadas';
+  } else if(v==='hfun'){
+    showTimes.style.display='none';
+    showPeren.style.display='none';
+    if(showHfun)showHfun.style.display='block';
   } else {
     showTimes.style.display='none';
     showPeren.style.display='none';
+    if(showHfun)showHfun.style.display='none';
   }
 }
 
