@@ -1791,6 +1791,10 @@ function initGoogle(){
         style="flex:1;padding:9px 6px;border-radius:10px;border:none;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:rgba(200,168,75,.08);color:var(--gold)">
         💾 Restaurar backup
       </button>
+      <button id="ti-tab-export" onclick="tiSwitchTab('export')"
+        style="flex:1;padding:9px 6px;border-radius:10px;border:none;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:rgba(34,197,94,.08);color:#4ade80">
+        📤 Exportar
+      </button>
     </div>
   </div>
 
@@ -1857,6 +1861,20 @@ function initGoogle(){
       🗑️ Borrar todos los turnos importados
     </button>
   </div>
+
+  <!-- PANE Export -->
+  <div id="ti-pane-export" style="flex:1;overflow-y:auto;padding:0 16px 16px;display:none">
+    <div style="font-size:11px;color:var(--gray);margin-bottom:16px">Guarda una copia de todos tus datos: turnos, ajustes y configuración.</div>
+    <div id="ti-exp-preview" style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;font-size:11px;color:var(--gray);line-height:1.8">
+      <div style="color:var(--white);font-weight:700;margin-bottom:6px">📊 Datos disponibles</div>
+      <div id="ti-exp-summary">Calculando...</div>
+    </div>
+    <button onclick="tiDoExport()"
+      style="width:100%;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:12px;padding:14px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:#4ade80;cursor:pointer;margin-bottom:8px">
+      📤 Descargar backup (.json)
+    </button>
+    <div style="font-size:10px;color:var(--gray);text-align:center;opacity:.7">El archivo incluye todos los años disponibles y puede restaurarse desde la pestaña "Restaurar backup".</div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1864,11 +1882,19 @@ function initGoogle(){
 
 
 function tiSwitchTab(tab){
+  _tiActiveTab=tab;
   var isExcel=tab==='excel';
+  var isBackup=tab==='backup';
+  var isExport=tab==='export';
   document.getElementById('ti-pane-excel').style.display=isExcel?'block':'none';
-  document.getElementById('ti-pane-backup').style.display=isExcel?'none':'block';
+  document.getElementById('ti-pane-backup').style.display=isBackup?'block':'none';
+  var paneExp=document.getElementById('ti-pane-export');
+  if(paneExp)paneExp.style.display=isExport?'block':'none';
   var btnExcel=document.getElementById('ti-tab-excel');
   var btnBack=document.getElementById('ti-tab-backup');
+  var btnExp=document.getElementById('ti-tab-export');
+  if(btnExp){btnExp.style.background=isExport?'rgba(34,197,94,.2)':'rgba(34,197,94,.08)';btnExp.style.color='#4ade80';}
+  if(isExport)tiRefreshExportSummary();
   btnExcel.style.background=isExcel?'var(--white)':'var(--card2)';
   btnExcel.style.color=isExcel?'#0d1623':'var(--white)';
   btnBack.style.background=isExcel?'rgba(200,168,75,.08)':'var(--gold)';
@@ -1894,6 +1920,50 @@ function tiUpdateApplyBtn(){
   else{btn.disabled=true;btn.style.opacity='.4';}
 }
 
+
+function tiRefreshExportSummary(){
+  var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  var lines=[];
+  var year=new Date().getFullYear();
+  [year-1,year,year+1].forEach(function(y){
+    var raw;try{raw=localStorage.getItem('cta_ed_'+y);}catch(e){return;}
+    if(!raw)return;
+    var data;try{data=JSON.parse(raw);}catch(e){return;}
+    var found=months.filter(function(m){return data[m]&&Object.keys(data[m]).length>0;});
+    if(!found.length)return;
+    var total=0;found.forEach(function(m){total+=Object.keys(data[m]).length;});
+    lines.push('<b style="color:var(--white)">'+y+'</b> — '+found.length+' meses, '+total+' días');
+  });
+  var el=document.getElementById('ti-exp-summary');
+  if(el)el.innerHTML=lines.length?lines.join('<br>'):'<span style="color:rgba(255,255,255,.3)">No hay datos guardados</span>';
+}
+
+function tiDoExport(){
+  var backup={_version:'horarios_v1',_fecha:new Date().toISOString()};
+  var year=new Date().getFullYear();
+  var found=0;
+  [year-1,year,year+1].forEach(function(y){
+    var raw;try{raw=localStorage.getItem('cta_ed_'+y);}catch(e){return;}
+    if(raw){backup['cta_ed_'+y]=raw;found++;}
+  });
+  // Also backup config keys
+  for(var i=0;i<localStorage.length;i++){
+    var k=localStorage.key(i);
+    if(k&&(k.startsWith('cta_cfg_')||k.startsWith('cta_nom_')||k.startsWith('cta_cnt_'))){
+      try{backup[k]=localStorage.getItem(k);}catch(e){}
+    }
+  }
+  if(!found){alert('No hay datos de turnos para exportar.');return;}
+  var json=JSON.stringify(backup,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  var fecha=new Date().toISOString().slice(0,10);
+  a.download='horarios_backup_'+fecha+'.json';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},1000);
+}
 function tiResetData(){
   if(!confirm('¿Seguro que quieres borrar TODOS los turnos importados? Esta acción no se puede deshacer.'))return;
   var year=new Date().getFullYear();
