@@ -1754,10 +1754,75 @@ function initGoogle(){
   <button onclick="closeTrypImport()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--gray);cursor:pointer">
     Cancelar
   </button>
+
+  <!-- ─── Backup Dashboard ─── -->
+  <div style="margin-top:18px;border-top:1px solid rgba(255,255,255,.07);padding-top:16px">
+    <div style="font-size:11px;color:var(--gray);margin-bottom:10px">
+      📦 <b style="color:var(--white)">Cargar backup del Dashboard</b><br>
+      <span style="font-size:10px">Importa el fichero .json exportado desde el Dashboard de Nóminas</span>
+    </div>
+    <div onclick="document.getElementById('ti-backup-file').click()"
+      style="border:2px dashed rgba(255,255,255,.1);border-radius:12px;padding:14px;text-align:center;cursor:pointer;margin-bottom:8px">
+      <div style="font-size:22px;margin-bottom:4px">📂</div>
+      <div id="ti-backup-txt" style="font-size:12px;color:var(--gray)">Seleccionar backup (.json)</div>
+    </div>
+    <input type="file" id="ti-backup-file" accept=".json" style="display:none" onchange="tiLoadBackup(this.files[0])">
+    <div style="display:flex;gap:8px">
+      <select id="ti-backup-year" style="flex:1;background:#1f2d47;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#f0eee8;font-family:'Outfit',sans-serif;font-size:13px;padding:7px 10px">
+        <option value="2025">2025</option>
+        <option value="2026" selected>2026</option>
+        <option value="2027">2027</option>
+      </select>
+      <button id="ti-backup-btn" onclick="tiApplyBackup()" disabled
+        style="flex:2;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.3);border-radius:10px;padding:9px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--gold);cursor:pointer;opacity:.5">
+        ✅ Aplicar backup
+      </button>
+    </div>
+    <div id="ti-backup-preview" style="display:none;margin-top:8px;font-size:11px;color:var(--gray);background:rgba(0,0,0,.25);border-radius:8px;padding:8px;line-height:1.8"></div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
+
+// ─── Dashboard Backup Import ──────────────────────────────────────
+var _tiBackupData=null;
+function tiLoadBackup(file){
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      // Validate: should be {ENERO:{1:{tipo,...},...},...}
+      var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+      var found=months.filter(function(m){return data[m]&&typeof data[m]==='object';});
+      if(found.length===0){alert('El archivo no parece un backup válido del Dashboard.');return;}
+      _tiBackupData=data;
+      var totalDays=0;
+      found.forEach(function(m){totalDays+=Object.keys(data[m]).length;});
+      document.getElementById('ti-backup-txt').textContent='✅ '+file.name;
+      var btn=document.getElementById('ti-backup-btn');
+      btn.disabled=false;btn.style.opacity='1';
+      var prev=document.getElementById('ti-backup-preview');
+      prev.style.display='block';
+      prev.innerHTML='<b style="color:var(--white)">'+found.length+' meses</b> — '+totalDays+' días importados.<br>'+
+        found.map(function(m){return m.charAt(0)+m.slice(1).toLowerCase()+': '+Object.keys(data[m]).length+'d';}).join(' · ');
+    }catch(err){alert('Error leyendo el backup: '+err.message);}
+  };
+  reader.readAsText(file);
+}
+function tiApplyBackup(){
+  if(!_tiBackupData)return;
+  var year=document.getElementById('ti-backup-year').value;
+  try{localStorage.setItem('cta_ed_'+year,JSON.stringify(_tiBackupData));}
+  catch(e){alert('Error guardando: '+e.message);return;}
+  closeTrypImport();
+  setTimeout(function(){
+    alert('✅ Backup cargado para '+year+'.');
+    mcRender();
+    if(typeof initTurnoWidget==='function')initTurnoWidget();
+  },350);
+}
 // ═══════════════════════════════════════════════════════════════
 // TRYP IMPORT
 // ═══════════════════════════════════════════════════════════════
@@ -2172,14 +2237,17 @@ function mcRender(){
   for(var d=1;d<=daysInMonth;d++){
     var dayObj=mData[d];
     var tipo=dayObj?dayObj.tipo:'libre';
-    var cls='mc-day '+(tipo||'libre');
-    if(isThisMonth&&d===today.getDate())cls+=' hoy';
+    // cls now computed per-cell below (hasPeren check)
+    var hasPeren=dayObj&&dayObj.perenDur&&dayObj.perenDur!=='0:00';
+    var dispCls='mc-day '+(hasPeren?'perentorias':(tipo||'libre'));
+    if(isThisMonth&&d===today.getDate())dispCls+=' hoy';
     var timeLines='';
     if(dayObj&&dayObj.e1&&dayObj.s1){
       timeLines='<div class="mc-day-time">'+dayObj.e1+'-'+dayObj.s1+'</div>';
       if(dayObj.e2&&dayObj.s2)timeLines+='<div class="mc-day-time">'+dayObj.e2+'-'+dayObj.s2+'</div>';
     }
-    html+='<div class="'+cls+'" onclick="mcEditDay('+d+',event)">'+
+    if(hasPeren)timeLines+='<div class="mc-day-time">+'+dayObj.perenDur+'</div>';
+    html+='<div class="'+dispCls+'" onclick="mcEditDay('+d+',event)">'+
       '<div class="mc-day-num">'+d+'</div>'+
       timeLines+
       '</div>';
@@ -2277,9 +2345,10 @@ function mcEditDay(day,e){
   var dname=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][(new Date(_mcYear,_mcMonth,day).getDay()+6)%7];
   var title=dname+' '+day+' '+_MC_NAMES[_mcMonth];
   document.getElementById('mc-edit-title').textContent=title;
-  // Mark current tipo
+  // Mark current tipo — if day has perenDur, select perentorias btn
+  var displayTipo=(dayObj.perenDur&&dayObj.perenDur!=='0:00')?(dayObj.perenTipo||'perentorias'):dayObj.tipo;
   document.querySelectorAll('.mc-tipo-btn').forEach(function(b){
-    b.classList.toggle('sel',b.dataset.tipo===dayObj.tipo);
+    b.classList.toggle('sel',b.dataset.tipo===displayTipo);
   });
   // Show time inputs
   document.getElementById('mc-edit-e1').value=dayObj.e1||'';
@@ -2288,10 +2357,18 @@ function mcEditDay(day,e){
   document.getElementById('mc-edit-s2').value=dayObj.s2||'';
   // Populate peren total if editing a peren/cp day
   var ptEl=document.getElementById('mc-peren-total');
-  if(ptEl){
-    if((dayObj.tipo==='perentorias'||dayObj.tipo==='cp')&&dayObj.e1){
-      ptEl.value=dayObj.e1;
-    } else {ptEl.value='';}
+  if(ptEl)ptEl.value=dayObj.perenDur||'';
+  // Auto-show correct section
+  var showTimesEl=document.getElementById('mc-edit-times');
+  var showPerenEl=document.getElementById('mc-edit-peren');
+  if(displayTipo==='perentorias'||displayTipo==='cp'){
+    showTimesEl.style.display='none'; showPerenEl.style.display='block';
+    var pl=document.getElementById('mc-peren-label');
+    if(pl)pl.textContent=displayTipo==='cp'?'Horas compensadas (banco)':'Horas de perentorias realizadas';
+  } else if(displayTipo==='trabajado'){
+    showTimesEl.style.display='block'; showPerenEl.style.display='none';
+  } else {
+    showTimesEl.style.display='none'; showPerenEl.style.display='none';
   }
   document.getElementById('mc-edit-bg').style.display='block';
   setTimeout(function(){document.getElementById('mc-edit-panel').classList.add('open');},10);
@@ -2310,16 +2387,25 @@ function mcEditSave(){
     s1=document.getElementById('mc-edit-s1').value.trim();
     e2=document.getElementById('mc-edit-e2').value.trim();
     s2=document.getElementById('mc-edit-s2').value.trim();
-  } else if(tipoVal==='perentorias'||tipoVal==='cp'){
-    // Store duration as e1 field in hh:mm format
-    var perenTxt=document.getElementById('mc-peren-total').value.trim()||'0:00';
-    e1=perenTxt; s1=''; // s1 empty signals duration-mode
   }
   var year=_mcEditYear,month=_MC_MONTHS[_mcEditMonth],day=_mcEditDay;
   var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(er){raw=null;}
   var ue;try{ue=raw?JSON.parse(raw):{};}catch(er){ue={};}
   if(!ue[month])ue[month]={};
-  ue[month][day]={tipo:tipoVal,e1:e1,s1:s1,e2:e2,s2:s2,total:0};
+  var existingDay=ue[month][day]||{};
+  if(tipoVal==='perentorias'||tipoVal==='cp'){
+    // Overlay on existing day: keep shift, add perenDur
+    var perenTxt=document.getElementById('mc-peren-total').value.trim()||'0:00';
+    ue[month][day]=Object.assign({},existingDay,{
+      perenDur:perenTxt,
+      perenTipo:tipoVal // 'perentorias' or 'cp'
+    });
+    // If day was libre, mark as trabajado so shift shows
+    if(!ue[month][day].tipo||ue[month][day].tipo==='libre')ue[month][day].tipo='trabajado';
+  } else {
+    // Normal day: clear any peren overlay
+    ue[month][day]={tipo:tipoVal,e1:e1,s1:s1,e2:e2,s2:s2,total:existingDay.total||0};
+  }
   try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(er){alert('Error: '+er.message);}
   mcEditClose();
   setTimeout(function(){mcRender();if(typeof initTurnoWidget==='function')initTurnoWidget();},290);
@@ -2386,15 +2472,6 @@ function mcTipoSel(btn){
   </div>
   <div class="mc-edit-peren" id="mc-edit-peren" style="display:none;margin-bottom:12px">
     <div style="font-size:11px;color:var(--gray);margin-bottom:8px" id="mc-peren-label">Horas de perentorias realizadas</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px" id="mc-peren-quick">
-      <button class="mc-peren-chip" onclick="mcAddPeren(15)">+15m</button>
-      <button class="mc-peren-chip" onclick="mcAddPeren(25)">+25m</button>
-      <button class="mc-peren-chip" onclick="mcAddPeren(30)">+30m</button>
-      <button class="mc-peren-chip" onclick="mcAddPeren(50)">+50m</button>
-      <button class="mc-peren-chip" onclick="mcAddPeren(60)">+1h</button>
-      <button class="mc-peren-chip" onclick="mcAddPeren(90)">+1h30m</button>
-      <button class="mc-peren-chip" onclick="mcAddPeren(120)">+2h</button>
-    </div>
     <div style="display:flex;align-items:center;gap:10px">
       <div style="flex:1">
         <label style="font-size:10px;color:var(--gray);display:block;margin-bottom:4px">Total (hh:mm)</label>
