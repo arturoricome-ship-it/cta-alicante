@@ -1715,7 +1715,7 @@ function initGoogle(){
 
 <!-- ─── TRYP IMPORT MODAL ──────────────────────────────────── -->
 <div id="tryp-import-bg" onclick="closeTrypImport()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;backdrop-filter:blur(6px)"></div>
-<div id="tryp-import-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:601;max-height:92vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
+<div id="tryp-import-panel" style="display:none;position:fixed;bottom:57px;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:601;max-height:calc(92vh - 57px);display:flex;flex-direction:column;transform:translateY(120%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
   <!-- Handle + tabs -->
   <div style="padding:14px 16px 0;flex-shrink:0">
     <div style="width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 14px"></div>
@@ -1812,12 +1812,12 @@ var _tiActiveTab='excel';
 function tiUpdateApplyBtn(){
   var btn=document.getElementById('ti-apply-btn');
   if(!btn)return;
-  var ready=_tiActiveTab==='excel'?(!document.getElementById('ti-apply-btn').disabled):(_tiBackupData!==null);
+  var ready=_tiActiveTab==='excel'?(!document.getElementById('ti-apply-btn').disabled):(_tiBackupRaw!==null);
   // re-enable based on parsed data
   if(_tiActiveTab==='excel'){
     ready=(_tiParsed!==null);
   } else {
-    ready=(_tiBackupData!==null);
+    ready=(_tiBackupRaw!==null);
     if(ready){btn.disabled=false;btn.style.opacity='1';}
     else{btn.disabled=true;btn.style.opacity='.4';}
     return;
@@ -1830,93 +1830,89 @@ function tiApplyActive(){
   else tiApply();
 }
 // ─── Dashboard Backup Import ──────────────────────────────────────
-var _tiBackupData=null;
+var _tiBackupRaw=null; // full parsed top-level backup object
+
 function tiLoadBackup(file){
   if(!file)return;
   var reader=new FileReader();
   reader.onload=function(ev){
     try{
       var raw=ev.target.result;
-      var top=JSON.parse(raw);
-      var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-      var edData=null,edYear=null;
+      if(raw.charCodeAt(0)===0xFEFF)raw=raw.slice(1); // strip BOM
+      var top;
+      try{top=JSON.parse(raw);}catch(je){alert('El archivo no es un JSON válido.\n'+je.message);return;}
 
-      // Strategy 1: horarios_v1 backup → cta_ed_XXXX is a JSON string inside
-      if(top._version){
-        var keys=Object.keys(top);
-        for(var ki=0;ki<keys.length;ki++){
-          var k=keys[ki];
-          if(k.indexOf('cta_ed_')===0){
-            var val=top[k];
-            // val may be a string (localStorage.getItem) or already parsed object
-            if(typeof val==='string'){try{val=JSON.parse(val);}catch(pe){continue;}}
-            if(val&&typeof val==='object'){
-              edData=val;
-              edYear=parseInt(k.replace('cta_ed_',''))||null;
-              break;
-            }
-          }
-        }
-      }
-
-      // Strategy 2: top-level IS the months object
-      if(!edData){
-        var direct=months.filter(function(m){return top[m]&&typeof top[m]==='object';});
-        if(direct.length>0){edData=top;}
-      }
-
-      // Strategy 3: scan all keys for any object containing month keys
-      if(!edData){
-        var keys2=Object.keys(top);
-        for(var ki2=0;ki2<keys2.length;ki2++){
-          var v=top[keys2[ki2]];
-          if(typeof v==='string'){try{v=JSON.parse(v);}catch(e2){continue;}}
-          if(v&&typeof v==='object'){
-            var mfound=months.filter(function(m){return v[m]&&typeof v[m]==='object';});
-            if(mfound.length>0){edData=v;break;}
-          }
-        }
-      }
-
-      if(!edData){
-        alert('No se encontraron datos de turnos en el archivo.\nAsegúrate de que es el backup exportado desde el Dashboard (botón 💾 Exportar datos).');
+      // Must have at least one cta_ed_XXXX key
+      var edKeys=Object.keys(top).filter(function(k){return /^cta_ed_\d{4}$/.test(k);});
+      if(edKeys.length===0){
+        alert('No se encontraron datos de calendario en el archivo.\nClaves encontradas: '+Object.keys(top).join(', '));
         return;
       }
 
-      var found=months.filter(function(m){return edData[m]&&typeof edData[m]==='object';});
-      _tiBackupData=edData;
+      _tiBackupRaw=top;
 
-      if(edYear){
-        var ySel=document.getElementById('ti-backup-year');
-        if(ySel)Array.from(ySel.options).forEach(function(o){o.selected=(parseInt(o.value)===edYear);});
+      // Populate year selector with available years from backup
+      var years=edKeys.map(function(k){return parseInt(k.replace('cta_ed_',''));}).sort();
+      var ySel=document.getElementById('ti-backup-year');
+      if(ySel){
+        // Clear and repopulate with available years
+        ySel.innerHTML='';
+        years.forEach(function(y){
+          var opt=document.createElement('option');
+          opt.value=y;opt.textContent=y;
+          if(y===2026)opt.selected=true;
+          ySel.appendChild(opt);
+        });
       }
 
-      var totalDays=0;
-      found.forEach(function(m){totalDays+=Object.keys(edData[m]).length;});
+      // Preview: show all available years with month summary
+      var lines=[];
+      years.forEach(function(y){
+        var key='cta_ed_'+y;
+        var parsed;
+        try{parsed=JSON.parse(top[key]);}catch(e){return;}
+        var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+        var found=months.filter(function(m){return parsed[m]&&typeof parsed[m]==='object'&&Object.keys(parsed[m]).length>0;});
+        var total=0;found.forEach(function(m){total+=Object.keys(parsed[m]).length;});
+        lines.push('<b style="color:var(--white)">'+y+'</b>: '+found.length+' meses · '+total+' días<br>'+
+          found.map(function(m){return m.charAt(0)+m.slice(1).toLowerCase()+':'+Object.keys(parsed[m]).length+'d';}).join(' '));
+      });
+
       document.getElementById('ti-backup-txt').textContent='✅ '+file.name;
-      tiUpdateApplyBtn();
       var prev=document.getElementById('ti-backup-preview');
       prev.style.display='block';
-      prev.innerHTML='<b style="color:var(--white)">'+found.length+' meses · '+totalDays+' días</b>'+(edYear?' ('+edYear+')':'')+'<br>'+
-        found.map(function(m){return m.charAt(0)+m.slice(1).toLowerCase()+': '+Object.keys(edData[m]).length+'d';}).join(' · ');
+      prev.innerHTML=lines.join('<hr style="border-color:rgba(255,255,255,.07);margin:6px 0">');
+
+      tiUpdateApplyBtn();
     }catch(err){
-      alert('Error leyendo el archivo: '+err.message);
+      alert('Error: '+err.message);
     }
   };
   reader.readAsText(file,'UTF-8');
 }
+
 function tiApplyBackup(){
-  if(!_tiBackupData)return;
+  if(!_tiBackupRaw)return;
   var year=document.getElementById('ti-backup-year').value;
-  try{localStorage.setItem('cta_ed_'+year,JSON.stringify(_tiBackupData));}
+  var key='cta_ed_'+year;
+  var rawVal=_tiBackupRaw[key];
+  if(!rawVal){alert('No hay datos para el año '+year+' en este backup.');return;}
+  var edData;
+  try{edData=typeof rawVal==='string'?JSON.parse(rawVal):rawVal;}
+  catch(e){alert('Error leyendo datos del año '+year+': '+e.message);return;}
+  var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  var found=months.filter(function(m){return edData[m]&&typeof edData[m]==='object';});
+  if(found.length===0){alert('El año '+year+' no tiene meses con datos.');return;}
+  try{localStorage.setItem('cta_ed_'+year,JSON.stringify(edData));}
   catch(e){alert('Error guardando: '+e.message);return;}
   closeTrypImport();
   setTimeout(function(){
-    alert('✅ Backup del Dashboard cargado para '+year+'.');
-    mcRender();
+    alert('✅ Backup '+year+' cargado: '+found.length+' meses.');
+    if(typeof mcRender==='function')mcRender();
     if(typeof initTurnoWidget==='function')initTurnoWidget();
   },350);
 }
+
 // ═══════════════════════════════════════════════════════════════
 // TRYP IMPORT
 // ═══════════════════════════════════════════════════════════════
@@ -1933,6 +1929,7 @@ var _NOTA_TIPO={
 
 function openTrypImport(){
   _tiParsed=null;
+  _tiBackupRaw=null;
   document.getElementById('ti-drop-txt').textContent='Toca para seleccionar el archivo .xlsx del Tryp';
   document.getElementById('ti-preview').style.display='none';
   document.getElementById('ti-preview').innerHTML='';
