@@ -328,6 +328,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-stat{background:var(--card2);border-radius:10px;padding:10px 12px;border:1px solid var(--border)}
 .mc-stat.blue{border-color:rgba(96,165,250,.2)}.mc-stat.blue .mc-stat-val{color:#60a5fa}
 .mc-stat.gold{border-color:rgba(200,168,75,.2)}.mc-stat.gold .mc-stat-val{color:var(--gold)}
+.mc-stat.green{border-color:rgba(34,197,94,.2)}.mc-stat.green .mc-stat-val{color:#4ade80}
 .mc-stat.peren{border-color:rgba(251,146,60,.25);background:rgba(251,146,60,.05)}
 .mc-stat-val{font-size:18px;font-weight:700;color:#60a5fa;line-height:1;margin-bottom:2px}
 .mc-stat.peren .mc-stat-val{color:#fb923c}
@@ -451,10 +452,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div id="mc-summary" style="display:none;margin-top:4px;margin-bottom:16px;background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border)">
     <div style="font-size:10px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px" id="mc-sum-label">Resumen mes</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div class="mc-stat blue"><div class="mc-stat-val" id="mc-sum-total">—</div><div class="mc-stat-lbl">Horas totales mes</div></div>
-      <div class="mc-stat gold"><div class="mc-stat-val" id="mc-sum-contador">—</div><div class="mc-stat-lbl">Contador mes</div></div>
+      <div class="mc-stat gold"><div class="mc-stat-val" id="mc-sum-total">—</div><div class="mc-stat-lbl">Horas totales mes</div></div>
       <div class="mc-stat blue"><div class="mc-stat-val" id="mc-sum-anual">—</div><div class="mc-stat-lbl">Horas totales año</div></div>
-      <div class="mc-stat gold"><div class="mc-stat-val" id="mc-sum-anual-cont">—</div><div class="mc-stat-lbl">Contador anual</div></div>
+      <div class="mc-stat green" style="grid-column:span 2"><div class="mc-stat-val" id="mc-sum-anual-cont">—</div><div class="mc-stat-lbl">Contador anual</div></div>
       <div class="mc-stat peren" style="grid-column:span 2"><div class="mc-stat-val" id="mc-sum-peren">—</div><div class="mc-stat-lbl">Perentorias mes</div></div>
     </div>
   </div>
@@ -2392,42 +2392,34 @@ function mcRenderSummary(ue){
   // Current month
   var mKey=_MC_MONTHS[_mcMonth];
   var mData=(ue&&ue[mKey])||{};
-  var totalMin=0,contadorMin=0,perenMin=0;
-  // No-counter types (festivo, vacaciones, hl, hlp, baja, rm, bp, cp, hfun, h6, libre)
-  var noCounter=['festivo','vacaciones','hl','hlp','baja','rm','bp','cp','hfun','h6','libre','nh'];
+  var totalMin=0,anualContMin=0,perenMin=0;
+  // Rules:
+  // totales mes:  trabajado, vacaciones, festivo, hl, hlp, baja, rm, hfun
+  // totales año:  same
+  // contador año: trabajado, hl, hlp, baja, rm
+  // perentorias:  perenDur overlay (tracked separately)
+  var totalTypes=['trabajado','vacaciones','festivo','hl','hlp','baja','rm','hfun'];
+  var contTypes= ['trabajado','hl','hlp','baja','rm'];
+  var anualMin=0;
+
   Object.keys(mData).forEach(function(d){
     var day=mData[d];
     if(!day||!day.tipo)return;
     var mins=_mcMin(day.e1,day.s1)+_mcMin(day.e2,day.s2);
-    // Perentorias overlay (stored as perenDur on any day type)
-    if(day.perenDur&&day.perenDur!=='0:00'){
-      perenMin+=_mcDuration(day.perenDur);
-    }
-    // Use day.total (pre-computed) as fallback when e1/s1 not set (e.g. HL, festivo from TRYP)
-    var effectiveMins=mins>0?mins:(day.total?Math.round(day.total*60):0);
-    var totalTypes=['trabajado','hl','hlp','vacaciones','festivo','h6','curso'];
-    if(totalTypes.indexOf(day.tipo)>=0){
-      totalMin+=effectiveMins;
-    }
-    var contTypes=['trabajado','hl','hlp','h6','curso'];
-    if(contTypes.indexOf(day.tipo)>=0)contadorMin+=effectiveMins;
-    // baja/rm/bp/cp/libre/nh → 0h
+    var eff=mins>0?mins:(day.total?Math.round(day.total*60):0);
+    if(day.perenDur&&day.perenDur!=='0:00') perenMin+=_mcDuration(day.perenDur);
+    if(totalTypes.indexOf(day.tipo)>=0) totalMin+=eff;
   });
-  // Annual total: all months up to current year
-  var anualMin=0;
-  var anualTypes=['trabajado','hl','hlp','vacaciones','festivo','h6','curso'];
-  var anualContTypes=['trabajado','hl','hlp','h6','curso'];
-  var anualContMin=0;
+
   _MC_MONTHS.forEach(function(mk){
     var md=(ue&&ue[mk])||{};
     Object.keys(md).forEach(function(d){
       var day=md[d];
       if(!day||!day.tipo)return;
       var mins=_mcMin(day.e1,day.s1)+_mcMin(day.e2,day.s2);
-      var effMins=mins>0?mins:(day.total?Math.round(day.total*60):0);
-      if(anualTypes.indexOf(day.tipo)>=0)anualMin+=effMins;
-      if(anualContTypes.indexOf(day.tipo)>=0)anualContMin+=effMins;
-      // perentorias excluidas del contador anual
+      var eff=mins>0?mins:(day.total?Math.round(day.total*60):0);
+      if(totalTypes.indexOf(day.tipo)>=0) anualMin+=eff;
+      if(contTypes.indexOf(day.tipo)>=0) anualContMin+=eff;
     });
   });
   var hasData=totalMin>0||perenMin>0;
@@ -2435,11 +2427,8 @@ function mcRenderSummary(ue){
   var names=_MC_NAMES;
   document.getElementById('mc-sum-label').textContent='Resumen — '+names[_mcMonth]+' '+_mcYear;
   document.getElementById('mc-sum-total').textContent=totalMin>0?_mcFmtH(totalMin):'0h';
-  document.getElementById('mc-sum-contador').textContent=contadorMin>0?_mcFmtH(contadorMin):'0h';
   document.getElementById('mc-sum-anual').textContent=anualMin>0?_mcFmtH(anualMin):'0h';
   document.getElementById('mc-sum-anual-cont').textContent=anualContMin>0?_mcFmtH(anualContMin):'0h';
-  var acEl=document.getElementById('mc-sum-anual-cont');
-  if(acEl)acEl.textContent=anualContMin>0?_mcFmtH(anualContMin):'0h';
   document.getElementById('mc-sum-peren').textContent=perenMin>0?_mcFmtH(perenMin):'—';
 }
 
