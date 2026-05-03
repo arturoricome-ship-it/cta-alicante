@@ -328,7 +328,6 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-stat{background:var(--card2);border-radius:10px;padding:10px 12px;border:1px solid var(--border)}
 .mc-stat.blue{border-color:rgba(96,165,250,.2)}.mc-stat.blue .mc-stat-val{color:#60a5fa}
 .mc-stat.gold{border-color:rgba(200,168,75,.2)}.mc-stat.gold .mc-stat-val{color:var(--gold)}
-.mc-stat.green{border-color:rgba(34,197,94,.2)}.mc-stat.green .mc-stat-val{color:#4ade80}
 .mc-stat.peren{border-color:rgba(251,146,60,.25);background:rgba(251,146,60,.05)}
 .mc-stat-val{font-size:18px;font-weight:700;color:#60a5fa;line-height:1;margin-bottom:2px}
 .mc-stat.peren .mc-stat-val{color:#fb923c}
@@ -452,9 +451,10 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div id="mc-summary" style="display:none;margin-top:4px;margin-bottom:16px;background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border)">
     <div style="font-size:10px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px" id="mc-sum-label">Resumen mes</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div class="mc-stat gold"><div class="mc-stat-val" id="mc-sum-total">—</div><div class="mc-stat-lbl">Horas totales mes</div></div>
+      <div class="mc-stat blue"><div class="mc-stat-val" id="mc-sum-total">—</div><div class="mc-stat-lbl">Horas totales mes</div></div>
+      <div class="mc-stat gold"><div class="mc-stat-val" id="mc-sum-contador">—</div><div class="mc-stat-lbl">Contador mes</div></div>
       <div class="mc-stat blue"><div class="mc-stat-val" id="mc-sum-anual">—</div><div class="mc-stat-lbl">Horas totales año</div></div>
-      <div class="mc-stat green" style="grid-column:span 2"><div class="mc-stat-val" id="mc-sum-anual-cont">—</div><div class="mc-stat-lbl">Contador anual</div></div>
+      <div class="mc-stat gold"><div class="mc-stat-val" id="mc-sum-anual-cont">—</div><div class="mc-stat-lbl">Contador anual</div></div>
       <div class="mc-stat peren" style="grid-column:span 2"><div class="mc-stat-val" id="mc-sum-peren">—</div><div class="mc-stat-lbl">Perentorias mes</div></div>
     </div>
   </div>
@@ -1715,7 +1715,7 @@ function initGoogle(){
 
 <!-- ─── TRYP IMPORT MODAL ──────────────────────────────────── -->
 <div id="tryp-import-bg" onclick="closeTrypImport()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;backdrop-filter:blur(6px)"></div>
-<div id="tryp-import-panel" style="display:none;position:fixed;bottom:57px;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:601;max-height:calc(92vh - 57px);display:flex;flex-direction:column;transform:translateY(120%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
+<div id="tryp-import-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:601;max-height:92vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
   <!-- Handle + tabs -->
   <div style="padding:14px 16px 0;flex-shrink:0">
     <div style="width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 14px"></div>
@@ -1812,12 +1812,12 @@ var _tiActiveTab='excel';
 function tiUpdateApplyBtn(){
   var btn=document.getElementById('ti-apply-btn');
   if(!btn)return;
-  var ready=_tiActiveTab==='excel'?(!document.getElementById('ti-apply-btn').disabled):(_tiBackupRaw!==null);
+  var ready=_tiActiveTab==='excel'?(!document.getElementById('ti-apply-btn').disabled):(_tiBackupData!==null);
   // re-enable based on parsed data
   if(_tiActiveTab==='excel'){
     ready=(_tiParsed!==null);
   } else {
-    ready=(_tiBackupRaw!==null);
+    ready=(_tiBackupData!==null);
     if(ready){btn.disabled=false;btn.style.opacity='1';}
     else{btn.disabled=true;btn.style.opacity='.4';}
     return;
@@ -1830,94 +1830,93 @@ function tiApplyActive(){
   else tiApply();
 }
 // ─── Dashboard Backup Import ──────────────────────────────────────
-var _tiBackupRaw=null; // full parsed top-level backup object
-
+var _tiBackupData=null;
 function tiLoadBackup(file){
   if(!file)return;
   var reader=new FileReader();
   reader.onload=function(ev){
     try{
       var raw=ev.target.result;
-      if(raw.charCodeAt(0)===0xFEFF)raw=raw.slice(1); // strip BOM
-      var top;
-      try{top=JSON.parse(raw);}catch(je){alert('El archivo no es un JSON válido.\n'+je.message);return;}
+      var top=JSON.parse(raw);
+      var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+      var edData=null,edYear=null;
 
-      // Must have at least one cta_ed_XXXX key
-      var edKeys=Object.keys(top).filter(function(k){return /^cta_ed_\d{4}$/.test(k);});
-      if(edKeys.length===0){
-        alert('No se encontraron datos de calendario en el archivo.\nClaves encontradas: '+Object.keys(top).join(', '));
+      // Strategy 1: horarios_v1 backup → cta_ed_XXXX is a JSON string inside
+      if(top._version){
+        var keys=Object.keys(top);
+        for(var ki=0;ki<keys.length;ki++){
+          var k=keys[ki];
+          if(k.indexOf('cta_ed_')===0){
+            var val=top[k];
+            // val may be a string (localStorage.getItem) or already parsed object
+            if(typeof val==='string'){try{val=JSON.parse(val);}catch(pe){continue;}}
+            if(val&&typeof val==='object'){
+              edData=val;
+              edYear=parseInt(k.replace('cta_ed_',''))||null;
+              break;
+            }
+          }
+        }
+      }
+
+      // Strategy 2: top-level IS the months object
+      if(!edData){
+        var direct=months.filter(function(m){return top[m]&&typeof top[m]==='object';});
+        if(direct.length>0){edData=top;}
+      }
+
+      // Strategy 3: scan all keys for any object containing month keys
+      if(!edData){
+        var keys2=Object.keys(top);
+        for(var ki2=0;ki2<keys2.length;ki2++){
+          var v=top[keys2[ki2]];
+          if(typeof v==='string'){try{v=JSON.parse(v);}catch(e2){continue;}}
+          if(v&&typeof v==='object'){
+            var mfound=months.filter(function(m){return v[m]&&typeof v[m]==='object';});
+            if(mfound.length>0){edData=v;break;}
+          }
+        }
+      }
+
+      if(!edData){
+        alert('No se encontraron datos de turnos en el archivo.\nAsegúrate de que es el backup exportado desde el Dashboard (botón 💾 Exportar datos).');
         return;
       }
 
-      _tiBackupRaw=top;
+      var found=months.filter(function(m){return edData[m]&&typeof edData[m]==='object';});
+      _tiBackupData=edData;
 
-      // Populate year selector with available years from backup
-      var years=edKeys.map(function(k){return parseInt(k.replace('cta_ed_',''));}).sort();
-      var ySel=document.getElementById('ti-backup-year');
-      if(ySel){
-        // Clear and repopulate with available years
-        ySel.innerHTML='';
-        years.forEach(function(y){
-          var opt=document.createElement('option');
-          opt.value=y;opt.textContent=y;
-          if(y===2026)opt.selected=true;
-          ySel.appendChild(opt);
-        });
+      if(edYear){
+        var ySel=document.getElementById('ti-backup-year');
+        if(ySel)Array.from(ySel.options).forEach(function(o){o.selected=(parseInt(o.value)===edYear);});
       }
 
-      // Only use the latest year available
-      var latestYear=years[years.length-1];
-      var ySel=document.getElementById('ti-backup-year');
-      if(ySel){
-        ySel.innerHTML='';
-        var opt=document.createElement('option');
-        opt.value=latestYear;opt.textContent=latestYear;opt.selected=true;
-        ySel.appendChild(opt);
-      }
-
-      var key='cta_ed_'+latestYear;
-      var parsed;
-      try{parsed=JSON.parse(top[key]);}catch(e){alert('Error leyendo datos: '+e.message);return;}
-      var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-      var found=months.filter(function(m){return parsed[m]&&typeof parsed[m]==='object'&&Object.keys(parsed[m]).length>0;});
-      var total=0;found.forEach(function(m){total+=Object.keys(parsed[m]).length;});
-
+      var totalDays=0;
+      found.forEach(function(m){totalDays+=Object.keys(edData[m]).length;});
       document.getElementById('ti-backup-txt').textContent='✅ '+file.name;
+      tiUpdateApplyBtn();
       var prev=document.getElementById('ti-backup-preview');
       prev.style.display='block';
-      prev.innerHTML='<b style="color:var(--white)">'+latestYear+': '+found.length+' meses · '+total+' días</b><br>'+
-        found.map(function(m){return m.charAt(0)+m.slice(1).toLowerCase()+': '+Object.keys(parsed[m]).length+'d';}).join(' · ');
-
-      tiUpdateApplyBtn();
+      prev.innerHTML='<b style="color:var(--white)">'+found.length+' meses · '+totalDays+' días</b>'+(edYear?' ('+edYear+')':'')+'<br>'+
+        found.map(function(m){return m.charAt(0)+m.slice(1).toLowerCase()+': '+Object.keys(edData[m]).length+'d';}).join(' · ');
     }catch(err){
-      alert('Error: '+err.message);
+      alert('Error leyendo el archivo: '+err.message);
     }
   };
   reader.readAsText(file,'UTF-8');
 }
-
 function tiApplyBackup(){
-  if(!_tiBackupRaw)return;
+  if(!_tiBackupData)return;
   var year=document.getElementById('ti-backup-year').value;
-  var key='cta_ed_'+year;
-  var rawVal=_tiBackupRaw[key];
-  if(!rawVal){alert('No hay datos para el año '+year+' en este backup.');return;}
-  var edData;
-  try{edData=typeof rawVal==='string'?JSON.parse(rawVal):rawVal;}
-  catch(e){alert('Error leyendo datos del año '+year+': '+e.message);return;}
-  var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-  var found=months.filter(function(m){return edData[m]&&typeof edData[m]==='object';});
-  if(found.length===0){alert('El año '+year+' no tiene meses con datos.');return;}
-  try{localStorage.setItem('cta_ed_'+year,JSON.stringify(edData));}
+  try{localStorage.setItem('cta_ed_'+year,JSON.stringify(_tiBackupData));}
   catch(e){alert('Error guardando: '+e.message);return;}
   closeTrypImport();
   setTimeout(function(){
-    alert('✅ Backup '+year+' cargado: '+found.length+' meses.');
-    if(typeof mcRender==='function')mcRender();
+    alert('✅ Backup del Dashboard cargado para '+year+'.');
+    mcRender();
     if(typeof initTurnoWidget==='function')initTurnoWidget();
   },350);
 }
-
 // ═══════════════════════════════════════════════════════════════
 // TRYP IMPORT
 // ═══════════════════════════════════════════════════════════════
@@ -1934,7 +1933,6 @@ var _NOTA_TIPO={
 
 function openTrypImport(){
   _tiParsed=null;
-  _tiBackupRaw=null;
   document.getElementById('ti-drop-txt').textContent='Toca para seleccionar el archivo .xlsx del Tryp';
   document.getElementById('ti-preview').style.display='none';
   document.getElementById('ti-preview').innerHTML='';
@@ -2089,6 +2087,8 @@ function tiApply(){
 // ═══════════════════════════════════════════════════════════════
 // MINI CALENDARIO — en pestaña Afiliate
 // ═══════════════════════════════════════════════════════════════
+var _mcYear=new Date().getFullYear();
+var _mcMonth=new Date().getMonth(); // 0-based
 var _MC_ICO={trabajado:'⚙️',festivo:'🎉',hl:'🤝',hlp:'🤝',h6:'📋',curso:'📚',vacaciones:'🏖️',perentorias:'⏱️',hfun:'🏛️',baja:'🏥',rm:'🔄',nh:'🌙',bp:'💆',libre:'🌙'};
 var _MC_MNAMES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var _MC_MONTHS_KEY=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
@@ -2105,7 +2105,27 @@ function mcGetData(year,monthIdx){
 
 // mcRender already hooked into switchTab directly
 
-
+// ─── Swipe calendario ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',function(){
+  var cal=document.getElementById('mini-cal');
+  if(!cal)return;
+  var _sx=0,_sy=0;
+  cal.addEventListener('touchstart',function(e){
+    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;
+  },{passive:true});
+  cal.addEventListener('touchmove',function(e){
+    var dx=Math.abs(e.touches[0].clientX-_sx);
+    var dy=Math.abs(e.touches[0].clientY-_sy);
+    if(dx>dy&&dx>8)e.preventDefault();
+  },{passive:false});
+  cal.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-_sx;
+    var dy=Math.abs(e.changedTouches[0].clientY-_sy);
+    if(Math.abs(dx)>45&&dy<80){
+      if(dx<0)mcNext();else mcPrev();
+    }
+  },{passive:true});
+});
 
 </script>
 
@@ -2176,7 +2196,7 @@ function tiHandleFile(file){
       var data=new Uint8Array(ev.target.result);
       var wb=XLSX.read(data,{type:'array',cellText:true,cellStyles:true});
       var sheet=wb.Sheets['Calendario empleado']||wb.Sheets[wb.SheetNames[0]];
-      tiParseSheet(sheet,file.name);
+      _tiParseSheet(sheet,file.name);
     }catch(err){alert('Error al leer el archivo: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
@@ -2218,7 +2238,53 @@ function _tiParseCell(raw){
   return{tipo:tipo,e1:times[0],s1:'',e2:'',s2:'',perenMode:perenMode};
 }
 function _tiToM(t){if(!t)return null;var p=t.split(':');var h=+p[0],m=+p[1];if(isNaN(h)||isNaN(m))return null;return h*60+m;}
-
+function _tiParseSheet(sheet,filename){
+  var result={},stats=[];
+  for(var row=3;row<=14;row++){
+    var monthRaw=_tiCellVal(sheet,row,0);if(!monthRaw)continue;
+    var monthKey=_TI_MONTHS_MAP[monthRaw.toLowerCase()];if(!monthKey)continue;
+    var days={},cW=0,cL=0;
+    for(var col=1;col<=31;col++){
+      var raw=_tiCellVal(sheet,row,col);
+      var colorTipo=_tiColorToTipo(sheet,row,col);
+      var isEmpty=!raw||raw.replace(/\s/g,'').replace(/\n/g,'').length===0;
+      if(isEmpty){
+        if(colorTipo){
+          days[col]={tipo:colorTipo,e1:'',s1:'',e2:'',s2:'',total:0};
+          if(colorTipo==='vacaciones')cL++;else cW++;
+        }
+        continue;
+      }
+      var parsed=_tiParseCell(raw);
+      if(!parsed)continue;
+      if(colorTipo&&parsed.tipo==='trabajado')parsed.tipo=colorTipo;
+      if(parsed.tipo==='libre')cL++;else cW++;
+      var tot=0;
+      if(parsed.e1&&parsed.s1){var a=_tiToM(parsed.e1),b=_tiToM(parsed.s1);if(a!==null&&b!==null){tot+=Math.round((b<a?b+1440-a:b-a)/60*100)/100;}}
+      if(parsed.e2&&parsed.s2){var a2=_tiToM(parsed.e2),b2=_tiToM(parsed.s2);if(a2!==null&&b2!==null){tot+=Math.round((b2<a2?b2+1440-a2:b2-a2)/60*100)/100;}}
+      parsed.total=tot;
+      days[col]=parsed;
+    }
+    result[monthKey]=days;
+    stats.push({month:monthKey,work:cW,libre:cL,hasData:cW>0||cL>0});
+  }
+  _tiParsed={data:result,stats:stats,filename:filename};
+  var skip=document.getElementById('ti-skip-empty').checked;
+  var prev=document.getElementById('ti-preview');
+  prev.style.display='block';
+  var html='<strong style="color:var(--white)">'+filename+'</strong><br><br>';
+  stats.forEach(function(s){
+    var omit=skip&&!s.hasData;
+    html+='<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.05)">'+
+      '<span>'+s.month+'</span>'+
+      (omit?'<span style="color:var(--gray)">Sin datos</span>':
+             '<span style="color:#4ade80">'+s.work+' trabajo · <span style="color:#38bdf8">'+s.libre+' libres</span></span>')+
+      '</div>';
+  });
+  prev.innerHTML=html;
+  _tiParsed=parsed;tiUpdateApplyBtn();
+  document.getElementById('ti-drop-txt').textContent='✅ '+filename;
+}
 function tiApply(){
   if(!_tiParsed)return;
   var overwrite=document.getElementById('ti-overwrite').checked;
@@ -2326,34 +2392,42 @@ function mcRenderSummary(ue){
   // Current month
   var mKey=_MC_MONTHS[_mcMonth];
   var mData=(ue&&ue[mKey])||{};
-  var totalMin=0,anualContMin=0,perenMin=0;
-  // Rules:
-  // totales mes:  trabajado, vacaciones, festivo, hl, hlp, baja, rm, hfun
-  // totales año:  same
-  // contador año: trabajado, hl, hlp, baja, rm
-  // perentorias:  perenDur overlay (tracked separately)
-  var totalTypes=['trabajado','vacaciones','festivo','hl','hlp','baja','rm','hfun'];
-  var contTypes= ['trabajado','hl','hlp','baja','rm'];
-  var anualMin=0;
-
+  var totalMin=0,contadorMin=0,perenMin=0;
+  // No-counter types (festivo, vacaciones, hl, hlp, baja, rm, bp, cp, hfun, h6, libre)
+  var noCounter=['festivo','vacaciones','hl','hlp','baja','rm','bp','cp','hfun','h6','libre','nh'];
   Object.keys(mData).forEach(function(d){
     var day=mData[d];
     if(!day||!day.tipo)return;
     var mins=_mcMin(day.e1,day.s1)+_mcMin(day.e2,day.s2);
-    var eff=mins>0?mins:(day.total?Math.round(day.total*60):0);
-    if(day.perenDur&&day.perenDur!=='0:00') perenMin+=_mcDuration(day.perenDur);
-    if(totalTypes.indexOf(day.tipo)>=0) totalMin+=eff;
+    // Perentorias overlay (stored as perenDur on any day type)
+    if(day.perenDur&&day.perenDur!=='0:00'){
+      perenMin+=_mcDuration(day.perenDur);
+    }
+    // Use day.total (pre-computed) as fallback when e1/s1 not set (e.g. HL, festivo from TRYP)
+    var effectiveMins=mins>0?mins:(day.total?Math.round(day.total*60):0);
+    var totalTypes=['trabajado','hl','hlp','vacaciones','festivo','h6','curso'];
+    if(totalTypes.indexOf(day.tipo)>=0){
+      totalMin+=effectiveMins;
+    }
+    var contTypes=['trabajado','hl','hlp','h6','curso'];
+    if(contTypes.indexOf(day.tipo)>=0)contadorMin+=effectiveMins;
+    // baja/rm/bp/cp/libre/nh → 0h
   });
-
+  // Annual total: all months up to current year
+  var anualMin=0;
+  var anualTypes=['trabajado','hl','hlp','vacaciones','festivo','h6','curso'];
+  var anualContTypes=['trabajado','hl','hlp','h6','curso'];
+  var anualContMin=0;
   _MC_MONTHS.forEach(function(mk){
     var md=(ue&&ue[mk])||{};
     Object.keys(md).forEach(function(d){
       var day=md[d];
       if(!day||!day.tipo)return;
       var mins=_mcMin(day.e1,day.s1)+_mcMin(day.e2,day.s2);
-      var eff=mins>0?mins:(day.total?Math.round(day.total*60):0);
-      if(totalTypes.indexOf(day.tipo)>=0) anualMin+=eff;
-      if(contTypes.indexOf(day.tipo)>=0) anualContMin+=eff;
+      var effMins=mins>0?mins:(day.total?Math.round(day.total*60):0);
+      if(anualTypes.indexOf(day.tipo)>=0)anualMin+=effMins;
+      if(anualContTypes.indexOf(day.tipo)>=0)anualContMin+=effMins;
+      if(day.perenDur&&day.perenDur!=='0:00')anualContMin+=_mcDuration(day.perenDur);
     });
   });
   var hasData=totalMin>0||perenMin>0;
@@ -2361,8 +2435,11 @@ function mcRenderSummary(ue){
   var names=_MC_NAMES;
   document.getElementById('mc-sum-label').textContent='Resumen — '+names[_mcMonth]+' '+_mcYear;
   document.getElementById('mc-sum-total').textContent=totalMin>0?_mcFmtH(totalMin):'0h';
+  document.getElementById('mc-sum-contador').textContent=contadorMin>0?_mcFmtH(contadorMin):'0h';
   document.getElementById('mc-sum-anual').textContent=anualMin>0?_mcFmtH(anualMin):'0h';
   document.getElementById('mc-sum-anual-cont').textContent=anualContMin>0?_mcFmtH(anualContMin):'0h';
+  var acEl=document.getElementById('mc-sum-anual-cont');
+  if(acEl)acEl.textContent=anualContMin>0?_mcFmtH(anualContMin):'0h';
   document.getElementById('mc-sum-peren').textContent=perenMin>0?_mcFmtH(perenMin):'—';
 }
 
@@ -2499,7 +2576,27 @@ function mcTipoSel(btn){
 
 // mcRender already hooked into switchTab directly
 
-
+// ─── Swipe calendario ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',function(){
+  var cal=document.getElementById('mini-cal');
+  if(!cal)return;
+  var _sx=0,_sy=0;
+  cal.addEventListener('touchstart',function(e){
+    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;
+  },{passive:true});
+  cal.addEventListener('touchmove',function(e){
+    var dx=Math.abs(e.touches[0].clientX-_sx);
+    var dy=Math.abs(e.touches[0].clientY-_sy);
+    if(dx>dy&&dx>8)e.preventDefault();
+  },{passive:false});
+  cal.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-_sx;
+    var dy=Math.abs(e.changedTouches[0].clientY-_sy);
+    if(Math.abs(dx)>45&&dy<80){
+      if(dx<0)mcNext();else mcPrev();
+    }
+  },{passive:true});
+});
 
 </script>
 
@@ -2546,32 +2643,5 @@ function mcTipoSel(btn){
   <button class="mc-edit-cancel" onclick="mcEditClose()">Cancelar</button>
 </div>
 
-// ─── Swipe calendario ─────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded',function(){
-  var cal=document.getElementById('mini-cal');
-  if(!cal)return;
-  var _sx=0,_sy=0,_didSwipe=false;
-  cal.addEventListener('touchstart',function(e){
-    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;_didSwipe=false;
-  },{passive:true});
-  cal.addEventListener('touchmove',function(e){
-    var dx=Math.abs(e.touches[0].clientX-_sx);
-    var dy=Math.abs(e.touches[0].clientY-_sy);
-    if(dx>dy&&dx>8){e.preventDefault();_didSwipe=true;}
-  },{passive:false});
-  cal.addEventListener('touchend',function(e){
-    var dx=e.changedTouches[0].clientX-_sx;
-    var dy=Math.abs(e.changedTouches[0].clientY-_sy);
-    if(_didSwipe&&Math.abs(dx)>45&&dy<80){
-      e.preventDefault(); // block synthetic click
-      if(dx<0)mcNext();else mcPrev();
-    }
-    _didSwipe=false;
-  },{passive:false});
-  // Block click on nav buttons if swipe just happened
-  cal.addEventListener('click',function(e){
-    if(_didSwipe)e.stopPropagation();
-  },true);
-});
 </body>
 </html>
