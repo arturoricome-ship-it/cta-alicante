@@ -2084,8 +2084,6 @@ function tiApply(){
 // ═══════════════════════════════════════════════════════════════
 // MINI CALENDARIO — en pestaña Afiliate
 // ═══════════════════════════════════════════════════════════════
-var _mcYear=new Date().getFullYear();
-var _mcMonth=new Date().getMonth(); // 0-based
 var _MC_ICO={trabajado:'⚙️',festivo:'🎉',hl:'🤝',hlp:'🤝',h6:'📋',curso:'📚',vacaciones:'🏖️',perentorias:'⏱️',hfun:'🏛️',baja:'🏥',rm:'🔄',nh:'🌙',bp:'💆',libre:'🌙'};
 var _MC_MNAMES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var _MC_MONTHS_KEY=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
@@ -2106,22 +2104,28 @@ function mcGetData(year,monthIdx){
 document.addEventListener('DOMContentLoaded',function(){
   var cal=document.getElementById('mini-cal');
   if(!cal)return;
-  var _sx=0,_sy=0;
+  var _sx=0,_sy=0,_didSwipe=false;
   cal.addEventListener('touchstart',function(e){
-    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;
+    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;_didSwipe=false;
   },{passive:true});
   cal.addEventListener('touchmove',function(e){
     var dx=Math.abs(e.touches[0].clientX-_sx);
     var dy=Math.abs(e.touches[0].clientY-_sy);
-    if(dx>dy&&dx>8)e.preventDefault();
+    if(dx>dy&&dx>8){e.preventDefault();_didSwipe=true;}
   },{passive:false});
   cal.addEventListener('touchend',function(e){
     var dx=e.changedTouches[0].clientX-_sx;
     var dy=Math.abs(e.changedTouches[0].clientY-_sy);
-    if(Math.abs(dx)>45&&dy<80){
+    if(_didSwipe&&Math.abs(dx)>45&&dy<80){
+      e.preventDefault(); // block synthetic click
       if(dx<0)mcNext();else mcPrev();
     }
-  },{passive:true});
+    _didSwipe=false;
+  },{passive:false});
+  // Block click on nav buttons if swipe just happened
+  cal.addEventListener('click',function(e){
+    if(_didSwipe)e.stopPropagation();
+  },true);
 });
 
 </script>
@@ -2193,7 +2197,7 @@ function tiHandleFile(file){
       var data=new Uint8Array(ev.target.result);
       var wb=XLSX.read(data,{type:'array',cellText:true,cellStyles:true});
       var sheet=wb.Sheets['Calendario empleado']||wb.Sheets[wb.SheetNames[0]];
-      _tiParseSheet(sheet,file.name);
+      tiParseSheet(sheet,file.name);
     }catch(err){alert('Error al leer el archivo: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
@@ -2235,53 +2239,7 @@ function _tiParseCell(raw){
   return{tipo:tipo,e1:times[0],s1:'',e2:'',s2:'',perenMode:perenMode};
 }
 function _tiToM(t){if(!t)return null;var p=t.split(':');var h=+p[0],m=+p[1];if(isNaN(h)||isNaN(m))return null;return h*60+m;}
-function _tiParseSheet(sheet,filename){
-  var result={},stats=[];
-  for(var row=3;row<=14;row++){
-    var monthRaw=_tiCellVal(sheet,row,0);if(!monthRaw)continue;
-    var monthKey=_TI_MONTHS_MAP[monthRaw.toLowerCase()];if(!monthKey)continue;
-    var days={},cW=0,cL=0;
-    for(var col=1;col<=31;col++){
-      var raw=_tiCellVal(sheet,row,col);
-      var colorTipo=_tiColorToTipo(sheet,row,col);
-      var isEmpty=!raw||raw.replace(/\s/g,'').replace(/\n/g,'').length===0;
-      if(isEmpty){
-        if(colorTipo){
-          days[col]={tipo:colorTipo,e1:'',s1:'',e2:'',s2:'',total:0};
-          if(colorTipo==='vacaciones')cL++;else cW++;
-        }
-        continue;
-      }
-      var parsed=_tiParseCell(raw);
-      if(!parsed)continue;
-      if(colorTipo&&parsed.tipo==='trabajado')parsed.tipo=colorTipo;
-      if(parsed.tipo==='libre')cL++;else cW++;
-      var tot=0;
-      if(parsed.e1&&parsed.s1){var a=_tiToM(parsed.e1),b=_tiToM(parsed.s1);if(a!==null&&b!==null){tot+=Math.round((b<a?b+1440-a:b-a)/60*100)/100;}}
-      if(parsed.e2&&parsed.s2){var a2=_tiToM(parsed.e2),b2=_tiToM(parsed.s2);if(a2!==null&&b2!==null){tot+=Math.round((b2<a2?b2+1440-a2:b2-a2)/60*100)/100;}}
-      parsed.total=tot;
-      days[col]=parsed;
-    }
-    result[monthKey]=days;
-    stats.push({month:monthKey,work:cW,libre:cL,hasData:cW>0||cL>0});
-  }
-  _tiParsed={data:result,stats:stats,filename:filename};
-  var skip=document.getElementById('ti-skip-empty').checked;
-  var prev=document.getElementById('ti-preview');
-  prev.style.display='block';
-  var html='<strong style="color:var(--white)">'+filename+'</strong><br><br>';
-  stats.forEach(function(s){
-    var omit=skip&&!s.hasData;
-    html+='<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.05)">'+
-      '<span>'+s.month+'</span>'+
-      (omit?'<span style="color:var(--gray)">Sin datos</span>':
-             '<span style="color:#4ade80">'+s.work+' trabajo · <span style="color:#38bdf8">'+s.libre+' libres</span></span>')+
-      '</div>';
-  });
-  prev.innerHTML=html;
-  _tiParsed=parsed;tiUpdateApplyBtn();
-  document.getElementById('ti-drop-txt').textContent='✅ '+filename;
-}
+
 function tiApply(){
   if(!_tiParsed)return;
   var overwrite=document.getElementById('ti-overwrite').checked;
@@ -2566,22 +2524,28 @@ function mcTipoSel(btn){
 document.addEventListener('DOMContentLoaded',function(){
   var cal=document.getElementById('mini-cal');
   if(!cal)return;
-  var _sx=0,_sy=0;
+  var _sx=0,_sy=0,_didSwipe=false;
   cal.addEventListener('touchstart',function(e){
-    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;
+    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;_didSwipe=false;
   },{passive:true});
   cal.addEventListener('touchmove',function(e){
     var dx=Math.abs(e.touches[0].clientX-_sx);
     var dy=Math.abs(e.touches[0].clientY-_sy);
-    if(dx>dy&&dx>8)e.preventDefault();
+    if(dx>dy&&dx>8){e.preventDefault();_didSwipe=true;}
   },{passive:false});
   cal.addEventListener('touchend',function(e){
     var dx=e.changedTouches[0].clientX-_sx;
     var dy=Math.abs(e.changedTouches[0].clientY-_sy);
-    if(Math.abs(dx)>45&&dy<80){
+    if(_didSwipe&&Math.abs(dx)>45&&dy<80){
+      e.preventDefault(); // block synthetic click
       if(dx<0)mcNext();else mcPrev();
     }
-  },{passive:true});
+    _didSwipe=false;
+  },{passive:false});
+  // Block click on nav buttons if swipe just happened
+  cal.addEventListener('click',function(e){
+    if(_didSwipe)e.stopPropagation();
+  },true);
 });
 
 </script>
