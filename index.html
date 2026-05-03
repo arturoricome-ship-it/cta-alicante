@@ -249,7 +249,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .dash-tryp-img{width:100%;border-radius:10px;border:1px solid rgba(200,168,75,.2);margin-top:8px;display:block}
 
 /* ─── TURNO BOTTOM BAR ─────────────────────────────────────────── */
-#bottom-turno{display:none;position:fixed;bottom:57px;left:0;right:0;background:rgba(13,22,35,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(200,168,75,.2);padding:7px 14px 8px;z-index:99}
+#bottom-turno{display:none;flex-shrink:0;background:rgba(13,22,35,.98);border-top:1px solid rgba(200,168,75,.2);padding:7px 14px 10px}
 .tw-main{display:flex;align-items:center;gap:10px;margin-bottom:7px}
 .tw-ico-wrap{width:36px;height:36px;border-radius:10px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.18);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
 .tw-info{flex:1;min-width:0}
@@ -729,6 +729,7 @@ function switchTab(name,tabEl,navEl){
   }
   if(name==="turnos"&&!turnosLoaded)loadTurnos();
   if(name==="hoy")renderHoy();
+  if(name==="afiliate"&&typeof mcRender==="function")mcRender();
   // Habilitar btn-back si estamos en dashboard
   var bb=document.getElementById("btn-back");
   if(bb) bb.disabled=(name!=="dashboard"&&breadcrumb.length<=1);
@@ -1595,13 +1596,15 @@ function initGoogle(){
 
     if(!d||!d.tipo||d.tipo==='libre'||!d.e1){
       if(bar)bar.style.display='none';
+      if(nav)nav.style.display='flex';
       var cb2=document.getElementById('calc-btn');if(cb2)cb2.style.bottom='80px';
       var sa2=document.getElementById('scroll-area');if(sa2)sa2.style.paddingBottom='90px';
       return;
     }
+    if(nav)nav.style.display='none';
     if(bar)bar.style.display='block';
     var cb=document.getElementById('calc-btn');if(cb)cb.style.bottom='215px';
-    var sa=document.getElementById('scroll-area');if(sa)sa.style.paddingBottom='150px';
+    var sa=document.getElementById('scroll-area');if(sa)sa.style.paddingBottom='90px';
 
     var nowMin=now.getHours()*60+now.getMinutes();
     var e1=toMin(d.e1),s1=toMin(d.s1||'');
@@ -1980,24 +1983,7 @@ function mcRender(){
 }
 
 // Init calendar when afiliate tab is selected
-var _mcInited=false;
-var _origSwitchTab=null;
-document.addEventListener('DOMContentLoaded',function(){
-  _origSwitchTab=window.switchTab;
-  window.switchTab=function(tab,tabEl,navEl){
-    if(_origSwitchTab)_origSwitchTab(tab,tabEl,navEl);
-    if(tab==='afiliate'){mcRender();}
-  };
-  // Also hook the nav buttons
-  var navAfil=document.getElementById('nav-afiliate');
-  if(navAfil){
-    var oldClick=navAfil.onclick;
-    navAfil.onclick=function(e){
-      if(oldClick)oldClick.call(this,e);
-      mcRender();
-    };
-  }
-});
+// mcRender already hooked into switchTab directly
 </script>
 
 
@@ -2248,19 +2234,7 @@ function mcRender(){
   if(nodata)nodata.style.display=hasAnyData?'none':'block';
 }
 
-// Init calendar when afiliate tab is opened
-var _mcInited=false;
-var _origSwitchTab=null;
-document.addEventListener('DOMContentLoaded',function(){
-  // Patch switchTab to trigger mcRender when afiliate tab opens
-  if(typeof switchTab==='function'){
-    _origSwitchTab=switchTab;
-    window.switchTab=function(tab,el,navEl){
-      _origSwitchTab.call(this,tab,el,navEl);
-      if(tab==='afiliate')mcRender();
-    };
-  }
-});
+// mcRender already hooked into switchTab directly
 </script>
 
 </body>
