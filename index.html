@@ -1792,22 +1792,49 @@ function tiLoadBackup(file){
   var reader=new FileReader();
   reader.onload=function(e){
     try{
-      var data=JSON.parse(e.target.result);
-      // Validate: should be {ENERO:{1:{tipo,...},...},...}
+      var backup=JSON.parse(e.target.result);
       var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-      var found=months.filter(function(m){return data[m]&&typeof data[m]==='object';});
-      if(found.length===0){alert('El archivo no parece un backup válido del Dashboard.');return;}
-      _tiBackupData=data;
+      var edData=null, edYear=null;
+
+      // Format 1: Dashboard backup {_version:'horarios_v1', cta_ed_2026: "JSON_STRING", ...}
+      if(backup._version&&backup._version.indexOf('horarios')===0){
+        // Find the cta_ed_XXXX key
+        Object.keys(backup).forEach(function(k){
+          if(k.startsWith('cta_ed_')){
+            try{edData=JSON.parse(backup[k]);edYear=parseInt(k.replace('cta_ed_',''));}catch(pe){}
+          }
+        });
+      }
+      // Format 2: Direct {ENERO:{...}, FEBRERO:{...}} object (direct export)
+      else {
+        var found0=months.filter(function(m){return backup[m]&&typeof backup[m]==='object';});
+        if(found0.length>0){edData=backup;}
+      }
+
+      if(!edData){alert('Archivo no válido. Debe ser un backup exportado desde el Dashboard de Nóminas.');return;}
+
+      // Validate structure
+      var found=months.filter(function(m){return edData[m]&&typeof edData[m]==='object';});
+      if(found.length===0){alert('El backup no contiene datos de turnos reconocibles.');return;}
+
+      _tiBackupData=edData;
+
+      // Auto-select year from backup
+      if(edYear){
+        var ySel=document.getElementById('ti-backup-year');
+        if(ySel)Array.from(ySel.options).forEach(function(o){o.selected=(parseInt(o.value)===edYear);});
+      }
+
       var totalDays=0;
-      found.forEach(function(m){totalDays+=Object.keys(data[m]).length;});
+      found.forEach(function(m){totalDays+=Object.keys(edData[m]).length;});
       document.getElementById('ti-backup-txt').textContent='✅ '+file.name;
       var btn=document.getElementById('ti-backup-btn');
       btn.disabled=false;btn.style.opacity='1';
       var prev=document.getElementById('ti-backup-preview');
       prev.style.display='block';
-      prev.innerHTML='<b style="color:var(--white)">'+found.length+' meses</b> — '+totalDays+' días importados.<br>'+
-        found.map(function(m){return m.charAt(0)+m.slice(1).toLowerCase()+': '+Object.keys(data[m]).length+'d';}).join(' · ');
-    }catch(err){alert('Error leyendo el backup: '+err.message);}
+      prev.innerHTML='<b style="color:var(--white)">'+found.length+' meses · '+totalDays+' días</b>'+(edYear?' ('+edYear+')':'')+'<br>'+
+        found.map(function(m){return m.charAt(0)+m.slice(1).toLowerCase()+': '+Object.keys(edData[m]).length+'d';}).join(' · ');
+    }catch(err){alert('Error leyendo el archivo: '+err.message);}
   };
   reader.readAsText(file);
 }
@@ -1818,7 +1845,7 @@ function tiApplyBackup(){
   catch(e){alert('Error guardando: '+e.message);return;}
   closeTrypImport();
   setTimeout(function(){
-    alert('✅ Backup cargado para '+year+'.');
+    alert('✅ Backup del Dashboard cargado para '+year+'.');
     mcRender();
     if(typeof initTurnoWidget==='function')initTurnoWidget();
   },350);
@@ -2287,14 +2314,11 @@ function mcRenderSummary(ue){
       contadorMin+=mins; // contador ✓
     } else if(day.tipo==='perentorias'){
       var pm=day.s1?mins:_mcDuration(day.e1);
-      totalMin+=pm;      // total ✓ (son horas hechas)
-      perenMin+=pm;      // perentorias ✓
-      // NO contador (van al banco)
+      totalMin+=pm;perenMin+=pm; // total + peren ✓, NO contador
     } else if(day.tipo==='festivo'){
-      totalMin+=mins;    // total ✓ (se cobra y cuenta como jornada)
-      // NO contador (festivos excluidos del contador como vacaciones)
+      totalMin+=mins;    // total ✓, NO contador
     }
-    // vacaciones / hl / hlp / cp / baja / rm / h6 / hfun / bp → ni total ni contador
+    // hl/hlp/vacaciones/baja/rm/h6/hfun/bp/cp/libre → 0h
   });
   // Annual total: all months up to current year
   var anualMin=0;
