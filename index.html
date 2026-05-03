@@ -2341,8 +2341,8 @@ function mcRenderSummary(ue){
     if(totalTypes.indexOf(day.tipo)>=0){
       totalMin+=mins; // horas totales ✓
     }
-    if(day.tipo==='trabajado'){
-      contadorMin+=mins; // contador solo trabajado ✓
+    if(day.tipo==='trabajado'||day.tipo==='hl'||day.tipo==='hlp'){
+      contadorMin+=mins; // contador: trabajado + HL ✓
     }
     // baja/rm/bp/cp/libre/nh → 0h
   });
