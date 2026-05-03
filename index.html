@@ -446,10 +446,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div id="mc-summary" style="display:none;margin-top:4px;margin-bottom:16px;background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border)">
     <div style="font-size:10px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px" id="mc-sum-label">Resumen mes</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-total">—</div><div class="mc-stat-lbl">Horas totales</div></div>
-      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-contador">—</div><div class="mc-stat-lbl">Horas contador</div></div>
-      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-anual">—</div><div class="mc-stat-lbl">Horas anuales</div></div>
-      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-peren">—</div><div class="mc-stat-lbl">Perentorias mes</div></div>
+      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-total">—</div><div class="mc-stat-lbl">Horas totales mes</div></div>
+      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-contador">—</div><div class="mc-stat-lbl">Contador mes</div></div>
+      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-anual">—</div><div class="mc-stat-lbl">Horas totales año</div></div>
+      <div class="mc-stat"><div class="mc-stat-val" id="mc-sum-anual-cont">—</div><div class="mc-stat-lbl">Contador anual</div></div>
+      <div class="mc-stat" style="grid-column:span 2"><div class="mc-stat-val" id="mc-sum-peren">—</div><div class="mc-stat-lbl">Perentorias mes</div></div>
     </div>
   </div>
   
@@ -1735,7 +1736,7 @@ function initGoogle(){
   <!-- Opciones -->
   <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
     <label style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--gray);cursor:pointer">
-      <input type="checkbox" id="ti-overwrite" checked style="width:16px;height:16px;accent-color:var(--gold)">
+      <input type="checkbox" id="ti-overwrite" style="width:16px;height:16px;accent-color:var(--gold)">
       Sobreescribir días existentes
     </label>
     <label style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--gray);cursor:pointer">
@@ -2060,34 +2061,30 @@ function mcGetData(year,monthIdx){
 
 // Init calendar when afiliate tab is selected
 
-// ─── Swipe to change month on calendar ───────────────────────────
-(function(){
-  var el=null,startX=0,startY=0,moved=false;
-  function getEl(){return document.getElementById('mini-cal');}
-  document.addEventListener('touchstart',function(e){
-    el=getEl();if(!el)return;
-    if(!el.contains(e.target))return;
-    startX=e.touches[0].clientX;
-    startY=e.touches[0].clientY;
-    moved=false;
-  },{passive:true});
-  document.addEventListener('touchmove',function(e){
-    if(!el)return;
-    var dx=e.touches[0].clientX-startX;
-    var dy=e.touches[0].clientY-startY;
-    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>8)moved=true;
-  },{passive:true});
-  document.addEventListener('touchend',function(e){
-    if(!el||!moved)return;
-    var dx=e.changedTouches[0].clientX-startX;
-    if(Math.abs(dx)>40){
-      if(dx<0)mcNext(); else mcPrev();
-    }
-    el=null;moved=false;
-  },{passive:true});
-})();
-
 // mcRender already hooked into switchTab directly
+
+// ─── Swipe calendario ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',function(){
+  var cal=document.getElementById('mini-cal');
+  if(!cal)return;
+  var _sx=0,_sy=0;
+  cal.addEventListener('touchstart',function(e){
+    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;
+  },{passive:true});
+  cal.addEventListener('touchmove',function(e){
+    var dx=Math.abs(e.touches[0].clientX-_sx);
+    var dy=Math.abs(e.touches[0].clientY-_sy);
+    if(dx>dy&&dx>8)e.preventDefault();
+  },{passive:false});
+  cal.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-_sx;
+    var dy=Math.abs(e.changedTouches[0].clientY-_sy);
+    if(Math.abs(dx)>45&&dy<80){
+      if(dx<0)mcNext();else mcPrev();
+    }
+  },{passive:true});
+});
+
 </script>
 
 
@@ -2377,6 +2374,8 @@ function mcRenderSummary(ue){
   // Annual total: all months up to current year
   var anualMin=0;
   var anualTypes=['trabajado','hl','hlp','vacaciones','festivo','h6','curso'];
+  var anualContTypes=['trabajado','hl','hlp'];
+  var anualContMin=0;
   _MC_MONTHS.forEach(function(mk){
     var md=(ue&&ue[mk])||{};
     Object.keys(md).forEach(function(d){
@@ -2384,6 +2383,7 @@ function mcRenderSummary(ue){
       if(!day||!day.tipo)return;
       var mins=_mcMin(day.e1,day.s1)+_mcMin(day.e2,day.s2);
       if(anualTypes.indexOf(day.tipo)>=0)anualMin+=mins;
+      if(anualContTypes.indexOf(day.tipo)>=0)anualContMin+=mins;
     });
   });
   var hasData=totalMin>0||perenMin>0;
@@ -2393,6 +2393,9 @@ function mcRenderSummary(ue){
   document.getElementById('mc-sum-total').textContent=totalMin>0?_mcFmtH(totalMin):'0h';
   document.getElementById('mc-sum-contador').textContent=contadorMin>0?_mcFmtH(contadorMin):'0h';
   document.getElementById('mc-sum-anual').textContent=anualMin>0?_mcFmtH(anualMin):'0h';
+  document.getElementById('mc-sum-anual-cont').textContent=anualContMin>0?_mcFmtH(anualContMin):'0h';
+  var acEl=document.getElementById('mc-sum-anual-cont');
+  if(acEl)acEl.textContent=anualContMin>0?_mcFmtH(anualContMin):'0h';
   document.getElementById('mc-sum-peren').textContent=perenMin>0?_mcFmtH(perenMin):'—';
 }
 
@@ -2527,34 +2530,30 @@ function mcTipoSel(btn){
 }
 
 
-// ─── Swipe to change month on calendar ───────────────────────────
-(function(){
-  var el=null,startX=0,startY=0,moved=false;
-  function getEl(){return document.getElementById('mini-cal');}
-  document.addEventListener('touchstart',function(e){
-    el=getEl();if(!el)return;
-    if(!el.contains(e.target))return;
-    startX=e.touches[0].clientX;
-    startY=e.touches[0].clientY;
-    moved=false;
-  },{passive:true});
-  document.addEventListener('touchmove',function(e){
-    if(!el)return;
-    var dx=e.touches[0].clientX-startX;
-    var dy=e.touches[0].clientY-startY;
-    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>8)moved=true;
-  },{passive:true});
-  document.addEventListener('touchend',function(e){
-    if(!el||!moved)return;
-    var dx=e.changedTouches[0].clientX-startX;
-    if(Math.abs(dx)>40){
-      if(dx<0)mcNext(); else mcPrev();
-    }
-    el=null;moved=false;
-  },{passive:true});
-})();
-
 // mcRender already hooked into switchTab directly
+
+// ─── Swipe calendario ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',function(){
+  var cal=document.getElementById('mini-cal');
+  if(!cal)return;
+  var _sx=0,_sy=0;
+  cal.addEventListener('touchstart',function(e){
+    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;
+  },{passive:true});
+  cal.addEventListener('touchmove',function(e){
+    var dx=Math.abs(e.touches[0].clientX-_sx);
+    var dy=Math.abs(e.touches[0].clientY-_sy);
+    if(dx>dy&&dx>8)e.preventDefault();
+  },{passive:false});
+  cal.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-_sx;
+    var dy=Math.abs(e.changedTouches[0].clientY-_sy);
+    if(Math.abs(dx)>45&&dy<80){
+      if(dx<0)mcNext();else mcPrev();
+    }
+  },{passive:true});
+});
+
 </script>
 
 
