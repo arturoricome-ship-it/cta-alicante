@@ -1865,23 +1865,28 @@ function tiLoadBackup(file){
         });
       }
 
-      // Preview: show all available years with month summary
-      var lines=[];
-      years.forEach(function(y){
-        var key='cta_ed_'+y;
-        var parsed;
-        try{parsed=JSON.parse(top[key]);}catch(e){return;}
-        var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-        var found=months.filter(function(m){return parsed[m]&&typeof parsed[m]==='object'&&Object.keys(parsed[m]).length>0;});
-        var total=0;found.forEach(function(m){total+=Object.keys(parsed[m]).length;});
-        lines.push('<b style="color:var(--white)">'+y+'</b>: '+found.length+' meses · '+total+' días<br>'+
-          found.map(function(m){return m.charAt(0)+m.slice(1).toLowerCase()+':'+Object.keys(parsed[m]).length+'d';}).join(' '));
-      });
+      // Only use the latest year available
+      var latestYear=years[years.length-1];
+      var ySel=document.getElementById('ti-backup-year');
+      if(ySel){
+        ySel.innerHTML='';
+        var opt=document.createElement('option');
+        opt.value=latestYear;opt.textContent=latestYear;opt.selected=true;
+        ySel.appendChild(opt);
+      }
+
+      var key='cta_ed_'+latestYear;
+      var parsed;
+      try{parsed=JSON.parse(top[key]);}catch(e){alert('Error leyendo datos: '+e.message);return;}
+      var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+      var found=months.filter(function(m){return parsed[m]&&typeof parsed[m]==='object'&&Object.keys(parsed[m]).length>0;});
+      var total=0;found.forEach(function(m){total+=Object.keys(parsed[m]).length;});
 
       document.getElementById('ti-backup-txt').textContent='✅ '+file.name;
       var prev=document.getElementById('ti-backup-preview');
       prev.style.display='block';
-      prev.innerHTML=lines.join('<hr style="border-color:rgba(255,255,255,.07);margin:6px 0">');
+      prev.innerHTML='<b style="color:var(--white)">'+latestYear+': '+found.length+' meses · '+total+' días</b><br>'+
+        found.map(function(m){return m.charAt(0)+m.slice(1).toLowerCase()+': '+Object.keys(parsed[m]).length+'d';}).join(' · ');
 
       tiUpdateApplyBtn();
     }catch(err){
@@ -2100,33 +2105,7 @@ function mcGetData(year,monthIdx){
 
 // mcRender already hooked into switchTab directly
 
-// ─── Swipe calendario ─────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded',function(){
-  var cal=document.getElementById('mini-cal');
-  if(!cal)return;
-  var _sx=0,_sy=0,_didSwipe=false;
-  cal.addEventListener('touchstart',function(e){
-    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;_didSwipe=false;
-  },{passive:true});
-  cal.addEventListener('touchmove',function(e){
-    var dx=Math.abs(e.touches[0].clientX-_sx);
-    var dy=Math.abs(e.touches[0].clientY-_sy);
-    if(dx>dy&&dx>8){e.preventDefault();_didSwipe=true;}
-  },{passive:false});
-  cal.addEventListener('touchend',function(e){
-    var dx=e.changedTouches[0].clientX-_sx;
-    var dy=Math.abs(e.changedTouches[0].clientY-_sy);
-    if(_didSwipe&&Math.abs(dx)>45&&dy<80){
-      e.preventDefault(); // block synthetic click
-      if(dx<0)mcNext();else mcPrev();
-    }
-    _didSwipe=false;
-  },{passive:false});
-  // Block click on nav buttons if swipe just happened
-  cal.addEventListener('click',function(e){
-    if(_didSwipe)e.stopPropagation();
-  },true);
-});
+
 
 </script>
 
@@ -2520,33 +2499,7 @@ function mcTipoSel(btn){
 
 // mcRender already hooked into switchTab directly
 
-// ─── Swipe calendario ─────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded',function(){
-  var cal=document.getElementById('mini-cal');
-  if(!cal)return;
-  var _sx=0,_sy=0,_didSwipe=false;
-  cal.addEventListener('touchstart',function(e){
-    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;_didSwipe=false;
-  },{passive:true});
-  cal.addEventListener('touchmove',function(e){
-    var dx=Math.abs(e.touches[0].clientX-_sx);
-    var dy=Math.abs(e.touches[0].clientY-_sy);
-    if(dx>dy&&dx>8){e.preventDefault();_didSwipe=true;}
-  },{passive:false});
-  cal.addEventListener('touchend',function(e){
-    var dx=e.changedTouches[0].clientX-_sx;
-    var dy=Math.abs(e.changedTouches[0].clientY-_sy);
-    if(_didSwipe&&Math.abs(dx)>45&&dy<80){
-      e.preventDefault(); // block synthetic click
-      if(dx<0)mcNext();else mcPrev();
-    }
-    _didSwipe=false;
-  },{passive:false});
-  // Block click on nav buttons if swipe just happened
-  cal.addEventListener('click',function(e){
-    if(_didSwipe)e.stopPropagation();
-  },true);
-});
+
 
 </script>
 
@@ -2593,5 +2546,32 @@ document.addEventListener('DOMContentLoaded',function(){
   <button class="mc-edit-cancel" onclick="mcEditClose()">Cancelar</button>
 </div>
 
+// ─── Swipe calendario ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',function(){
+  var cal=document.getElementById('mini-cal');
+  if(!cal)return;
+  var _sx=0,_sy=0,_didSwipe=false;
+  cal.addEventListener('touchstart',function(e){
+    _sx=e.touches[0].clientX;_sy=e.touches[0].clientY;_didSwipe=false;
+  },{passive:true});
+  cal.addEventListener('touchmove',function(e){
+    var dx=Math.abs(e.touches[0].clientX-_sx);
+    var dy=Math.abs(e.touches[0].clientY-_sy);
+    if(dx>dy&&dx>8){e.preventDefault();_didSwipe=true;}
+  },{passive:false});
+  cal.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-_sx;
+    var dy=Math.abs(e.changedTouches[0].clientY-_sy);
+    if(_didSwipe&&Math.abs(dx)>45&&dy<80){
+      e.preventDefault(); // block synthetic click
+      if(dx<0)mcNext();else mcPrev();
+    }
+    _didSwipe=false;
+  },{passive:false});
+  // Block click on nav buttons if swipe just happened
+  cal.addEventListener('click',function(e){
+    if(_didSwipe)e.stopPropagation();
+  },true);
+});
 </body>
 </html>
