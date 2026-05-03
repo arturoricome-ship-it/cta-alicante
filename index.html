@@ -335,6 +335,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-stat.annual .mc-stat-val{color:#60a5fa;opacity:.75}
 .mc-stat-lbl{font-size:9px;color:var(--gray);letter-spacing:.4px;text-transform:uppercase}
 .mc-day.cp{background:rgba(251,146,60,.1);color:#fb923c}
+.mc-day.curso{background:rgba(56,189,248,.12);color:#38bdf8}
 
 .mc-peren-chip{background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.3);border-radius:8px;color:#fb923c;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;padding:6px 10px;cursor:pointer}
 .mc-peren-chip:active{background:rgba(251,146,60,.25)}
@@ -2336,7 +2337,7 @@ function tiApply(){
 // ═══════════════════════════════════════════════════════════════════
 var _MC_MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 var _MC_NAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-var _MC_ICO={trabajado:'⚙️',festivo:'🎉',hl:'🤝',hlp:'🤝',h6:'📋',curso:'📚',vacaciones:'🏖️',perentorias:'⏱️',cp:'↩️',hfun:'🏛️',baja:'🏥',rm:'🔄',nh:'🌙',bp:'💆',libre:''};
+var _MC_ICO={trabajado:'⚙️',festivo:'🎉',hl:'🤝',hlp:'🤝',h6:'📋',curso:'📚',vacaciones:'🏖️',perentorias:'⏱️',cp:'↩️',hfun:'🏛️',baja:'🏥',rm:'🔄',nh:'🌙',bp:'💆',libre:'',curso:'📚'};
 var _mcYear=new Date().getFullYear();
 var _mcMonth=new Date().getMonth(); // 0-based
 
@@ -2382,8 +2383,8 @@ function mcRender(){
       timeLines='<div class="mc-day-time">'+dayObj.e1+'-'+dayObj.s1+'</div>';
       if(dayObj.e2&&dayObj.s2)timeLines+='<div class="mc-day-time">'+dayObj.e2+'-'+dayObj.s2+'</div>';
     }
-    if(hasPeren)timeLines+='<div class="mc-day-time" style="color:#fb923c">+⏱️'+dayObj.perenDur+'</div>';
-    if(hasHfun)timeLines+='<div class="mc-day-time" style="color:#818cf8">+🏛️'+dayObj.hfunDur+'</div>';
+    if(hasPeren)timeLines+='<div class="mc-day-time" style="color:#fb923c">+'+dayObj.perenDur+'</div>';
+    if(hasHfun)timeLines+='<div class="mc-day-time" style="color:#818cf8">+'+dayObj.hfunDur+'</div>';
     html+='<div class="'+dispCls+'" onclick="mcEditDay('+d+',event)">'+
       '<div class="mc-day-num">'+d+'</div>'+
       timeLines+
@@ -2427,7 +2428,10 @@ function mcRenderSummary(ue){
     if(!day||!day.tipo)return;
     var mins=_mcMin(day.e1,day.s1)+_mcMin(day.e2,day.s2);
     var eff=mins>0?mins:(day.total?Math.round(day.total*60):0);
-    if(day.perenDur&&day.perenDur!=='0:00') perenMin+=_mcDuration(day.perenDur);
+    if(day.perenDur&&day.perenDur!=='0:00'){
+      if(day.perenTipo==='cp') perenMin-=_mcDuration(day.perenDur);
+      else perenMin+=_mcDuration(day.perenDur);
+    }
     if(totalTypes.indexOf(day.tipo)>=0) totalMin+=eff;
   });
 
@@ -2504,7 +2508,7 @@ function mcEditDay(day,e){
     if(pl)pl.textContent=displayTipo==='cp'?'Horas compensadas (banco)':'Horas de perentorias realizadas';
   } else if(displayTipo==='hfun'){
     showTimesEl.style.display='none';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='block';
-  } else if(displayTipo==='trabajado'){
+  } else if(displayTipo==='trabajado'||displayTipo==='curso'){
     showTimesEl.style.display='block';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='none';
   } else {
     showTimesEl.style.display='none';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='none';
@@ -2521,7 +2525,7 @@ function mcEditSave(){
   if(!tipo)return;
   var tipoVal=tipo.dataset.tipo;
   var e1='',s1='',e2='',s2='';
-  if(tipoVal==='trabajado'){
+  if(tipoVal==='trabajado'||tipoVal==='curso'){
     e1=document.getElementById('mc-edit-e1').value.trim();
     s1=document.getElementById('mc-edit-s1').value.trim();
     e2=document.getElementById('mc-edit-e2').value.trim();
@@ -2638,6 +2642,7 @@ document.addEventListener('DOMContentLoaded',function(){
     <button class="mc-tipo-btn" data-tipo="hfun" onclick="mcTipoSel(this)"><span class="t-ico">🏛️</span><span class="t-lbl">H. Función</span></button>
     <button class="mc-tipo-btn" data-tipo="rm" onclick="mcTipoSel(this)"><span class="t-ico">🔄</span><span class="t-lbl">R. Médico</span></button>
     <button class="mc-tipo-btn" data-tipo="libre" onclick="mcTipoSel(this)"><span class="t-ico">🌙</span><span class="t-lbl">Libre</span></button>
+    <button class="mc-tipo-btn" data-tipo="curso" onclick="mcTipoSel(this)"><span class="t-ico">📚</span><span class="t-lbl">Curso</span></button>
     <button class="mc-tipo-btn" data-tipo="hl" onclick="mcTipoSel(this)"><span class="t-ico">🤝</span><span class="t-lbl">HL</span></button>
   </div>
   <div class="mc-edit-times" id="mc-edit-times">
