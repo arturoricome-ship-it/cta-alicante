@@ -564,7 +564,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div class="tw-main">
     <div class="tw-ico-wrap" id="tw-ico">⚙️</div>
     <div class="tw-info">
-      <div class="tw-lbl">Turno hoy</div>
+      <div class="tw-lbl" id="tw-lbl">Turno hoy</div>
       <div class="tw-times" id="tw-times">—</div>
       <div class="tw-subtipo" id="tw-subtipo"></div>
     </div>
@@ -1640,26 +1640,87 @@ function initGoogle(){
     var timeStr=(e2!==null&&s2!==null)?(d.e1+'→'+d.s1+' / '+d.e2+'→'+d.s2):(d.e1+' → '+(d.s1||'?'));
     var color,remain;
 
-    if(e1!==null&&nowMin<e1){
-      remain='Empieza en '+fmtLeft(e1-nowMin);color='#60a5fa';pct=0;
-    } else if(shiftEnd!==null&&nowMin>=shiftEnd){
-      remain='Finalizado ✓';color='#22c55e';pct=100;
-    } else {
-      remain='Quedan '+fmtLeft(Math.max(0,totalMin-elapsedMin));color='#c8a84b';
+    var isFinished=shiftEnd!==null&&nowMin>=shiftEnd&&pct>=100;
+    var minsSinceEnd=isFinished?(nowMin>=shiftEnd?nowMin-shiftEnd:nowMin+1440-shiftEnd):0;
+
+    // ─── Get next shift ─────────────────────────────────
+    var nextDay=getDay(now.getFullYear(),now.getMonth(),now.getDate()+1);
+    if(!nextDay||!nextDay.e1) nextDay=getDay(now.getFullYear(),now.getMonth()+1,1);
+    var nextE1=nextDay&&nextDay.e1?toMin(nextDay.e1):null;
+    var minsUntilNext=nextE1!==null?(nextE1+1440-nowMin)%1440:null;
+    var nextE2=nextDay&&nextDay.e2?toMin(nextDay.e2):null;
+    var nextS2=nextDay&&nextDay.s2?toMin(nextDay.s2):null;
+    var nextS1=nextDay&&nextDay.s1?toMin(nextDay.s1):null;
+    var nextTimeStr=nextDay?(
+      (nextE2!==null&&nextS2!==null)?(nextDay.e1+'→'+nextDay.s1+' / '+nextDay.e2+'→'+nextDay.s2)
+      :(nextDay.e1+' → '+(nextDay.s1||'?'))
+    ):'';
+
+    // ─── STATE 1: Working ────────────────────────────────
+    if(!isFinished&&e1!==null&&nowMin>=e1){
+      var tipo=_ICO[d.tipo]||'📅';
+      var subtipo='Trabajando'+(e2!==null?' · Partido':'');
+      document.getElementById('tw-ico').textContent=tipo;
+      document.getElementById('tw-times').textContent=timeStr;
+      document.getElementById('tw-subtipo').textContent=subtipo;
+      var pctEl=document.getElementById('tw-pct');
+      pctEl.textContent=pct+'%';pctEl.style.color='#c8a84b';pctEl.style.fontSize='22px';
+      document.getElementById('tw-remain').textContent='Quedan '+fmtLeft(Math.max(0,totalMin-elapsedMin));
+      document.getElementById('tw-bar-lbl').textContent=fmtHM(elapsedMin)+' / '+fmtHM(totalMin);
+      renderBar(pct,'#c8a84b');
+      return;
     }
 
-    var tipo=_ICO[d.tipo]||'📅';
-    var subtipo=(_LABEL[d.tipo]||d.tipo)+(e2!==null?' · Partido':'');
-    var barLbl=fmtHM(elapsedMin)+' / '+fmtHM(totalMin);
+    // ─── STATE 3: ≤2h until next shift (blue) ───────────
+    if(minsUntilNext!==null&&minsUntilNext<=120){
+      var tipo3=_ICO[(nextDay&&nextDay.tipo)||'trabajado']||'⚙️';
+      var subtipo3=(_LABEL[(nextDay&&nextDay.tipo)||'trabajado']||'Trabajado')+(nextE2!==null?' · Partido':'');
+      var nextTotalMin=0;
+      if(nextDay&&nextDay.e1&&nextDay.s1){
+        var ns1t=toMin(nextDay.s1);
+        if(ns1t!==null)nextTotalMin+=ns1t>=nextE1?ns1t-nextE1:ns1t+1440-nextE1;
+      }
+      if(nextDay&&nextDay.e2&&nextDay.s2){
+        var ne2t=toMin(nextDay.e2),ns2t=toMin(nextDay.s2);
+        if(ne2t!==null&&ns2t!==null)nextTotalMin+=ns2t>=ne2t?ns2t-ne2t:ns2t+1440-ne2t;
+      }
+      document.getElementById('tw-ico').textContent=tipo3;
+      document.getElementById('tw-times').textContent=nextTimeStr;
+      document.getElementById('tw-subtipo').textContent=subtipo3;
+      var pctEl=document.getElementById('tw-pct');
+      pctEl.textContent='0%';pctEl.style.color='#60a5fa';pctEl.style.fontSize='22px';
+      document.getElementById('tw-remain').textContent='Empieza en '+fmtLeft(minsUntilNext);
+      document.getElementById('tw-bar-lbl').textContent='0h / '+fmtHM(nextTotalMin);
+      renderBar(0,'#60a5fa');
+      return;
+    }
 
-    document.getElementById('tw-ico').textContent=tipo;
-    document.getElementById('tw-times').textContent=timeStr;
-    document.getElementById('tw-subtipo').textContent=subtipo;
-    var pctEl=document.getElementById('tw-pct');
-    pctEl.textContent=pct+'%';pctEl.style.color=color;
-    document.getElementById('tw-remain').textContent=remain;
-    document.getElementById('tw-bar-lbl').textContent=barLbl;
-    renderBar(pct,color);
+    // ─── STATE 2: Rest countdown (activates 30min after shift ends) ──
+    if(isFinished&&minsSinceEnd>=30&&minsUntilNext!==null){
+      var rh=Math.floor(minsUntilNext/60),rm=minsUntilNext%60;
+      var restStr=(rh<10?'0':'')+rh+':'+(rm<10?'0':'')+rm;
+      // Bar shows fraction of rest remaining (shrinks over time)
+      var totalRestMin=minsUntilNext+minsSinceEnd;
+      var restPct=Math.max(0,Math.round(minsUntilNext/totalRestMin*100));
+      document.getElementById('tw-ico').textContent='😴';
+      document.getElementById('tw-times').textContent=restStr;
+      document.getElementById('tw-subtipo').textContent='Próximo turno '+(nextDay&&nextDay.e1?nextDay.e1:'mañana');
+      var pctEl=document.getElementById('tw-pct');
+      pctEl.textContent='💤';pctEl.style.color='#22c55e';pctEl.style.fontSize='22px';
+      document.getElementById('tw-remain').textContent='Descansando';
+      document.getElementById('tw-bar-lbl').textContent=rh+'h'+(rm?' '+rm+'m':'')+' restantes';
+      renderBar(restPct,'rgba(34,197,94,.45)');
+      // Update lbl color
+      var lbl=document.getElementById('tw-bar-lbl');if(lbl)lbl.style.color='#22c55e';
+      // Update label
+      document.getElementById('tw-lbl')&&(document.getElementById('tw-lbl').textContent='DESCANSO HASTA EL PRÓXIMO TURNO');
+      return;
+    }
+
+    // ─── Default: just finished (<30min ago), show nothing / nav ──
+    if(bar)bar.style.display='none';
+    if(nav)nav.style.display='flex';
+    var cb3=document.getElementById('calc-btn');if(cb3)cb3.style.bottom='80px';
   }
 
   // ── Popup mañana ──────────────────────────────────────
@@ -2313,14 +2374,16 @@ function mcRender(){
     var tipo=dayObj?dayObj.tipo:'libre';
     // cls now computed per-cell below (hasPeren check)
     var hasPeren=dayObj&&dayObj.perenDur&&dayObj.perenDur!=='0:00';
-    var dispCls='mc-day '+(hasPeren?'perentorias':(tipo||'libre'));
+    var hasHfun=dayObj&&dayObj.hfunDur&&dayObj.hfunDur!=='0:00';
+    var dispCls='mc-day '+(hasPeren?'perentorias':hasHfun?'hfun':(tipo||'libre'));
     if(isThisMonth&&d===today.getDate())dispCls+=' hoy';
     var timeLines='';
     if(dayObj&&dayObj.e1&&dayObj.s1){
       timeLines='<div class="mc-day-time">'+dayObj.e1+'-'+dayObj.s1+'</div>';
       if(dayObj.e2&&dayObj.s2)timeLines+='<div class="mc-day-time">'+dayObj.e2+'-'+dayObj.s2+'</div>';
     }
-    if(hasPeren)timeLines+='<div class="mc-day-time">+'+dayObj.perenDur+'</div>';
+    if(hasPeren)timeLines+='<div class="mc-day-time" style="color:#fb923c">+⏱️'+dayObj.perenDur+'</div>';
+    if(hasHfun)timeLines+='<div class="mc-day-time" style="color:#818cf8">+🏛️'+dayObj.hfunDur+'</div>';
     html+='<div class="'+dispCls+'" onclick="mcEditDay('+d+',event)">'+
       '<div class="mc-day-num">'+d+'</div>'+
       timeLines+
@@ -2417,7 +2480,7 @@ function mcEditDay(day,e){
   var title=dname+' '+day+' '+_MC_NAMES[_mcMonth];
   document.getElementById('mc-edit-title').textContent=title;
   // Mark current tipo — if day has perenDur, select perentorias btn
-  var displayTipo=(dayObj.perenDur&&dayObj.perenDur!=='0:00')?(dayObj.perenTipo||'perentorias'):dayObj.tipo;
+  var displayTipo=(dayObj.perenDur&&dayObj.perenDur!=='0:00')?(dayObj.perenTipo||'perentorias'):(dayObj.hfunDur&&dayObj.hfunDur!=='0:00')?'hfun':dayObj.tipo;
   document.querySelectorAll('.mc-tipo-btn').forEach(function(b){
     b.classList.toggle('sel',b.dataset.tipo===displayTipo);
   });
@@ -2429,17 +2492,22 @@ function mcEditDay(day,e){
   // Populate peren total if editing a peren/cp day
   var ptEl=document.getElementById('mc-peren-total');
   if(ptEl)ptEl.value=dayObj.perenDur||'';
+  var hfEl=document.getElementById('mc-hfun-total');
+  if(hfEl)hfEl.value=dayObj.hfunDur||'';
   // Auto-show correct section
   var showTimesEl=document.getElementById('mc-edit-times');
   var showPerenEl=document.getElementById('mc-edit-peren');
+  var showHfunEl=document.getElementById('mc-edit-hfun');
   if(displayTipo==='perentorias'||displayTipo==='cp'){
-    showTimesEl.style.display='none'; showPerenEl.style.display='block';
+    showTimesEl.style.display='none';showPerenEl.style.display='block';if(showHfunEl)showHfunEl.style.display='none';
     var pl=document.getElementById('mc-peren-label');
     if(pl)pl.textContent=displayTipo==='cp'?'Horas compensadas (banco)':'Horas de perentorias realizadas';
+  } else if(displayTipo==='hfun'){
+    showTimesEl.style.display='none';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='block';
   } else if(displayTipo==='trabajado'){
-    showTimesEl.style.display='block'; showPerenEl.style.display='none';
+    showTimesEl.style.display='block';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='none';
   } else {
-    showTimesEl.style.display='none'; showPerenEl.style.display='none';
+    showTimesEl.style.display='none';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='none';
   }
   document.getElementById('mc-edit-bg').style.display='block';
   setTimeout(function(){document.getElementById('mc-edit-panel').classList.add('open');},10);
@@ -2580,6 +2648,17 @@ document.addEventListener('DOMContentLoaded',function(){
     <div class="mc-time-row">
       <div><label>Entrada 2 (partido)</label><input type="time" id="mc-edit-e2"></div>
       <div><label>Salida 2</label><input type="time" id="mc-edit-s2"></div>
+    </div>
+  </div>
+  <div class="mc-edit-hfun" id="mc-edit-hfun" style="display:none;margin-bottom:12px">
+    <div style="font-size:11px;color:var(--gray);margin-bottom:8px">Horas de H. Función realizadas (no cuentan para contador ni total)</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="flex:1">
+        <label style="font-size:10px;color:var(--gray);display:block;margin-bottom:4px">Total (hh:mm)</label>
+        <input type="text" id="mc-hfun-total" placeholder="0:00" pattern="[0-9]+:[0-5][0-9]"
+          style="width:100%;background:#1f2d47;border:1px solid rgba(129,140,248,.25);border-radius:8px;color:#818cf8;font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;padding:10px 12px;text-align:center">
+      </div>
+      <button onclick="document.getElementById('mc-hfun-total').value=''" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:var(--gray);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;margin-top:18px">↺</button>
     </div>
   </div>
   <div class="mc-edit-peren" id="mc-edit-peren" style="display:none;margin-bottom:12px">
