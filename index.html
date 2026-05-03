@@ -2064,25 +2064,29 @@ function tiApplyBackup(){
   if(found.length===0){alert('El año '+year+' no tiene meses con datos.');return;}
   try{localStorage.setItem('cta_ed_'+year,JSON.stringify(edData));}
   catch(e){alert('Error guardando: '+e.message);return;}
-  logActividad('restaurar_backup');
   closeTrypImport();
   setTimeout(function(){
+    logActividad('restaurar_backup');
     alert('✅ Backup '+year+' cargado: '+found.length+' meses.');
     if(typeof mcRender==='function')mcRender();
     if(typeof initTurnoWidget==='function')initTurnoWidget();
-  },350);
+  },400);
 }
 
 
 // ─── Log de actividad → Sheets ────────────────────────────────────
 function logActividad(tipo){
   var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
-  if(!sess||!sess.email)return;
-  fetch(SHEETS_URL,{
+  if(!sess||!sess.email){console.warn('logActividad: no session for',tipo);return;}
+  console.log('logActividad →',tipo,sess.email);
+  var url=typeof SHEETS_URL!=='undefined'?SHEETS_URL:null;
+  if(!url){console.warn('logActividad: no SHEETS_URL');return;}
+  fetch(url,{
     method:'POST',
     body:JSON.stringify({accion:'log_accion',email:sess.email,nombre:sess.nombre||'',tipo:tipo}),
     headers:{'Content-Type':'text/plain'}
-  }).catch(function(){});
+  }).then(function(r){return r.json();}).then(function(d){console.log('logActividad ok',tipo,d);})
+  .catch(function(e){console.error('logActividad error',tipo,e);});
 }
 // ═══════════════════════════════════════════════════════════════
 // TRYP IMPORT
@@ -2246,13 +2250,13 @@ function tiApply(){
     });
   });
   try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(e){alert('Error al guardar: '+e.message);return;}
-  logActividad('import_excel');
   closeTrypImport();
   setTimeout(function(){
+    logActividad('import_excel');
     alert('✅ '+imported+' días importados para '+year+'.\nAhora verás tu turno del día en la barra inferior.');
     mcRender();
     if(typeof initTurnoWidget==='function')initTurnoWidget();
-  },350);
+  },400);
 }
 
 // ═══════════════════════════════════════════════════════════════════
