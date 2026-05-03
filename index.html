@@ -288,11 +288,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-nav{background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;width:30px;height:30px;color:var(--gray);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .mc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .mc-dow{font-size:8px;font-weight:700;color:var(--gray);text-align:center;padding:3px 0;letter-spacing:.3px}
-.mc-day{border-radius:6px;padding:3px 1px;text-align:center;min-height:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:default;font-size:10px}
+.mc-day{border-radius:6px;padding:4px 2px;text-align:center;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1px;cursor:pointer;font-size:10px;transition:opacity .15s}
 .mc-day.empty{background:none}
 .mc-day.libre{background:rgba(255,255,255,.03);color:rgba(255,255,255,.2)}
-.mc-day.trabajado{background:rgba(34,197,94,.12);color:#4ade80}
-.mc-day.vacaciones{background:rgba(56,189,248,.12);color:#38bdf8}
+.mc-day.trabajado{background:rgba(59,130,246,.15);color:#60a5fa}
+.mc-day.vacaciones{background:rgba(34,197,94,.14);color:#4ade80}
 .mc-day.festivo{background:rgba(251,191,36,.14);color:#fbbf24}
 .mc-day.hl,.mc-day.hlp{background:rgba(168,85,247,.14);color:#c084fc}
 .mc-day.baja{background:rgba(239,68,68,.1);color:#f87171}
@@ -300,10 +300,29 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-day.h6,.mc-day.hfun{background:rgba(99,102,241,.12);color:#818cf8}
 .mc-day.bp,.mc-day.rm,.mc-day.nh{background:rgba(20,184,166,.1);color:#2dd4bf}
 .mc-day.hoy{box-shadow:0 0 0 2px var(--gold)!important}
-.mc-day-num{font-weight:700;font-size:11px;line-height:1}
+.mc-day-num{font-weight:700;font-size:11px;line-height:1.2}
 .mc-day-ico{font-size:9px;line-height:1}
-.mc-day-time{font-size:7px;line-height:1;opacity:.8;white-space:nowrap}
+.mc-day-time{font-size:7px;line-height:1.25;opacity:.9;white-space:pre-wrap;word-break:break-all;text-align:center}
 .mc-no-data{text-align:center;padding:20px 0;font-size:12px;color:var(--gray);line-height:1.6}
+
+/* ─── Calendar edit modal ─────────────────────────────── */
+#mc-edit-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#mc-edit-panel{position:fixed;bottom:0;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;padding:18px 16px 32px;z-index:601;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);max-height:85vh;overflow-y:auto}
+#mc-edit-panel.open{transform:translateY(0)}
+.mc-edit-handle{width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 14px}
+.mc-edit-title-bar{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:12px;letter-spacing:.3px}
+.mc-tipo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+.mc-tipo-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 4px;cursor:pointer;text-align:center;transition:all .15s;font-family:'Outfit',sans-serif}
+.mc-tipo-btn .t-ico{font-size:18px;display:block;margin-bottom:2px}
+.mc-tipo-btn .t-lbl{font-size:10px;color:var(--gray);line-height:1}
+.mc-tipo-btn.sel{border-color:var(--gold);background:rgba(200,168,75,.15)}
+.mc-tipo-btn.sel .t-lbl{color:var(--gold)}
+.mc-edit-times{margin-bottom:12px}
+.mc-time-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.mc-time-row label{font-size:10px;color:var(--gray);display:block;margin-bottom:3px}
+.mc-time-row input{width:100%;background:#1f2d47;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#f0eee8;font-family:'Outfit',sans-serif;font-size:14px;padding:7px 8px;text-align:center}
+.mc-edit-save{width:100%;background:rgba(200,168,75,.2);border:1px solid rgba(200,168,75,.4);border-radius:12px;padding:13px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--gold);cursor:pointer;margin-bottom:8px}
+.mc-edit-cancel{width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--gray);cursor:pointer}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -1931,56 +1950,6 @@ function mcGetData(year,monthIdx){
   var data;try{data=JSON.parse(raw);}catch(e){return null;}
   return data[_MC_MONTHS_KEY[monthIdx]]||null;
 }
-function mcPrev(){if(_mcMonth===0){_mcMonth=11;_mcYear--;}else{_mcMonth--;} mcRender();}
-function mcNext(){if(_mcMonth===11){_mcMonth=0;_mcYear++;}else{_mcMonth++;} mcRender();}
-function mcRender(){
-  var title=document.getElementById('mc-title');
-  var grid=document.getElementById('mc-grid');
-  var nodata=document.getElementById('mc-nodata');
-  if(!title||!grid)return;
-  title.textContent=_MC_MNAMES[_mcMonth]+' '+_mcYear;
-  var mdata=mcGetData(_mcYear,_mcMonth);
-  var today=new Date();
-  var todayYear=today.getFullYear(),todayMonth=today.getMonth(),todayDay=today.getDate();
-  var isCurrentMonth=(_mcYear===todayYear&&_mcMonth===todayMonth);
-  // Day of week of 1st (0=Sun→shift to Mon-first)
-  var firstDow=new Date(_mcYear,_mcMonth,1).getDay();
-  firstDow=(firstDow+6)%7; // Mon=0
-  var daysInMonth=new Date(_mcYear,_mcMonth+1,0).getDate();
-  var hasAnyData=mdata&&Object.keys(mdata).length>0;
-  if(!hasAnyData){
-    grid.innerHTML='';
-    nodata.style.display='block';
-    // Still render day headers
-    var hdr='';
-    _MC_DOW.forEach(function(d){hdr+='<div class="mc-dow">'+d+'</div>';});
-    grid.innerHTML=hdr;
-    return;
-  }
-  nodata.style.display='none';
-  var html='';
-  _MC_DOW.forEach(function(d){html+='<div class="mc-dow">'+d+'</div>';});
-  // Empty cells before 1st
-  for(var i=0;i<firstDow;i++)html+='<div class="mc-day empty"></div>';
-  for(var day=1;day<=daysInMonth;day++){
-    var d=mdata?mdata[day]:null;
-    var tipo=d?d.tipo:'libre';
-    var cls=tipo||'libre';
-    var isToday=isCurrentMonth&&day===todayDay;
-    var ico=d&&d.tipo&&d.tipo!=='libre'?(_MC_ICO[d.tipo]||''):'';
-    var timeStr='';
-    if(d&&d.e1&&d.s1){
-      if(d.e2&&d.s2){timeStr=d.e1+'·'+d.e2;}
-      else{timeStr=d.e1+'·'+d.s1;}
-    }
-    html+='<div class="mc-day '+cls+(isToday?' hoy':'')+'">'+
-      '<span class="mc-day-num">'+day+'</span>'+
-      (ico?'<span class="mc-day-ico">'+ico+'</span>':'')+
-      (timeStr?'<span class="mc-day-time">'+timeStr+'</span>':'')+
-    '</div>';
-  }
-  grid.innerHTML=html;
-}
 
 // Init calendar when afiliate tab is selected
 // mcRender already hooked into switchTab directly
@@ -2197,45 +2166,141 @@ function mcRender(){
   var nodata=document.getElementById('mc-nodata');
   if(!title||!grid)return;
   title.textContent=_MC_NAMES[_mcMonth]+' '+_mcYear;
-  // Load data
   var raw;try{raw=localStorage.getItem('cta_ed_'+_mcYear);}catch(e){raw=null;}
   var ue;try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
   var mData=ue[_MC_MONTHS[_mcMonth]]||{};
   var hasAnyData=Object.keys(mData).length>0;
-  // Day of week headers
   var dows=['L','M','X','J','V','S','D'];
   var html=dows.map(function(d){return '<div class="mc-dow">'+d+'</div>';}).join('');
-  // First day of month (0=Sun → convert to Mon-based)
   var firstDate=new Date(_mcYear,_mcMonth,1);
-  var startDow=(firstDate.getDay()+6)%7; // Mon=0
+  var startDow=(firstDate.getDay()+6)%7;
   var daysInMonth=new Date(_mcYear,_mcMonth+1,0).getDate();
   var today=new Date();
   var isThisMonth=today.getFullYear()===_mcYear&&today.getMonth()===_mcMonth;
-  // Empty cells before day 1
   for(var i=0;i<startDow;i++)html+='<div class="mc-day empty"></div>';
   for(var d=1;d<=daysInMonth;d++){
     var dayObj=mData[d];
     var tipo=dayObj?dayObj.tipo:'libre';
     var cls='mc-day '+(tipo||'libre');
     if(isThisMonth&&d===today.getDate())cls+=' hoy';
-    var ico=_MC_ICO[tipo]||'';
-    var timeStr='';
+    var timeLines='';
     if(dayObj&&dayObj.e1&&dayObj.s1){
-      timeStr=dayObj.e1.replace(':','h');
-      if(dayObj.e2&&dayObj.s2)timeStr+='·'+dayObj.e2.replace(':','h');
+      timeLines='<div class="mc-day-time">'+dayObj.e1+'-'+dayObj.s1+'</div>';
+      if(dayObj.e2&&dayObj.s2)timeLines+='<div class="mc-day-time">'+dayObj.e2+'-'+dayObj.s2+'</div>';
     }
-    html+='<div class="'+cls+'">'+
+    html+='<div class="'+cls+'" onclick="mcEditDay('+d+',event)">'+
       '<div class="mc-day-num">'+d+'</div>'+
-      (ico?'<div class="mc-day-ico">'+ico+'</div>':'')+
-      (timeStr?'<div class="mc-day-time">'+timeStr+'</div>':'')+
+      timeLines+
       '</div>';
   }
   grid.innerHTML=html;
   if(nodata)nodata.style.display=hasAnyData?'none':'block';
 }
 
+// ─── Day edit modal ──────────────────────────────────────────────
+var _mcEditDay=null,_mcEditMonth=null,_mcEditYear=null;
+var _MC_TIPOS=[
+  {v:'trabajado',l:'Trabajado',ico:'⚙️',c:'#60a5fa'},
+  {v:'hl',l:'H. Libre',ico:'🤝',c:'#c084fc'},
+  {v:'hlp',l:'H. Libre Plus',ico:'🤝',c:'#c084fc'},
+  {v:'vacaciones',l:'Vacaciones',ico:'🏖️',c:'#4ade80'},
+  {v:'festivo',l:'Festivo',ico:'🎉',c:'#fbbf24'},
+  {v:'baja',l:'Baja',ico:'🏥',c:'#f87171'},
+  {v:'perentorias',l:'Perentorias',ico:'⏱️',c:'#fb923c'},
+  {v:'h6',l:'Art. 6',ico:'📋',c:'#818cf8'},
+  {v:'hfun',l:'H. Función',ico:'🏛️',c:'#818cf8'},
+  {v:'rm',l:'R. Médico',ico:'🔄',c:'#2dd4bf'},
+  {v:'bp',l:'Bienestar',ico:'💆',c:'#2dd4bf'},
+  {v:'curso',l:'Curso',ico:'📚',c:'#38bdf8'},
+  {v:'libre',l:'Libre',ico:'🌙',c:'rgba(255,255,255,.2)'},
+];
+function mcEditDay(day,e){
+  if(e)e.stopPropagation();
+  _mcEditDay=day;_mcEditMonth=_mcMonth;_mcEditYear=_mcYear;
+  var raw;try{raw=localStorage.getItem('cta_ed_'+_mcYear);}catch(er){raw=null;}
+  var ue;try{ue=raw?JSON.parse(raw):{};}catch(er){ue={};}
+  var mData=ue[_MC_MONTHS[_mcMonth]]||{};
+  var dayObj=mData[day]||{tipo:'libre'};
+  var dname=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][(new Date(_mcYear,_mcMonth,day).getDay()+6)%7];
+  var title=dname+' '+day+' '+_MC_NAMES[_mcMonth];
+  document.getElementById('mc-edit-title').textContent=title;
+  // Mark current tipo
+  document.querySelectorAll('.mc-tipo-btn').forEach(function(b){
+    b.classList.toggle('sel',b.dataset.tipo===dayObj.tipo);
+  });
+  // Show time inputs
+  document.getElementById('mc-edit-e1').value=dayObj.e1||'';
+  document.getElementById('mc-edit-s1').value=dayObj.s1||'';
+  document.getElementById('mc-edit-e2').value=dayObj.e2||'';
+  document.getElementById('mc-edit-s2').value=dayObj.s2||'';
+  document.getElementById('mc-edit-bg').style.display='block';
+  setTimeout(function(){document.getElementById('mc-edit-panel').classList.add('open');},10);
+}
+function mcEditClose(){
+  document.getElementById('mc-edit-panel').classList.remove('open');
+  setTimeout(function(){document.getElementById('mc-edit-bg').style.display='none';},280);
+}
+function mcEditSave(){
+  var tipo=document.querySelector('.mc-tipo-btn.sel');
+  if(!tipo)return;
+  var tipoVal=tipo.dataset.tipo;
+  var e1=document.getElementById('mc-edit-e1').value.trim();
+  var s1=document.getElementById('mc-edit-s1').value.trim();
+  var e2=document.getElementById('mc-edit-e2').value.trim();
+  var s2=document.getElementById('mc-edit-s2').value.trim();
+  var year=_mcEditYear,month=_MC_MONTHS[_mcEditMonth],day=_mcEditDay;
+  var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(er){raw=null;}
+  var ue;try{ue=raw?JSON.parse(raw):{};}catch(er){ue={};}
+  if(!ue[month])ue[month]={};
+  ue[month][day]={tipo:tipoVal,e1:e1,s1:s1,e2:e2,s2:s2,total:0};
+  try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(er){alert('Error: '+er.message);}
+  mcEditClose();
+  setTimeout(function(){mcRender();if(typeof initTurnoWidget==='function')initTurnoWidget();},290);
+}
+function mcTipoSel(btn){
+  document.querySelectorAll('.mc-tipo-btn').forEach(function(b){b.classList.remove('sel');});
+  btn.classList.add('sel');
+  var v=btn.dataset.tipo;
+  var needTime=['trabajado','perentorias'];
+  document.getElementById('mc-edit-times').style.display=needTime.indexOf(v)>-1?'block':'none';
+}
+
 // mcRender already hooked into switchTab directly
 </script>
+
+
+<!-- ─── Calendar day edit modal ─── -->
+<div id="mc-edit-bg" onclick="mcEditClose()"></div>
+<div id="mc-edit-panel">
+  <div class="mc-edit-handle"></div>
+  <div class="mc-edit-title-bar" id="mc-edit-title">Editar día</div>
+  <div class="mc-tipo-grid" id="mc-tipo-grid">
+    <button class="mc-tipo-btn" data-tipo="trabajado" onclick="mcTipoSel(this)"><span class="t-ico">⚙️</span><span class="t-lbl">Trabajado</span></button>
+    <button class="mc-tipo-btn" data-tipo="hl" onclick="mcTipoSel(this)"><span class="t-ico">🤝</span><span class="t-lbl">H. Libre</span></button>
+    <button class="mc-tipo-btn" data-tipo="hlp" onclick="mcTipoSel(this)"><span class="t-ico">🤝</span><span class="t-lbl">HL Plus</span></button>
+    <button class="mc-tipo-btn" data-tipo="vacaciones" onclick="mcTipoSel(this)"><span class="t-ico">🏖️</span><span class="t-lbl">Vacaciones</span></button>
+    <button class="mc-tipo-btn" data-tipo="festivo" onclick="mcTipoSel(this)"><span class="t-ico">🎉</span><span class="t-lbl">Festivo</span></button>
+    <button class="mc-tipo-btn" data-tipo="baja" onclick="mcTipoSel(this)"><span class="t-ico">🏥</span><span class="t-lbl">Baja</span></button>
+    <button class="mc-tipo-btn" data-tipo="perentorias" onclick="mcTipoSel(this)"><span class="t-ico">⏱️</span><span class="t-lbl">Perentorias</span></button>
+    <button class="mc-tipo-btn" data-tipo="h6" onclick="mcTipoSel(this)"><span class="t-ico">📋</span><span class="t-lbl">Art. 6</span></button>
+    <button class="mc-tipo-btn" data-tipo="hfun" onclick="mcTipoSel(this)"><span class="t-ico">🏛️</span><span class="t-lbl">H. Función</span></button>
+    <button class="mc-tipo-btn" data-tipo="rm" onclick="mcTipoSel(this)"><span class="t-ico">🔄</span><span class="t-lbl">R. Médico</span></button>
+    <button class="mc-tipo-btn" data-tipo="bp" onclick="mcTipoSel(this)"><span class="t-ico">💆</span><span class="t-lbl">Bienestar</span></button>
+    <button class="mc-tipo-btn" data-tipo="libre" onclick="mcTipoSel(this)"><span class="t-ico">🌙</span><span class="t-lbl">Libre</span></button>
+  </div>
+  <div class="mc-edit-times" id="mc-edit-times">
+    <div class="mc-time-row">
+      <div><label>Entrada 1</label><input type="time" id="mc-edit-e1"></div>
+      <div><label>Salida 1</label><input type="time" id="mc-edit-s1"></div>
+    </div>
+    <div class="mc-time-row">
+      <div><label>Entrada 2 (partido)</label><input type="time" id="mc-edit-e2"></div>
+      <div><label>Salida 2</label><input type="time" id="mc-edit-s2"></div>
+    </div>
+  </div>
+  <button class="mc-edit-save" onclick="mcEditSave()">✅ Guardar</button>
+  <button class="mc-edit-cancel" onclick="mcEditClose()">Cancelar</button>
+</div>
 
 </body>
 </html>
