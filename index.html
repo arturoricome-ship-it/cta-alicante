@@ -329,6 +329,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-stat-val{font-size:18px;font-weight:700;color:var(--gold);line-height:1;margin-bottom:2px}
 .mc-stat-lbl{font-size:9px;color:var(--gray);letter-spacing:.4px;text-transform:uppercase}
 .mc-day.cp{background:rgba(251,146,60,.1);color:#fb923c}
+
+.mc-peren-chip{background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.3);border-radius:8px;color:#fb923c;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;padding:6px 10px;cursor:pointer}
+.mc-peren-chip:active{background:rgba(251,146,60,.25)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -659,25 +662,7 @@ var ROOT_ID="1TS5vDO29JBTqd4JsGvO3a39YUIC7stbz";
 var DRIVE_API="https://www.googleapis.com/drive/v3";
 var breadcrumb=[{id:ROOT_ID,name:"Inicio"}];
 
-// Ficha de afiliacion: busca el PDF en la carpeta de Drive y abre directamente
-var FICHA_FOLDER_ID="1XBq0b9IrLv6KxrlaHdIRofuSnQeP87n-";
-(function(){
-  var btn=document.getElementById("ficha-btn");
-  btn.style.cursor="pointer";
-  btn.addEventListener("click",function(e){
-    e.preventDefault();
-    btn.textContent="⏳ Buscando...";
-    fetch(DRIVE_API+"/files?q='"+FICHA_FOLDER_ID+"'+in+parents+and+trashed=false+and+mimeType='application/pdf'&fields=files(id,name)&key="+API_KEY)
-    .then(function(r){return r.json();})
-    .then(function(d){
-      var files=d.files||[];
-      if(!files.length){btn.innerHTML="&#128196; Descargar ficha de afiliacion";alert("No se encontro el PDF en Drive.");return;}
-      btn.innerHTML="&#128196; Descargar ficha de afiliacion";
-      window.open("https://drive.google.com/file/d/"+files[0].id+"/view","_blank");
-    })
-    .catch(function(){btn.innerHTML="&#128196; Descargar ficha de afiliacion";alert("Error al acceder a Drive.");});
-  });
-})();
+// ficha-btn removed with afiliate section
 
 var FM=[
   {k:["rampa"],                              e:"\u2708\uFE0F",         b:"rgba(60,140,220,.2)"},
@@ -2204,6 +2189,7 @@ function mcRender(){
   mcRenderSummary(ue);
 }
 
+function _mcDuration(str){if(!str)return 0;var p=str.split(":");return (+p[0]||0)*60+(+p[1]||0);}
 function _mcMin(e,s){
   if(!e||!s)return 0;
   var ep=e.split(':'),sp=s.split(':');
@@ -2229,12 +2215,18 @@ function mcRenderSummary(ue){
     if(!day||!day.tipo)return;
     var mins=_mcMin(day.e1,day.s1)+_mcMin(day.e2,day.s2);
     if(day.tipo==='trabajado'){
-      totalMin+=mins; contadorMin+=mins;
+      totalMin+=mins;    // total ✓
+      contadorMin+=mins; // contador ✓
     } else if(day.tipo==='perentorias'){
-      totalMin+=mins; perenMin+=mins;
+      var pm=day.s1?mins:_mcDuration(day.e1);
+      totalMin+=pm;      // total ✓ (son horas hechas)
+      perenMin+=pm;      // perentorias ✓
+      // NO contador (van al banco)
     } else if(day.tipo==='festivo'){
-      totalMin+=mins; // cuenta para total pero no contador
+      totalMin+=mins;    // total ✓ (se cobra y cuenta como jornada)
+      // NO contador (festivos excluidos del contador como vacaciones)
     }
+    // vacaciones / hl / hlp / cp / baja / rm / h6 / hfun / bp → ni total ni contador
   });
   // Annual total: all months up to current year
   var anualMin=0;
@@ -2245,7 +2237,7 @@ function mcRenderSummary(ue){
       if(!day||!day.tipo)return;
       var mins=_mcMin(day.e1,day.s1)+_mcMin(day.e2,day.s2);
       if(day.tipo==='trabajado')anualMin+=mins;
-      else if(day.tipo==='perentorias')anualMin+=mins;
+      // festivos: no cuentan para anual contador
     });
   });
   var hasData=totalMin>0||perenMin>0;
@@ -2294,6 +2286,13 @@ function mcEditDay(day,e){
   document.getElementById('mc-edit-s1').value=dayObj.s1||'';
   document.getElementById('mc-edit-e2').value=dayObj.e2||'';
   document.getElementById('mc-edit-s2').value=dayObj.s2||'';
+  // Populate peren total if editing a peren/cp day
+  var ptEl=document.getElementById('mc-peren-total');
+  if(ptEl){
+    if((dayObj.tipo==='perentorias'||dayObj.tipo==='cp')&&dayObj.e1){
+      ptEl.value=dayObj.e1;
+    } else {ptEl.value='';}
+  }
   document.getElementById('mc-edit-bg').style.display='block';
   setTimeout(function(){document.getElementById('mc-edit-panel').classList.add('open');},10);
 }
@@ -2312,8 +2311,9 @@ function mcEditSave(){
     e2=document.getElementById('mc-edit-e2').value.trim();
     s2=document.getElementById('mc-edit-s2').value.trim();
   } else if(tipoVal==='perentorias'||tipoVal==='cp'){
-    e1=document.getElementById('mc-peren-e1').value.trim();
-    s1=document.getElementById('mc-peren-s1').value.trim();
+    // Store duration as e1 field in hh:mm format
+    var perenTxt=document.getElementById('mc-peren-total').value.trim()||'0:00';
+    e1=perenTxt; s1=''; // s1 empty signals duration-mode
   }
   var year=_mcEditYear,month=_MC_MONTHS[_mcEditMonth],day=_mcEditDay;
   var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(er){raw=null;}
@@ -2324,6 +2324,15 @@ function mcEditSave(){
   mcEditClose();
   setTimeout(function(){mcRender();if(typeof initTurnoWidget==='function')initTurnoWidget();},290);
 }
+
+function mcAddPeren(minutes){
+  var el=document.getElementById('mc-peren-total');
+  var cur=el.value.trim()||'0:00';
+  var parts=cur.split(':');
+  var totalMin=parseInt(parts[0]||0)*60+parseInt(parts[1]||0)+minutes;
+  el.value=Math.floor(totalMin/60)+':'+(totalMin%60<10?'0':'')+totalMin%60;
+}
+function mcResetPeren(){document.getElementById('mc-peren-total').value='';}
 function mcTipoSel(btn){
   document.querySelectorAll('.mc-tipo-btn').forEach(function(b){b.classList.remove('sel');});
   btn.classList.add('sel');
@@ -2360,7 +2369,6 @@ function mcTipoSel(btn){
     <button class="mc-tipo-btn" data-tipo="baja" onclick="mcTipoSel(this)"><span class="t-ico">🏥</span><span class="t-lbl">Baja</span></button>
     <button class="mc-tipo-btn" data-tipo="perentorias" onclick="mcTipoSel(this)"><span class="t-ico">⏱️</span><span class="t-lbl">+ Perentorias</span></button>
     <button class="mc-tipo-btn" data-tipo="cp" onclick="mcTipoSel(this)"><span class="t-ico">↩️</span><span class="t-lbl">Comp. Peren.</span></button>
-    <button class="mc-tipo-btn" data-tipo="h6" onclick="mcTipoSel(this)"><span class="t-ico">📋</span><span class="t-lbl">Art. 6</span></button>
     <button class="mc-tipo-btn" data-tipo="hfun" onclick="mcTipoSel(this)"><span class="t-ico">🏛️</span><span class="t-lbl">H. Función</span></button>
     <button class="mc-tipo-btn" data-tipo="rm" onclick="mcTipoSel(this)"><span class="t-ico">🔄</span><span class="t-lbl">R. Médico</span></button>
     <button class="mc-tipo-btn" data-tipo="libre" onclick="mcTipoSel(this)"><span class="t-ico">🌙</span><span class="t-lbl">Libre</span></button>
@@ -2377,10 +2385,23 @@ function mcTipoSel(btn){
     </div>
   </div>
   <div class="mc-edit-peren" id="mc-edit-peren" style="display:none;margin-bottom:12px">
-    <div style="font-size:11px;color:var(--gray);margin-bottom:6px" id="mc-peren-label">Horas de perentorias realizadas</div>
-    <div class="mc-time-row">
-      <div><label>Inicio</label><input type="time" id="mc-peren-e1"></div>
-      <div><label>Fin</label><input type="time" id="mc-peren-s1"></div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:8px" id="mc-peren-label">Horas de perentorias realizadas</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px" id="mc-peren-quick">
+      <button class="mc-peren-chip" onclick="mcAddPeren(15)">+15m</button>
+      <button class="mc-peren-chip" onclick="mcAddPeren(25)">+25m</button>
+      <button class="mc-peren-chip" onclick="mcAddPeren(30)">+30m</button>
+      <button class="mc-peren-chip" onclick="mcAddPeren(50)">+50m</button>
+      <button class="mc-peren-chip" onclick="mcAddPeren(60)">+1h</button>
+      <button class="mc-peren-chip" onclick="mcAddPeren(90)">+1h30m</button>
+      <button class="mc-peren-chip" onclick="mcAddPeren(120)">+2h</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="flex:1">
+        <label style="font-size:10px;color:var(--gray);display:block;margin-bottom:4px">Total (hh:mm)</label>
+        <input type="text" id="mc-peren-total" placeholder="0:00" pattern="[0-9]+:[0-5][0-9]"
+          style="width:100%;background:#1f2d47;border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#f0eee8;font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;padding:10px 12px;text-align:center">
+      </div>
+      <button onclick="mcResetPeren()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:var(--gray);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;white-space:nowrap;margin-top:18px">↺ Reset</button>
     </div>
   </div>
   <button class="mc-edit-save" onclick="mcEditSave()">✅ Guardar</button>
