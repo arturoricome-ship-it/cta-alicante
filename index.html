@@ -1658,17 +1658,52 @@ function initGoogle(){
       :(nextDay.e1+' → '+(nextDay.s1||'?'))
     ):'';
 
+    // ─── PAUSA: entre parte 1 y parte 2 del partido ─────
+    var enPausa=e2!==null&&s1!==null&&nowMin>=s1&&nowMin<e2&&!isFinished;
+    if(enPausa){
+      var minsPausa=e2-nowMin;
+      var hP=Math.floor(minsPausa/60),mP=minsPausa%60;
+      var pausaStr=(hP<10?'0':'')+hP+':'+(mP<10?'0':'')+mP;
+      document.getElementById('tw-lbl').textContent='PAUSA · VUELVES A LAS '+d.e2;
+      document.getElementById('tw-ico').textContent='☕';
+      document.getElementById('tw-ico').style.background='rgba(168,85,247,.12)';
+      document.getElementById('tw-times').textContent=pausaStr;
+      document.getElementById('tw-times').style.fontSize='24px';
+      document.getElementById('tw-times').style.fontWeight='800';
+      document.getElementById('tw-times').style.color='#c084fc';
+      document.getElementById('tw-times').style.letterSpacing='2px';
+      document.getElementById('tw-subtipo').textContent=timeStr;
+      document.getElementById('tw-subtipo').style.color='var(--gray)';
+      var pctEl=document.getElementById('tw-pct');
+      pctEl.textContent='☕';pctEl.style.color='#c084fc';pctEl.style.fontSize='22px';
+      document.getElementById('tw-remain').textContent='En pausa';
+      document.getElementById('tw-remain').style.color='#c084fc';
+      document.getElementById('tw-bar-lbl').textContent=hP+'h'+(mP?' '+mP+'m':'')+' de pausa';
+      document.getElementById('tw-bar-lbl').style.color='#c084fc';
+      renderBar(pct,'rgba(168,85,247,.45)');
+      return;
+    }
+
     // ─── STATE 1: Working ────────────────────────────────
     if(!isFinished&&e1!==null&&nowMin>=e1){
       var tipo=_ICO[d.tipo]||'📅';
       var subtipo='Trabajando'+(e2!==null?' · Partido':'');
+      document.getElementById('tw-lbl').textContent='TURNO HOY';
       document.getElementById('tw-ico').textContent=tipo;
+      document.getElementById('tw-ico').style.background='rgba(200,168,75,.1)';
+      document.getElementById('tw-times').style.fontSize='';
+      document.getElementById('tw-times').style.fontWeight='';
+      document.getElementById('tw-times').style.color='';
+      document.getElementById('tw-times').style.letterSpacing='';
+      document.getElementById('tw-subtipo').style.color='#c8a84b';
       document.getElementById('tw-times').textContent=timeStr;
       document.getElementById('tw-subtipo').textContent=subtipo;
       var pctEl=document.getElementById('tw-pct');
       pctEl.textContent=pct+'%';pctEl.style.color='#c8a84b';pctEl.style.fontSize='22px';
       document.getElementById('tw-remain').textContent='Quedan '+fmtLeft(Math.max(0,totalMin-elapsedMin));
+      document.getElementById('tw-remain').style.color='var(--gray)';
       document.getElementById('tw-bar-lbl').textContent=fmtHM(elapsedMin)+' / '+fmtHM(totalMin);
+      document.getElementById('tw-bar-lbl').style.color='var(--gray)';
       renderBar(pct,'#c8a84b');
       return;
     }
