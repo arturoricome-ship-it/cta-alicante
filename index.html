@@ -1733,6 +1733,7 @@ function initGoogle(){
     }
 
     // ─── STATE 2: Rest countdown (activates 30min after shift ends) ──
+    console.log('[TW] isFinished='+isFinished+' minsSinceEnd='+minsSinceEnd+' pct='+pct+' shiftEnd='+shiftEnd+' nowMin='+nowMin+' minsUntilNext='+minsUntilNext);
     if(isFinished&&minsSinceEnd>=30){
       // Reset any styles left by pausa state
       var twTimes=document.getElementById('tw-times');
