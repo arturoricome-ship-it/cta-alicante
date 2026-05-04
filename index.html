@@ -1733,28 +1733,38 @@ function initGoogle(){
     }
 
     // ─── STATE 2: Rest countdown (activates 30min after shift ends) ──
-    if(isFinished&&minsSinceEnd>=30&&minsUntilNext!==null){
-      var rh=Math.floor(minsUntilNext/60),rm=minsUntilNext%60;
-      var restStr=(rh<10?'0':'')+rh+':'+(rm<10?'0':'')+rm;
-      // Bar shows fraction of rest remaining (shrinks over time)
-      var totalRestMin=minsUntilNext+minsSinceEnd;
-      var restPct=Math.max(0,Math.round(minsUntilNext/totalRestMin*100));
+    if(isFinished&&minsSinceEnd>=30){
+      // Reset any styles left by pausa state
+      var twTimes=document.getElementById('tw-times');
+      if(twTimes){twTimes.style.fontSize='24px';twTimes.style.fontWeight='800';twTimes.style.letterSpacing='2px';twTimes.style.color='#22c55e';}
+      var twIco=document.getElementById('tw-ico');
+      if(twIco){twIco.style.background='rgba(34,197,94,.08)';}
+      document.getElementById('tw-lbl').textContent='DESCANSO HASTA EL PRÓXIMO TURNO';
       document.getElementById('tw-ico').textContent='😴';
-      document.getElementById('tw-times').textContent=restStr;
-      document.getElementById('tw-subtipo').textContent='Próximo turno '+(nextDay&&nextDay.e1?nextDay.e1:'mañana');
+      if(minsUntilNext!==null){
+        var rh=Math.floor(minsUntilNext/60),rm=minsUntilNext%60;
+        var restStr=(rh<10?'0':'')+rh+':'+(rm<10?'0':'')+rm;
+        var totalRestMin=minsUntilNext+minsSinceEnd;
+        var restPct=Math.max(0,Math.round(minsUntilNext/totalRestMin*100));
+        document.getElementById('tw-times').textContent=restStr;
+        document.getElementById('tw-subtipo').textContent='Próximo turno '+(nextDay&&nextDay.e1?nextDay.e1:'mañana');
+        document.getElementById('tw-bar-lbl').textContent=rh+'h'+(rm?' '+rm+'m':'')+' restantes';
+        renderBar(restPct,'rgba(34,197,94,.45)');
+      } else {
+        document.getElementById('tw-times').textContent='💤';
+        document.getElementById('tw-subtipo').textContent='Turno siguiente no importado';
+        document.getElementById('tw-bar-lbl').textContent='—';
+        renderBar(0,'rgba(34,197,94,.3)');
+      }
       var pctEl=document.getElementById('tw-pct');
       pctEl.textContent='💤';pctEl.style.color='#22c55e';pctEl.style.fontSize='22px';
       document.getElementById('tw-remain').textContent='Descansando';
-      document.getElementById('tw-bar-lbl').textContent=rh+'h'+(rm?' '+rm+'m':'')+' restantes';
-      renderBar(restPct,'rgba(34,197,94,.45)');
-      // Update lbl color
-      var lbl=document.getElementById('tw-bar-lbl');if(lbl)lbl.style.color='#22c55e';
-      // Update label
-      document.getElementById('tw-lbl')&&(document.getElementById('tw-lbl').textContent='DESCANSO HASTA EL PRÓXIMO TURNO');
+      document.getElementById('tw-remain').style.color='#22c55e';
+      var lbl2=document.getElementById('tw-bar-lbl');if(lbl2)lbl2.style.color='#22c55e';
       return;
     }
 
-    // ─── Default: just finished (<30min ago), show nothing / nav ──
+    // ─── Default: just finished (<30min ago), show nav ──
     if(bar)bar.style.display='none';
     if(nav)nav.style.display='flex';
     var cb3=document.getElementById('calc-btn');if(cb3)cb3.style.bottom='80px';
