@@ -1733,7 +1733,7 @@ function initGoogle(){
     }
 
     // ─── STATE 2: Rest countdown (activates 30min after shift ends) ──
-    console.log('[TW] isFinished='+isFinished+' minsSinceEnd='+minsSinceEnd+' pct='+pct+' shiftEnd='+shiftEnd+' nowMin='+nowMin+' minsUntilNext='+minsUntilNext);
+
     if(isFinished&&minsSinceEnd>=30){
       // Reset any styles left by pausa state
       var twTimes=document.getElementById('tw-times');
@@ -1765,7 +1765,20 @@ function initGoogle(){
       return;
     }
 
-    // ─── Default: just finished (<30min ago), show nav ──
+    // ─── Finalizado <30min: mantener widget al 100% verde ──
+    if(isFinished&&minsSinceEnd<30){
+      var twT2=document.getElementById('tw-times');
+      twT2.textContent=timeStr;twT2.style.fontSize='13px';twT2.style.fontWeight='700';twT2.style.color='var(--white)';twT2.style.letterSpacing='';
+      document.getElementById('tw-lbl').textContent='TURNO HOY';
+      document.getElementById('tw-ico').textContent='✅';document.getElementById('tw-ico').style.background='rgba(34,197,94,.1)';
+      document.getElementById('tw-subtipo').textContent='Finalizado';document.getElementById('tw-subtipo').style.color='#22c55e';
+      var pctEl2=document.getElementById('tw-pct');pctEl2.textContent='100%';pctEl2.style.color='#22c55e';pctEl2.style.fontSize='22px';
+      document.getElementById('tw-remain').textContent='¡Terminaste!';document.getElementById('tw-remain').style.color='#22c55e';
+      document.getElementById('tw-bar-lbl').textContent=fmtHM(totalMin)+' / '+fmtHM(totalMin);document.getElementById('tw-bar-lbl').style.color='var(--gray)';
+      renderBar(100,'#22c55e');
+      return;
+    }
+    // Sin turno / fuera de rango — nav normal
     if(bar)bar.style.display='none';
     if(nav)nav.style.display='flex';
     var cb3=document.getElementById('calc-btn');if(cb3)cb3.style.bottom='80px';
