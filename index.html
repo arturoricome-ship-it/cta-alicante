@@ -2495,7 +2495,24 @@ function mcRenderWeeks(){
     week.mins+=counted;
     week.end=date;
     week.days.push({d:date,tipo:dayObj.tipo,mins:counted});
-    if(dow===6||d===daysInMonth){
+    if(dow===6){
+      weeks.push(week);
+      week={mins:0,days:[],start:null,end:null};
+    } else if(d===daysInMonth){
+      // Fill rest of last week with days from next month
+      var nextMonthIdx=_mcMonth===11?0:_mcMonth+1;
+      var nextYear=_mcMonth===11?_mcYear+1:_mcYear;
+      var nextMData=(ue&&ue[_MC_MONTHS[nextMonthIdx]])||{};
+      for(var nd=1;dow<6;dow++,nd++){
+        var nDate=new Date(nextYear,nextMonthIdx,nd);
+        var nDayObj=nextMData[nd]||{tipo:'libre'};
+        var nMins=_mcMin(nDayObj.e1,nDayObj.s1)+_mcMin(nDayObj.e2,nDayObj.s2);
+        var nEff=nMins>0?nMins:(nDayObj.total?Math.round(nDayObj.total*60):0);
+        var nCounted=totalTypes.indexOf(nDayObj.tipo)>=0?nEff:0;
+        week.mins+=nCounted;
+        week.end=nDate;
+        week.days.push({d:nDate,tipo:nDayObj.tipo,mins:nCounted,other:true});
+      }
       weeks.push(week);
       week={mins:0,days:[],start:null,end:null};
     }
@@ -2581,9 +2598,9 @@ function mcRenderSummary(ue){
   sumEl.style.display=hasData?'block':'none';
   var names=_MC_NAMES;
   document.getElementById('mc-sum-label').textContent='Resumen — '+names[_mcMonth]+' '+_mcYear;
-  // Show/hide carry-over field (only relevant for year totals)
+  // Show carryover only in January
   var coEl=document.getElementById('mc-peren-carryover-wrap');
-  if(coEl)coEl.style.display='block';
+  if(coEl)coEl.style.display=(_mcMonth===0)?'block':'none';
   // Annual perentorias
   var anualPerenMin=0;
   _MC_MONTHS.forEach(function(mk){
