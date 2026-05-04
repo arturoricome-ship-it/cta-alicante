@@ -339,6 +339,17 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 
 .mc-peren-chip{background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.3);border-radius:8px;color:#fb923c;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;padding:6px 10px;cursor:pointer}
 .mc-peren-chip:active{background:rgba(251,146,60,.25)}
+
+/* ─── Weekly toggle ───────────────────────────────── */
+.mc-mode-toggle{display:flex;background:var(--card2);border-radius:8px;overflow:hidden;margin-bottom:8px;border:1px solid var(--border)}
+.mc-mode-btn{flex:1;border:none;padding:7px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;cursor:pointer;color:var(--gray);background:none;transition:all .2s}
+.mc-mode-btn.on{background:rgba(200,168,75,.2);color:var(--gold)}
+.mc-weeks-list{display:none;flex-direction:column;gap:4px;margin-bottom:8px}
+.mc-weeks-list.open{display:flex}
+.mc-wl-item{background:var(--card2);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-left:3px solid rgba(200,168,75,.3)}
+.mc-wl-range{font-size:10px;color:var(--gray);margin-bottom:2px}
+.mc-wl-types{font-size:9px;color:rgba(255,255,255,.35)}
+.mc-wl-h{font-size:17px;font-weight:800;color:var(--gold)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -442,7 +453,12 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
       <div class="mc-month" id="mc-title">—</div>
       <button class="mc-nav" ontouchstart="mcNext();event.preventDefault()" onclick="if(!event.defaultPrevented)mcNext()">›</button>
     </div>
-    <div class="mc-grid" id="mc-grid"></div>
+    <div class="mc-mode-toggle">
+      <button class="mc-mode-btn on" id="mc-btn-mes" onclick="mcSetMode('mes')">📅 Mes</button>
+      <button class="mc-mode-btn" id="mc-btn-sem" onclick="mcSetMode('sem')">📊 Semanas</button>
+    </div>
+    <div id="mc-grid-wrap"><div class="mc-grid" id="mc-grid"></div></div>
+    <div class="mc-weeks-list" id="mc-weeks-list"></div>
     <div id="mc-nodata" class="mc-no-data" style="display:none">
       📅 No hay turnos importados para este mes.<br>
       <span style="font-size:11px">Importa tu calendario desde <b style="color:var(--gold)">Accesos Directos → Importar TRYP</b></span>
@@ -450,14 +466,32 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   </div>
 
   <!-- ── Resumen mensual ── -->
-  <div id="mc-summary" style="display:none;margin-top:4px;margin-bottom:16px;background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border)">
+  <!-- Perentorias arrastre años anteriores -->
+  <div id="mc-peren-carryover-wrap" style="display:none;margin-top:4px;margin-bottom:4px;background:rgba(251,146,60,.06);border:1px solid rgba(251,146,60,.2);border-radius:12px;padding:10px 14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div>
+        <div style="font-size:9px;color:#fb923c;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px">↩ Perentorias arrastre</div>
+        <div style="font-size:10px;color:var(--gray);line-height:1.3">Saldo de años anteriores<br><span style="font-size:9px;opacity:.7">Se suma al total anual</span></div>
+      </div>
+      <input type="text" id="mc-peren-carryover" placeholder="0:00" pattern="[0-9]+:[0-5][0-9]"
+        style="width:80px;background:#1f2d47;border:1px solid rgba(251,146,60,.3);border-radius:8px;color:#fb923c;font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;padding:7px 8px;text-align:center"
+        oninput="mcSaveCarryover(this.value)">
+    </div>
+  </div>
+  <div id="mc-summary"  style="display:none;margin-top:4px;margin-bottom:16px;background:var(--card);border-radius:14px;padding:12px 14px;border:1px solid var(--border)">
     <div style="font-size:10px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px" id="mc-sum-label">Resumen mes</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div class="mc-stat gold"><div class="mc-stat-val" id="mc-sum-total">—</div><div class="mc-stat-lbl">Horas totales mes</div></div>
-      <div class="mc-stat blue"><div class="mc-stat-val" id="mc-sum-anual">—</div><div class="mc-stat-lbl">Horas totales año</div></div>
-      <div class="mc-stat green" style="grid-column:span 2"><div class="mc-stat-val" id="mc-sum-anual-cont">—</div><div class="mc-stat-lbl">Contador anual</div></div>
-      <div class="mc-stat peren"><div class="mc-stat-val" id="mc-sum-peren">—</div><div class="mc-stat-lbl">Perentorias mes</div></div>
-      <div class="mc-stat peren"><div class="mc-stat-val" id="mc-sum-peren-anual">—</div><div class="mc-stat-lbl">Perentorias año</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <!-- Columna izquierda: datos del mes -->
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="mc-stat gold"><div class="mc-stat-val" id="mc-sum-total">—</div><div class="mc-stat-lbl">Totales mes</div></div>
+        <div class="mc-stat peren"><div class="mc-stat-val" id="mc-sum-peren">—</div><div class="mc-stat-lbl">Perentorias mes</div></div>
+      </div>
+      <!-- Columna derecha: datos del año -->
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="mc-stat blue"><div class="mc-stat-val" id="mc-sum-anual">—</div><div class="mc-stat-lbl">Totales año</div></div>
+        <div class="mc-stat green"><div class="mc-stat-val" id="mc-sum-anual-cont">—</div><div class="mc-stat-lbl">Contador anual</div></div>
+        <div class="mc-stat peren"><div class="mc-stat-val" id="mc-sum-peren-anual">—</div><div class="mc-stat-lbl">Perentorias año</div></div>
+      </div>
     </div>
   </div>
   
@@ -1612,6 +1646,28 @@ function initGoogle(){
     var bar=document.getElementById('bottom-turno');
     var nav=document.getElementById('bottom-nav');
 
+    // Festivo/HL/vacaciones → rest countdown
+    var _restTipos=['festivo','hl','hlp','vacaciones'];
+    if(_restTipos.indexOf(d?d.tipo:'')>=0){
+      if(bar)bar.style.display='block';if(nav)nav.style.display='none';
+      var twT_=document.getElementById('tw-times');
+      twT_.style.fontSize='22px';twT_.style.fontWeight='800';twT_.style.letterSpacing='0';twT_.style.color='#22c55e';
+      document.getElementById('tw-ico').textContent='😴';document.getElementById('tw-ico').style.background='rgba(34,197,94,.08)';
+      document.getElementById('tw-lbl').textContent='DESCANSO HASTA EL PRÓXIMO TURNO';
+      var now_=new Date(),nowMin_=now_.getHours()*60+now_.getMinutes();
+      var nDay_=getDay(now_.getFullYear(),now_.getMonth(),now_.getDate()+1);
+      var nE1_=nDay_&&nDay_.e1?toMin(nDay_.e1):null;
+      var mUnt_=nE1_!==null?(nE1_+1440-nowMin_)%1440:null;
+      if(mUnt_!==null){
+        var _rd=Math.floor(mUnt_/1440),_rh=Math.floor((mUnt_%1440)/60),_rm=mUnt_%60;
+        twT_.innerHTML=(_rd>0?_rd+(_rd===1?' día ':' días '):'')+(_rh>0?_rh+'<span style="font-size:14px;font-weight:600;opacity:.8">h</span> ':'')+(_rm>0?_rm+'<span style="font-size:14px;font-weight:600;opacity:.8">m</span>':'');
+        document.getElementById('tw-subtipo').textContent='Próximo turno '+(nDay_&&nDay_.e1?nDay_.e1:'mañana');
+      } else {twT_.textContent='💤';document.getElementById('tw-subtipo').textContent='Día de descanso';}
+      document.getElementById('tw-pct').textContent='💤';document.getElementById('tw-pct').style.color='#22c55e';document.getElementById('tw-pct').style.fontSize='22px';
+      document.getElementById('tw-remain').textContent='Descansando';document.getElementById('tw-remain').style.color='#22c55e';
+      document.getElementById('tw-subtipo').style.color='var(--gray)';document.getElementById('tw-bar-lbl').textContent='';
+      renderBar(0,'rgba(34,197,94,.3)');return;
+    }
     if(!d||!d.tipo||d.tipo==='libre'||!d.e1){
       if(bar)bar.style.display='none';
       if(nav)nav.style.display='flex';
@@ -1743,13 +1799,16 @@ function initGoogle(){
       document.getElementById('tw-lbl').textContent='DESCANSO HASTA EL PRÓXIMO TURNO';
       document.getElementById('tw-ico').textContent='😴';
       if(minsUntilNext!==null){
-        var rh=Math.floor(minsUntilNext/60),rm=minsUntilNext%60;
-        var restStr=(rh<10?'0':'')+rh+':'+(rm<10?'0':'')+rm;
+        var _rd=Math.floor(minsUntilNext/1440),_rh=Math.floor((minsUntilNext%1440)/60),_rm=minsUntilNext%60;
+        var restStr=(_rd>0?_rd+(_rd===1?' día ':' días '):'')+(_rh>0?_rh+'<span style="font-size:14px;font-weight:600;opacity:.8">h</span> ':'')+(_rm>0?_rm+'<span style="font-size:14px;font-weight:600;opacity:.8">m</span>':'');
         var totalRestMin=minsUntilNext+minsSinceEnd;
         var restPct=Math.max(0,Math.round(minsUntilNext/totalRestMin*100));
-        document.getElementById('tw-times').textContent=restStr;
+        document.getElementById('tw-times').innerHTML=restStr;
+        document.getElementById('tw-times').style.fontSize='22px';
+        document.getElementById('tw-times').style.letterSpacing='0';
         document.getElementById('tw-subtipo').textContent='Próximo turno '+(nextDay&&nextDay.e1?nextDay.e1:'mañana');
-        document.getElementById('tw-bar-lbl').textContent=rh+'h'+(rm?' '+rm+'m':'')+' restantes';
+        var _rlbl=(_rd>0?_rd+(_rd===1?' día ':' días '):'')+(_rh>0?_rh+'h ':'')+(_rm>0?_rm+'m':'')+' restantes';
+        document.getElementById('tw-bar-lbl').textContent=_rlbl;
         renderBar(restPct,'rgba(34,197,94,.45)');
       } else {
         document.getElementById('tw-times').textContent='💤';
@@ -2381,6 +2440,91 @@ function mcRender(){
   mcRenderSummary(ue);
 }
 
+
+
+var _mcMode='mes';
+function mcSetMode(mode){
+  _mcMode=mode;
+  document.getElementById('mc-btn-mes').classList.toggle('on',mode==='mes');
+  document.getElementById('mc-btn-sem').classList.toggle('on',mode==='sem');
+  document.getElementById('mc-grid-wrap').style.display=mode==='mes'?'block':'none';
+  var wl=document.getElementById('mc-weeks-list');
+  if(mode==='sem'){wl.classList.add('open');mcRenderWeeks();}
+  else{wl.classList.remove('open');}
+}
+
+function mcRenderWeeks(){
+  var wl=document.getElementById('mc-weeks-list');
+  if(!wl)return;
+  var raw;try{raw=localStorage.getItem('cta_ed_'+_mcYear);}catch(e){raw=null;}
+  var ue;try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
+  var DAYS_IN=['31','28','31','30','31','30','31','31','30','31','30','31'];
+  // Build flat array of days in month with their data
+  var daysInMonth=new Date(_mcYear,_mcMonth+1,0).getDate();
+  var mData=(ue&&ue[_MC_MONTHS[_mcMonth]])||{};
+  // Week: Mon-Sun, find first Monday
+  var firstDate=new Date(_mcYear,_mcMonth,1);
+  var startDow=(firstDate.getDay()+6)%7; // 0=Mon
+  var totalTypes=['trabajado','vacaciones','festivo','hl','hlp','baja','rm','curso'];
+  var MNAMES_SHORT=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  // Group into weeks (Mon-Sun)
+  var weeks=[];
+  var week={mins:0,days:[],start:null,end:null};
+  // Include days from prev month for the first partial week
+  for(var i=0;i<startDow;i++){
+    var prevDay=new Date(_mcYear,_mcMonth,1-startDow+i);
+    var prevMData=(ue&&ue[_MC_MONTHS[prevDay.getMonth()]])||{};
+    var pDay=prevMData[prevDay.getDate()]||{tipo:'libre'};
+    var pMins=_mcMin(pDay.e1,pDay.s1)+_mcMin(pDay.e2,pDay.s2);
+    var pEff=pMins>0?pMins:(pDay.total?Math.round(pDay.total*60):0);
+    var pCount=totalTypes.indexOf(pDay.tipo)>=0?pEff:0;
+    week.mins+=pCount;
+    if(!week.start)week.start=prevDay;
+    week.days.push({d:prevDay,tipo:pDay.tipo,mins:pCount,other:true});
+  }
+
+  for(var d=1;d<=daysInMonth;d++){
+    var date=new Date(_mcYear,_mcMonth,d);
+    var dow=(date.getDay()+6)%7;
+    if(!week.start)week.start=date;
+    var dayObj=mData[d]||{tipo:'libre'};
+    var mins=_mcMin(dayObj.e1,dayObj.s1)+_mcMin(dayObj.e2,dayObj.s2);
+    var eff=mins>0?mins:(dayObj.total?Math.round(dayObj.total*60):0);
+    var counted=totalTypes.indexOf(dayObj.tipo)>=0?eff:0;
+    week.mins+=counted;
+    week.end=date;
+    week.days.push({d:date,tipo:dayObj.tipo,mins:counted});
+    if(dow===6||d===daysInMonth){
+      weeks.push(week);
+      week={mins:0,days:[],start:null,end:null};
+    }
+  }
+
+  var html='';
+  var TIPO_ICO2={trabajado:'⚙️',festivo:'🎉',hl:'🤝',vacaciones:'🏖️',baja:'🏥',rm:'🔄',libre:'',curso:'📚'};
+  weeks.forEach(function(w,i){
+    var startLbl=w.start.getDate()+' '+MNAMES_SHORT[w.start.getMonth()];
+    var endLbl=w.end.getDate()+' '+MNAMES_SHORT[w.end.getMonth()];
+    var range=startLbl+(startLbl!==endLbl?' – '+endLbl:'');
+    // Count tipos
+    var tipos={};
+    w.days.filter(function(x){return !x.other;}).forEach(function(x){
+      if(x.tipo&&x.tipo!=='libre')tipos[x.tipo]=(tipos[x.tipo]||0)+1;
+    });
+    var tipoStr=Object.keys(tipos).map(function(t){return (TIPO_ICO2[t]||'')+(tipos[t]>1?' ×'+tipos[t]:'');}).join(' ');
+    var hDisplay=w.mins>0?_mcFmtH(w.mins):'0h';
+    html+='<div class="mc-wl-item">'+
+      '<div><div class="mc-wl-range">'+range+'</div>'+
+      '<div class="mc-wl-types">'+tipoStr+'</div></div>'+
+      '<div class="mc-wl-h">'+hDisplay+'</div></div>';
+  });
+  wl.innerHTML=html;
+}
+function mcSaveCarryover(val){
+  try{localStorage.setItem('cta_peren_carryover_'+_mcYear, val||'0:00');}catch(e){}
+  mcRenderSummary(null);// re-render just the summary
+}
 function _mcDuration(str){if(!str)return 0;var p=str.split(":");return (+p[0]||0)*60+(+p[1]||0);}
 function _mcMin(e,s){
   if(!e||!s)return 0;
@@ -2396,6 +2540,7 @@ function _mcFmtH(min){
 function mcRenderSummary(ue){
   var sumEl=document.getElementById('mc-summary');
   if(!sumEl)return;
+  if(!ue){var r2;try{r2=localStorage.getItem('cta_ed_'+_mcYear);}catch(e){r2=null;}try{ue=r2?JSON.parse(r2):{};}catch(e){ue={};}}
   // Current month
   var mKey=_MC_MONTHS[_mcMonth];
   var mData=(ue&&ue[mKey])||{};
@@ -2436,6 +2581,9 @@ function mcRenderSummary(ue){
   sumEl.style.display=hasData?'block':'none';
   var names=_MC_NAMES;
   document.getElementById('mc-sum-label').textContent='Resumen — '+names[_mcMonth]+' '+_mcYear;
+  // Show/hide carry-over field (only relevant for year totals)
+  var coEl=document.getElementById('mc-peren-carryover-wrap');
+  if(coEl)coEl.style.display='block';
   // Annual perentorias
   var anualPerenMin=0;
   _MC_MONTHS.forEach(function(mk){
@@ -2450,8 +2598,15 @@ function mcRenderSummary(ue){
   document.getElementById('mc-sum-anual').textContent=anualMin>0?_mcFmtH(anualMin):'0h';
   document.getElementById('mc-sum-anual-cont').textContent=anualContMin>0?_mcFmtH(anualContMin):'0h';
   document.getElementById('mc-sum-peren').textContent=perenMin!==0?_mcFmtH(Math.abs(perenMin))+(perenMin<0?' (compensado)':''):'—';
+  // Add carryover from previous years
+  var _co=0;
+  var _coRaw;try{_coRaw=localStorage.getItem('cta_peren_carryover_'+_mcYear);}catch(e){}
+  if(_coRaw){var _cop=_coRaw.split(':');_co=((+_cop[0]||0)*60+(+_cop[1]||0));}
+  var _coEl=document.getElementById('mc-peren-carryover');
+  if(_coEl&&!_coEl._focused)_coEl.value=_coRaw||'';
+  var totalPerenAnual=anualPerenMin+_co;
   var apEl=document.getElementById('mc-sum-peren-anual');
-  if(apEl)apEl.textContent=anualPerenMin>0?_mcFmtH(anualPerenMin):anualPerenMin<0?_mcFmtH(Math.abs(anualPerenMin))+' comp.':'—';
+  if(apEl)apEl.textContent=totalPerenAnual>0?_mcFmtH(totalPerenAnual):totalPerenAnual<0?_mcFmtH(Math.abs(totalPerenAnual))+' comp.':'—';
 }
 
 // ─── Day edit modal ──────────────────────────────────────────────
