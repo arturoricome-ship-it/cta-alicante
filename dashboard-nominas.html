@@ -1289,19 +1289,35 @@ function changeYear(){
   toast('Año cambiado a '+YEAR);
 }
 function saveYearData(y){
-  // Merge portal-only fields into UE before saving (preserve perenDur, hfunDur, perenTipo)
   try{
+    // 1. Preserve portal-only fields from existing localStorage
     var _existing=localStorage.getItem('cta_ed_'+y);
     if(_existing){
       var _ex=JSON.parse(_existing);
-      var _portalFields=['perenDur','hfunDur','perenTipo'];
+      var _pf=['perenDur','hfunDur','perenTipo'];
       Object.keys(_ex).forEach(function(m){
+        if(!_ex[m])return;
         Object.keys(_ex[m]).forEach(function(d){
           if(!UE[m]||!UE[m][d])return;
-          _portalFields.forEach(function(f){
-            if(_ex[m][d][f]!==undefined&&UE[m][d][f]===undefined){
-              UE[m][d][f]=_ex[m][d][f];
-            }
+          _pf.forEach(function(f){
+            if(_ex[m][d][f]!==undefined&&UE[m][d][f]===undefined)UE[m][d][f]=_ex[m][d][f];
+          });
+        });
+      });
+    }
+    // 2. Sync PD pgen → UE perenDur so portal sees dashboard perentorias
+    Object.keys(PD).forEach(function(key){
+      var pts=key.split(':'),m=pts[0],d=parseInt(pts[1]),pd=PD[key];
+      if(!pd||!(pd.gen>0))return;
+      if(!UE[m])UE[m]={};
+      if(!UE[m][d])UE[m][d]={tipo:'perentorias',total:pd.gen||0};
+      var h=Math.floor(pd.gen),mn=Math.round((pd.gen-h)*60);
+      UE[m][d].perenDur=h+':'+(mn<10?'0':'')+mn;
+      UE[m][d].perenTipo=pd.perenMode==='cobrar'?'cp':'perentorias';
+    });
+  }catch(e){}
+  try{localStorage.setItem('cta_ed_'+y,JSON.stringify(UE));localStorage.setItem('cta_pd_'+y,JSON.stringify(PD))}catch(e){}
+}
           });
         });
       });
@@ -1311,6 +1327,21 @@ function saveYearData(y){
 }
 function loadYearData(y){
   try{var s=localStorage.getItem('cta_ed_'+y);UE=s?JSON.parse(s):{}}catch(e){UE={}}
+  // Sync portal perenDur → PD so dashboard shows peren from portal
+  try{
+    Object.keys(UE).forEach(function(m){
+      Object.keys(UE[m]).forEach(function(d){
+        var day=UE[m][d];
+        if(!day||!day.perenDur||day.perenDur==='0:00')return;
+        var key=m+':'+d;
+        var p=day.perenDur.split(':');
+        var genH=(+p[0]||0)+(+p[1]||0)/60;
+        if(genH>0){
+          PD[key]=Object.assign(PD[key]||{},{gen:genH,perenMode:day.perenTipo==='cp'?'cobrar':'librar'});
+        }
+      });
+    });
+  }catch(e){}
   try{var s2=localStorage.getItem('cta_pd_'+y);PD=s2?JSON.parse(s2):{}}catch(e){PD={}}
   // Si es 2026 y UE vacío, usar BASE
   if(y===2026&&Object.keys(UE).length===0){/* BASE ya está disponible */}
