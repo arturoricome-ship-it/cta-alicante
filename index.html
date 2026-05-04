@@ -2438,6 +2438,7 @@ function mcRender(){
   grid.innerHTML=html;
   if(nodata)nodata.style.display=hasAnyData?'none':'block';
   mcRenderSummary(ue);
+  if(typeof _mcMode!=='undefined'&&_mcMode==='sem'){document.getElementById('mc-grid-wrap').style.display='none';var _wl=document.getElementById('mc-weeks-list');if(_wl)_wl.classList.add('open');mcRenderWeeks();}
 }
 
 
