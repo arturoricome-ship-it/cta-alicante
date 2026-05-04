@@ -783,7 +783,7 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
       <div class="frow">
         <label style="color:var(--purple2)">Perentorias generadas este día</label>
         <div style="display:flex;gap:8px;align-items:center">
-          <input class="fi" type="number" id="m-pgen" placeholder="0" min="0" step="0.25" value="0" style="color:var(--purple2);max-width:90px" oninput="mPgenChange()">
+          <input class="fi" type="text" id="m-pgen" placeholder="0:00" value="" style="color:var(--purple2);max-width:90px;text-align:center" oninput="mPgenChange()">
           <div id="m-pmode-sec" style="display:none;gap:6px;align-items:center">
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:.85rem">
               <input type="radio" name="pmode" value="librar" id="m-pmode-n" checked onchange="mPgenChange()"> 7N · Librar
@@ -800,7 +800,7 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
     <div id="m-pgasto-sec" style="display:none">
       <div class="frow">
         <label style="color:var(--red2)">Perentorias consumidas del banco (−h)</label>
-        <input class="fi" type="number" id="m-pgasto" placeholder="8" min="0" step="0.25" value="8" style="color:var(--red2)">
+        <input class="fi" type="text" id="m-pgasto" placeholder="8:00" value="8:00" style="color:var(--red2);text-align:center" pattern="[0-9]+:[0-5][0-9]">
         <div class="mhint">Cuántas horas descontar del banco. Puedes consumir menos que el turno completo.</div>
       </div>
     </div>
@@ -1289,6 +1289,24 @@ function changeYear(){
   toast('Año cambiado a '+YEAR);
 }
 function saveYearData(y){
+  // Merge portal-only fields into UE before saving (preserve perenDur, hfunDur, perenTipo)
+  try{
+    var _existing=localStorage.getItem('cta_ed_'+y);
+    if(_existing){
+      var _ex=JSON.parse(_existing);
+      var _portalFields=['perenDur','hfunDur','perenTipo'];
+      Object.keys(_ex).forEach(function(m){
+        Object.keys(_ex[m]).forEach(function(d){
+          if(!UE[m]||!UE[m][d])return;
+          _portalFields.forEach(function(f){
+            if(_ex[m][d][f]!==undefined&&UE[m][d][f]===undefined){
+              UE[m][d][f]=_ex[m][d][f];
+            }
+          });
+        });
+      });
+    }
+  }catch(e){}
   try{localStorage.setItem('cta_ed_'+y,JSON.stringify(UE));localStorage.setItem('cta_pd_'+y,JSON.stringify(PD))}catch(e){}
 }
 function loadYearData(y){
@@ -1336,7 +1354,16 @@ var UE={},PD={};
 function loadED(){loadYearData(YEAR)}
 function saveED(){saveYearData(YEAR)}
 function gd(m,d){return Object.assign({},(BASE[m]&&BASE[m][d])||{tipo:'libre',total:0},(UE[m]&&UE[m][d])||{})}
-function sd(m,d,v){if(!UE[m])UE[m]={};UE[m][d]=v}
+function sd(m,d,v){
+  if(!UE[m])UE[m]={};
+  // Preserve portal-only fields (perenDur, hfunDur, perenTipo)
+  var _prev=UE[m][d]||{};
+  var _obj=Object.assign({},v);
+  ['perenDur','hfunDur','perenTipo'].forEach(function(f){
+    if(_prev[f]!==undefined&&_obj[f]===undefined)_obj[f]=_prev[f];
+  });
+  UE[m][d]=_obj;
+}
 
 // ════════════════════════════════════════
 // CONFIG
@@ -2120,7 +2147,7 @@ function renderCal(){
           timeHtml+='</div>';
           if(day.total>0) timeHtml+='<div class="cc-ht">'+day.total+'h</div>';
         }
-        var perenHtml=pgen>0?'<div class="cc-pe">+'+pgen+'h peren.</div>':'';
+        var perenHtml=pgen>0?'<div class="cc-pe">+'+hToHhmm(pgen)+' peren.</div>':'';
         var badgeHtml='<span class="cc-badge '+(bmap[tipo]||'cb-libre')+'">'+capitalize(tipo)+'</span>';
         cell.innerHTML='<div class="cc-head">'+d+' '+dowName+'</div>'+timeHtml+perenHtml+badgeHtml;
         (function(mm,dd){cell.onclick=function(){openM(mm,dd)}})(m,d);
@@ -2167,12 +2194,12 @@ function openM(month,day){
   document.getElementById('m-s1').value=d.s1||'';
   document.getElementById('m-e2').value=d.e2||'';
   document.getElementById('m-s2').value=d.s2||'';
-  document.getElementById('m-pgen').value=pd.gen||0;
+  document.getElementById('m-pgen').value=pd.gen?hToHhmm(pd.gen):'';
   var pmode=pd.perenMode||'librar';
   document.getElementById('m-pmode-n').checked=(pmode==='librar');
   document.getElementById('m-pmode-d').checked=(pmode==='cobrar');
   mPgenChange();
-  document.getElementById('m-pgasto').value=pd.gasto!==undefined?pd.gasto:8;
+  document.getElementById('m-pgasto').value=pd.gasto?hToHhmm(pd.gasto):'';
   mTipoChange();calcM();
   document.getElementById('mbg').classList.add('on');
 }
@@ -2180,8 +2207,31 @@ function toggleIB303Info(){
   var el=document.getElementById('ib303-info');
   el.style.display=el.style.display==='none'?'block':'none';
 }
+
+// ─── Perentorias hh:mm helpers ────────────────────────────────
+function hhmmToH(s){
+  if(!s||String(s).indexOf(':')<0)return parseFloat(s)||0;
+  var p=String(s).split(':');return (+p[0]||0)+(+p[1]||0)/60;
+}
+function hToHhmm(h){
+  if(!h)return '0:00';
+  var hh=Math.floor(h),mm=Math.round((h-hh)*60);
+  return hh+':'+(mm<10?'0':'')+mm;
+}
+
+function parseHHMM(val){
+  if(!val||!val.trim())return 0;
+  val=val.trim();
+  if(val.indexOf(':')>=0){var p=val.split(':');return(+p[0]||0)+(+p[1]||0)/60;}
+  return parseFloat(val)||0;
+}
+function fmtHHMM(h){
+  if(!h||h<=0)return '';
+  var hh=Math.floor(h),mm=Math.round((h-hh)*60);
+  return hh+':'+(mm<10?'0':'')+mm;
+}
 function mPgenChange(){
-  var pgen=parseFloat(document.getElementById('m-pgen').value)||0;
+  var pgen=hhmmToH(document.getElementById('m-pgen').value);
   var sec=document.getElementById('m-pmode-sec');
   var hint=document.getElementById('m-pgen-hint');
   if(pgen>0){
@@ -2218,8 +2268,8 @@ function saveModal(){
   var e1=document.getElementById('m-e1').value.trim(),s1=document.getElementById('m-s1').value.trim();
   var e2=document.getElementById('m-e2').value.trim(),s2=document.getElementById('m-s2').value.trim();
   var total=calcH(e1,s1,e2,s2)||(tipo==='perentorias'?8:0);
-  var pgen=parseFloat(document.getElementById('m-pgen').value)||0;
-  var pgasto=tipo==='perentorias'?(parseFloat(document.getElementById('m-pgasto').value)||total):0;
+  var pgen=hhmmToH(document.getElementById('m-pgen').value);
+  var pgasto=tipo==='perentorias'?(hhmmToH(document.getElementById('m-pgasto').value)||total):0;
   var esFestivo=document.getElementById('m-esfestivo')&&document.getElementById('m-esfestivo').checked;
   sd(mm,dd,{e1:e1||undefined,s1:s1||undefined,e2:e2||undefined,s2:s2||undefined,tipo:tipo,total:total,esFestivo:esFestivo||undefined});
   var key=mm+':'+dd;
