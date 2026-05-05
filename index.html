@@ -362,10 +362,10 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-title{font-size:10px;color:var(--gray);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
 .grupo-toolbar{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
 .grupo-toolbar-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.grupo-nav{display:flex;align-items:center;gap:8px;width:100%}
+.grupo-nav{display:flex;align-items:center;gap:8px;width:100%;flex-wrap:nowrap}
 .grupo-nav-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--gray);border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer}
 .grupo-nav-date{font-size:11px;color:var(--gold);font-weight:600;flex:1;text-align:center}
-.grupo-all-btn{display:inline-flex;align-items:center;justify-content:center;background:rgba(110,231,183,.18);border:1px solid rgba(110,231,183,.45);color:#a7f3d0;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.grupo-all-btn{display:inline-flex;align-items:center;justify-content:center;background:rgba(110,231,183,.18);border:1px solid rgba(110,231,183,.45);color:#a7f3d0;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;margin-left:auto}
 .grupo-all-btn.off{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14);color:var(--gray)}
 .grupo-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .grupo-item:last-child{border-bottom:none}
@@ -711,7 +711,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 <div id="live-overlay"></div>
 <div id="live-panel">
   <div class="live-handle"></div>
-  <div style="padding:0 14px 10px">
+  <div class="live-drag-zone" style="padding:0 14px 10px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;display:flex;align-items:center;gap:8px"><span class="live-dot"></span>Vueling · Alicante</div><div id="live-fecha-panel" style="font-size:11px;color:var(--gold);letter-spacing:1px;margin-top:2px"></div>
       <div style="display:flex;gap:6px">
@@ -1488,10 +1488,13 @@ function initLiveDragClose(){
     if(delta>90){closeLivePanel();return;}
     panel.style.transform="translateY(0)";
   }
-  handle.addEventListener("touchstart",onStart,{passive:true});
+  function shouldStartDrag(target){
+    return !!target.closest(".live-handle,.live-drag-zone");
+  }
+  panel.addEventListener("touchstart",function(e){if(shouldStartDrag(e.target))onStart(e);},{passive:true});
   window.addEventListener("touchmove",onMove,{passive:true});
   window.addEventListener("touchend",onEnd);
-  handle.addEventListener("mousedown",onStart);
+  panel.addEventListener("mousedown",function(e){if(shouldStartDrag(e.target))onStart(e);});
   window.addEventListener("mousemove",onMove);
   window.addEventListener("mouseup",onEnd);
 }
@@ -1584,7 +1587,21 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   var convertPanel=document.getElementById("convert-panel");
   var RATIO=0.175;
 
-  function openCalc(){panel.classList.add("show");overlay.classList.add("show");}
+  function hasGrupoData(){
+    try{
+      var g=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}');
+      return !!g&&Object.keys(g).length>0;
+    }catch(e){return false;}
+  }
+  function openCalc(){
+    panel.classList.add("show");
+    overlay.classList.add("show");
+    if(hasGrupoData()){
+      window._grupoOffsetDias=0;
+      window._grupoMostrarTodaPlantilla=false;
+      renderCompanerosDia(0,false);
+    }
+  }
   function resetCompanerosPanel(){
     window._grupoOffsetDias=0;
     var gp=document.getElementById("grupo-panel");
@@ -3226,8 +3243,8 @@ function turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2){
 
 function verCompanerosHoy(){
   window._grupoOffsetDias=0;
-  if(typeof window._grupoMostrarTodaPlantilla!=='boolean')window._grupoMostrarTodaPlantilla=false;
-  return renderCompanerosDia(window._grupoOffsetDias,true);
+  window._grupoMostrarTodaPlantilla=false;
+  return renderCompanerosDia(window._grupoOffsetDias,false);
 }
 
 function moverCompanerosDia(delta){
@@ -3252,7 +3269,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   var panel=document.getElementById('grupo-panel');
   if(toggleIfOpen&&panel.classList.contains('open')){panel.classList.remove('open');return;}
   var modoToda=!!window._grupoMostrarTodaPlantilla;
-  var navHtml='<div class="grupo-toolbar"><div class="grupo-toolbar-top"><div class="grupo-title">👥 '+(modoToda?'Toda la plantilla':'Coincidencias')+'</div><button class="grupo-all-btn'+(modoToda?'':' off')+'" onclick="toggleTodaPlantilla()">Toda la plantilla</button></div><div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div></div>';
+  var navHtml='<div class="grupo-toolbar"><div class="grupo-toolbar-top"><div class="grupo-title">👥 '+(modoToda?'Toda la plantilla':'Coincidencias')+'</div></div><div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button><button class="grupo-all-btn'+(modoToda?'':' off')+'" onclick="toggleTodaPlantilla()">Toda la plantilla</button></div></div>';
 
   var now=new Date();
   var target=new Date(now.getTime());
