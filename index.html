@@ -373,6 +373,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #grupo-panel{max-height:min(58vh,420px);overflow:auto;padding-right:4px}
 .grupo-clickable{cursor:pointer}
 .grupo-clickable:active{opacity:.85}
+.grupo-exclamacion{display:inline-block;margin-left:2px;color:#b7a57a;font-weight:700;font-size:12px;opacity:.8}
 #disp-cartel{position:fixed;left:50%;bottom:88px;transform:translate(-50%,20px);background:rgba(13,22,35,.96);border:1px solid rgba(200,168,75,.45);color:var(--white);padding:9px 12px;border-radius:10px;font-size:12px;z-index:950;opacity:0;pointer-events:none;transition:all .2s ease;max-width:88vw;text-align:center}
 #disp-cartel.on{opacity:1;transform:translate(-50%,0)}
 </style>
@@ -3202,8 +3203,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     if(turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2)){
       var horario=turno.e1+'→'+turno.s1;
       if(turno.e2&&turno.s2)horario+=' / '+turno.e2+'→'+turno.s2;
-      if(turno.disponibilidadNoConfirmada)horario+=' · Disponibilidad no confirmada';
-      coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,categoria:emp.categoria||'General'});
+      coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada});
     }
   });
 
@@ -3227,7 +3227,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     cats[cat].forEach(function(c){
       html+='<div class="grupo-item">'+
         '<div class="grupo-solapamiento" style="background:#60a5fa"></div>'+
-        '<div class="grupo-nombre grupo-clickable" onclick="showDisponibilidadCartel()">! '+c.nombre+'</div>'+
+        '<div class="grupo-nombre">'+c.nombre+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+
         '<div class="grupo-horario">'+c.horario+'</div></div>';
     });
   });
