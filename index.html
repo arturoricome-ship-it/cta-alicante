@@ -360,10 +360,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #grupo-panel{display:none;margin-top:10px;border-top:1px solid rgba(255,255,255,.07);padding-top:10px}
 #grupo-panel.open{display:block}
 .grupo-title{font-size:10px;color:var(--gray);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
-.grupo-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.grupo-nav{display:flex;align-items:center;gap:8px;flex:1}
+.grupo-toolbar{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.grupo-toolbar-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.grupo-nav{display:flex;align-items:center;gap:8px;width:100%}
 .grupo-nav-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--gray);border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer}
-.grupo-nav-date{font-size:11px;color:var(--gold);font-weight:600}
+.grupo-nav-date{font-size:11px;color:var(--gold);font-weight:600;flex:1;text-align:center}
 .grupo-all-btn{display:inline-flex;align-items:center;justify-content:center;background:rgba(110,231,183,.18);border:1px solid rgba(110,231,183,.45);color:#a7f3d0;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .grupo-all-btn.off{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14);color:var(--gray)}
 .grupo-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
@@ -1462,10 +1463,39 @@ document.getElementById("btn-live").addEventListener("click",function(){
   document.getElementById("live-panel").classList.add("show");
   if(!liveLoaded)loadLive();
 });
-document.getElementById("live-overlay").addEventListener("click",function(){
+function closeLivePanel(){
   document.getElementById("live-overlay").classList.remove("show");
   document.getElementById("live-panel").classList.remove("show");
-});
+}
+document.getElementById("live-overlay").addEventListener("click",closeLivePanel);
+
+function initLiveDragClose(){
+  var panel=document.getElementById("live-panel");
+  var handle=panel.querySelector(".live-handle");
+  if(!handle)return;
+  var dragging=false,startY=0,delta=0;
+  function getY(e){return e.touches?e.touches[0].clientY:e.clientY;}
+  function onStart(e){dragging=true;startY=getY(e);delta=0;panel.style.transition="none";}
+  function onMove(e){
+    if(!dragging)return;
+    delta=Math.max(0,getY(e)-startY);
+    panel.style.transform="translateY("+delta+"px)";
+  }
+  function onEnd(){
+    if(!dragging)return;
+    dragging=false;
+    panel.style.transition="transform .3s ease";
+    if(delta>90){closeLivePanel();return;}
+    panel.style.transform="translateY(0)";
+  }
+  handle.addEventListener("touchstart",onStart,{passive:true});
+  window.addEventListener("touchmove",onMove,{passive:true});
+  window.addEventListener("touchend",onEnd);
+  handle.addEventListener("mousedown",onStart);
+  window.addEventListener("mousemove",onMove);
+  window.addEventListener("mouseup",onEnd);
+}
+initLiveDragClose();
 document.getElementById("live-refresh").addEventListener("click",function(){
   var btn=this;
   btn.style.opacity=".4";btn.style.pointerEvents="none";
@@ -3222,7 +3252,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   var panel=document.getElementById('grupo-panel');
   if(toggleIfOpen&&panel.classList.contains('open')){panel.classList.remove('open');return;}
   var modoToda=!!window._grupoMostrarTodaPlantilla;
-  var navHtml='<div class="grupo-toolbar"><div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div><button class="grupo-all-btn'+(modoToda?'':' off')+'" onclick="toggleTodaPlantilla()">Toda la plantilla</button></div>';
+  var navHtml='<div class="grupo-toolbar"><div class="grupo-toolbar-top"><div class="grupo-title">👥 '+(modoToda?'Toda la plantilla':'Coincidencias')+'</div><button class="grupo-all-btn'+(modoToda?'':' off')+'" onclick="toggleTodaPlantilla()">Toda la plantilla</button></div><div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div></div>';
 
   var now=new Date();
   var target=new Date(now.getTime());
