@@ -2946,11 +2946,25 @@ function procesarGrupoXlsx(file){
         if(dayNum>=1&&dayNum<=31)dayColMap[dayNum]=c;
       }
 
-      // Detect month from row 1 or sheet name
+      // Detect category from row 2 (e.g. "06 UAR- FTP-Operarios 01 may...")
+      var row2=String(rows[1]&&rows[1][0]||'');
+      var categoria='General';
+      var catPatterns=['Supervisor','Operario','Técnico','Jefe','Coordinador','Auxiliar','Agente','Admin'];
+      catPatterns.forEach(function(p){if(row2.toLowerCase().indexOf(p.toLowerCase())>=0)categoria=p+'s';});
+      // Try to extract custom group name from row 2
+      var row2clean=row2.replace(/\d{2} may - \d{2} may \d{4}/i,'').replace(/\d{4}/g,'').replace(/\d{2}\s*(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic).*$/i,'').trim();
+      var dashParts=row2clean.split('-');
+      if(dashParts.length>=2){
+        var lastPart=dashParts[dashParts.length-1].trim();
+        if(lastPart.length>2&&lastPart.length<40)categoria=lastPart;
+      }
+
+      // Detect month from row 3 or sheet name
       var sheetName=wb.SheetNames[0];
       var monthNames={enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11};
       var detectedMonth=new Date().getMonth();
-      Object.keys(monthNames).forEach(function(k){if(sheetName.toLowerCase().indexOf(k)>=0)detectedMonth=monthNames[k];});
+      var row3=String(rows[2]&&rows[2][2]||'').toLowerCase();
+      Object.keys(monthNames).forEach(function(k){if(row3.indexOf(k)>=0||sheetName.toLowerCase().indexOf(k)>=0)detectedMonth=monthNames[k];});
       var monthKey=_GRUPO_MONTHS[detectedMonth];
 
       // Parse each employee
@@ -2972,23 +2986,33 @@ function procesarGrupoXlsx(file){
             if(parsed)diasMes[parseInt(d)]=parsed;
           }
         });
-        empleados.push({nomina:nomina,nombre:nombre,dias:diasMes});
+        empleados.push({nomina:nomina,nombre:nombre,categoria:categoria,dias:diasMes});
       }
 
-      // Save to localStorage
+      // Merge into existing data (same nomina → replace, new → add)
       var existing={};
       try{existing=JSON.parse(localStorage.getItem(_GRUPO_KEY)||'{}')}catch(ex){}
-      existing[monthKey]=empleados;
+      var existingList=existing[monthKey]||[];
+      // Build map by nomina for fast lookup
+      var nominaMap={};
+      existingList.forEach(function(e){nominaMap[e.nomina]=e;});
+      var added=0,updated=0;
+      empleados.forEach(function(emp){
+        if(nominaMap[emp.nomina]){updated++;}else{added++;}
+        nominaMap[emp.nomina]=emp;
+      });
+      existing[monthKey]=Object.values(nominaMap);
       existing._month=detectedMonth;
       existing._updated=new Date().toISOString();
       localStorage.setItem(_GRUPO_KEY,JSON.stringify(existing));
 
       // Update UI
+      var total=existing[monthKey].length;
       var btn=document.getElementById('btn-import-grupo');
       if(btn)btn.classList.add('has-data');
       var hint=document.getElementById('grupo-import-hint');
       var txt=document.getElementById('grupo-import-txt');
-      if(hint&&txt){hint.style.display='block';txt.textContent='✅ Grupo importado: '+empleados.length+' compañeros ('+monthKey+')';}
+      if(hint&&txt){hint.style.display='block';txt.textContent='✅ '+file.name+': +'+added+' nuevos, '+updated+' actualizados. Total: '+total+' compañeros.';}
     }catch(err){alert('Error al leer el Excel del grupo: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
@@ -3079,7 +3103,7 @@ function verCompanerosHoy(){
     if(turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2)){
       var horario=turno.e1+'→'+turno.s1;
       if(turno.e2&&turno.s2)horario+=' / '+turno.e2+'→'+turno.s2;
-      coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1});
+      coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,categoria:emp.categoria||'General'});
     }
   });
 
@@ -3092,13 +3116,19 @@ function verCompanerosHoy(){
   coinciden.sort(function(a,b){return a.e1-b.e1;});
 
   var myHorario=myDay.e1+'→'+myDay.s1+(myDay.e2?' / '+myDay.e2+'→'+myDay.s2:'');
+  // Group by category
+  var cats={};
+  coinciden.forEach(function(c){var cat=c.categoria||'General';if(!cats[cat])cats[cat]=[];cats[cat].push(c);});
   var html='<div class="grupo-title">👥 Compañeros hoy · '+coinciden.length+' coincidencias</div>';
-  html+='<div class="grupo-item" style="opacity:.5"><div class="grupo-solapamiento" style="background:var(--gold)"></div><div class="grupo-nombre" style="color:var(--gold)">Tú</div><div class="grupo-horario" style="color:var(--gold)">'+myHorario+'</div></div>';
-  coinciden.forEach(function(c){
-    html+='<div class="grupo-item">'+
-      '<div class="grupo-solapamiento" style="background:#60a5fa"></div>'+
-      '<div class="grupo-nombre">'+c.nombre+'</div>'+
-      '<div class="grupo-horario">'+c.horario+'</div></div>';
+  html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gold)"></div><div class="grupo-nombre" style="color:var(--gold);font-size:12px">Tú</div><div class="grupo-horario" style="color:var(--gold)">'+myHorario+'</div></div>';
+  Object.keys(cats).sort().forEach(function(cat){
+    html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
+    cats[cat].forEach(function(c){
+      html+='<div class="grupo-item">'+
+        '<div class="grupo-solapamiento" style="background:#60a5fa"></div>'+
+        '<div class="grupo-nombre">'+c.nombre+'</div>'+
+        '<div class="grupo-horario">'+c.horario+'</div></div>';
+    });
   });
   panel.innerHTML=html;
   panel.classList.add('open');
