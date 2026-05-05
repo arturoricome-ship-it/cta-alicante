@@ -44,6 +44,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .live-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:14px auto 12px}
 #live-body{overflow-y:auto;padding:0 14px 40px;flex:1}
 .vuelo-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:8px;display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center}
+.vuelo-row.vuelo-corte{box-shadow:inset 0 -2px 0 rgba(200,168,75,.45)}
 .vuelo-estado{font-size:10px;font-weight:700;padding:3px 7px;border-radius:100px;white-space:nowrap;min-width:0;text-align:center}
 .vuelo-num{font-family:"Bebas Neue",sans-serif;font-size:16px;color:var(--gold);letter-spacing:1px}
 .vuelo-dest{font-size:13px;font-weight:700}
@@ -1315,6 +1316,33 @@ function switchLive(mode){
   renderLive();
 }
 
+function hToMin(h){
+  if(!h||h.indexOf(":")<0)return null;
+  var p=h.split(":");
+  var hh=parseInt(p[0],10),mm=parseInt(p[1],10);
+  if(isNaN(hh)||isNaN(mm))return null;
+  return hh*60+mm;
+}
+
+function getLiveCutoffsFromTurnoHoy(){
+  var now=new Date();
+  var meses=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+  var raw;
+  try{raw=localStorage.getItem("cta_ed_"+now.getFullYear());}catch(e){return [];}
+  if(!raw)return [];
+  var data;
+  try{data=JSON.parse(raw);}catch(e){return [];}
+  var mes=data[meses[now.getMonth()]];
+  var d=mes?mes[now.getDate()]||null:null;
+  if(!d)return [];
+  var out=[];
+  var s1=hToMin(d.s1||"");
+  var s2=hToMin(d.s2||"");
+  if(s1!==null)out.push(s1);
+  if(s2!==null)out.push(s2);
+  return out;
+}
+
 function renderLive(){
   var container=document.getElementById("live-container");
   var data=(liveMode==="salidas"?liveData.sal:liveData.lle).slice();
@@ -1331,8 +1359,25 @@ function renderLive(){
   if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
   container.innerHTML="";
 
+  var cortes=[];
+  if(esS){
+    var cutoffs=getLiveCutoffsFromTurnoHoy();
+    cutoffs.forEach(function(cut){
+      var bestIdx=-1,bestMin=-1;
+      for(var i=0;i<data.length;i++){
+        var vv=data[i];
+        if((vv.estadoClass||"")==="e-cancelled")continue;
+        var hm=vv.horaReal||vv.horaProg||"";
+        var vm=hToMin(hm);
+        if(vm===null)continue;
+        if(vm<=cut&&vm>bestMin){bestMin=vm;bestIdx=i;}
+      }
+      if(bestIdx>=0)cortes.push(bestIdx);
+    });
+  }
+
   var separadorPuesto=false;
-  data.forEach(function(v){
+  data.forEach(function(v,idx){
     if(v.esManana&&!separadorPuesto){
       separadorPuesto=true;
       var sep=document.createElement("div");sep.className="separador-manana";
@@ -1355,6 +1400,7 @@ function renderLive(){
     var cancelado=v.estadoClass==="e-cancelled";
     var rowStyle=cancelado?"opacity:.6;border-color:rgba(230,80,70,.3)":"";
     var row=document.createElement("div");row.className="vuelo-row";
+    if(cortes.indexOf(idx)!==-1)row.classList.add("vuelo-corte");
     if(rowStyle)row.style.cssText=rowStyle;
     row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
       +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
