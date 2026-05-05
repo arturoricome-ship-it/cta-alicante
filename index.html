@@ -362,10 +362,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-title{font-size:10px;color:var(--gray);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
 .grupo-toolbar{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
 .grupo-toolbar-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.grupo-toolbar-actions{display:flex;align-items:center;gap:6px;margin-left:auto}
 .grupo-nav{display:flex;align-items:center;gap:8px;width:100%;flex-wrap:nowrap}
 .grupo-nav-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--gray);border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer}
 .grupo-nav-date{font-size:11px;color:var(--gold);font-weight:600;flex:1;text-align:center}
-.grupo-all-btn{display:inline-flex;align-items:center;justify-content:center;background:rgba(110,231,183,.18);border:1px solid rgba(110,231,183,.45);color:#a7f3d0;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;margin-left:auto}
+.grupo-all-btn{display:inline-flex;align-items:center;justify-content:center;background:rgba(110,231,183,.18);border:1px solid rgba(110,231,183,.45);color:#a7f3d0;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .grupo-all-btn.off{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14);color:var(--gray)}
 .grupo-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .grupo-item:last-child{border-bottom:none}
@@ -1556,7 +1557,10 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   <div class="calc-group-row">
     <button class="calc-group-btn" id="btn-import-grupo" title="Importar Excel del grupo" onclick="importarGrupo()">📋</button>
     <button class="calc-group-btn" id="btn-ver-grupo" title="Ver compañeros por día" onclick="verCompanerosHoy()">👥</button>
-    <button class="calc-group-btn" title="Borrar todos los datos del grupo" onclick="resetGrupo()" style="flex:0;padding:9px 12px">🗑️</button>
+    <div style="display:flex;flex-direction:column;gap:6px;flex:0">
+      <button class="calc-group-btn" title="Salir al menú principal" onclick="salirMenuPrincipal()" style="padding:6px 12px;font-size:14px">🏠</button>
+      <button class="calc-group-btn" title="Borrar todos los datos del grupo" onclick="resetGrupo()" style="padding:6px 12px">🗑️</button>
+    </div>
     <input type="file" id="grupo-file-input" accept=".xlsx" style="display:none" onchange="procesarGrupoXlsx(this.files[0])">
   </div>
   <div id="grupo-panel"></div>
@@ -1608,39 +1612,11 @@ document.getElementById("btn-logout").addEventListener("click",function(){
     if(gp)gp.classList.remove("open");
   }
   function closeCalc(){panel.classList.remove("show");overlay.classList.remove("show");resetCompanerosPanel();}
-  function initCalcDragClose(){
-    var handle=panel.querySelector(".calc-handle");
-    if(!handle)return;
-    var dragging=false,startY=0,delta=0;
-    function getY(e){return e.touches?e.touches[0].clientY:e.clientY;}
-    function onStart(e){dragging=true;startY=getY(e);delta=0;panel.style.transition="none";}
-    function onMove(e){
-      if(!dragging)return;
-      delta=Math.max(0,getY(e)-startY);
-      panel.style.transform="translateY("+delta+"px)";
-    }
-    function onEnd(){
-      if(!dragging)return;
-      dragging=false;
-      panel.style.transition="transform .3s cubic-bezier(.4,0,.2,1)";
-      if(delta>90){closeCalc();return;}
-      panel.style.transform="translateY(0)";
-    }
-    function shouldStartDrag(target){
-      return !!target.closest(".calc-handle,.calc-title,.calc-sub");
-    }
-    panel.addEventListener("touchstart",function(e){if(shouldStartDrag(e.target))onStart(e);},{passive:true});
-    window.addEventListener("touchmove",onMove,{passive:true});
-    window.addEventListener("touchend",onEnd);
-    handle.addEventListener("mousedown",onStart);
-    window.addEventListener("mousemove",onMove);
-    window.addEventListener("mouseup",onEnd);
-  }
+  function initCalcDragClose(){}
   function openConvertPanel(){convertPanel.style.transform="translateY(0)";overlay.classList.add("show");}
   function closeConvertPanel(){convertPanel.style.transform="translateY(100%)";}
 
   btn.addEventListener("click",openCalc);
-  initCalcDragClose();
   overlay.addEventListener("click",function(){closeCalc();closeConvertPanel();overlay.classList.remove("show");});
   window.openConvertPanel=openConvertPanel;
 
@@ -3253,6 +3229,15 @@ function moverCompanerosDia(delta){
   renderCompanerosDia(window._grupoOffsetDias,false);
 }
 
+function salirMenuPrincipal(){
+  closeCalc();
+  switchTab('documentos',document.querySelectorAll('.tab')[0],document.getElementById('nav-documentos'));
+  breadcrumb=[{id:ROOT_ID,name:'Inicio'}];
+  renderBreadcrumb();
+  renderFolder(ROOT_ID);
+  document.getElementById('scroll-area').scrollTop=0;
+}
+
 function toggleTodaPlantilla(){
   window._grupoMostrarTodaPlantilla=!window._grupoMostrarTodaPlantilla;
   if(typeof window._grupoOffsetDias!=='number')window._grupoOffsetDias=0;
@@ -3269,7 +3254,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   var panel=document.getElementById('grupo-panel');
   if(toggleIfOpen&&panel.classList.contains('open')){panel.classList.remove('open');return;}
   var modoToda=!!window._grupoMostrarTodaPlantilla;
-  var navHtml='<div class="grupo-toolbar"><div class="grupo-toolbar-top"><div class="grupo-title">👥 '+(modoToda?'Toda la plantilla':'Coincidencias')+'</div></div><div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button><button class="grupo-all-btn'+(modoToda?'':' off')+'" onclick="toggleTodaPlantilla()">Toda la plantilla</button></div></div>';
+  var navHtml='<div class="grupo-toolbar"><div class="grupo-toolbar-top"><div class="grupo-title">👥 '+(modoToda?'Toda la plantilla':'Coincidencias')+'</div><div class="grupo-toolbar-actions"><button class="grupo-all-btn'+(modoToda?'':' off')+'" onclick="toggleTodaPlantilla()">Toda la plantilla</button></div></div><div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div></div>';
 
   var now=new Date();
   var target=new Date(now.getTime());
