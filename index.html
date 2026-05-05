@@ -656,7 +656,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <button class="nav-btn" id="nav-turnos" onclick="switchTab('turnos',document.querySelectorAll('.tab')[1],this)"><span class="nav-ico">📋</span>Publicados</button>
   <button class="nav-btn" id="nav-avisos" onclick="switchTab('avisos',document.querySelectorAll('.tab')[2],this)" style="position:relative"><span class="nav-ico">&#128226;</span>Avisos<span class="badge" id="badge-avisos-nav">!</span></button>
   <button class="nav-btn" id="nav-afiliate" onclick="switchTab('afiliate',document.querySelectorAll('.tab')[3],this)"><span class="nav-ico">📅</span>Calendario</button>
-  <button class="nav-btn" id="nav-grupos" onclick="switchTab('grupos',document.querySelectorAll('.tab')[4],this)"><span class="nav-ico">&#128172;</span>Grupos</button>
+  <button class="nav-btn" id="nav-grupos" onclick="switchTab('grupos',document.querySelectorAll('.tab')[4],this)"><span class="nav-ico">&#128101;</span>Grupos</button>
 </nav>
 
 <!-- ACCESOS DIRECTOS -->
@@ -687,6 +687,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
     <button class="acceso-item" onclick="closeAccesoDirecto();openTrypImport()" style="border:1px solid rgba(200,168,75,.35);cursor:pointer;width:100%;text-align:left;background:rgba(200,168,75,.06);margin-top:10px">
       <div class="ai-icon" style="background:rgba(200,168,75,.15);font-size:18px">📥</div>
       <div style="flex:1"><div class="ai-name" style="color:var(--gold)">Importar TRYP</div><div class="ai-desc">Importa tu calendario desde el Excel del Tryp</div></div>
+      <span class="ai-arrow" style="opacity:1;color:var(--gold)">›</span>
+    </button>
+    <button class="acceso-item" onclick="closeAccesoDirecto();openConvertPanel()" style="border:1px solid rgba(200,168,75,.35);cursor:pointer;width:100%;text-align:left;background:rgba(200,168,75,.06);margin-top:10px">
+      <div class="ai-icon" style="background:rgba(200,168,75,.15);font-size:18px">🧮</div>
+      <div style="flex:1"><div class="ai-name" style="color:var(--gold)">Calculadora horas/unidades</div><div class="ai-desc">Convierte horas trabajadas y unidades cobradas</div></div>
       <span class="ai-arrow" style="opacity:1;color:var(--gold)">›</span>
     </button>
     <button class="acceso-close" onclick="closeAccesoDirecto()">Cerrar</button>
@@ -1506,20 +1511,8 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 <div id="calc-overlay"></div>
 <div id="calc-panel">
   <div class="calc-handle"></div>
-  <div class="calc-title">¿Horas o unidades?</div>
-  <div class="calc-sub">Convierte entre horas trabajadas y unidades cobradas</div>
-  <div class="calc-row">
-    <div class="calc-field">
-      <div class="calc-label">Unidades</div>
-      <input class="calc-input" id="calc-uni" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01">
-    </div>
-    <div class="calc-arrow">⇄</div>
-    <div class="calc-field">
-      <div class="calc-label">Horas</div>
-      <input class="calc-input" id="calc-hrs" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01">
-    </div>
-  </div>
-  <button class="calc-reset" id="calc-reset">Limpiar</button>
+  <div class="calc-title">Compañeros por día</div>
+  <div class="calc-sub">Importa el Excel del grupo y consulta quién coincide contigo</div>
   <div class="calc-group-row">
     <button class="calc-group-btn" id="btn-import-grupo" title="Importar Excel del grupo" onclick="importarGrupo()">📋</button>
     <button class="calc-group-btn" id="btn-ver-grupo" title="Ver compañeros por día" onclick="verCompanerosHoy()">👥</button>
@@ -1532,6 +1525,18 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   </div>
 </div>
 
+<div id="convert-panel" style="position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:24px 20px 40px;z-index:302;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
+  <div class="calc-handle"></div>
+  <div class="calc-title">¿Horas o unidades?</div>
+  <div class="calc-sub">Convierte entre horas trabajadas y unidades cobradas</div>
+  <div class="calc-row">
+    <div class="calc-field"><div class="calc-label">Unidades</div><input class="calc-input" id="calc-uni" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01"></div>
+    <div class="calc-arrow">⇄</div>
+    <div class="calc-field"><div class="calc-label">Horas</div><input class="calc-input" id="calc-hrs" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01"></div>
+  </div>
+  <button class="calc-reset" id="calc-reset">Limpiar</button>
+</div>
+
 <script>
 (function(){
   var btn=document.getElementById("calc-btn");
@@ -1539,13 +1544,17 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   var panel=document.getElementById("calc-panel");
   var uniInput=document.getElementById("calc-uni");
   var hrsInput=document.getElementById("calc-hrs");
+  var convertPanel=document.getElementById("convert-panel");
   var RATIO=0.175;
 
   function openCalc(){panel.classList.add("show");overlay.classList.add("show");}
   function closeCalc(){panel.classList.remove("show");overlay.classList.remove("show");}
+  function openConvertPanel(){convertPanel.style.transform="translateY(0)";overlay.classList.add("show");}
+  function closeConvertPanel(){convertPanel.style.transform="translateY(100%)";}
 
   btn.addEventListener("click",openCalc);
-  overlay.addEventListener("click",closeCalc);
+  overlay.addEventListener("click",function(){closeCalc();closeConvertPanel();overlay.classList.remove("show");});
+  window.openConvertPanel=openConvertPanel;
 
   uniInput.addEventListener("input",function(){
     var v=parseFloat(uniInput.value);
