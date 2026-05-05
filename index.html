@@ -1764,6 +1764,16 @@ function initGoogle(){
       return;
     }
 
+    // ─── Debug overlay ───────────────────────────────
+    var _d=document.getElementById('_tw_dbg');
+    if(!_d){_d=document.createElement('div');_d.id='_tw_dbg';
+      _d.style.cssText='position:fixed;bottom:130px;left:6px;right:6px;background:rgba(0,0,0,.92);color:#0f0;font-size:9px;font-family:monospace;padding:5px 8px;border-radius:8px;z-index:9999;line-height:1.7;border:1px solid #0f0';
+      document.body.appendChild(_d);}
+    _d.innerHTML='isFinished:'+isFinished+' minsSince:'+minsSinceEnd+'<br>'
+      +'pct:'+pct+' shiftEnd:'+shiftEnd+' nowMin:'+nowMin+'<br>'
+      +'e1:'+e1+' s1:'+s1+' e2:'+e2+' s2:'+s2+'<br>'
+      +'minsUntilNext:'+minsUntilNext+' nextE1:'+nextE1+'<br>'
+      +'d.tipo:'+(d?d.tipo:'null')+' d.e1:'+(d?d.e1:'null');
     // ─── STATE 3: ≤2h until next shift (blue) — only when today not finished ───
     if(!isFinished&&minsUntilNext!==null&&minsUntilNext<=120){
       var tipo3=_ICO[(nextDay&&nextDay.tipo)||'trabajado']||'⚙️';
