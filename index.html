@@ -2990,27 +2990,29 @@ function procesarGrupoXlsx(file){
         empleados.push({nomina:nomina,nombre:nombre,categoria:categoria,dias:diasMes});
       }
 
-      // Merge into existing data (same nomina → replace, new → add)
-      var existing={};
-      try{existing=JSON.parse(localStorage.getItem(_GRUPO_KEY)||'{}')}catch(ex){}
-      var existingList=existing[monthKey]||[];
-      // Build map by nomina for fast lookup
+      // Merge: flat map by nomina — month-independent, category-aware
       var nominaMap={};
-      existingList.forEach(function(e){nominaMap[e.nomina]=e;});
+      var _rawMap=localStorage.getItem(_GRUPO_KEY+'_map');
+      try{nominaMap=JSON.parse(_rawMap||'{}')}catch(ex){}
+      var _beforeCount=0;for(var _bk in nominaMap){if(nominaMap.hasOwnProperty(_bk))_beforeCount++;}
+      alert('DEBUG importar\nArchivo: '+file.name+'\nMes: '+monthKey+'\nCategoría: '+categoria+'\nEmpleados en este Excel: '+empleados.length+'\nEmpleados ya guardados: '+_beforeCount);
       var added=0,updated=0;
       empleados.forEach(function(emp){
         if(nominaMap[emp.nomina]){updated++;}else{added++;}
-        nominaMap[emp.nomina]=emp;
+        // Store month data under the detected month key
+        var prev=nominaMap[emp.nomina]||{};
+        var meses=prev.meses||{};
+        meses[monthKey]=emp.dias;
+        nominaMap[emp.nomina]={
+          nomina:emp.nomina,
+          nombre:emp.nombre,
+          categoria:emp.categoria,
+          meses:meses
+        };
       });
-      var mergedList=[];
-      for(var _k in nominaMap){if(nominaMap.hasOwnProperty(_k))mergedList.push(nominaMap[_k]);}
-      existing[monthKey]=mergedList;
-      existing._month=detectedMonth;
-      existing._updated=new Date().toISOString();
-      localStorage.setItem(_GRUPO_KEY,JSON.stringify(existing));
+      try{localStorage.setItem(_GRUPO_KEY+'_map',JSON.stringify(nominaMap));}catch(ex){alert('Error guardando: '+ex.message);}
 
-      // Update UI
-      var total=existing[monthKey].length;
+      var total=0;for(var _k2 in nominaMap){if(nominaMap.hasOwnProperty(_k2))total++;}
       var btn=document.getElementById('btn-import-grupo');
       if(btn)btn.classList.add('has-data');
       var hint=document.getElementById('grupo-import-hint');
@@ -3077,10 +3079,17 @@ function verCompanerosHoy(){
   var monthKey=_GRUPO_MONTHS[now.getMonth()];
   var day=now.getDate();
 
-  // Get group data
-  var grupoData={};
-  try{grupoData=JSON.parse(localStorage.getItem(_GRUPO_KEY)||'{}')}catch(e){}
-  var empleados=grupoData[monthKey]||[];
+  // Get group data from flat map
+  var nominaMapHoy={};
+  try{nominaMapHoy=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){}
+  var empleados=[];
+  for(var _nk in nominaMapHoy){
+    if(nominaMapHoy.hasOwnProperty(_nk)){
+      var _emp=nominaMapHoy[_nk];
+      var _dias=(_emp.meses&&_emp.meses[monthKey])||null;
+      if(_dias)empleados.push({nomina:_emp.nomina,nombre:_emp.nombre,categoria:_emp.categoria,dias:_dias});
+    }
+  }
   if(!empleados.length){
     panel.innerHTML='<div class="grupo-empty">📋 Importa el Excel del grupo primero</div>';
     panel.classList.add('open');return;
@@ -3142,7 +3151,7 @@ function verCompanerosHoy(){
 // Init: check if group data exists
 (function(){
   try{
-    var g=JSON.parse(localStorage.getItem(_GRUPO_KEY)||'{}');
+    var g=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}');
     if(Object.keys(g).length>1){
       var btn=document.getElementById('btn-import-grupo');
       if(btn)btn.classList.add('has-data');
