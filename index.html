@@ -373,10 +373,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-horario{font-size:11px;color:var(--gray);text-align:right}
 .grupo-empty{font-size:12px;color:var(--gray);text-align:center;padding:12px 0;opacity:.7}
 .grupo-import-wrap{margin-top:6px;font-size:10px;color:var(--gray);text-align:center}
-#grupo-panel{max-height:min(58vh,420px);overflow:auto;padding-right:4px}
+#grupo-panel{max-height:min(72vh,560px);overflow:auto;padding-right:4px}
 .grupo-clickable{cursor:pointer}
 .grupo-clickable:active{opacity:.85}
 .grupo-exclamacion{display:inline-block;margin-left:2px;color:#b7a57a;font-weight:700;font-size:12px;opacity:.8}
+.grupo-no-viene{color:#b7a57a;text-decoration:line-through;text-decoration-thickness:1px;text-decoration-color:#b7a57a}
 #disp-cartel{position:fixed;left:50%;bottom:88px;transform:translate(-50%,20px);background:rgba(13,22,35,.96);border:1px solid rgba(200,168,75,.45);color:var(--white);padding:9px 12px;border-radius:10px;font-size:12px;z-index:950;opacity:0;pointer-events:none;transition:all .2s ease;max-width:88vw;text-align:center}
 #disp-cartel.on{opacity:1;transform:translate(-50%,0)}
 </style>
@@ -1551,7 +1552,12 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   var RATIO=0.175;
 
   function openCalc(){panel.classList.add("show");overlay.classList.add("show");}
-  function closeCalc(){panel.classList.remove("show");overlay.classList.remove("show");}
+  function resetCompanerosPanel(){
+    window._grupoOffsetDias=0;
+    var gp=document.getElementById("grupo-panel");
+    if(gp)gp.classList.remove("open");
+  }
+  function closeCalc(){panel.classList.remove("show");overlay.classList.remove("show");resetCompanerosPanel();}
   function openConvertPanel(){convertPanel.style.transform="translateY(0)";overlay.classList.add("show");}
   function closeConvertPanel(){convertPanel.style.transform="translateY(100%)";}
 
@@ -3157,7 +3163,7 @@ function turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2){
 }
 
 function verCompanerosHoy(){
-  if(typeof window._grupoOffsetDias!=='number')window._grupoOffsetDias=0;
+  window._grupoOffsetDias=0;
   return renderCompanerosDia(window._grupoOffsetDias,true);
 }
 
@@ -3176,6 +3182,7 @@ function formateaFechaGrupo(baseDate,offsetDias){
 function renderCompanerosDia(offsetDias,toggleIfOpen){
   var panel=document.getElementById('grupo-panel');
   if(toggleIfOpen&&panel.classList.contains('open')){panel.classList.remove('open');return;}
+  var navHtml='<div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
 
   var now=new Date();
   var target=new Date(now.getTime());
@@ -3204,7 +3211,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   try{myData=JSON.parse(localStorage.getItem('cta_ed_'+target.getFullYear())||'{}')}catch(e){}
   var myDay=(myData[monthKey]||{})[day];
   if(!myDay||!myDay.e1){
-    panel.innerHTML='<div class="grupo-empty">📅 No tienes turno ese día</div>';
+    panel.innerHTML=navHtml+'<div class="grupo-empty">📅 No tienes turno ese día</div>';
     panel.classList.add('open');return;
   }
 
@@ -3231,7 +3238,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   });
 
   if(!coinciden.length){
-    panel.innerHTML='<div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(now,offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div><div class="grupo-empty">No coincides con nadie del grupo ese día</div>';
+    panel.innerHTML=navHtml+'<div class="grupo-empty">No coincides con nadie del grupo ese día</div>';
     panel.classList.add('open');return;
   }
 
@@ -3242,7 +3249,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   // Group by category
   var cats={};
   coinciden.forEach(function(c){var cat=c.categoria||'General';if(!cats[cat])cats[cat]=[];cats[cat].push(c);});
-  var html='<div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(now,offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
+  var html=navHtml;
   html+='<div class="grupo-title">👥 Coincidencias · '+coinciden.length+'</div>';
   html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gold)"></div><div class="grupo-nombre" style="color:var(--gold);font-size:12px">Tú</div><div class="grupo-horario" style="color:var(--gold)">'+myHorario+'</div></div>';
   Object.keys(cats).sort().forEach(function(cat){
@@ -3250,7 +3257,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     cats[cat].forEach(function(c){
       html+='<div class="grupo-item'+(c.operativoAhora?' grupo-item-operativo':'')+'">'+
         '<div class="grupo-solapamiento" style="background:#60a5fa"></div>'+
-        '<div class="grupo-nombre">'+c.nombre+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+
+        '<div class="grupo-nombre'+(c.noVieneInterrogacion?' grupo-no-viene':'')+'">'+c.nombre+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+
         '<div class="grupo-horario">'+c.horario+'</div></div>';
     });
   });
