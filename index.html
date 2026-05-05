@@ -2995,16 +2995,22 @@ function procesarGrupoXlsx(file){
 }
 
 function formatNombre(full){
-  // Format: "Apellido1 Apellido2, Nombre" → "Nombre Apellido1"
-  if(!full)return full;
+  // Format: "Apellido1 Apellido2, Nombre Doble" → "Nombre Doble Apellido1"
+  if(!full)return full.trim();
+  full=full.trim();
   var parts=full.split(',');
   if(parts.length>=2){
-    var apellidos=parts[0].trim().split(' ');
-    var nombre=parts[1].trim().split(' ')[0];
-    return nombre+' '+apellidos[0];
+    var apellidosPart=parts[0].trim().split(/\s+/).filter(Boolean);
+    var apellido1=apellidosPart[0]||'';
+    // Handle "De Haro Costa" → keep "De Haro" as one unit
+    if(apellido1.toLowerCase()==='de'||apellido1.toLowerCase()==='del'||apellido1.toLowerCase()==='la'){
+      apellido1=apellidosPart.slice(0,2).join(' ');
+    }
+    var nombreCompleto=parts[1].trim(); // full first name including double names
+    // Remove trailing initial like "A." if alone
+    return nombreCompleto+' '+apellido1;
   }
-  // Already in "Nombre Apellido" format or no comma
-  return full.split(' ').slice(0,2).join(' ');
+  return full;
 }
 
 function parseTurnoGrupo(cell){
