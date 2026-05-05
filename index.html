@@ -13,7 +13,7 @@
 <style>
 :root{--navy:#1a2744;--navy-light:#243460;--gold:#c8a84b;--gold-light:#e8c96a;--white:#f0eee8;--gray:#8a93a8;--bg:#0d1623;--card:#182135;--card2:#1f2d47;--border:rgba(255,255,255,0.07)}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;overscroll-behavior-y:none;touch-action:pan-x pan-y}
+html,body{height:100%;overflow:hidden}
 body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);display:flex;flex-direction:column}
 #app-header{background:linear-gradient(160deg,#1a2a4a 0%,var(--bg) 100%);padding:14px 16px 0;flex-shrink:0;z-index:10}
 #app-header::after{content:"";display:block;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-top:10px}
@@ -73,7 +73,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #tab-bar::-webkit-scrollbar{display:none}
 .tab{flex:1;min-width:0;padding:8px 0;border-radius:100px;font-size:11px;font-weight:600;cursor:pointer;color:var(--gray);background:transparent;border:none;font-family:"Outfit",sans-serif;transition:all .25s;letter-spacing:.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
 .tab.active{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);box-shadow:0 4px 12px rgba(200,168,75,.35)}
-#scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 12px 90px;-webkit-overflow-scrolling:touch;overscroll-behavior-y:none}
+#scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 12px 90px;-webkit-overflow-scrolling:touch}
 .panel{display:none;animation:fadeUp .3s ease}.panel.active{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:400px){.vuelo-estado{font-size:9px;padding:3px 6px}}
@@ -360,13 +360,10 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #grupo-panel{display:none;margin-top:10px;border-top:1px solid rgba(255,255,255,.07);padding-top:10px}
 #grupo-panel.open{display:block}
 .grupo-title{font-size:10px;color:var(--gray);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
-.grupo-toolbar{display:flex;flex-direction:column;gap:8px;margin-bottom:8px;position:sticky;top:0;z-index:5;background:linear-gradient(180deg,var(--bg) 84%,rgba(13,22,35,0));padding-bottom:4px}
-.grupo-toolbar-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.grupo-toolbar-actions{display:flex;align-items:center;gap:6px;margin-left:auto;justify-content:flex-end;flex:1}
-.grupo-nav{display:flex;align-items:center;gap:8px;width:100%;flex-wrap:nowrap}
+.grupo-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 .grupo-nav-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--gray);border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer}
-.grupo-nav-date{font-size:11px;color:var(--gold);font-weight:600;flex:1;text-align:center}
-.grupo-all-btn{display:inline-flex;align-items:center;justify-content:center;background:rgba(110,231,183,.18);border:1px solid rgba(110,231,183,.45);color:#a7f3d0;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.grupo-nav-date{font-size:11px;color:var(--gold);font-weight:600}
+.grupo-all-btn{display:inline-flex;align-items:center;justify-content:center;background:rgba(110,231,183,.18);border:1px solid rgba(110,231,183,.45);color:#a7f3d0;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:8px}
 .grupo-all-btn.off{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14);color:var(--gray)}
 .grupo-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .grupo-item:last-child{border-bottom:none}
@@ -378,7 +375,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-horario{font-size:11px;color:var(--gray);text-align:right}
 .grupo-empty{font-size:12px;color:var(--gray);text-align:center;padding:12px 0;opacity:.7}
 .grupo-import-wrap{margin-top:6px;font-size:10px;color:var(--gray);text-align:center}
-#grupo-panel{max-height:min(72vh,560px);overflow:auto;padding-right:4px;overscroll-behavior-y:none}
+#grupo-panel{max-height:min(72vh,560px);overflow:auto;padding-right:4px}
 .grupo-clickable{cursor:pointer}
 .grupo-clickable:active{opacity:.85}
 .grupo-exclamacion{display:inline-block;margin-left:2px;color:#b7a57a;font-weight:700;font-size:12px;opacity:.8}
@@ -424,7 +421,10 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
         breadcrumb.pop();renderBreadcrumb();renderFolder(breadcrumb[breadcrumb.length-1].id);document.getElementById('scroll-area').scrollTop=0;
       }
     ">&#8592;</button>
-    <button id="btn-home" onclick="irInicio()" title="Inicio" style="font-size:16px">🏠</button>
+    <button id="btn-home" onclick="
+      switchTab('documentos',document.querySelectorAll('.tab')[0],document.getElementById('nav-documentos'));
+      breadcrumb=[{id:ROOT_ID,name:'Inicio'}];renderBreadcrumb();renderFolder(ROOT_ID);document.getElementById('scroll-area').scrollTop=0;
+    " title="Inicio" style="font-size:16px">🏠</button>
     <div id="breadcrumb"></div>
     <button id="btn-accesos" onclick="toggleAccesoDirecto()">&#128279; Accesos Directos</button>
     <button id="btn-live"><span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.5px"><span class="live-plane">✈</span> VUELOS</span><span id="btn-live-fecha" style="font-size:8px;color:rgba(240,112,112,.7);letter-spacing:.3px"></span></button>
@@ -709,7 +709,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 <div id="live-overlay"></div>
 <div id="live-panel">
   <div class="live-handle"></div>
-  <div class="live-drag-zone" style="padding:0 14px 10px">
+  <div style="padding:0 14px 10px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;display:flex;align-items:center;gap:8px"><span class="live-dot"></span>Vueling · Alicante</div><div id="live-fecha-panel" style="font-size:11px;color:var(--gold);letter-spacing:1px;margin-top:2px"></div>
       <div style="display:flex;gap:6px">
@@ -1461,42 +1461,10 @@ document.getElementById("btn-live").addEventListener("click",function(){
   document.getElementById("live-panel").classList.add("show");
   if(!liveLoaded)loadLive();
 });
-function closeLivePanel(){
+document.getElementById("live-overlay").addEventListener("click",function(){
   document.getElementById("live-overlay").classList.remove("show");
   document.getElementById("live-panel").classList.remove("show");
-}
-document.getElementById("live-overlay").addEventListener("click",closeLivePanel);
-
-function initLiveDragClose(){
-  var panel=document.getElementById("live-panel");
-  var handle=panel.querySelector(".live-handle");
-  if(!handle)return;
-  var dragging=false,startY=0,delta=0;
-  function getY(e){return e.touches?e.touches[0].clientY:e.clientY;}
-  function onStart(e){dragging=true;startY=getY(e);delta=0;panel.style.transition="none";}
-  function onMove(e){
-    if(!dragging)return;
-    delta=Math.max(0,getY(e)-startY);
-    panel.style.transform="translateY("+delta+"px)";
-  }
-  function onEnd(){
-    if(!dragging)return;
-    dragging=false;
-    panel.style.transition="transform .3s ease";
-    if(delta>90){closeLivePanel();return;}
-    panel.style.transform="translateY(0)";
-  }
-  function shouldStartDrag(target){
-    return !!target.closest(".live-handle,.live-drag-zone");
-  }
-  panel.addEventListener("touchstart",function(e){if(shouldStartDrag(e.target))onStart(e);},{passive:true});
-  window.addEventListener("touchmove",onMove,{passive:true});
-  window.addEventListener("touchend",onEnd);
-  panel.addEventListener("mousedown",function(e){if(shouldStartDrag(e.target))onStart(e);});
-  window.addEventListener("mousemove",onMove);
-  window.addEventListener("mouseup",onEnd);
-}
-initLiveDragClose();
+});
 document.getElementById("live-refresh").addEventListener("click",function(){
   var btn=this;
   btn.style.opacity=".4";btn.style.pointerEvents="none";
@@ -1554,10 +1522,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   <div class="calc-group-row">
     <button class="calc-group-btn" id="btn-import-grupo" title="Importar Excel del grupo" onclick="importarGrupo()">📋</button>
     <button class="calc-group-btn" id="btn-ver-grupo" title="Ver compañeros por día" onclick="verCompanerosHoy()">👥</button>
-    <div style="display:flex;flex-direction:column;gap:6px;flex:0">
-      <button class="calc-group-btn" title="Salir al menú principal" onclick="salirMenuPrincipal()" style="padding:6px 12px;font-size:14px">🏠</button>
-      <button class="calc-group-btn" title="Borrar todos los datos del grupo" onclick="resetGrupo()" style="padding:6px 12px">🗑️</button>
-    </div>
+    <button class="calc-group-btn" title="Borrar todos los datos del grupo" onclick="resetGrupo()" style="flex:0;padding:9px 12px">🗑️</button>
     <input type="file" id="grupo-file-input" accept=".xlsx" style="display:none" onchange="procesarGrupoXlsx(this.files[0])">
   </div>
   <div id="grupo-panel"></div>
@@ -1588,32 +1553,43 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   var convertPanel=document.getElementById("convert-panel");
   var RATIO=0.175;
 
-  function hasGrupoData(){
-    try{
-      var g=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}');
-      return !!g&&Object.keys(g).length>0;
-    }catch(e){return false;}
-  }
-  function openCalc(){
-    panel.classList.add("show");
-    overlay.classList.add("show");
-    if(hasGrupoData()){
-      window._grupoOffsetDias=0;
-      window._grupoMostrarTodaPlantilla=false;
-      renderCompanerosDia(0,false);
-    }
-  }
+  function openCalc(){panel.classList.add("show");overlay.classList.add("show");}
   function resetCompanerosPanel(){
     window._grupoOffsetDias=0;
     var gp=document.getElementById("grupo-panel");
     if(gp)gp.classList.remove("open");
   }
   function closeCalc(){panel.classList.remove("show");overlay.classList.remove("show");resetCompanerosPanel();}
-  function initCalcDragClose(){}
+  function initCalcDragClose(){
+    var handle=panel.querySelector(".calc-handle");
+    if(!handle)return;
+    var dragging=false,startY=0,delta=0;
+    function getY(e){return e.touches?e.touches[0].clientY:e.clientY;}
+    function onStart(e){dragging=true;startY=getY(e);delta=0;panel.style.transition="none";}
+    function onMove(e){
+      if(!dragging)return;
+      delta=Math.max(0,getY(e)-startY);
+      panel.style.transform="translateY("+delta+"px)";
+    }
+    function onEnd(){
+      if(!dragging)return;
+      dragging=false;
+      panel.style.transition="transform .3s cubic-bezier(.4,0,.2,1)";
+      if(delta>90){closeCalc();return;}
+      panel.style.transform="translateY(0)";
+    }
+    handle.addEventListener("touchstart",onStart,{passive:true});
+    window.addEventListener("touchmove",onMove,{passive:true});
+    window.addEventListener("touchend",onEnd);
+    handle.addEventListener("mousedown",onStart);
+    window.addEventListener("mousemove",onMove);
+    window.addEventListener("mouseup",onEnd);
+  }
   function openConvertPanel(){convertPanel.style.transform="translateY(0)";overlay.classList.add("show");}
   function closeConvertPanel(){convertPanel.style.transform="translateY(100%)";}
 
   btn.addEventListener("click",openCalc);
+  initCalcDragClose();
   overlay.addEventListener("click",function(){closeCalc();closeConvertPanel();overlay.classList.remove("show");});
   window.openConvertPanel=openConvertPanel;
 
@@ -3216,28 +3192,14 @@ function turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2){
 
 function verCompanerosHoy(){
   window._grupoOffsetDias=0;
-  window._grupoMostrarTodaPlantilla=false;
-  return renderCompanerosDia(window._grupoOffsetDias,false);
+  if(typeof window._grupoMostrarTodaPlantilla!=='boolean')window._grupoMostrarTodaPlantilla=false;
+  return renderCompanerosDia(window._grupoOffsetDias,true);
 }
 
 function moverCompanerosDia(delta){
   if(typeof window._grupoOffsetDias!=='number')window._grupoOffsetDias=0;
   window._grupoOffsetDias+=delta;
   renderCompanerosDia(window._grupoOffsetDias,false);
-}
-
-
-function irInicio(){
-  closeCalc();
-  switchTab('documentos',document.querySelectorAll('.tab')[0],document.getElementById('nav-documentos'));
-  breadcrumb=[{id:ROOT_ID,name:'Inicio'}];
-  renderBreadcrumb();
-  renderFolder(ROOT_ID);
-  document.getElementById('scroll-area').scrollTop=0;
-}
-
-function salirMenuPrincipal(){
-  irInicio();
 }
 
 function toggleTodaPlantilla(){
@@ -3256,7 +3218,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   var panel=document.getElementById('grupo-panel');
   if(toggleIfOpen&&panel.classList.contains('open')){panel.classList.remove('open');return;}
   var modoToda=!!window._grupoMostrarTodaPlantilla;
-  var navHtml='<div class="grupo-toolbar"><div class="grupo-toolbar-top"><div class="grupo-title">👥 '+(modoToda?'Toda la plantilla':'Coincidencias')+'</div><div class="grupo-toolbar-actions"><button class="grupo-all-btn'+(modoToda?'':' off')+'" onclick="toggleTodaPlantilla()">Toda la plantilla</button></div></div><div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div></div>';
+  var navHtml='<button class="grupo-all-btn'+(modoToda?'':' off')+'" onclick="toggleTodaPlantilla()">Toda la plantilla</button><div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
 
   var now=new Date();
   var target=new Date(now.getTime());
@@ -3339,12 +3301,6 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   panel.innerHTML=html;
   panel.classList.add('open');
 }
-
-
-(function(){
-  var btnHome=document.getElementById('btn-home');
-  if(btnHome){btnHome.addEventListener('click',function(e){e.preventDefault();irInicio();});}
-})();
 
 // Init: check if group data exists
 (function(){
