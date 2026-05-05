@@ -350,6 +350,22 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-wl-range{font-size:10px;color:var(--gray);margin-bottom:2px}
 .mc-wl-types{font-size:9px;color:rgba(255,255,255,.35)}
 .mc-wl-h{font-size:17px;font-weight:800;color:var(--gold)}
+
+/* ─── Grupo compañeros ────────────────────────────────── */
+.calc-group-row{display:flex;gap:8px;margin-top:10px;border-top:1px solid rgba(255,255,255,.07);padding-top:10px}
+.calc-group-btn{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px;cursor:pointer;color:var(--gray);font-size:18px;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.calc-group-btn:active{background:rgba(255,255,255,.12)}
+.calc-group-btn.has-data{border-color:rgba(200,168,75,.3);color:var(--gold)}
+#grupo-panel{display:none;margin-top:10px;border-top:1px solid rgba(255,255,255,.07);padding-top:10px}
+#grupo-panel.open{display:block}
+.grupo-title{font-size:10px;color:var(--gray);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
+.grupo-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.grupo-item:last-child{border-bottom:none}
+.grupo-solapamiento{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.grupo-nombre{font-size:13px;font-weight:600;color:var(--white);flex:1}
+.grupo-horario{font-size:11px;color:var(--gray);text-align:right}
+.grupo-empty{font-size:12px;color:var(--gray);text-align:center;padding:12px 0;opacity:.7}
+.grupo-import-wrap{margin-top:6px;font-size:10px;color:var(--gray);text-align:center}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -1449,6 +1465,15 @@ document.getElementById("btn-logout").addEventListener("click",function(){
     </div>
   </div>
   <button class="calc-reset" id="calc-reset">Limpiar</button>
+  <div class="calc-group-row">
+    <button class="calc-group-btn" id="btn-import-grupo" title="Importar Excel del grupo" onclick="importarGrupo()">📋</button>
+    <button class="calc-group-btn" id="btn-ver-grupo" title="Ver compañeros hoy" onclick="verCompanerosHoy()">👥</button>
+    <input type="file" id="grupo-file-input" accept=".xlsx" style="display:none" onchange="procesarGrupoXlsx(this.files[0])">
+  </div>
+  <div id="grupo-panel"></div>
+  <div class="grupo-import-wrap" id="grupo-import-hint" style="display:none">
+    <span id="grupo-import-txt"></span>
+  </div>
 </div>
 
 <script>
@@ -2891,5 +2916,199 @@ document.addEventListener('DOMContentLoaded',function(){
 </div>
 
 
+<script>
+
+// ─── GRUPO COMPAÑEROS ────────────────────────────────────────────
+var _GRUPO_KEY='cta_grupo_2026';
+var _GRUPO_MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+
+function importarGrupo(){
+  document.getElementById('grupo-file-input').click();
+}
+
+function procesarGrupoXlsx(file){
+  if(!file)return;
+  if(typeof XLSX==='undefined'){alert('Error: librería XLSX no cargada.');return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var wb=XLSX.read(e.target.result,{type:'array'});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+
+      // Row 3 (index 3) = headers: Nómina, Empleado, V1, S2, D3...
+      var headerRow=rows[3]||[];
+      // Build day→col map from headers like "V1","S2","D3","L4"...
+      var dayColMap={};
+      for(var c=2;c<headerRow.length;c++){
+        var h=String(headerRow[c]).trim();
+        var dayNum=parseInt(h.replace(/^[A-Za-z]+/,''));
+        if(dayNum>=1&&dayNum<=31)dayColMap[dayNum]=c;
+      }
+
+      // Detect month from row 1 or sheet name
+      var sheetName=wb.SheetNames[0];
+      var monthNames={enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11};
+      var detectedMonth=new Date().getMonth();
+      Object.keys(monthNames).forEach(function(k){if(sheetName.toLowerCase().indexOf(k)>=0)detectedMonth=monthNames[k];});
+      var monthKey=_GRUPO_MONTHS[detectedMonth];
+
+      // Parse each employee
+      var empleados=[];
+      for(var r=4;r<rows.length;r++){
+        var row=rows[r];
+        if(!row[0]||!row[1])continue;
+        var nomina=String(row[0]).trim();
+        var nombreFull=String(row[1]).trim();
+        // Skip footer rows
+        if(nomina.toLowerCase().indexOf('calendario')>=0||nomina.toLowerCase().indexOf('fecha')>=0)continue;
+        // Name: "Apellido Apellido, Nombre" → "Nombre Apellido1"
+        var nombre=formatNombre(nombreFull);
+        var diasMes={};
+        Object.keys(dayColMap).forEach(function(d){
+          var cell=String(row[dayColMap[d]]||'').trim();
+          if(cell&&cell!==''&&cell.toUpperCase()!=='DL'){
+            var parsed=parseTurnoGrupo(cell);
+            if(parsed)diasMes[parseInt(d)]=parsed;
+          }
+        });
+        empleados.push({nomina:nomina,nombre:nombre,dias:diasMes});
+      }
+
+      // Save to localStorage
+      var existing={};
+      try{existing=JSON.parse(localStorage.getItem(_GRUPO_KEY)||'{}')}catch(ex){}
+      existing[monthKey]=empleados;
+      existing._month=detectedMonth;
+      existing._updated=new Date().toISOString();
+      localStorage.setItem(_GRUPO_KEY,JSON.stringify(existing));
+
+      // Update UI
+      var btn=document.getElementById('btn-import-grupo');
+      if(btn)btn.classList.add('has-data');
+      var hint=document.getElementById('grupo-import-hint');
+      var txt=document.getElementById('grupo-import-txt');
+      if(hint&&txt){hint.style.display='block';txt.textContent='✅ Grupo importado: '+empleados.length+' compañeros ('+monthKey+')';}
+    }catch(err){alert('Error al leer el Excel del grupo: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function formatNombre(full){
+  // Format: "Apellido1 Apellido2, Nombre" → "Nombre Apellido1"
+  if(!full)return full;
+  var parts=full.split(',');
+  if(parts.length>=2){
+    var apellidos=parts[0].trim().split(' ');
+    var nombre=parts[1].trim().split(' ')[0];
+    return nombre+' '+apellidos[0];
+  }
+  // Already in "Nombre Apellido" format or no comma
+  return full.split(' ').slice(0,2).join(' ');
+}
+
+function parseTurnoGrupo(cell){
+  // Cell format: "05:00 \n07:00" or "05:00 \n11:00 \n16:00 \n18:00"
+  var lines=cell.split(/\n|\r|\r\n/).map(function(l){return l.trim().replace('!','').trim();}).filter(function(l){return /^\d{1,2}:\d{2}$/.test(l);});
+  if(lines.length<2)return null;
+  return{e1:lines[0],s1:lines[1],e2:lines.length>=4?lines[2]:null,s2:lines.length>=4?lines[3]:null};
+}
+
+function toMinG(t){if(!t)return null;var p=t.split(':');return +p[0]*60+ +p[1];}
+
+function turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2){
+  // Returns true if any segment overlaps
+  var mySegs=[[myE1,myS1]];
+  if(myE2!==null&&myS2!==null)mySegs.push([myE2,myS2]);
+  var grSegs=[[grE1,grS1]];
+  if(grE2!==null&&grS2!==null)grSegs.push([grE2,grS2]);
+  for(var i=0;i<mySegs.length;i++){
+    for(var j=0;j<grSegs.length;j++){
+      var a=mySegs[i],b=grSegs[j];
+      // Normalize for overnight shifts
+      var as=a[0],ae=a[1]<a[0]?a[1]+1440:a[1];
+      var bs=b[0],be=b[1]<b[0]?b[1]+1440:b[1];
+      if(as<be&&ae>bs)return true;
+    }
+  }
+  return false;
+}
+
+function verCompanerosHoy(){
+  var panel=document.getElementById('grupo-panel');
+  if(panel.classList.contains('open')){panel.classList.remove('open');return;}
+
+  var now=new Date();
+  var monthKey=_GRUPO_MONTHS[now.getMonth()];
+  var day=now.getDate();
+
+  // Get group data
+  var grupoData={};
+  try{grupoData=JSON.parse(localStorage.getItem(_GRUPO_KEY)||'{}')}catch(e){}
+  var empleados=grupoData[monthKey]||[];
+  if(!empleados.length){
+    panel.innerHTML='<div class="grupo-empty">📋 Importa el Excel del grupo primero</div>';
+    panel.classList.add('open');return;
+  }
+
+  // Get my shift today
+  var myData={};
+  try{myData=JSON.parse(localStorage.getItem('cta_ed_'+now.getFullYear())||'{}')}catch(e){}
+  var myDay=(myData[monthKey]||{})[day];
+  if(!myDay||!myDay.e1){
+    panel.innerHTML='<div class="grupo-empty">📅 No tienes turno hoy</div>';
+    panel.classList.add('open');return;
+  }
+
+  var myE1=toMinG(myDay.e1),myS1=toMinG(myDay.s1);
+  var myE2=myDay.e2?toMinG(myDay.e2):null,myS2=myDay.s2?toMinG(myDay.s2):null;
+
+  // Find coincidences
+  var coinciden=[];
+  empleados.forEach(function(emp){
+    var turno=emp.dias[day];
+    if(!turno)return;
+    var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
+    var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
+    if(turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2)){
+      var horario=turno.e1+'→'+turno.s1;
+      if(turno.e2&&turno.s2)horario+=' / '+turno.e2+'→'+turno.s2;
+      coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1});
+    }
+  });
+
+  if(!coinciden.length){
+    panel.innerHTML='<div class="grupo-empty">No coincides con nadie del grupo hoy</div>';
+    panel.classList.add('open');return;
+  }
+
+  // Sort by start time
+  coinciden.sort(function(a,b){return a.e1-b.e1;});
+
+  var myHorario=myDay.e1+'→'+myDay.s1+(myDay.e2?' / '+myDay.e2+'→'+myDay.s2:'');
+  var html='<div class="grupo-title">👥 Compañeros hoy · '+coinciden.length+' coincidencias</div>';
+  html+='<div class="grupo-item" style="opacity:.5"><div class="grupo-solapamiento" style="background:var(--gold)"></div><div class="grupo-nombre" style="color:var(--gold)">Tú</div><div class="grupo-horario" style="color:var(--gold)">'+myHorario+'</div></div>';
+  coinciden.forEach(function(c){
+    html+='<div class="grupo-item">'+
+      '<div class="grupo-solapamiento" style="background:#60a5fa"></div>'+
+      '<div class="grupo-nombre">'+c.nombre+'</div>'+
+      '<div class="grupo-horario">'+c.horario+'</div></div>';
+  });
+  panel.innerHTML=html;
+  panel.classList.add('open');
+}
+
+// Init: check if group data exists
+(function(){
+  try{
+    var g=JSON.parse(localStorage.getItem(_GRUPO_KEY)||'{}');
+    if(Object.keys(g).length>1){
+      var btn=document.getElementById('btn-import-grupo');
+      if(btn)btn.classList.add('has-data');
+    }
+  }catch(e){}
+})();
+
+</script>
 </body>
 </html>
