@@ -1764,36 +1764,46 @@ function initGoogle(){
       return;
     }
 
-    // ─── Debug overlay ───────────────────────────────
-    var _d=document.getElementById('_tw_dbg');
-    if(!_d){_d=document.createElement('div');_d.id='_tw_dbg';
-      _d.style.cssText='position:fixed;bottom:130px;left:6px;right:6px;background:rgba(0,0,0,.92);color:#0f0;font-size:9px;font-family:monospace;padding:5px 8px;border-radius:8px;z-index:9999;line-height:1.7;border:1px solid #0f0';
-      document.body.appendChild(_d);}
-    _d.innerHTML='isFinished:'+isFinished+' minsSince:'+minsSinceEnd+'<br>'
-      +'pct:'+pct+' shiftEnd:'+shiftEnd+' nowMin:'+nowMin+'<br>'
-      +'e1:'+e1+' s1:'+s1+' e2:'+e2+' s2:'+s2+'<br>'
-      +'minsUntilNext:'+minsUntilNext+' nextE1:'+nextE1+'<br>'
-      +'d.tipo:'+(d?d.tipo:'null')+' d.e1:'+(d?d.e1:'null');
-    // ─── STATE 3: ≤2h until next shift (blue) — only when today not finished ───
-    if(!isFinished&&minsUntilNext!==null&&minsUntilNext<=120){
-      var tipo3=_ICO[(nextDay&&nextDay.tipo)||'trabajado']||'⚙️';
-      var subtipo3=(_LABEL[(nextDay&&nextDay.tipo)||'trabajado']||'Trabajado')+(nextE2!==null?' · Partido':'');
-      var nextTotalMin=0;
-      if(nextDay&&nextDay.e1&&nextDay.s1){
-        var ns1t=toMin(nextDay.s1);
-        if(ns1t!==null)nextTotalMin+=ns1t>=nextE1?ns1t-nextE1:ns1t+1440-nextE1;
-      }
-      if(nextDay&&nextDay.e2&&nextDay.s2){
-        var ne2t=toMin(nextDay.e2),ns2t=toMin(nextDay.s2);
-        if(ne2t!==null&&ns2t!==null)nextTotalMin+=ns2t>=ne2t?ns2t-ne2t:ns2t+1440-ne2t;
-      }
+    // ─── STATE 3A: before today's shift starts (≤2h) ────
+    if(!isFinished&&e1!==null&&nowMin<e1&&(e1-nowMin)<=120){
+      var tipo3=_ICO[d.tipo]||'⚙️';
+      var subtipo3=(_LABEL[d.tipo]||'Trabajado')+(e2!==null?' · Partido':'');
+      document.getElementById('tw-lbl').textContent='TURNO HOY';
       document.getElementById('tw-ico').textContent=tipo3;
-      document.getElementById('tw-times').textContent=nextTimeStr;
+      document.getElementById('tw-ico').style.background='rgba(96,165,250,.1)';
+      var twT3=document.getElementById('tw-times');
+      twT3.textContent=timeStr;twT3.style.fontSize='13px';twT3.style.fontWeight='700';
+      twT3.style.color='var(--white)';twT3.style.letterSpacing='';
       document.getElementById('tw-subtipo').textContent=subtipo3;
+      document.getElementById('tw-subtipo').style.color='#60a5fa';
+      var pctEl=document.getElementById('tw-pct');
+      pctEl.textContent='0%';pctEl.style.color='#60a5fa';pctEl.style.fontSize='22px';
+      document.getElementById('tw-remain').textContent='Empieza en '+fmtLeft(e1-nowMin);
+      document.getElementById('tw-remain').style.color='#60a5fa';
+      document.getElementById('tw-bar-lbl').textContent='0h / '+fmtHM(totalMin);
+      document.getElementById('tw-bar-lbl').style.color='var(--gray)';
+      renderBar(0,'#60a5fa');
+      return;
+    }
+    // ─── STATE 3B: after finish, next shift ≤2h away ─────
+    if(isFinished&&minsUntilNext!==null&&minsUntilNext<=120){
+      var nextTotalMin=0;
+      if(nextDay&&nextDay.e1&&nextDay.s1){var ns1t=toMin(nextDay.s1);if(ns1t!==null)nextTotalMin+=ns1t>=nextE1?ns1t-nextE1:ns1t+1440-nextE1;}
+      if(nextDay&&nextDay.e2&&nextDay.s2){var ne2t=toMin(nextDay.e2),ns2t=toMin(nextDay.s2);if(ne2t!==null&&ns2t!==null)nextTotalMin+=ns2t>=ne2t?ns2t-ne2t:ns2t+1440-ne2t;}
+      document.getElementById('tw-lbl').textContent='TURNO HOY';
+      document.getElementById('tw-ico').textContent=_ICO[(nextDay&&nextDay.tipo)||'trabajado']||'⚙️';
+      document.getElementById('tw-ico').style.background='rgba(96,165,250,.1)';
+      var twT3b=document.getElementById('tw-times');
+      twT3b.textContent=nextTimeStr;twT3b.style.fontSize='13px';twT3b.style.fontWeight='700';
+      twT3b.style.color='var(--white)';twT3b.style.letterSpacing='';
+      document.getElementById('tw-subtipo').textContent=(_LABEL[(nextDay&&nextDay.tipo)||'trabajado']||'Trabajado')+(nextE2!==null?' · Partido':'');
+      document.getElementById('tw-subtipo').style.color='#60a5fa';
       var pctEl=document.getElementById('tw-pct');
       pctEl.textContent='0%';pctEl.style.color='#60a5fa';pctEl.style.fontSize='22px';
       document.getElementById('tw-remain').textContent='Empieza en '+fmtLeft(minsUntilNext);
+      document.getElementById('tw-remain').style.color='#60a5fa';
       document.getElementById('tw-bar-lbl').textContent='0h / '+fmtHM(nextTotalMin);
+      document.getElementById('tw-bar-lbl').style.color='var(--gray)';
       renderBar(0,'#60a5fa');
       return;
     }
