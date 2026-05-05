@@ -363,6 +363,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 .grupo-nav-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--gray);border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer}
 .grupo-nav-date{font-size:11px;color:var(--gold);font-weight:600}
+.grupo-all-btn{display:inline-flex;align-items:center;justify-content:center;background:rgba(110,231,183,.18);border:1px solid rgba(110,231,183,.45);color:#a7f3d0;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:8px}
+.grupo-all-btn.off{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14);color:var(--gray)}
 .grupo-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .grupo-item:last-child{border-bottom:none}
 .grupo-item-operativo{background:rgba(110,231,183,.15);border:1px solid rgba(110,231,183,.45);border-radius:10px;padding:8px 10px;margin:4px 0}
@@ -1558,10 +1560,36 @@ document.getElementById("btn-logout").addEventListener("click",function(){
     if(gp)gp.classList.remove("open");
   }
   function closeCalc(){panel.classList.remove("show");overlay.classList.remove("show");resetCompanerosPanel();}
+  function initCalcDragClose(){
+    var handle=panel.querySelector(".calc-handle");
+    if(!handle)return;
+    var dragging=false,startY=0,delta=0;
+    function getY(e){return e.touches?e.touches[0].clientY:e.clientY;}
+    function onStart(e){dragging=true;startY=getY(e);delta=0;panel.style.transition="none";}
+    function onMove(e){
+      if(!dragging)return;
+      delta=Math.max(0,getY(e)-startY);
+      panel.style.transform="translateY("+delta+"px)";
+    }
+    function onEnd(){
+      if(!dragging)return;
+      dragging=false;
+      panel.style.transition="transform .3s cubic-bezier(.4,0,.2,1)";
+      if(delta>90){closeCalc();return;}
+      panel.style.transform="translateY(0)";
+    }
+    handle.addEventListener("touchstart",onStart,{passive:true});
+    window.addEventListener("touchmove",onMove,{passive:true});
+    window.addEventListener("touchend",onEnd);
+    handle.addEventListener("mousedown",onStart);
+    window.addEventListener("mousemove",onMove);
+    window.addEventListener("mouseup",onEnd);
+  }
   function openConvertPanel(){convertPanel.style.transform="translateY(0)";overlay.classList.add("show");}
   function closeConvertPanel(){convertPanel.style.transform="translateY(100%)";}
 
   btn.addEventListener("click",openCalc);
+  initCalcDragClose();
   overlay.addEventListener("click",function(){closeCalc();closeConvertPanel();overlay.classList.remove("show");});
   window.openConvertPanel=openConvertPanel;
 
@@ -3164,12 +3192,19 @@ function turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2){
 
 function verCompanerosHoy(){
   window._grupoOffsetDias=0;
+  if(typeof window._grupoMostrarTodaPlantilla!=='boolean')window._grupoMostrarTodaPlantilla=false;
   return renderCompanerosDia(window._grupoOffsetDias,true);
 }
 
 function moverCompanerosDia(delta){
   if(typeof window._grupoOffsetDias!=='number')window._grupoOffsetDias=0;
   window._grupoOffsetDias+=delta;
+  renderCompanerosDia(window._grupoOffsetDias,false);
+}
+
+function toggleTodaPlantilla(){
+  window._grupoMostrarTodaPlantilla=!window._grupoMostrarTodaPlantilla;
+  if(typeof window._grupoOffsetDias!=='number')window._grupoOffsetDias=0;
   renderCompanerosDia(window._grupoOffsetDias,false);
 }
 
@@ -3182,7 +3217,8 @@ function formateaFechaGrupo(baseDate,offsetDias){
 function renderCompanerosDia(offsetDias,toggleIfOpen){
   var panel=document.getElementById('grupo-panel');
   if(toggleIfOpen&&panel.classList.contains('open')){panel.classList.remove('open');return;}
-  var navHtml='<div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
+  var modoToda=!!window._grupoMostrarTodaPlantilla;
+  var navHtml='<button class="grupo-all-btn'+(modoToda?'':' off')+'" onclick="toggleTodaPlantilla()">Toda la plantilla</button><div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
 
   var now=new Date();
   var target=new Date(now.getTime());
@@ -3220,14 +3256,15 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   var ahoraMin=now.getHours()*60+now.getMinutes();
   var esDiaActual=offsetDias===0;
 
-  // Find coincidences
+  // Build list: coincidencias o toda la plantilla
   var coinciden=[];
   empleados.forEach(function(emp){
     var turno=emp.dias[day];
     if(!turno)return;
     var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
     var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
-    if(turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2)){
+    var solapa=turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2);
+    if(modoToda||solapa){
       var horario=turno.e1+'→'+turno.s1;
       if(turno.e2&&turno.s2)horario+=' / '+turno.e2+'→'+turno.s2;
       var enTramo1=minutoEnTramo(ahoraMin,grE1,grS1);
@@ -3238,7 +3275,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   });
 
   if(!coinciden.length){
-    panel.innerHTML=navHtml+'<div class="grupo-empty">No coincides con nadie del grupo ese día</div>';
+    panel.innerHTML=navHtml+'<div class="grupo-empty">'+(modoToda?'No hay nadie con turno ese día':'No coincides con nadie del grupo ese día')+'</div>';
     panel.classList.add('open');return;
   }
 
@@ -3250,14 +3287,14 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   var cats={};
   coinciden.forEach(function(c){var cat=c.categoria||'General';if(!cats[cat])cats[cat]=[];cats[cat].push(c);});
   var html=navHtml;
-  html+='<div class="grupo-title">👥 Coincidencias · '+coinciden.length+'</div>';
+  html+='<div class="grupo-title">👥 '+(modoToda?'Toda la plantilla':'Coincidencias')+' · '+coinciden.length+'</div>';
   html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gold)"></div><div class="grupo-nombre" style="color:var(--gold);font-size:12px">Tú</div><div class="grupo-horario" style="color:var(--gold)">'+myHorario+'</div></div>';
   Object.keys(cats).sort().forEach(function(cat){
     html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
     cats[cat].forEach(function(c){
       html+='<div class="grupo-item'+(c.operativoAhora?' grupo-item-operativo':'')+'">'+
         '<div class="grupo-solapamiento" style="background:#60a5fa"></div>'+
-        '<div class="grupo-nombre'+(c.noVieneInterrogacion?' grupo-no-viene':'')+'">'+c.nombre+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+
+        '<div class="grupo-nombre'+((c.noVieneInterrogacion||c.disponibilidadNoConfirmada)?' grupo-no-viene':'')+'">'+c.nombre+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+
         '<div class="grupo-horario">'+c.horario+'</div></div>';
     });
   });
