@@ -1764,8 +1764,8 @@ function initGoogle(){
       return;
     }
 
-    // ─── STATE 3: ≤2h until next shift (blue) ───────────
-    if(minsUntilNext!==null&&minsUntilNext<=120){
+    // ─── STATE 3: ≤2h until next shift (blue) — only when today not finished ───
+    if(!isFinished&&minsUntilNext!==null&&minsUntilNext<=120){
       var tipo3=_ICO[(nextDay&&nextDay.tipo)||'trabajado']||'⚙️';
       var subtipo3=(_LABEL[(nextDay&&nextDay.tipo)||'trabajado']||'Trabajado')+(nextE2!==null?' · Partido':'');
       var nextTotalMin=0;
@@ -2437,8 +2437,18 @@ function mcRender(){
   }
   grid.innerHTML=html;
   if(nodata)nodata.style.display=hasAnyData?'none':'block';
+  // Restore mode: sem hides grid, shows weeks; mes shows grid
+  var _gw=document.getElementById('mc-grid-wrap');
+  var _wl2=document.getElementById('mc-weeks-list');
+  if(typeof _mcMode!=='undefined'&&_mcMode==='sem'){
+    if(_gw)_gw.style.display='none';
+    if(_wl2)_wl2.classList.add('open');
+    mcRenderWeeks();
+  } else {
+    if(_gw)_gw.style.display='block';
+    if(_wl2)_wl2.classList.remove('open');
+  }
   mcRenderSummary(ue);
-  if(typeof _mcMode!=='undefined'&&_mcMode==='sem'){document.getElementById('mc-grid-wrap').style.display='none';var _wl=document.getElementById('mc-weeks-list');if(_wl)_wl.classList.add('open');mcRenderWeeks();}
 }
 
 
