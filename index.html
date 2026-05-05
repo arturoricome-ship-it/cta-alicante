@@ -1468,6 +1468,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   <div class="calc-group-row">
     <button class="calc-group-btn" id="btn-import-grupo" title="Importar Excel del grupo" onclick="importarGrupo()">📋</button>
     <button class="calc-group-btn" id="btn-ver-grupo" title="Ver compañeros hoy" onclick="verCompanerosHoy()">👥</button>
+    <button class="calc-group-btn" title="Borrar todos los datos del grupo" onclick="resetGrupo()" style="flex:0;padding:9px 12px">🗑️</button>
     <input type="file" id="grupo-file-input" accept=".xlsx" style="display:none" onchange="procesarGrupoXlsx(this.files[0])">
   </div>
   <div id="grupo-panel"></div>
@@ -2924,6 +2925,17 @@ document.addEventListener('DOMContentLoaded',function(){
 var _GRUPO_KEY='cta_grupo_2026';
 var _GRUPO_MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 
+
+function resetGrupo(){
+  if(!confirm('¿Borrar todos los datos del grupo importados?'))return;
+  localStorage.removeItem(_GRUPO_KEY+'_map');
+  var btn=document.getElementById('btn-import-grupo');
+  if(btn)btn.classList.remove('has-data');
+  var hint=document.getElementById('grupo-import-hint');
+  if(hint)hint.style.display='none';
+  var panel=document.getElementById('grupo-panel');
+  if(panel){panel.innerHTML='';panel.classList.remove('open');}
+}
 function importarGrupo(){
   document.getElementById('grupo-file-input').click();
 }
@@ -3044,11 +3056,10 @@ function formatNombre(full){
 }
 
 function parseTurnoGrupo(cell){
-  // Cell from XLSX has literal \\n sequences: "05:00 \\n07:00"
-  var cleaned=cell.replace(/\\\\n/g,"\n");
-  var parts=cleaned.split(/[\s\n\r]+/).map(function(l){return l.trim().replace("!","").trim();}).filter(function(l){return /^\d{1,2}:\d{2}$/.test(l);});
-  if(parts.length<2)return null;
-  return{e1:parts[0],s1:parts[1],e2:parts.length>=4?parts[2]:null,s2:parts.length>=4?parts[3]:null};
+  // Extract all HH:MM patterns from cell regardless of separator
+  var times=(cell.match(/\d{1,2}:\d{2}/g)||[]).map(function(t){return t.replace('!','').trim();}).filter(function(t){return /^\d{1,2}:\d{2}$/.test(t);});
+  if(times.length<2)return null;
+  return{e1:times[0],s1:times[1],e2:times.length>=4?times[2]:null,s2:times.length>=4?times[3]:null};
 }
 
 function toMinG(t){if(!t)return null;var p=t.split(':');return +p[0]*60+ +p[1];}
