@@ -2934,7 +2934,7 @@ function procesarGrupoXlsx(file){
   var reader=new FileReader();
   reader.onload=function(e){
     try{
-      var wb=XLSX.read(e.target.result,{type:'array'});
+      var wb;try{wb=XLSX.read(e.target.result,{type:'array'});}catch(ex){alert('Error XLSX: '+ex.message);return;}
       var ws=wb.Sheets[wb.SheetNames[0]];
       var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
 
@@ -2995,7 +2995,6 @@ function procesarGrupoXlsx(file){
       var _rawMap=localStorage.getItem(_GRUPO_KEY+'_map');
       try{nominaMap=JSON.parse(_rawMap||'{}')}catch(ex){}
       var _beforeCount=0;for(var _bk in nominaMap){if(nominaMap.hasOwnProperty(_bk))_beforeCount++;}
-      alert('DEBUG importar\nArchivo: '+file.name+'\nMes: '+monthKey+'\nCategoría: '+categoria+'\nEmpleados en este Excel: '+empleados.length+'\nEmpleados ya guardados: '+_beforeCount);
       var added=0,updated=0;
       empleados.forEach(function(emp){
         if(nominaMap[emp.nomina]){updated++;}else{added++;}
@@ -3017,7 +3016,7 @@ function procesarGrupoXlsx(file){
       if(btn)btn.classList.add('has-data');
       var hint=document.getElementById('grupo-import-hint');
       var txt=document.getElementById('grupo-import-txt');
-      if(hint&&txt){hint.style.display='block';txt.textContent='✅ '+file.name+': +'+added+' nuevos, '+updated+' actualizados. Total: '+total+' compañeros.';}
+      if(hint&&txt){hint.style.display='block';txt.style.color='#4ade80';txt.style.fontSize='11px';txt.textContent='✅ '+categoria+': +'+added+' nuevos, '+updated+' actualizados · '+total+' total';}
     }catch(err){alert('Error al leer el Excel del grupo: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
@@ -3045,10 +3044,11 @@ function formatNombre(full){
 }
 
 function parseTurnoGrupo(cell){
-  // Cell format: "05:00 \n07:00" or "05:00 \n11:00 \n16:00 \n18:00"
-  var lines=cell.split(/\n|\r|\r\n/).map(function(l){return l.trim().replace('!','').trim();}).filter(function(l){return /^\d{1,2}:\d{2}$/.test(l);});
-  if(lines.length<2)return null;
-  return{e1:lines[0],s1:lines[1],e2:lines.length>=4?lines[2]:null,s2:lines.length>=4?lines[3]:null};
+  // Cell from XLSX has literal \\n sequences: "05:00 \\n07:00"
+  var cleaned=cell.replace(/\\\\n/g,"\n");
+  var parts=cleaned.split(/[\s\n\r]+/).map(function(l){return l.trim().replace("!","").trim();}).filter(function(l){return /^\d{1,2}:\d{2}$/.test(l);});
+  if(parts.length<2)return null;
+  return{e1:parts[0],s1:parts[1],e2:parts.length>=4?parts[2]:null,s2:parts.length>=4?parts[3]:null};
 }
 
 function toMinG(t){if(!t)return null;var p=t.split(':');return +p[0]*60+ +p[1];}
