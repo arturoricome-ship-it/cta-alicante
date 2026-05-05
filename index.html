@@ -360,6 +360,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #grupo-panel{display:none;margin-top:10px;border-top:1px solid rgba(255,255,255,.07);padding-top:10px}
 #grupo-panel.open{display:block}
 .grupo-title{font-size:10px;color:var(--gray);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
+.grupo-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.grupo-nav-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--gray);border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer}
+.grupo-nav-date{font-size:11px;color:var(--gold);font-weight:600}
 .grupo-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .grupo-item:last-child{border-bottom:none}
 .grupo-solapamiento{width:6px;height:6px;border-radius:50%;flex-shrink:0}
@@ -1513,7 +1516,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   <button class="calc-reset" id="calc-reset">Limpiar</button>
   <div class="calc-group-row">
     <button class="calc-group-btn" id="btn-import-grupo" title="Importar Excel del grupo" onclick="importarGrupo()">📋</button>
-    <button class="calc-group-btn" id="btn-ver-grupo" title="Ver compañeros hoy" onclick="verCompanerosHoy()">👥</button>
+    <button class="calc-group-btn" id="btn-ver-grupo" title="Ver compañeros por día" onclick="verCompanerosHoy()">👥</button>
     <button class="calc-group-btn" title="Borrar todos los datos del grupo" onclick="resetGrupo()" style="flex:0;padding:9px 12px">🗑️</button>
     <input type="file" id="grupo-file-input" accept=".xlsx" style="display:none" onchange="procesarGrupoXlsx(this.files[0])">
   </div>
@@ -3129,12 +3132,31 @@ function turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2){
 }
 
 function verCompanerosHoy(){
+  if(typeof window._grupoOffsetDias!=='number')window._grupoOffsetDias=0;
+  return renderCompanerosDia(window._grupoOffsetDias,true);
+}
+
+function moverCompanerosDia(delta){
+  if(typeof window._grupoOffsetDias!=='number')window._grupoOffsetDias=0;
+  window._grupoOffsetDias+=delta;
+  renderCompanerosDia(window._grupoOffsetDias,false);
+}
+
+function formateaFechaGrupo(baseDate,offsetDias){
+  var d=new Date(baseDate.getTime());
+  d.setDate(d.getDate()+offsetDias);
+  return d.toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'2-digit'});
+}
+
+function renderCompanerosDia(offsetDias,toggleIfOpen){
   var panel=document.getElementById('grupo-panel');
-  if(panel.classList.contains('open')){panel.classList.remove('open');return;}
+  if(toggleIfOpen&&panel.classList.contains('open')){panel.classList.remove('open');return;}
 
   var now=new Date();
-  var monthKey=_GRUPO_MONTHS[now.getMonth()];
-  var day=now.getDate();
+  var target=new Date(now.getTime());
+  target.setDate(target.getDate()+offsetDias);
+  var monthKey=_GRUPO_MONTHS[target.getMonth()];
+  var day=target.getDate();
 
   // Get group data from flat map
   var nominaMapHoy={};
@@ -3154,10 +3176,10 @@ function verCompanerosHoy(){
 
   // Get my shift today
   var myData={};
-  try{myData=JSON.parse(localStorage.getItem('cta_ed_'+now.getFullYear())||'{}')}catch(e){}
+  try{myData=JSON.parse(localStorage.getItem('cta_ed_'+target.getFullYear())||'{}')}catch(e){}
   var myDay=(myData[monthKey]||{})[day];
   if(!myDay||!myDay.e1){
-    panel.innerHTML='<div class="grupo-empty">📅 No tienes turno hoy</div>';
+    panel.innerHTML='<div class="grupo-empty">📅 No tienes turno ese día</div>';
     panel.classList.add('open');return;
   }
 
@@ -3179,7 +3201,7 @@ function verCompanerosHoy(){
   });
 
   if(!coinciden.length){
-    panel.innerHTML='<div class="grupo-empty">No coincides con nadie del grupo hoy</div>';
+    panel.innerHTML='<div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(now,offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div><div class="grupo-empty">No coincides con nadie del grupo ese día</div>';
     panel.classList.add('open');return;
   }
 
@@ -3190,7 +3212,8 @@ function verCompanerosHoy(){
   // Group by category
   var cats={};
   coinciden.forEach(function(c){var cat=c.categoria||'General';if(!cats[cat])cats[cat]=[];cats[cat].push(c);});
-  var html='<div class="grupo-title">👥 Compañeros hoy · '+coinciden.length+' coincidencias</div>';
+  var html='<div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(now,offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
+  html+='<div class="grupo-title">👥 Coincidencias · '+coinciden.length+'</div>';
   html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gold)"></div><div class="grupo-nombre" style="color:var(--gold);font-size:12px">Tú</div><div class="grupo-horario" style="color:var(--gold)">'+myHorario+'</div></div>';
   Object.keys(cats).sort().forEach(function(cat){
     html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
