@@ -13,7 +13,7 @@
 <style>
 :root{--navy:#1a2744;--navy-light:#243460;--gold:#c8a84b;--gold-light:#e8c96a;--white:#f0eee8;--gray:#8a93a8;--bg:#0d1623;--card:#182135;--card2:#1f2d47;--border:rgba(255,255,255,0.07)}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden}
+html,body{height:100%;overflow:hidden;overscroll-behavior-y:none;touch-action:pan-x pan-y}
 body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);display:flex;flex-direction:column}
 #app-header{background:linear-gradient(160deg,#1a2a4a 0%,var(--bg) 100%);padding:14px 16px 0;flex-shrink:0;z-index:10}
 #app-header::after{content:"";display:block;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-top:10px}
@@ -73,7 +73,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #tab-bar::-webkit-scrollbar{display:none}
 .tab{flex:1;min-width:0;padding:8px 0;border-radius:100px;font-size:11px;font-weight:600;cursor:pointer;color:var(--gray);background:transparent;border:none;font-family:"Outfit",sans-serif;transition:all .25s;letter-spacing:.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
 .tab.active{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);box-shadow:0 4px 12px rgba(200,168,75,.35)}
-#scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 12px 90px;-webkit-overflow-scrolling:touch}
+#scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 12px 90px;-webkit-overflow-scrolling:touch;overscroll-behavior-y:none}
 .panel{display:none;animation:fadeUp .3s ease}.panel.active{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:400px){.vuelo-estado{font-size:9px;padding:3px 6px}}
@@ -360,9 +360,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #grupo-panel{display:none;margin-top:10px;border-top:1px solid rgba(255,255,255,.07);padding-top:10px}
 #grupo-panel.open{display:block}
 .grupo-title{font-size:10px;color:var(--gray);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
-.grupo-toolbar{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.grupo-toolbar{display:flex;flex-direction:column;gap:8px;margin-bottom:8px;position:sticky;top:0;z-index:5;background:linear-gradient(180deg,var(--bg) 84%,rgba(13,22,35,0));padding-bottom:4px}
 .grupo-toolbar-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.grupo-toolbar-actions{display:flex;align-items:center;gap:6px;margin-left:auto}
+.grupo-toolbar-actions{display:flex;align-items:center;gap:6px;margin-left:auto;justify-content:flex-end;flex:1}
 .grupo-nav{display:flex;align-items:center;gap:8px;width:100%;flex-wrap:nowrap}
 .grupo-nav-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--gray);border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer}
 .grupo-nav-date{font-size:11px;color:var(--gold);font-weight:600;flex:1;text-align:center}
@@ -378,7 +378,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-horario{font-size:11px;color:var(--gray);text-align:right}
 .grupo-empty{font-size:12px;color:var(--gray);text-align:center;padding:12px 0;opacity:.7}
 .grupo-import-wrap{margin-top:6px;font-size:10px;color:var(--gray);text-align:center}
-#grupo-panel{max-height:min(72vh,560px);overflow:auto;padding-right:4px}
+#grupo-panel{max-height:min(72vh,560px);overflow:auto;padding-right:4px;overscroll-behavior-y:none}
 .grupo-clickable{cursor:pointer}
 .grupo-clickable:active{opacity:.85}
 .grupo-exclamacion{display:inline-block;margin-left:2px;color:#b7a57a;font-weight:700;font-size:12px;opacity:.8}
@@ -424,10 +424,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
         breadcrumb.pop();renderBreadcrumb();renderFolder(breadcrumb[breadcrumb.length-1].id);document.getElementById('scroll-area').scrollTop=0;
       }
     ">&#8592;</button>
-    <button id="btn-home" onclick="
-      switchTab('documentos',document.querySelectorAll('.tab')[0],document.getElementById('nav-documentos'));
-      breadcrumb=[{id:ROOT_ID,name:'Inicio'}];renderBreadcrumb();renderFolder(ROOT_ID);document.getElementById('scroll-area').scrollTop=0;
-    " title="Inicio" style="font-size:16px">🏠</button>
+    <button id="btn-home" onclick="irInicio()" title="Inicio" style="font-size:16px">🏠</button>
     <div id="breadcrumb"></div>
     <button id="btn-accesos" onclick="toggleAccesoDirecto()">&#128279; Accesos Directos</button>
     <button id="btn-live"><span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.5px"><span class="live-plane">✈</span> VUELOS</span><span id="btn-live-fecha" style="font-size:8px;color:rgba(240,112,112,.7);letter-spacing:.3px"></span></button>
@@ -3229,13 +3226,18 @@ function moverCompanerosDia(delta){
   renderCompanerosDia(window._grupoOffsetDias,false);
 }
 
-function salirMenuPrincipal(){
+
+function irInicio(){
   closeCalc();
   switchTab('documentos',document.querySelectorAll('.tab')[0],document.getElementById('nav-documentos'));
   breadcrumb=[{id:ROOT_ID,name:'Inicio'}];
   renderBreadcrumb();
   renderFolder(ROOT_ID);
   document.getElementById('scroll-area').scrollTop=0;
+}
+
+function salirMenuPrincipal(){
+  irInicio();
 }
 
 function toggleTodaPlantilla(){
@@ -3337,6 +3339,12 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   panel.innerHTML=html;
   panel.classList.add('open');
 }
+
+
+(function(){
+  var btnHome=document.getElementById('btn-home');
+  if(btnHome){btnHome.addEventListener('click',function(e){e.preventDefault();irInicio();});}
+})();
 
 // Init: check if group data exists
 (function(){
