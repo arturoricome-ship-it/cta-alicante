@@ -3106,9 +3106,10 @@ function formatNombre(full){
 
 function parseTurnoGrupo(cell){
   // Extract all HH:MM patterns from cell regardless of separator
+  var hasExclamation=String(cell||'').indexOf('!')!==-1;
   var times=(cell.match(/\d{1,2}:\d{2}/g)||[]).map(function(t){return t.replace('!','').trim();}).filter(function(t){return /^\d{1,2}:\d{2}$/.test(t);});
   if(times.length<2)return null;
-  return{e1:times[0],s1:times[1],e2:times.length>=4?times[2]:null,s2:times.length>=4?times[3]:null};
+  return{e1:times[0],s1:times[1],e2:times.length>=4?times[2]:null,s2:times.length>=4?times[3]:null,disponibilidadNoConfirmada:hasExclamation};
 }
 
 function toMinG(t){if(!t)return null;var p=t.split(':');return +p[0]*60+ +p[1];}
@@ -3196,6 +3197,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     if(turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2)){
       var horario=turno.e1+'→'+turno.s1;
       if(turno.e2&&turno.s2)horario+=' / '+turno.e2+'→'+turno.s2;
+      if(turno.disponibilidadNoConfirmada)horario+=' · Disponibilidad no confirmada';
       coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,categoria:emp.categoria||'General'});
     }
   });
