@@ -2305,6 +2305,8 @@ function tiHandleFile(file){
     }catch(err){alert('Error al leer el archivo: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
+  // Reset so same file can be re-imported
+  document.getElementById('grupo-file-input').value='';
 }
 function tiCellVal(sheet,row,col){
   var addr=XLSX.utils.encode_cell({r:row,c:col});
@@ -2949,14 +2951,13 @@ function procesarGrupoXlsx(file){
       // Detect category from row 2 (e.g. "06 UAR- FTP-Operarios 01 may...")
       var row2=String(rows[1]&&rows[1][0]||'');
       var categoria='General';
-      var catPatterns=['Supervisor','Operario','Técnico','Jefe','Coordinador','Auxiliar','Agente','Admin'];
-      catPatterns.forEach(function(p){if(row2.toLowerCase().indexOf(p.toLowerCase())>=0)categoria=p+'s';});
-      // Try to extract custom group name from row 2
-      var row2clean=row2.replace(/\d{2} may - \d{2} may \d{4}/i,'').replace(/\d{4}/g,'').replace(/\d{2}\s*(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic).*$/i,'').trim();
+      // Extract word before date pattern "01 may - 31 may 2026"
+      var row2clean=row2.replace(/\d{1,2}\s*(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)[\s\S]*/i,'').trim();
+      // Get last meaningful token after last dash
       var dashParts=row2clean.split('-');
-      if(dashParts.length>=2){
-        var lastPart=dashParts[dashParts.length-1].trim();
-        if(lastPart.length>2&&lastPart.length<40)categoria=lastPart;
+      var lastToken=dashParts[dashParts.length-1].trim();
+      if(lastToken.length>2&&lastToken.length<50&&!/^\d+$/.test(lastToken)){
+        categoria=lastToken;
       }
 
       // Detect month from row 3 or sheet name
@@ -3001,7 +3002,9 @@ function procesarGrupoXlsx(file){
         if(nominaMap[emp.nomina]){updated++;}else{added++;}
         nominaMap[emp.nomina]=emp;
       });
-      existing[monthKey]=Object.values(nominaMap);
+      var mergedList=[];
+      for(var _k in nominaMap){if(nominaMap.hasOwnProperty(_k))mergedList.push(nominaMap[_k]);}
+      existing[monthKey]=mergedList;
       existing._month=detectedMonth;
       existing._updated=new Date().toISOString();
       localStorage.setItem(_GRUPO_KEY,JSON.stringify(existing));
@@ -3016,6 +3019,8 @@ function procesarGrupoXlsx(file){
     }catch(err){alert('Error al leer el Excel del grupo: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
+  // Reset so same file can be re-imported
+  document.getElementById('grupo-file-input').value='';
 }
 
 function formatNombre(full){
