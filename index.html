@@ -358,7 +358,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .calc-group-btn:active{background:rgba(255,255,255,.12)}
 .calc-group-btn.has-data{border-color:rgba(200,168,75,.3);color:var(--gold)}
 #grupo-panel{display:none;margin-top:10px;border-top:1px solid rgba(255,255,255,.07);padding-top:10px}
-#grupo-panel.open{display:block}
+#grupo-panel.open{display:block;padding-top:0}
 .grupo-title{font-size:10px;color:var(--gray);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
 .grupo-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 .grupo-nav-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--gray);border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer}
@@ -386,7 +386,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .overnight-row td{color:#fb923c!important;opacity:.95}
 .overnight-row .grupo-nombre{color:#fb923c}
 
-.grupo-header-sticky{position:sticky;top:0;background:var(--card);z-index:10;padding-bottom:6px}
+.grupo-header-sticky{position:sticky;top:0;background:var(--card);z-index:10;padding:0 0 6px;margin:0 -2px;border-bottom:1px solid rgba(255,255,255,.08)}
 .grupo-top-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px}
 .grupo-top-title{font-size:11px;font-weight:700;color:var(--white)}
 .calc-btn-row{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
@@ -396,6 +396,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .hora-exit.saliendo{color:#ef4444!important;animation:blink-red .6s step-end infinite}
 @keyframes blink-red{0%,100%{opacity:1}50%{opacity:.2}}
 .grupo-item-saliendo{border-left:2px solid #ef4444}
+
+#btn-toda-plantilla2.active{background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-color:#3b82f6;color:#fff;box-shadow:0 2px 8px rgba(59,130,246,.4)}
+#btn-en-turno.active{background:linear-gradient(135deg,#065f46,#10b981);border-color:#10b981;color:#fff;box-shadow:0 2px 8px rgba(16,185,129,.4)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -1539,8 +1542,9 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   <div class="calc-btn-row">
     <button class="calc-small-btn" id="btn-import-grupo" onclick="importarGrupo()">📥 Importar</button>
     <button class="calc-small-btn" id="btn-mismo-turno" onclick="filtrarMismoTurno()">🎯 Mismo turno</button>
+    <button class="calc-small-btn" id="btn-en-turno" onclick="filtrarEnTurno()">⚡ En turno</button>
     <button class="calc-small-btn" id="btn-ver-grupo" onclick="verCompanerosHoy()">📋 Ver hoy</button>
-    <button class="calc-small-btn" style="color:#f87171;border-color:rgba(239,68,68,.2)" onclick="resetGrupo()">🗑️</button>
+    <button id="btn-hide-tachados" onclick="toggleHideTachados()" title="Ocultar/mostrar no disponibles" style="background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:5px 9px;cursor:pointer;font-size:13px;line-height:1">👁</button>
     <input type="file" id="grupo-file-input" accept=".xlsx" style="display:none" onchange="procesarGrupoXlsx(this.files[0])">
   </div>
   <div id="grupo-panel"></div>
@@ -3262,6 +3266,8 @@ function moverCompanerosDia(delta){
 }
 
 function toggleTodaPlantilla(){
+  var b=document.getElementById('btn-toda-plantilla2');
+  if(b)b.classList.toggle('active',!window._grupoMostrarTodaPlantilla);
   window._grupoMostrarTodaPlantilla=!window._grupoMostrarTodaPlantilla;
   if(typeof window._grupoOffsetDias!=='number')window._grupoOffsetDias=0;
   renderCompanerosDia(window._grupoOffsetDias,false);
@@ -3278,6 +3284,9 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   if(toggleIfOpen&&panel.classList.contains('open')){panel.classList.remove('open');return;}
   var modoToda=!!window._grupoMostrarTodaPlantilla;
   var modoMismoTurno=!!_mismoTurnoMode;
+  var modoEnTurno=!!_enTurnoMode;
+  var ahoraReal=new Date();
+  var nowMinReal=ahoraReal.getHours()*60+ahoraReal.getMinutes();
   var navHtml='<div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
 
   var now=new Date();
@@ -3326,7 +3335,8 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
       var solapa=turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2);
       var mismoTurno=modoMismoTurno?(Math.abs(grE1-(myE1||0))<=30):true;
-      if((modoToda||solapa)&&mismoTurno){
+      var trabAhora=!modoEnTurno||((grE1!==null&&grS1!==null&&nowMinReal>=grE1&&nowMinReal<grS1)||(grE2!==null&&grS2!==null&&nowMinReal>=grE2&&nowMinReal<grS2));
+      if((modoToda||solapa)&&mismoTurno&&trabAhora){
         var horario=turno.e1+'→'+turno.s1+(turno.e2&&turno.s2?' / '+turno.e2+'→'+turno.s2:'');
         var enT1=minutoEnTramo(ahoraMin,grE1,grS1),enT2=minutoEnTramo(ahoraMin,grE2,grS2);
         var opAhora=esDiaActual&&(enT1||enT2)&&!turno.disponibilidadNoConfirmada&&!turno.noVieneInterrogacion;
@@ -3398,6 +3408,26 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
 })();
 
 
+
+var _enTurnoMode=false;
+var _hideTachados=false;
+
+function filtrarEnTurno(){
+  _enTurnoMode=!_enTurnoMode;
+  var btn=document.getElementById('btn-en-turno');
+  if(btn)btn.classList.toggle('active',_enTurnoMode);
+  window._grupoOffsetDias=window._grupoOffsetDias||0;
+  renderCompanerosDia(window._grupoOffsetDias);
+}
+
+function toggleHideTachados(){
+  _hideTachados=!_hideTachados;
+  var btn=document.getElementById('btn-hide-tachados');
+  if(btn){btn.style.opacity=_hideTachados?'0.5':'1';btn.title=_hideTachados?'Mostrar no disponibles':'Ocultar no disponibles';}
+  document.querySelectorAll('.grupo-no-viene').forEach(function(el){
+    el.closest('.grupo-item').style.display=_hideTachados?'none':'';
+  });
+}
 var _mismoTurnoMode=false;
 function filtrarMismoTurno(){
   _mismoTurnoMode=!_mismoTurnoMode;
