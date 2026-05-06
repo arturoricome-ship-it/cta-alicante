@@ -44,7 +44,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .live-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:14px auto 12px}
 #live-body{overflow-y:auto;padding:0 14px 40px;flex:1}
 .vuelo-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:8px;display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center}
-.vuelo-row.vuelo-corte{box-shadow:inset 0 -2px 0 rgba(200,168,75,.45)}
+.vuelo-row.vuelo-corte-s{box-shadow:inset 0 -2px 0 rgba(239,68,68,.5)}
+.vuelo-row.vuelo-corte-e{box-shadow:inset 0 2px 0 rgba(34,197,94,.5)}
 .vuelo-estado{font-size:10px;font-weight:700;padding:3px 7px;border-radius:100px;white-space:nowrap;min-width:0;text-align:center}
 .vuelo-num{font-family:"Bebas Neue",sans-serif;font-size:16px;color:var(--gold);letter-spacing:1px}
 .vuelo-dest{font-size:13px;font-weight:700}
@@ -1365,19 +1366,21 @@ function getLiveCutoffsFromTurnoHoy(){
   var now=new Date();
   var meses=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
   var raw;
-  try{raw=localStorage.getItem("cta_ed_"+now.getFullYear());}catch(e){return [];}
-  if(!raw)return [];
+  try{raw=localStorage.getItem("cta_ed_"+now.getFullYear());}catch(e){return {s:[],e:[]};}
+  if(!raw)return {s:[],e:[]};
   var data;
-  try{data=JSON.parse(raw);}catch(e){return [];}
+  try{data=JSON.parse(raw);}catch(e){return {s:[],e:[]};}
   var mes=data[meses[now.getMonth()]];
   var d=mes?mes[now.getDate()]||null:null;
-  if(!d)return [];
-  var out=[];
-  var s1=hToMin(d.s1||"");
-  var s2=hToMin(d.s2||"");
-  if(s1!==null)out.push(s1);
-  if(s2!==null)out.push(s2);
-  return out;
+  if(!d)return {s:[],e:[]};
+  var s=[],e=[];
+  var e1=hToMin(d.e1||""),s1=hToMin(d.s1||"");
+  var e2=hToMin(d.e2||""),s2=hToMin(d.s2||"");
+  if(e1!==null)e.push(e1);
+  if(e2!==null)e.push(e2);
+  if(s1!==null)s.push(s1);
+  if(s2!==null)s.push(s2);
+  return {s:s,e:e};
 }
 
 function renderLive(){
@@ -1396,20 +1399,36 @@ function renderLive(){
   if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
   container.innerHTML="";
 
-  var cortes=[];
+  var cortesS={};  // idx → true (red bottom line, S1/S2)
+  var cortesE={};  // idx → true (green top line, E1/E2)
   if(esS){
     var cutoffs=getLiveCutoffsFromTurnoHoy();
-    cutoffs.forEach(function(cut){
+    // S lines: last flight before each exit time
+    cutoffs.s.forEach(function(cut){
       var bestIdx=-1,bestMin=-1;
       for(var i=0;i<data.length;i++){
         var vv=data[i];
         if((vv.estadoClass||"")==="e-cancelled")continue;
-        var hm=vv.horaReal||vv.horaProg||"";
-        var vm=hToMin(hm);
+        var vm=hToMin(vv.horaReal||vv.horaProg||"");
         if(vm===null)continue;
         if(vm<=cut&&vm>bestMin){bestMin=vm;bestIdx=i;}
       }
-      if(bestIdx>=0)cortes.push(bestIdx);
+      if(bestIdx>=0){
+        // If two S times map to same index, pick the lower one (already same idx)
+        cortesS[bestIdx]=true;
+      }
+    });
+    // E lines: first flight at or after each entry time
+    cutoffs.e.forEach(function(cut){
+      var bestIdx=-1,bestMin=99999;
+      for(var i=0;i<data.length;i++){
+        var vv=data[i];
+        if((vv.estadoClass||"")==="e-cancelled")continue;
+        var vm=hToMin(vv.horaReal||vv.horaProg||"");
+        if(vm===null)continue;
+        if(vm>=cut&&vm<bestMin){bestMin=vm;bestIdx=i;}
+      }
+      if(bestIdx>=0)cortesE[bestIdx]=true;
     });
   }
 
@@ -1437,7 +1456,8 @@ function renderLive(){
     var cancelado=v.estadoClass==="e-cancelled";
     var rowStyle=cancelado?"opacity:.6;border-color:rgba(230,80,70,.3)":"";
     var row=document.createElement("div");row.className="vuelo-row";
-    if(cortes.indexOf(idx)!==-1)row.classList.add("vuelo-corte");
+    if(cortesS[idx])row.classList.add("vuelo-corte-s");
+    if(cortesE[idx])row.classList.add("vuelo-corte-e");
     if(rowStyle)row.style.cssText=rowStyle;
     row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
       +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
@@ -1543,7 +1563,6 @@ document.getElementById("btn-logout").addEventListener("click",function(){
     <button class="calc-small-btn" id="btn-import-grupo" onclick="importarGrupo()">📥 Importar</button>
     <button class="calc-small-btn" id="btn-mismo-turno" onclick="filtrarMismoTurno()">🎯 Mismo turno</button>
     <button class="calc-small-btn" id="btn-en-turno" onclick="filtrarEnTurno()">⚡ En turno</button>
-    <button class="calc-small-btn" id="btn-ver-grupo" onclick="verCompanerosHoy()">📋 Ver hoy</button>
     <button id="btn-hide-tachados" onclick="toggleHideTachados()" title="Ocultar/mostrar no disponibles" style="background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:5px 9px;cursor:pointer;font-size:13px;line-height:1">👁</button>
     <input type="file" id="grupo-file-input" accept=".xlsx" style="display:none" onchange="procesarGrupoXlsx(this.files[0])">
   </div>
