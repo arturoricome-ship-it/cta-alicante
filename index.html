@@ -3364,7 +3364,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
       var solapa=turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2);
       var mismoTurno=modoMismoTurno?(Math.abs(grE1-(myE1||0))<=30):true;
-      var trabAhora=!modoEnTurno||((grE1!==null&&grS1!==null&&nowMinReal>=grE1&&nowMinReal<grS1)||(grE2!==null&&grS2!==null&&nowMinReal>=grE2&&nowMinReal<grS2));
+      var trabAhora=!modoEnTurno||(minutoEnTramo(nowMinReal,grE1,grS1)||minutoEnTramo(nowMinReal,grE2,grS2));
       if((modoToda||solapa)&&mismoTurno&&trabAhora){
         var horario=turno.e1+'→'+turno.s1+(turno.e2&&turno.s2?' / '+turno.e2+'→'+turno.s2:'');
         var enT1=minutoEnTramo(ahoraMin,grE1,grS1),enT2=minutoEnTramo(ahoraMin,grE2,grS2);
