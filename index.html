@@ -2504,6 +2504,26 @@ function tiApply(){
   var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(e){raw=null;}
   var ue;try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
   var imported=0;
+  function addSlot(target,start,end){
+    if(!start||!end)return;
+    if(!target.e1||!target.s1){target.e1=start;target.s1=end;return;}
+    if(!target.e2||!target.s2){target.e2=start;target.s2=end;}
+  }
+  function getDayEntry(month,day,tipo){
+    if(!ue[month])ue[month]={};
+    var ex=ue[month][day];
+    if(!ex||overwrite||!ex.tipo||ex.tipo==='libre')ex={tipo:tipo,total:0};
+    else if(!ex.tipo)ex.tipo=tipo;
+    ue[month][day]=ex;
+    return ex;
+  }
+  function nextDayKey(month,day){
+    var idx=_MC_MONTHS.indexOf(month);
+    if(idx<0)return null;
+    var dt=new Date(year,idx,day);
+    dt.setDate(dt.getDate()+1);
+    return {month:_MC_MONTHS[dt.getMonth()],day:dt.getDate()};
+  }
   Object.keys(_tiParsed.data).forEach(function(month){
     var mDays=_tiParsed.data[month];
     var hasData=Object.keys(mDays).some(function(k){return mDays[k].tipo!=='libre'||mDays[k].e1;});
@@ -2515,7 +2535,25 @@ function tiApply(){
       var obj={tipo:p.tipo,total:p.total||0};
       if(p.e1)obj.e1=p.e1;if(p.s1)obj.s1=p.s1;
       if(p.e2)obj.e2=p.e2;if(p.s2)obj.s2=p.s2;
-      ue[month][d]=obj;imported++;
+
+      var isOvernight1=p.e1&&p.s1&&tiToMin(p.s1)!==null&&tiToMin(p.e1)!==null&&tiToMin(p.s1)<tiToMin(p.e1);
+      var isOvernight2=p.e2&&p.s2&&tiToMin(p.s2)!==null&&tiToMin(p.e2)!==null&&tiToMin(p.s2)<tiToMin(p.e2);
+      if(!isOvernight1&&!isOvernight2){
+        ue[month][d]=obj;imported++;return;
+      }
+
+      var cur=getDayEntry(month,d,p.tipo);
+      cur.total=0;
+      if(isOvernight1){addSlot(cur,p.e1,'00:00');}else{addSlot(cur,p.e1,p.s1);}
+      if(isOvernight2){addSlot(cur,p.e2,'00:00');}else{addSlot(cur,p.e2,p.s2);}
+
+      var nd=nextDayKey(month,d);
+      if(nd){
+        var nxt=getDayEntry(nd.month,nd.day,p.tipo);
+        if(isOvernight1)addSlot(nxt,'00:01',p.s1);
+        if(isOvernight2)addSlot(nxt,'00:01',p.s2);
+      }
+      imported++;
     });
   });
   try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(e){alert('Error al guardar: '+e.message);return;}
