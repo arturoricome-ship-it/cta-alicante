@@ -1553,9 +1553,8 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 </button>
 <div id="calc-overlay"></div>
 <div id="calc-panel">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 2px">
-    <div class="calc-handle" style="margin:0;flex:1;cursor:pointer" onclick="document.getElementById('calc-panel').classList.remove('show');document.getElementById('calc-overlay').classList.remove('show')"></div>
-    <button onclick="document.getElementById('calc-panel').classList.remove('show');document.getElementById('calc-overlay').classList.remove('show')" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--gray);font-size:11px;font-weight:600;padding:3px 10px;cursor:pointer;font-family:'Outfit',sans-serif">✕ Cerrar</button>
+  <div style="display:flex;justify-content:center;padding:6px 0 4px">
+    <button onclick="document.getElementById('calc-panel').classList.remove('show');document.getElementById('calc-overlay').classList.remove('show')" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:20px;color:var(--gray);font-size:11px;font-weight:600;padding:4px 28px;cursor:pointer;font-family:'Outfit',sans-serif;letter-spacing:.3px">✕</button>
   </div>
   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
     <div class="calc-title" style="margin:0">Compañeros por día</div>
@@ -1576,9 +1575,8 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 </div>
 
 <div id="convert-panel" style="position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:16px 20px 40px;z-index:302;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-    <div class="calc-handle" style="margin:0;flex:1"></div>
-    <button onclick="document.getElementById('convert-panel').style.transform='translateY(100%)'" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--gray);font-size:11px;font-weight:600;padding:3px 10px;cursor:pointer;font-family:'Outfit',sans-serif">✕ Cerrar</button>
+  <div style="display:flex;justify-content:center;padding:0 0 8px">
+    <button onclick="document.getElementById('convert-panel').style.transform='translateY(100%)'" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:20px;color:var(--gray);font-size:11px;font-weight:600;padding:4px 28px;cursor:pointer;font-family:'Outfit',sans-serif;letter-spacing:.3px">✕</button>
   </div>
   <div class="calc-title">¿Horas o unidades?</div>
   <div class="calc-sub">Convierte entre horas trabajadas y unidades cobradas</div>
