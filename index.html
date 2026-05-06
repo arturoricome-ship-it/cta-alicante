@@ -372,6 +372,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-item-operativo{background:rgba(110,231,183,.15);border:1px solid rgba(110,231,183,.45);border-radius:10px;padding:8px 10px;margin:4px 0}
 .grupo-item-operativo .grupo-nombre{color:#a7f3d0}
 .grupo-item-operativo .grupo-horario{color:#6ee7b7}
+.grupo-item-operativo-carry{background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.45);border-radius:10px;padding:8px 10px;margin:4px 0}
+.grupo-item-operativo-carry .grupo-nombre{color:#fcd34d}
+.grupo-item-operativo-carry .grupo-horario{color:#fbbf24}
 .grupo-solapamiento{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .grupo-nombre{font-size:13px;font-weight:600;color:var(--white);flex:1}
 .grupo-horario{font-size:11px;color:var(--gray);text-align:right}
@@ -3295,11 +3298,30 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   var myE2=myDay.e2?toMinG(myDay.e2):null,myS2=myDay.s2?toMinG(myDay.s2):null;
   var ahoraMin=now.getHours()*60+now.getMinutes();
   var esDiaActual=offsetDias===0;
+  function turnoDesdeDiaAnterior(diasPrev,dayPrev){
+    var tPrev=diasPrev?diasPrev[dayPrev]:null;
+    if(!tPrev)return null;
+    var e1=tPrev.e1?toMinG(tPrev.e1):null,s1=tPrev.s1?toMinG(tPrev.s1):null;
+    var e2=tPrev.e2?toMinG(tPrev.e2):null,s2=tPrev.s2?toMinG(tPrev.s2):null;
+    var noct1=e1!==null&&s1!==null&&s1<e1;
+    var noct2=e2!==null&&s2!==null&&s2<e2;
+    if(!noct1&&!noct2)return null;
+    var carry={e1:null,s1:null,e2:null,s2:null,disponibilidadNoConfirmada:!!tPrev.disponibilidadNoConfirmada,noVieneInterrogacion:!!tPrev.noVieneInterrogacion,carryOver:true};
+    if(noct1){carry.e1='00:00';carry.s1=tPrev.s1;}
+    if(noct2){if(!carry.e1){carry.e1='00:00';carry.s1=tPrev.s2;}else{carry.e2='00:00';carry.s2=tPrev.s2;}}
+    return carry.e1&&carry.s1?carry:null;
+  }
 
   // Build list: coincidencias o toda la plantilla
   var coinciden=[];
   empleados.forEach(function(emp){
     var turno=emp.dias[day];
+    if(!turno){
+      var prevDate=new Date(target.getTime());prevDate.setDate(prevDate.getDate()-1);
+      var prevMonthKey=_GRUPO_MONTHS[prevDate.getMonth()];
+      var prevDias=(emp.meses&&emp.meses[prevMonthKey])||null;
+      turno=turnoDesdeDiaAnterior(prevDias,prevDate.getDate());
+    }
     if(!turno)return;
     var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
     var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
@@ -3307,10 +3329,11 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     if(modoToda||solapa){
       var horario=turno.e1+'→'+turno.s1;
       if(turno.e2&&turno.s2)horario+=' / '+turno.e2+'→'+turno.s2;
+      if(turno.carryOver)horario+=' · Noche anterior';
       var enTramo1=minutoEnTramo(ahoraMin,grE1,grS1);
       var enTramo2=minutoEnTramo(ahoraMin,grE2,grS2);
       var operativoAhora=esDiaActual&&(enTramo1||enTramo2)&&!turno.disponibilidadNoConfirmada&&!turno.noVieneInterrogacion;
-      coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:operativoAhora});
+      coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:operativoAhora,carryOver:!!turno.carryOver});
     }
   });
 
@@ -3332,7 +3355,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   Object.keys(cats).sort().forEach(function(cat){
     html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
     cats[cat].forEach(function(c){
-      html+='<div class="grupo-item'+(c.operativoAhora?' grupo-item-operativo':'')+'">'+
+      html+='<div class="grupo-item'+(c.operativoAhora?(c.carryOver?' grupo-item-operativo-carry':' grupo-item-operativo'):'')+'">'+
         '<div class="grupo-solapamiento" style="background:#60a5fa"></div>'+
         '<div class="grupo-nombre'+((c.noVieneInterrogacion||c.disponibilidadNoConfirmada)?' grupo-no-viene':'')+'">'+c.nombre+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+
         '<div class="grupo-horario">'+c.horario+'</div></div>';
