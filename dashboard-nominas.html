@@ -737,7 +737,7 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
           </div>
         </div>
       </div>
-      <div class="cfgr"><div><div class="cfgl">Perentorias arrastre</div><div class="cfgsub">Del año anterior (h)</div></div><input class="cinput" type="number" id="cfg-pp" value="0.75" min="0" step="0.25" onchange="cfgSave()"></div>
+      <div class="cfgr"><div><div class="cfgl">Perentorias arrastre</div><div class="cfgsub">Del año anterior (h)</div></div><input class="cinput" type="text" id="cfg-pp" placeholder="0:00" onchange="cfgSave()" style="text-align:center"></div>
       <div class="cfgr"><div><div class="cfgl">Festivos arrastre</div><div class="cfgsub">Del año anterior</div></div><input class="cinput" type="number" id="cfg-fp" value="3" min="0" step="1" onchange="cfgSave()"></div>
     </div>
     <div class="cfgs"><div class="cfgt">Tarifas calculadas</div><table class="rtbl" id="rate-tbl"></table></div>
@@ -783,7 +783,7 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
       <div class="frow">
         <label style="color:var(--purple2)">Perentorias generadas este día</label>
         <div style="display:flex;gap:8px;align-items:center">
-          <input class="fi" type="number" id="m-pgen" placeholder="0" min="0" step="0.25" value="0" style="color:var(--purple2);max-width:90px" oninput="mPgenChange()">
+          <input class="fi" type="text" id="m-pgen" placeholder="0:00" style="color:var(--purple2);max-width:90px;text-align:center" oninput="mPgenChange()">
           <div id="m-pmode-sec" style="display:none;gap:6px;align-items:center">
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:.85rem">
               <input type="radio" name="pmode" value="librar" id="m-pmode-n" checked onchange="mPgenChange()"> 7N · Librar
@@ -800,7 +800,7 @@ option[value="bp"]{background:#1a000a;color:#f9a8d4}
     <div id="m-pgasto-sec" style="display:none">
       <div class="frow">
         <label style="color:var(--red2)">Perentorias consumidas del banco (−h)</label>
-        <input class="fi" type="number" id="m-pgasto" placeholder="8" min="0" step="0.25" value="8" style="color:var(--red2)">
+        <input class="fi" type="text" id="m-pgasto" placeholder="0:00" style="color:var(--red2);text-align:center">
         <div class="mhint">Cuántas horas descontar del banco. Puedes consumir menos que el turno completo.</div>
       </div>
     </div>
@@ -1299,8 +1299,10 @@ function saveYearData(y){
 }
 function loadYearData(y){
   try{var s=localStorage.getItem('cta_ed_'+y);UE=s?JSON.parse(s):{}}catch(e){UE={}}
-  try{Object.keys(UE).forEach(function(m){Object.keys(UE[m]).forEach(function(d){var day=UE[m][d];if(!day||!day.perenDur||day.perenDur==='0:00')return;var key=m+':'+d;var p=day.perenDur.split(':');var genH=(+p[0]||0)+(+p[1]||0)/60;if(genH>0)PD[key]=Object.assign(PD[key]||{},{gen:genH,perenMode:day.perenTipo==='cp'?'cobrar':'librar'});});});}catch(e){}
   try{var s2=localStorage.getItem('cta_pd_'+y);PD=s2?JSON.parse(s2):{}}catch(e){PD={}}
+  // Sync portal perenDur → PD (after PD is loaded, so portal values fill gaps)
+  try{Object.keys(UE).forEach(function(m){Object.keys(UE[m]).forEach(function(d){var day=UE[m][d];if(!day||!day.perenDur||day.perenDur==='0:00')return;var key=m+':'+d;if(PD[key]&&(PD[key].gen>0))return;// dashboard value takes priority
+    var p=day.perenDur.split(':');var genH=(+p[0]||0)+(+p[1]||0)/60;if(genH>0)PD[key]=Object.assign(PD[key]||{},{gen:genH,perenMode:day.perenTipo==='cp'?'cobrar':'librar'});});});}catch(e){}
   // Si es 2026 y UE vacío, usar BASE
   if(y===2026&&Object.keys(UE).length===0){/* BASE ya está disponible */}
 }
@@ -2174,7 +2176,7 @@ function openM(month,day){
   document.getElementById('m-s1').value=d.s1||'';
   document.getElementById('m-e2').value=d.e2||'';
   document.getElementById('m-s2').value=d.s2||'';
-  document.getElementById('m-pgen').value=pd.gen||0;
+  document.getElementById('m-pgen').value=pd.gen?hToMm(pd.gen):'';
   var pmode=pd.perenMode||'librar';
   document.getElementById('m-pmode-n').checked=(pmode==='librar');
   document.getElementById('m-pmode-d').checked=(pmode==='cobrar');
@@ -2187,8 +2189,21 @@ function toggleIB303Info(){
   var el=document.getElementById('ib303-info');
   el.style.display=el.style.display==='none'?'block':'none';
 }
+
+function mmToH(s){
+  if(!s&&s!==0)return 0;
+  s=String(s).trim();
+  if(s.indexOf(':')>=0){var p=s.split(':');return(+p[0]||0)+(+p[1]||0)/60;}
+  return parseFloat(s)||0;
+}
+function hToMm(h){
+  if(!h||h<=0)return '';
+  var hh=Math.floor(h),mm=Math.round((h-hh)*60);
+  return hh+':'+(mm<10?'0':'')+mm;
+}
+
 function mPgenChange(){
-  var pgen=parseFloat(document.getElementById('m-pgen').value)||0;
+  var pgen=mmToH(document.getElementById('m-pgen').value);
   var sec=document.getElementById('m-pmode-sec');
   var hint=document.getElementById('m-pgen-hint');
   if(pgen>0){
@@ -2225,8 +2240,8 @@ function saveModal(){
   var e1=document.getElementById('m-e1').value.trim(),s1=document.getElementById('m-s1').value.trim();
   var e2=document.getElementById('m-e2').value.trim(),s2=document.getElementById('m-s2').value.trim();
   var total=calcH(e1,s1,e2,s2)||(tipo==='perentorias'?8:0);
-  var pgen=parseFloat(document.getElementById('m-pgen').value)||0;
-  var pgasto=tipo==='perentorias'?(parseFloat(document.getElementById('m-pgasto').value)||total):0;
+  var pgen=mmToH(document.getElementById('m-pgen').value);
+  var pgasto=tipo==='perentorias'?mmToH(document.getElementById('m-pgasto').value):0;
   var esFestivo=document.getElementById('m-esfestivo')&&document.getElementById('m-esfestivo').checked;
   sd(mm,dd,{e1:e1||undefined,s1:s1||undefined,e2:e2||undefined,s2:s2||undefined,tipo:tipo,total:total,esFestivo:esFestivo||undefined});
   var key=mm+':'+dd;
@@ -2281,7 +2296,7 @@ function renderEditTable(){
     var dim=dow>=5?'opacity:.65':'';
     // Columna +peren (generadas) y -peren (consumidas, solo si tipo=perentorias)
     var pgastoInput=day.tipo==='perentorias'
-      ?'<input class="pgi" type="number" value="'+(pd.gasto!==undefined?pd.gasto:day.total||8)+'" step="0.25" min="0" title="Horas consumidas del banco" oninput="etGasto(this,\''+m+'\','+d+')">'
+      ?'<input class="pgi" type="number" value="'+(pd.gasto!==undefined?hToMm(pd.gasto):hToMm(day.total||8))+'" style="text-align:center" title="Horas consumidas del banco" oninput="etGasto(this,\''+m+'\','+d+')">'
       :'<span style="color:var(--text3);font-size:10px">—</span>';
     var trClass='tr-'+(day.tipo||'libre')+(day.esFestivo?' tr-esfestivo':'');
     rows.push('<tr class="'+trClass+'" style="'+dim+'">'+
@@ -2290,8 +2305,8 @@ function renderEditTable(){
       '<td><input class="ti" type="text" value="'+(day.s1||'')+'" placeholder="--:--" oninput="etC(this,\''+m+'\','+d+',\'s1\')"></td>'+
       '<td><input class="ti" type="text" value="'+(day.e2||'')+'" placeholder="" oninput="etC(this,\''+m+'\','+d+',\'e2\')"></td>'+
       '<td><input class="ti" type="text" value="'+(day.s2||'')+'" placeholder="" oninput="etC(this,\''+m+'\','+d+',\'s2\')"></td>'+
-      '<td><div style="display:flex;gap:3px;align-items:center">'+'<input class="pi" type="number" value="'+(pd.gen||'')+'" placeholder="0" step="0.25" min="0" oninput="etP(this,\''+m+'\','+d+')">'+((pd.gen>0)?(pd.perenMode==='cobrar'?'<span style="font-size:9px;background:var(--amber);color:#000;border-radius:3px;padding:0 3px;white-space:nowrap">7D</span>':'<span style="font-size:9px;background:var(--purple2);color:#fff;border-radius:3px;padding:0 3px;white-space:nowrap">7N</span>'):'')+'</div></td>'+
-      '<td><input class="pi" type="number" value="'+(pd.hfunGen||'')+'" placeholder="0" step="0.25" min="0" style="color:var(--blue2)" oninput="etHfun(this,\''+m+'\','+d+')"></td>'+
+      '<td><div style="display:flex;gap:3px;align-items:center">'+'<input class="pi" type="number" value="'+(pd.gen||'')+'" placeholder="0" style="text-align:center" oninput="etP(this,\''+m+'\','+d+')">'+((pd.gen>0)?(pd.perenMode==='cobrar'?'<span style="font-size:9px;background:var(--amber);color:#000;border-radius:3px;padding:0 3px;white-space:nowrap">7D</span>':'<span style="font-size:9px;background:var(--purple2);color:#fff;border-radius:3px;padding:0 3px;white-space:nowrap">7N</span>'):'')+'</div></td>'+
+      '<td><input class="pi" type="number" value="'+(pd.hfunGen||'')+'" placeholder="0" style="color:var(--blue2);text-align:center" oninput="etHfun(this,\''+m+'\','+d+')"></td>'+
       '<td>'+pgastoInput+'</td>'+
       '<td><span id="et-t-'+m+'-'+d+'" style="color:var(--green2);font-weight:600">'+(day.total>0?day.total+'h':'—')+'</span></td>'+
       '<td><select class="tsel" onchange="etC(this,\''+m+'\','+d+',\'tipo\')">'+opts+'</select></td>'+
@@ -2321,15 +2336,15 @@ function etC(el,m,d,field){
   }
 }
 function etP(el,m,d){
-  var v=parseFloat(el.value)||0,key=m+':'+d;
+  var v=mmToH(el.value),key=m+':'+d;
   if(!PD[key])PD[key]={};PD[key].gen=v;updEtSumm();
 }
 function etHfun(el,m,d){
-  var v=parseFloat(el.value)||0,key=m+':'+d;
+  var v=mmToH(el.value),key=m+':'+d;
   if(!PD[key])PD[key]={};PD[key].hfunGen=v;updEtSumm();
 }
 function etGasto(el,m,d){
-  var v=parseFloat(el.value)||0,key=m+':'+d;
+  var v=mmToH(el.value),key=m+':'+d;
   if(!PD[key])PD[key]={};PD[key].gasto=v;updEtSumm();
 }
 function updEtSumm(){
