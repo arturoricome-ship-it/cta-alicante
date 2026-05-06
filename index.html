@@ -395,7 +395,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .calc-small-btn.active{background:rgba(200,168,75,.15);border-color:rgba(200,168,75,.3);color:var(--gold)}
 .hora-exit{transition:color .2s}
 .hora-exit.saliendo{color:#ef4444!important}
-.grupo-item.saliendo-ahora{animation:livepulse 3s ease-in-out infinite}
+@keyframes rowpulse{0%,100%{background:rgba(239,68,68,.18)}50%{background:rgba(239,68,68,.03)}}
+.grupo-item.saliendo-ahora{animation:rowpulse 2s ease-in-out infinite;border-color:rgba(239,68,68,.2)}
 .grupo-item.saliendo-ahora .grupo-solapamiento{background:#ef4444!important}
 .grupo-item-saliendo{border-left:2px solid #ef4444}
 
