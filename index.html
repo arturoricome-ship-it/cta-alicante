@@ -376,7 +376,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-horario{font-size:11px;color:var(--gray);text-align:right}
 .grupo-empty{font-size:12px;color:var(--gray);text-align:center;padding:12px 0;opacity:.7}
 .grupo-import-wrap{margin-top:6px;font-size:10px;color:var(--gray);text-align:center}
-#grupo-panel{max-height:min(72vh,560px);overflow:auto;padding-right:4px}
+#grupo-panel{max-height:min(72vh,560px);overflow-y:auto;overflow-x:hidden;padding-right:2px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent}
 .grupo-clickable{cursor:pointer}
 .grupo-clickable:active{opacity:.85}
 .grupo-exclamacion{display:inline-block;margin-left:2px;color:#b7a57a;font-weight:700;font-size:12px;opacity:.8}
@@ -387,7 +387,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .overnight-row td{color:#fb923c!important;opacity:.95}
 .overnight-row .grupo-nombre{color:#fb923c}
 
-.grupo-header-sticky{position:sticky;top:0;background:var(--card);z-index:10;padding:0 0 6px;margin:0 -2px;border-bottom:1px solid rgba(255,255,255,.08)}
+.grupo-header-sticky{position:sticky;top:0;background:var(--card);z-index:10;padding:0 0 6px;border-bottom:1px solid rgba(255,255,255,.08)}
 .grupo-top-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px}
 .grupo-top-title{font-size:11px;font-weight:700;color:var(--white)}
 .calc-btn-row{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
@@ -400,6 +400,10 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 
 #btn-toda-plantilla2.active{background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-color:#3b82f6;color:#fff;box-shadow:0 2px 8px rgba(59,130,246,.4)}
 #btn-en-turno.active{background:linear-gradient(135deg,#065f46,#10b981);border-color:#10b981;color:#fff;box-shadow:0 2px 8px rgba(16,185,129,.4)}
+
+#grupo-panel::-webkit-scrollbar{width:3px}
+#grupo-panel::-webkit-scrollbar-track{background:transparent}
+#grupo-panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
