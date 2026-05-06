@@ -431,7 +431,6 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
     <div id="breadcrumb"></div>
     <button id="btn-accesos" onclick="toggleAccesoDirecto()">&#128279; Accesos Directos</button>
     <button id="btn-live"><span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.5px"><span class="live-plane">✈</span> VUELOS</span><span id="btn-live-fecha" style="font-size:8px;color:rgba(240,112,112,.7);letter-spacing:.3px"></span></button>
-    <button id="btn-toda-plantilla" onclick="abrirTodaPlantilla()" style="background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.3);border-radius:8px;color:#60a5fa;font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;padding:4px 9px;cursor:pointer;white-space:nowrap">👥 Plantilla</button>
   </div>
 </div>
 
@@ -2060,7 +2059,7 @@ function initGoogle(){
 
 <!-- ─── TRYP IMPORT MODAL ──────────────────────────────────── -->
 <div id="tryp-import-bg" onclick="closeTrypImport()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;backdrop-filter:blur(6px)"></div>
-<div id="tryp-import-panel" style="display:none;position:fixed;bottom:57px;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:601;max-height:calc(100dvh - 57px);height:auto;display:flex;flex-direction:column;overflow:hidden;transform:translateY(120%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
+<div id="tryp-import-panel" style="display:none;position:fixed;bottom:57px;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:601;max-height:calc(100dvh - 114px);display:flex;flex-direction:column;overflow:hidden;transform:translateY(120%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
   <!-- Handle + tabs -->
   <div style="padding:14px 16px 0;flex-shrink:0">
     <div style="width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 14px"></div>
