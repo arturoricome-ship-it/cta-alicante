@@ -1399,11 +1399,12 @@ function renderLive(){
   if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
   container.innerHTML="";
 
-  var cortesS={};  // idx → true (red bottom line, S1/S2)
-  var cortesE={};  // idx → true (green top line, E1/E2)
+  var cortesS={};  // idx → red bottom line (S1/S2 in departures)
+  var cortesE={};  // idx → green top line (E1/E2 in arrivals)
+  var cutoffs=getLiveCutoffsFromTurnoHoy();
   if(esS){
-    var cutoffs=getLiveCutoffsFromTurnoHoy();
-    // S lines: last flight before each exit time
+    // S1/S2: last departure <= exit time → red line BELOW that row
+    // If 2 share same cut, pick the one lower (higher index) in list
     cutoffs.s.forEach(function(cut){
       var bestIdx=-1,bestMin=-1;
       for(var i=0;i<data.length;i++){
@@ -1411,14 +1412,13 @@ function renderLive(){
         if((vv.estadoClass||"")==="e-cancelled")continue;
         var vm=hToMin(vv.horaReal||vv.horaProg||"");
         if(vm===null)continue;
-        if(vm<=cut&&vm>bestMin){bestMin=vm;bestIdx=i;}
+        if(vm<=cut&&vm>=bestMin){bestMin=vm;bestIdx=i;} // >= keeps latest idx for ties
       }
-      if(bestIdx>=0){
-        // If two S times map to same index, pick the lower one (already same idx)
-        cortesS[bestIdx]=true;
-      }
+      if(bestIdx>=0)cortesS[bestIdx]=true;
     });
-    // E lines: first flight at or after each entry time
+  } else {
+    // E1/E2: first arrival >= entry time → green line ON TOP of that row
+    // If 2 share same cut, pick the one higher (lower index) in list
     cutoffs.e.forEach(function(cut){
       var bestIdx=-1,bestMin=99999;
       for(var i=0;i<data.length;i++){
@@ -1426,7 +1426,7 @@ function renderLive(){
         if((vv.estadoClass||"")==="e-cancelled")continue;
         var vm=hToMin(vv.horaReal||vv.horaProg||"");
         if(vm===null)continue;
-        if(vm>=cut&&vm<bestMin){bestMin=vm;bestIdx=i;}
+        if(vm>=cut&&vm<=bestMin){bestMin=vm;bestIdx=i;} // <= keeps lowest idx for ties
       }
       if(bestIdx>=0)cortesE[bestIdx]=true;
     });
@@ -1553,7 +1553,10 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 </button>
 <div id="calc-overlay"></div>
 <div id="calc-panel">
-  <div class="calc-handle"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 2px">
+    <div class="calc-handle" style="margin:0;flex:1;cursor:pointer" onclick="document.getElementById('calc-panel').classList.remove('show');document.getElementById('calc-overlay').classList.remove('show')"></div>
+    <button onclick="document.getElementById('calc-panel').classList.remove('show');document.getElementById('calc-overlay').classList.remove('show')" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--gray);font-size:11px;font-weight:600;padding:3px 10px;cursor:pointer;font-family:'Outfit',sans-serif">✕ Cerrar</button>
+  </div>
   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
     <div class="calc-title" style="margin:0">Compañeros por día</div>
     <button id="btn-toda-plantilla2" class="calc-small-btn" onclick="toggleTodaPlantilla()" style="font-size:10px;padding:4px 10px">👥 Toda la plantilla</button>
@@ -1572,8 +1575,11 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   </div>
 </div>
 
-<div id="convert-panel" style="position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:24px 20px 40px;z-index:302;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
-  <div class="calc-handle"></div>
+<div id="convert-panel" style="position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:16px 20px 40px;z-index:302;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div class="calc-handle" style="margin:0;flex:1"></div>
+    <button onclick="document.getElementById('convert-panel').style.transform='translateY(100%)'" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--gray);font-size:11px;font-weight:600;padding:3px 10px;cursor:pointer;font-family:'Outfit',sans-serif">✕ Cerrar</button>
+  </div>
   <div class="calc-title">¿Horas o unidades?</div>
   <div class="calc-sub">Convierte entre horas trabajadas y unidades cobradas</div>
   <div class="calc-row">
