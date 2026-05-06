@@ -2059,7 +2059,7 @@ function initGoogle(){
 
 <!-- ─── TRYP IMPORT MODAL ──────────────────────────────────── -->
 <div id="tryp-import-bg" onclick="closeTrypImport()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;backdrop-filter:blur(6px)"></div>
-<div id="tryp-import-panel" style="display:none;position:fixed;bottom:57px;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:601;height:calc(100dvh - 114px);max-height:calc(100dvh - 114px);display:flex;flex-direction:column;overflow:hidden;transform:translateY(120%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
+<div id="tryp-import-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:601;display:flex;flex-direction:column;overflow:hidden;transform:translateY(120%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
   <!-- Handle + tabs -->
   <div style="padding:14px 16px 0;flex-shrink:0">
     <div style="width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 14px"></div>
@@ -2393,10 +2393,25 @@ function openTrypImport(){
   document.getElementById('ti-apply-btn').style.opacity='.5';
   document.getElementById('ti-file').value='';
   document.getElementById('tryp-import-bg').style.display='block';
+  positionImportPanel();
   var panel=document.getElementById('tryp-import-panel');
   panel.style.display='block';
   setTimeout(function(){panel.style.transform='translateY(0)';},10);
 }
+
+// Position import panel above bottom nav dynamically
+function positionImportPanel(){
+  var nav=document.getElementById('bottom-nav');
+  var panel=document.getElementById('tryp-import-panel');
+  if(!nav||!panel)return;
+  var navH=nav.getBoundingClientRect().height||57;
+  panel.style.bottom=navH+'px';
+  panel.style.height=(window.innerHeight-navH)+'px';
+  panel.style.maxHeight=(window.innerHeight-navH)+'px';
+}
+window.addEventListener('resize',positionImportPanel);
+document.addEventListener('DOMContentLoaded',positionImportPanel);
+setTimeout(positionImportPanel,300);
 function closeTrypImport(){
   var panel=document.getElementById('tryp-import-panel');
   panel.style.transform='translateY(100%)';
