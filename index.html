@@ -370,9 +370,6 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-item-operativo{background:rgba(110,231,183,.15);border:1px solid rgba(110,231,183,.45);border-radius:10px;padding:8px 10px;margin:4px 0}
 .grupo-item-operativo .grupo-nombre{color:#a7f3d0}
 .grupo-item-operativo .grupo-horario{color:#6ee7b7}
-.grupo-item-operativo-carry{background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.45);border-radius:10px;padding:8px 10px;margin:4px 0}
-.grupo-item-operativo-carry .grupo-nombre{color:#fcd34d}
-.grupo-item-operativo-carry .grupo-horario{color:#fbbf24}
 .grupo-solapamiento{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .grupo-nombre{font-size:13px;font-weight:600;color:var(--white);flex:1}
 .grupo-horario{font-size:11px;color:var(--gray);text-align:right}
@@ -385,6 +382,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-no-viene{color:#b7a57a;text-decoration:line-through;text-decoration-thickness:1px;text-decoration-color:#b7a57a}
 #disp-cartel{position:fixed;left:50%;bottom:88px;transform:translate(-50%,20px);background:rgba(13,22,35,.96);border:1px solid rgba(200,168,75,.45);color:var(--white);padding:9px 12px;border-radius:10px;font-size:12px;z-index:950;opacity:0;pointer-events:none;transition:all .2s ease;max-width:88vw;text-align:center}
 #disp-cartel.on{opacity:1;transform:translate(-50%,0)}
+
+.overnight-row td{color:#fb923c!important;opacity:.95}
+.overnight-row .grupo-nombre{color:#fb923c}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -431,6 +431,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
     <div id="breadcrumb"></div>
     <button id="btn-accesos" onclick="toggleAccesoDirecto()">&#128279; Accesos Directos</button>
     <button id="btn-live"><span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.5px"><span class="live-plane">✈</span> VUELOS</span><span id="btn-live-fecha" style="font-size:8px;color:rgba(240,112,112,.7);letter-spacing:.3px"></span></button>
+    <button id="btn-toda-plantilla" onclick="abrirTodaPlantilla()" style="background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.3);border-radius:8px;color:#60a5fa;font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;padding:4px 9px;cursor:pointer;white-space:nowrap">👥 Plantilla</button>
   </div>
 </div>
 
@@ -1556,7 +1557,20 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   var convertPanel=document.getElementById("convert-panel");
   var RATIO=0.175;
 
-  function openCalc(){panel.classList.add("show");overlay.classList.add("show");}
+  function openCalc(){
+    panel.classList.add("show");overlay.classList.add("show");
+    // Auto-show today's companions if group data is loaded
+    try{
+      var gmap=localStorage.getItem(_GRUPO_KEY+'_map');
+      if(gmap&&gmap!=='{}'){
+        window._grupoOffsetDias=0;
+        setTimeout(function(){
+          var gp=document.getElementById('grupo-panel');
+          if(gp&&!gp.classList.contains('open')){verCompanerosHoy();}
+        },80);
+      }
+    }catch(e){}
+  }
   function resetCompanerosPanel(){
     window._grupoOffsetDias=0;
     var gp=document.getElementById("grupo-panel");
@@ -2046,7 +2060,7 @@ function initGoogle(){
 
 <!-- ─── TRYP IMPORT MODAL ──────────────────────────────────── -->
 <div id="tryp-import-bg" onclick="closeTrypImport()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;backdrop-filter:blur(6px)"></div>
-<div id="tryp-import-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:601;height:min(96dvh,100dvh);display:flex;flex-direction:column;overflow:hidden;transform:translateY(120%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
+<div id="tryp-import-panel" style="display:none;position:fixed;bottom:57px;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:601;max-height:calc(100dvh - 57px);height:auto;display:flex;flex-direction:column;overflow:hidden;transform:translateY(120%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
   <!-- Handle + tabs -->
   <div style="padding:14px 16px 0;flex-shrink:0">
     <div style="width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 14px"></div>
@@ -2067,7 +2081,7 @@ function initGoogle(){
   </div>
 
   <!-- PANE Excel -->
-  <div id="ti-pane-excel" style="flex:1;overflow-y:auto;padding:0 16px calc(24px + env(safe-area-inset-bottom));display:block;min-height:0">
+  <div id="ti-pane-excel" style="flex:1;overflow-y:auto;padding:0 16px 24px;display:block;min-height:0">
     <div style="font-size:11px;color:var(--gray);margin-bottom:12px">Importa tu calendario desde el Excel del Tryp</div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       <span style="font-size:12px;color:var(--gray);white-space:nowrap">Año:</span>
@@ -2096,7 +2110,7 @@ function initGoogle(){
   </div>
 
   <!-- PANE Backup -->
-  <div id="ti-pane-backup" style="flex:1;overflow-y:auto;padding:0 16px calc(24px + env(safe-area-inset-bottom));display:none;min-height:0">
+  <div id="ti-pane-backup" style="flex:1;overflow-y:auto;padding:0 16px 24px;display:none;min-height:0">
     <div style="font-size:11px;color:var(--gray);margin-bottom:12px">Restaura desde el archivo .json exportado en el Dashboard de Nóminas (💾 Exportar datos)</div>
     <div onclick="document.getElementById('ti-backup-file').click()"
       style="border:2px dashed rgba(200,168,75,.3);border-radius:14px;padding:28px 16px;text-align:center;cursor:pointer;margin-bottom:12px">
@@ -2114,7 +2128,7 @@ function initGoogle(){
   </div>
 
   <!-- Footer buttons -->
-  <div style="flex-shrink:0;padding:0 16px calc(18px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);padding-top:10px;background:#182135">
+  <div style="flex-shrink:0;padding:0 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);padding-top:10px;background:#182135">
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <button onclick="closeTrypImport()"
         style="flex:1;background:var(--card2);border:none;border-radius:12px;padding:13px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--gray);cursor:pointer">
@@ -2131,7 +2145,7 @@ function initGoogle(){
   </div>
 
   <!-- PANE Export -->
-  <div id="ti-pane-export" style="flex:1;overflow-y:auto;padding:0 16px calc(24px + env(safe-area-inset-bottom));display:none;min-height:0">
+  <div id="ti-pane-export" style="flex:1;overflow-y:auto;padding:0 16px 24px;display:none;min-height:0">
     <div style="font-size:11px;color:var(--gray);margin-bottom:16px">Guarda una copia de todos tus datos: turnos, ajustes y configuración.</div>
     <div id="ti-exp-preview" style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;font-size:11px;color:var(--gray);line-height:1.8">
       <div style="color:var(--white);font-weight:700;margin-bottom:6px">📊 Datos disponibles</div>
@@ -2505,26 +2519,6 @@ function tiApply(){
   var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(e){raw=null;}
   var ue;try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
   var imported=0;
-  function addSlot(target,start,end){
-    if(!start||!end)return;
-    if(!target.e1||!target.s1){target.e1=start;target.s1=end;return;}
-    if(!target.e2||!target.s2){target.e2=start;target.s2=end;}
-  }
-  function getDayEntry(month,day,tipo){
-    if(!ue[month])ue[month]={};
-    var ex=ue[month][day];
-    if(!ex||overwrite||!ex.tipo||ex.tipo==='libre')ex={tipo:tipo,total:0};
-    else if(!ex.tipo)ex.tipo=tipo;
-    ue[month][day]=ex;
-    return ex;
-  }
-  function nextDayKey(month,day){
-    var idx=_MC_MONTHS.indexOf(month);
-    if(idx<0)return null;
-    var dt=new Date(year,idx,day);
-    dt.setDate(dt.getDate()+1);
-    return {month:_MC_MONTHS[dt.getMonth()],day:dt.getDate()};
-  }
   Object.keys(_tiParsed.data).forEach(function(month){
     var mDays=_tiParsed.data[month];
     var hasData=Object.keys(mDays).some(function(k){return mDays[k].tipo!=='libre'||mDays[k].e1;});
@@ -2536,25 +2530,7 @@ function tiApply(){
       var obj={tipo:p.tipo,total:p.total||0};
       if(p.e1)obj.e1=p.e1;if(p.s1)obj.s1=p.s1;
       if(p.e2)obj.e2=p.e2;if(p.s2)obj.s2=p.s2;
-
-      var isOvernight1=p.e1&&p.s1&&tiToMin(p.s1)!==null&&tiToMin(p.e1)!==null&&tiToMin(p.s1)<tiToMin(p.e1);
-      var isOvernight2=p.e2&&p.s2&&tiToMin(p.s2)!==null&&tiToMin(p.e2)!==null&&tiToMin(p.s2)<tiToMin(p.e2);
-      if(!isOvernight1&&!isOvernight2){
-        ue[month][d]=obj;imported++;return;
-      }
-
-      var cur=getDayEntry(month,d,p.tipo);
-      cur.total=0;
-      if(isOvernight1){addSlot(cur,p.e1,'00:00');}else{addSlot(cur,p.e1,p.s1);}
-      if(isOvernight2){addSlot(cur,p.e2,'00:00');}else{addSlot(cur,p.e2,p.s2);}
-
-      var nd=nextDayKey(month,d);
-      if(nd){
-        var nxt=getDayEntry(nd.month,nd.day,p.tipo);
-        if(isOvernight1)addSlot(nxt,'00:01',p.s1);
-        if(isOvernight2)addSlot(nxt,'00:01',p.s2);
-      }
-      imported++;
+      ue[month][d]=obj;imported++;
     });
   });
   try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(e){alert('Error al guardar: '+e.message);return;}
@@ -3078,6 +3054,19 @@ function resetGrupo(){
   var panel=document.getElementById('grupo-panel');
   if(panel){panel.innerHTML='';panel.classList.remove('open');}
 }
+
+function abrirTodaPlantilla(){
+  var panel=document.getElementById('calc-panel');
+  var overlay=document.getElementById('calc-overlay');
+  if(panel){panel.classList.add('show');if(overlay)overlay.classList.add('show');}
+  // Force toda-plantilla mode and render
+  window._grupoOffsetDias=0;
+  window._grupoModaToda=true;
+  setTimeout(function(){
+    var gp=document.getElementById('grupo-panel');
+    if(gp){gp.classList.add('open');verCompanerosHoy(true);}
+  },50);
+}
 function importarGrupo(){
   document.getElementById('grupo-file-input').click();
 }
@@ -3296,42 +3285,40 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   var myE2=myDay.e2?toMinG(myDay.e2):null,myS2=myDay.s2?toMinG(myDay.s2):null;
   var ahoraMin=now.getHours()*60+now.getMinutes();
   var esDiaActual=offsetDias===0;
-  function turnoDesdeDiaAnterior(diasPrev,dayPrev){
-    var tPrev=diasPrev?diasPrev[dayPrev]:null;
-    if(!tPrev)return null;
-    var e1=tPrev.e1?toMinG(tPrev.e1):null,s1=tPrev.s1?toMinG(tPrev.s1):null;
-    var e2=tPrev.e2?toMinG(tPrev.e2):null,s2=tPrev.s2?toMinG(tPrev.s2):null;
-    var noct1=e1!==null&&s1!==null&&s1<e1;
-    var noct2=e2!==null&&s2!==null&&s2<e2;
-    if(!noct1&&!noct2)return null;
-    var carry={e1:null,s1:null,e2:null,s2:null,disponibilidadNoConfirmada:!!tPrev.disponibilidadNoConfirmada,noVieneInterrogacion:!!tPrev.noVieneInterrogacion,carryOver:true};
-    if(noct1){carry.e1='00:00';carry.s1=tPrev.s1;}
-    if(noct2){if(!carry.e1){carry.e1='00:00';carry.s1=tPrev.s2;}else{carry.e2='00:00';carry.s2=tPrev.s2;}}
-    return carry.e1&&carry.s1?carry:null;
-  }
 
   // Build list: coincidencias o toda la plantilla
   var coinciden=[];
   empleados.forEach(function(emp){
+    // Today's shift
     var turno=emp.dias[day];
-    if(!turno){
-      var prevDate=new Date(target.getTime());prevDate.setDate(prevDate.getDate()-1);
-      var prevMonthKey=_GRUPO_MONTHS[prevDate.getMonth()];
-      var prevDias=(emp.meses&&emp.meses[prevMonthKey])||null;
-      turno=turnoDesdeDiaAnterior(prevDias,prevDate.getDate());
+    if(turno){
+      var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
+      var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
+      var solapa=turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2);
+      if(modoToda||solapa){
+        var horario=turno.e1+'→'+turno.s1+(turno.e2&&turno.s2?' / '+turno.e2+'→'+turno.s2:'');
+        var enT1=minutoEnTramo(ahoraMin,grE1,grS1),enT2=minutoEnTramo(ahoraMin,grE2,grS2);
+        var opAhora=esDiaActual&&(enT1||enT2)&&!turno.disponibilidadNoConfirmada&&!turno.noVieneInterrogacion;
+        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false});
+      }
     }
-    if(!turno)return;
-    var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
-    var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
-    var solapa=turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2);
-    if(modoToda||solapa){
-      var horario=turno.e1+'→'+turno.s1;
-      if(turno.e2&&turno.s2)horario+=' / '+turno.e2+'→'+turno.s2;
-      if(turno.carryOver)horario+=' · Noche anterior';
-      var enTramo1=minutoEnTramo(ahoraMin,grE1,grS1);
-      var enTramo2=minutoEnTramo(ahoraMin,grE2,grS2);
-      var operativoAhora=esDiaActual&&(enTramo1||enTramo2)&&!turno.disponibilidadNoConfirmada&&!turno.noVieneInterrogacion;
-      coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:operativoAhora,carryOver:!!turno.carryOver});
+    // Yesterday's overnight shift crossing into today
+    if(esDiaActual&&day>1){
+      var turnoAyer=emp.dias[day-1];
+      if(turnoAyer&&turnoAyer.e1&&turnoAyer.s1){
+        var yE1=toMinG(turnoAyer.e1),yS1=toMinG(turnoAyer.s1);
+        // Crosses midnight: s1 < e1 (e.g. 22:00→07:00 → 420<1320)
+        if(yS1!==null&&yE1!==null&&yS1<yE1&&ahoraMin<yS1){
+          // Still working (00:00 → yS1). Check overlap with my shift
+          if(modoToda||turnosSeSuperponen(myE1,myS1,myE2,myS2,0,yS1,null,null)){
+            var alreadyIn=coinciden.some(function(c){return c.nombre===emp.nombre;});
+            if(!alreadyIn){
+              var hAyer=turnoAyer.e1+'→'+turnoAyer.s1+(turnoAyer.e2&&turnoAyer.s2?' / '+turnoAyer.e2+'→'+turnoAyer.s2:'');
+              coinciden.push({nombre:emp.nombre,horario:hAyer,e1:0,s1:yS1,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:true,overnight:true});
+            }
+          }
+        }
+      }
     }
   });
 
@@ -3353,10 +3340,13 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   Object.keys(cats).sort().forEach(function(cat){
     html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
     cats[cat].forEach(function(c){
-      html+='<div class="grupo-item'+(c.operativoAhora?(c.carryOver?' grupo-item-operativo-carry':' grupo-item-operativo'):'')+'">'+
-        '<div class="grupo-solapamiento" style="background:#60a5fa"></div>'+
-        '<div class="grupo-nombre'+((c.noVieneInterrogacion||c.disponibilidadNoConfirmada)?' grupo-no-viene':'')+'">'+c.nombre+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+
-        '<div class="grupo-horario">'+c.horario+'</div></div>';
+      var _dot=c.overnight?'#fb923c':'#60a5fa';
+      var _nameExtra=c.overnight?' 🌙':'';
+      var _nameColor=c.overnight?'color:#fb923c;':''
+      html+='<div class="grupo-item'+(c.operativoAhora?' grupo-item-operativo':'')+'">'+
+        '<div class="grupo-solapamiento" style="background:'+_dot+'"></div>'+
+        '<div class="grupo-nombre'+((c.noVieneInterrogacion||c.disponibilidadNoConfirmada)?' grupo-no-viene':'')+'" style="'+_nameColor+'">'+c.nombre+_nameExtra+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+
+        '<div class="grupo-horario" style="'+_nameColor+'">'+c.horario+'</div></div>';
     });
   });
   panel.innerHTML=html;
