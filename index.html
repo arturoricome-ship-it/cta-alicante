@@ -34,7 +34,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #btn-home:disabled{opacity:.2;cursor:default}
 /* LIVE */
 #btn-live{height:26px;padding:0 8px;border-radius:8px;border:1px solid rgba(230,80,70,.3);background:rgba(230,80,70,.08);color:#f07070;font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;flex-shrink:0;font-family:"Outfit",sans-serif;line-height:1}
-.live-dot{width:6px;height:6px;border-radius:50%;background:#f07070;flex-shrink:0;animation:livepulse 1.8s ease-in-out infinite}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#f07070;flex-shrink:0;animation:livepulse 3s ease-in-out infinite}
 .live-plane{animation:livepulse 1.8s ease-in-out infinite;display:inline-block}
 @keyframes livepulse{0%,100%{opacity:1}50%{opacity:.2}}
 #live-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400}
@@ -394,8 +394,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .calc-small-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--gray);font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;padding:6px 12px;cursor:pointer;white-space:nowrap}
 .calc-small-btn.active{background:rgba(200,168,75,.15);border-color:rgba(200,168,75,.3);color:var(--gold)}
 .hora-exit{transition:color .2s}
-.hora-exit.saliendo{color:#ef4444!important;animation:blink-red .6s step-end infinite}
-@keyframes blink-red{0%,100%{opacity:1}50%{opacity:.2}}
+.hora-exit.saliendo{color:#ef4444!important}
+.grupo-item.saliendo-ahora{animation:livepulse 3s ease-in-out infinite}
+.grupo-item.saliendo-ahora .grupo-solapamiento{background:#ef4444!important}
 .grupo-item-saliendo{border-left:2px solid #ef4444}
 
 #btn-toda-plantilla2.active{background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-color:#3b82f6;color:#fff;box-shadow:0 2px 8px rgba(59,130,246,.4)}
@@ -3480,12 +3481,19 @@ function buildHorarioHtml(c){
 
 function checkExitBlinks(){
   var now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
-  document.querySelectorAll('.hora-exit').forEach(function(el){
-    var t=el.dataset.exit;
-    if(!t)return;
-    var p=t.split(':'),tMin=+p[0]*60+(+p[1]||0);
-    var diff=tMin-nowMin;
-    el.classList.toggle('saliendo',diff>=0&&diff<=5);
+  // Group by row: find all grupo-item rows that have an exit time within 5 min
+  var rows=document.querySelectorAll('.grupo-item[data-s1],[data-s2]');
+  // Use data attrs on items for exit times
+  document.querySelectorAll('.grupo-item').forEach(function(row){
+    var exits=row.querySelectorAll('.hora-exit');
+    var saliendo=false;
+    exits.forEach(function(el){
+      var t=el.dataset.exit;if(!t)return;
+      var p=t.split(':'),tMin=+p[0]*60+(+p[1]||0);
+      var diff=tMin-nowMin;
+      if(diff>=0&&diff<=10)saliendo=true;
+    });
+    row.classList.toggle('saliendo-ahora',saliendo);
   });
 }
 setInterval(checkExitBlinks,30000);
