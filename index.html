@@ -385,6 +385,17 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 
 .overnight-row td{color:#fb923c!important;opacity:.95}
 .overnight-row .grupo-nombre{color:#fb923c}
+
+.grupo-header-sticky{position:sticky;top:0;background:var(--card);z-index:10;padding-bottom:6px}
+.grupo-top-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px}
+.grupo-top-title{font-size:11px;font-weight:700;color:var(--white)}
+.calc-btn-row{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.calc-small-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--gray);font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.calc-small-btn.active{background:rgba(200,168,75,.15);border-color:rgba(200,168,75,.3);color:var(--gold)}
+.hora-exit{transition:color .2s}
+.hora-exit.saliendo{color:#ef4444!important;animation:blink-red .6s step-end infinite}
+@keyframes blink-red{0%,100%{opacity:1}50%{opacity:.2}}
+.grupo-item-saliendo{border-left:2px solid #ef4444}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -1520,12 +1531,16 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 <div id="calc-overlay"></div>
 <div id="calc-panel">
   <div class="calc-handle"></div>
-  <div class="calc-title">Compañeros por día</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
+    <div class="calc-title" style="margin:0">Compañeros por día</div>
+    <button id="btn-toda-plantilla2" class="calc-small-btn" onclick="toggleTodaPlantilla()" style="font-size:10px;padding:4px 10px">👥 Toda la plantilla</button>
+  </div>
   <div class="calc-sub">Importa el Excel del grupo y consulta quién coincide contigo</div>
-  <div class="calc-group-row">
-    <button class="calc-group-btn" id="btn-import-grupo" title="Importar Excel del grupo" onclick="importarGrupo()">📋</button>
-    <button class="calc-group-btn" id="btn-ver-grupo" title="Ver compañeros por día" onclick="verCompanerosHoy()">👥</button>
-    <button class="calc-group-btn" title="Borrar todos los datos del grupo" onclick="resetGrupo()" style="flex:0;padding:9px 12px">🗑️</button>
+  <div class="calc-btn-row">
+    <button class="calc-small-btn" id="btn-import-grupo" onclick="importarGrupo()">📥 Importar</button>
+    <button class="calc-small-btn" id="btn-mismo-turno" onclick="filtrarMismoTurno()">🎯 Mismo turno</button>
+    <button class="calc-small-btn" id="btn-ver-grupo" onclick="verCompanerosHoy()">📋 Ver hoy</button>
+    <button class="calc-small-btn" style="color:#f87171;border-color:rgba(239,68,68,.2)" onclick="resetGrupo()">🗑️</button>
     <input type="file" id="grupo-file-input" accept=".xlsx" style="display:none" onchange="procesarGrupoXlsx(this.files[0])">
   </div>
   <div id="grupo-panel"></div>
@@ -3262,7 +3277,8 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   var panel=document.getElementById('grupo-panel');
   if(toggleIfOpen&&panel.classList.contains('open')){panel.classList.remove('open');return;}
   var modoToda=!!window._grupoMostrarTodaPlantilla;
-  var navHtml='<button class="grupo-all-btn'+(modoToda?'':' off')+'" onclick="toggleTodaPlantilla()">Toda la plantilla</button><div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
+  var modoMismoTurno=!!_mismoTurnoMode;
+  var navHtml='<div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
 
   var now=new Date();
   var target=new Date(now.getTime());
@@ -3309,7 +3325,8 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
       var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
       var solapa=turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2);
-      if(modoToda||solapa){
+      var mismoTurno=modoMismoTurno?(Math.abs(grE1-(myE1||0))<=30):true;
+      if((modoToda||solapa)&&mismoTurno){
         var horario=turno.e1+'→'+turno.s1+(turno.e2&&turno.s2?' / '+turno.e2+'→'+turno.s2:'');
         var enT1=minutoEnTramo(ahoraMin,grE1,grS1),enT2=minutoEnTramo(ahoraMin,grE2,grS2);
         var opAhora=esDiaActual&&(enT1||enT2)&&!turno.disponibilidadNoConfirmada&&!turno.noVieneInterrogacion;
@@ -3348,19 +3365,21 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   // Group by category
   var cats={};
   coinciden.forEach(function(c){var cat=c.categoria||'General';if(!cats[cat])cats[cat]=[];cats[cat].push(c);});
-  var html=navHtml;
+  var html='<div class="grupo-header-sticky">'+navHtml;
   html+='<div class="grupo-title">👥 '+(modoToda?'Toda la plantilla':'Coincidencias')+' · '+coinciden.length+'</div>';
   html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gold)"></div><div class="grupo-nombre" style="color:var(--gold);font-size:12px">Tú</div><div class="grupo-horario" style="color:var(--gold)">'+myHorario+'</div></div>';
+  html+='</div>';
   Object.keys(cats).sort().forEach(function(cat){
     html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
     cats[cat].forEach(function(c){
       var _dot=c.overnight?'#fb923c':'#60a5fa';
       var _nameExtra=c.overnight?' 🌙':'';
       var _nameColor=c.overnight?'color:#fb923c;':''
+      var _hor=buildHorarioHtml(c);
       html+='<div class="grupo-item'+(c.operativoAhora?' grupo-item-operativo':'')+'">'+
         '<div class="grupo-solapamiento" style="background:'+_dot+'"></div>'+
         '<div class="grupo-nombre'+((c.noVieneInterrogacion||c.disponibilidadNoConfirmada)?' grupo-no-viene':'')+'" style="'+_nameColor+'">'+c.nombre+_nameExtra+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+
-        '<div class="grupo-horario" style="'+_nameColor+'">'+c.horario+'</div></div>';
+        '<div class="grupo-horario" style="'+_nameColor+'">'+_hor+'</div></div>';
     });
   });
   panel.innerHTML=html;
@@ -3378,6 +3397,42 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   }catch(e){}
 })();
 
+
+var _mismoTurnoMode=false;
+function filtrarMismoTurno(){
+  _mismoTurnoMode=!_mismoTurnoMode;
+  var btn=document.getElementById('btn-mismo-turno');
+  if(btn)btn.classList.toggle('active',_mismoTurnoMode);
+  window._grupoOffsetDias=window._grupoOffsetDias||0;
+  renderCompanerosDia(window._grupoOffsetDias);
+}
+
+function buildHorarioHtml(c){
+  // Build horario string with individual spans for each time, exit times get id for blinking
+  var parts=c.horario.split(' / ');
+  var html='';
+  parts.forEach(function(seg,i){
+    var ts=seg.split('→');
+    if(ts.length<2){html+=seg;return;}
+    var entH=ts[0].trim(),salH=ts[1].trim();
+    var salId='exit_'+c.nombre.replace(/\s/g,'_')+'_'+(i===0?'s1':'s2');
+    html+=(i>0?' / ':'')+entH+'→<span id="'+salId+'" class="hora-exit" data-exit="'+salH+'">'+salH+'</span>';
+  });
+  return html||c.horario;
+}
+
+function checkExitBlinks(){
+  var now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
+  document.querySelectorAll('.hora-exit').forEach(function(el){
+    var t=el.dataset.exit;
+    if(!t)return;
+    var p=t.split(':'),tMin=+p[0]*60+(+p[1]||0);
+    var diff=tMin-nowMin;
+    el.classList.toggle('saliendo',diff>=0&&diff<=5);
+  });
+}
+setInterval(checkExitBlinks,30000);
+setTimeout(checkExitBlinks,2000);
 function showDisponibilidadCartel(){
   var c=document.getElementById('disp-cartel');
   if(!c)return;
