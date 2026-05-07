@@ -251,7 +251,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .dash-tryp-img{width:100%;border-radius:10px;border:1px solid rgba(200,168,75,.2);margin-top:8px;display:block}
 
 /* ─── TURNO BOTTOM BAR ─────────────────────────────────────────── */
-#bottom-turno{display:none;flex-shrink:0;background:rgba(13,22,35,.98);border-top:1px solid rgba(200,168,75,.2);padding:7px 14px 10px}
+#bottom-turno{display:none;flex-shrink:0;background:rgba(13,22,35,.98);border-top:1px solid rgba(200,168,75,.2);padding:7px 14px 10px;transition:background .5s}
+@keyframes twpulse{0%,100%{background:rgba(239,68,68,.18)}50%{background:rgba(239,68,68,.03)}}
+#bottom-turno.saliendo{animation:twpulse 2s ease-in-out infinite;border-top-color:rgba(239,68,68,.4)}
 .tw-main{display:flex;align-items:center;gap:10px;margin-bottom:7px}
 .tw-ico-wrap{width:36px;height:36px;border-radius:10px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.18);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
 .tw-info{flex:1;min-width:0}
@@ -2094,6 +2096,8 @@ function initGoogle(){
     renderWidget();
     if(_timer)clearInterval(_timer);
     _timer=setInterval(renderWidget,60000);
+    setInterval(checkTurnoSalida,30000);
+    setTimeout(checkTurnoSalida,500);
   };
 
   // Auto-init (si ya hay sesión, no espera a login)
@@ -3494,6 +3498,24 @@ function buildHorarioHtml(c){
   return html||c.horario;
 }
 
+
+function checkTurnoSalida(){
+  var tw=document.getElementById('bottom-turno');
+  if(!tw||tw.style.display==='none')return;
+  var now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
+  var meses=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+  var raw;try{raw=localStorage.getItem("cta_ed_"+now.getFullYear());}catch(e){return;}
+  if(!raw)return;
+  var data;try{data=JSON.parse(raw);}catch(e){return;}
+  var mes=data[meses[now.getMonth()]];
+  var d=mes?mes[now.getDate()]||null:null;
+  if(!d)return;
+  var salidas=[];
+  if(d.s1){var t=hToMin(d.s1);if(t!==null)salidas.push(t);}
+  if(d.s2){var t2=hToMin(d.s2);if(t2!==null)salidas.push(t2);}
+  var saliendo=salidas.some(function(t){var diff=t-nowMin;return diff>=0&&diff<=10;});
+  tw.classList.toggle('saliendo',saliendo);
+}
 function checkExitBlinks(){
   var now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
   // Group by row: find all grupo-item rows that have an exit time within 5 min
