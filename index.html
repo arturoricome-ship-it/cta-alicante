@@ -3435,7 +3435,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
         '<div class="grupo-horario" style="'+_nameColor+'">'+_hor+'</div></div>';
     });
   });
-  panel.innerHTML=html;
+  panel.innerHTML=html+'<div style="height:16px"></div>';
   panel.classList.add('open');
   setTimeout(checkExitBlinks,100);
 }
