@@ -3370,7 +3370,8 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
       var _t2ok=minutoEnTramo(nowMinReal,grE2,grS2);
       if(esDiaActual&&grE2!==null&&grS2!==null&&grS2<grE2)_t2ok=(nowMinReal>=grE2);
       var trabAhora=!modoEnTurno||(_t1ok||_t2ok);
-      if((modoToda||solapa)&&mismoTurno&&trabAhora){
+      var _esExcl=!!(turno&&(turno.noVieneInterrogacion||turno.disponibilidadNoConfirmada));
+      if((modoToda||solapa)&&mismoTurno&&trabAhora&&(!_esExcl||window._showExcl)){
         var horario=turno.e1+'→'+turno.s1+(turno.e2&&turno.s2?' / '+turno.e2+'→'+turno.s2:'');
         var enT1=minutoEnTramo(ahoraMin,grE1,grS1),enT2=minutoEnTramo(ahoraMin,grE2,grS2);
         // TODAY overnight: only active if already started (nowMin >= e1)
@@ -3451,6 +3452,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
 
 var _enTurnoMode=false;
 var _hideTachados=false;
+window._showExcl=false; // exclamation mark companions hidden by default
 
 function filtrarEnTurno(){
   _enTurnoMode=!_enTurnoMode;
@@ -3461,12 +3463,10 @@ function filtrarEnTurno(){
 }
 
 function toggleHideTachados(){
-  _hideTachados=!_hideTachados;
+  window._showExcl=!window._showExcl;
   var btn=document.getElementById('btn-hide-tachados');
-  if(btn){btn.style.opacity=_hideTachados?'0.5':'1';btn.title=_hideTachados?'Mostrar no disponibles':'Ocultar no disponibles';}
-  document.querySelectorAll('.grupo-no-viene').forEach(function(el){
-    el.closest('.grupo-item').style.display=_hideTachados?'none':'';
-  });
+  if(btn){btn.style.opacity=window._showExcl?'1':'0.5';btn.title=window._showExcl?'Ocultar no disponibles':'Mostrar no disponibles';}
+  renderCompanerosDia(window._grupoOffsetDias||0);
 }
 var _mismoTurnoMode=false;
 function filtrarMismoTurno(){
