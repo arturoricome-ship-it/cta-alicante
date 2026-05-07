@@ -3384,11 +3384,12 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
         // Crosses midnight: s1 < e1 (e.g. 22:00→07:00 → 420<1320)
         if(yS1!==null&&yE1!==null&&yS1<yE1&&ahoraMin<yS1){
           // Still working (00:00 → yS1). Check overlap with my shift
-          if(modoToda||turnosSeSuperponen(myE1,myS1,myE2,myS2,0,yS1,null,null)){
+          if(modoToda||turnosSeSuperponen(myE1,myS1,myE2,myS2,0,yS1+1,null,null)){  // +1 = inclusive endpoint
             var alreadyIn=coinciden.some(function(c){return c.nombre===emp.nombre;});
             if(!alreadyIn){
               var hAyer=turnoAyer.e1+'→'+turnoAyer.s1+(turnoAyer.e2&&turnoAyer.s2?' / '+turnoAyer.e2+'→'+turnoAyer.s2:'');
-              coinciden.push({nombre:emp.nombre,horario:hAyer,e1:0,s1:yS1,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:true,overnight:true});
+              var _trabOvn=!modoEnTurno||(ahoraMin<yS1);
+              if(_trabOvn)coinciden.push({nombre:emp.nombre,horario:hAyer,e1:0,s1:yS1,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:true,overnight:true});
             }
           }
         }
@@ -3427,6 +3428,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   });
   panel.innerHTML=html;
   panel.classList.add('open');
+  setTimeout(checkExitBlinks,100);
 }
 
 // Init: check if group data exists
@@ -3501,7 +3503,7 @@ function checkExitBlinks(){
     row.classList.toggle('saliendo-ahora',saliendo);
   });
 }
-setInterval(checkExitBlinks,30000);
+setInterval(checkExitBlinks,15000);
 setTimeout(checkExitBlinks,2000);
 function showDisponibilidadCartel(){
   var c=document.getElementById('disp-cartel');
