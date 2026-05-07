@@ -409,93 +409,6 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #grupo-panel::-webkit-scrollbar-track{background:transparent}
 #grupo-panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
 #grupo-panel .grupo-item:last-child{margin-bottom:12px}
-
-/* ═══════════════════════════════════════════════════════════════
-   OPERATIVA PANEL
-   ═══════════════════════════════════════════════════════════════ */
-.op-sec{font-size:9px;color:var(--gray);letter-spacing:.9px;text-transform:uppercase;margin:11px 0 7px}
-.op-sec:first-child{margin-top:4px}
-
-/* Vuelos banner */
-.op-vuelos{background:linear-gradient(135deg,rgba(96,165,250,.1),rgba(96,165,250,.03));border:1px solid rgba(96,165,250,.3);border-radius:16px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:13px;transition:transform .12s;-webkit-tap-highlight-color:transparent}
-.op-vuelos:active{transform:scale(.98)}
-@keyframes planepulse{0%,100%{opacity:1}50%{opacity:.18}}
-.op-plane{animation:planepulse 2.5s ease-in-out infinite;font-size:28px;filter:hue-rotate(200deg) saturate(3) brightness(1.4);flex-shrink:0}
-.op-v-mid{flex:1}
-.op-v-title{font-size:12px;font-weight:700;color:#60a5fa}
-.op-v-sub{font-size:9px;color:var(--gray);margin-top:1px}
-.op-v-nums{display:flex;gap:14px;margin-top:6px}
-.op-v-n{text-align:center}
-.op-v-nval{font-size:18px;font-weight:800;color:#60a5fa;line-height:1}
-.op-v-nlbl{font-size:8px;color:var(--gray)}
-
-/* Jornada grid */
-.op-jornada-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-/* Turno card */
-.op-turno-card{background:linear-gradient(160deg,rgba(200,168,75,.08),rgba(200,168,75,.02));border:1px solid rgba(200,168,75,.3);border-radius:16px;padding:14px 12px;cursor:pointer;display:flex;flex-direction:column;transition:transform .12s;-webkit-tap-highlight-color:transparent}
-.op-turno-card:active{transform:scale(.98)}
-.op-tc-lbl{font-size:7.5px;color:var(--gray);letter-spacing:.7px;text-transform:uppercase;margin-bottom:6px}
-.op-tc-times{display:flex;flex-direction:column;gap:4px;width:100%}
-.op-tc-times span{display:block;width:100%;border:1px solid rgba(200,168,75,.2);border-radius:8px;padding:5px 8px;text-align:center;font-size:13px;font-weight:800;color:var(--white);letter-spacing:.3px}
-.op-tc-meta{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
-.op-tc-sub{font-size:8px}
-.op-tc-spacer{flex:1;min-height:10px}
-.op-tc-pct-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px}
-.op-tc-pct{font-size:26px;font-weight:800;line-height:1}
-.op-tc-rem{font-size:8px;color:var(--gray)}
-.op-tc-bar-bg{background:rgba(255,255,255,.08);border-radius:100px;height:4px;overflow:hidden}
-.op-tc-bar{height:100%;border-radius:100px}
-/* state colors */
-.op-turno-card.state-working{border-color:rgba(200,168,75,.3)}
-.op-turno-card.state-working .op-tc-sub{color:var(--gold)}
-.op-turno-card.state-working .op-tc-pct{color:var(--gold)}
-.op-turno-card.state-working .op-tc-bar{background:linear-gradient(90deg,var(--gold),var(--gold-light))}
-.op-turno-card.state-pausa{border-color:rgba(192,132,252,.3);background:linear-gradient(160deg,rgba(192,132,252,.08),rgba(192,132,252,.02))}
-.op-turno-card.state-pausa .op-tc-times span{border-color:rgba(192,132,252,.2)}
-.op-turno-card.state-pausa .op-tc-sub{color:#c084fc}
-.op-turno-card.state-pausa .op-tc-pct{color:#c084fc}
-.op-turno-card.state-pausa .op-tc-bar{background:#c084fc}
-.op-turno-card.state-rest{border-color:rgba(34,197,94,.3);background:linear-gradient(160deg,rgba(34,197,94,.08),rgba(34,197,94,.02))}
-.op-turno-card.state-rest .op-tc-times span{border-color:rgba(34,197,94,.2);font-size:18px}
-.op-turno-card.state-rest .op-tc-sub{color:#4ade80}
-.op-turno-card.state-rest .op-tc-pct{color:#4ade80;font-size:10px;font-weight:600;white-space:nowrap}
-.op-turno-card.state-rest .op-tc-bar{background:#4ade80}
-.op-turno-card.state-next{border-color:rgba(96,165,250,.3);background:linear-gradient(160deg,rgba(96,165,250,.08),rgba(96,165,250,.02))}
-.op-turno-card.state-next .op-tc-times span{border-color:rgba(96,165,250,.2)}
-.op-turno-card.state-next .op-tc-sub{color:#60a5fa}
-.op-turno-card.state-next .op-tc-pct{color:#60a5fa}
-.op-turno-card.state-next .op-tc-bar{background:#60a5fa}
-.tw-manana-btn-op{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--gray);font-family:"Outfit",sans-serif;font-size:8px;font-weight:600;padding:2px 7px;cursor:pointer;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
-
-/* Calendario card */
-.op-cal-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 12px;cursor:pointer;display:flex;flex-direction:column;gap:0;transition:transform .12s;-webkit-tap-highlight-color:transparent}
-.op-cal-card:active{transform:scale(.98)}
-.op-cal-head{margin-bottom:8px}
-.op-cal-name{font-size:11px;font-weight:700}
-.op-cal-sub{font-size:8px;color:var(--gray);margin-top:1px}
-.op-cal-rows{display:flex;flex-direction:column;gap:4px}
-.op-cal-row{display:flex;justify-content:space-between;align-items:center;padding:4px 7px;background:rgba(255,255,255,.04);border-radius:6px}
-.op-cal-rl{font-size:8px;color:var(--gray)}
-.op-cal-rv{font-size:11px;font-weight:700;color:var(--gold)}
-
-/* Compañeros */
-.op-comp-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:transform .12s;-webkit-tap-highlight-color:transparent}
-.op-comp-card:active{transform:scale(.98)}
-.op-comp-num{font-size:36px;font-weight:800;color:#f87171;line-height:1;text-align:right}
-.op-comp-numsub{font-size:8px;color:var(--gray);text-align:right;margin-top:2px}
-
-/* Turnos publicados */
-.op-pub-card{background:var(--card);border:1px solid rgba(192,132,252,.2);border-radius:16px;overflow:hidden}
-.op-pub-top{padding:10px 14px 8px;text-align:center}
-.op-pub-title{font-size:12px;font-weight:700}
-.op-pub-sub{font-size:9px;color:var(--gray);margin-top:1px}
-.op-pub-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 10px 10px}
-.op-pub-btn{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s;font-family:"Outfit";width:100%;-webkit-tap-highlight-color:transparent}
-.op-pub-btn:active{background:rgba(200,168,75,.08)}
-.op-pb-ico{font-size:20px;flex-shrink:0}
-.op-pb-lbl{font-size:11px;font-weight:700;color:var(--white);text-align:left;display:block}
-.op-pb-sub{font-size:8px;color:var(--gray);text-align:left;display:block;margin-top:1px}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -530,14 +443,14 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   <div id="nav-bar">
     <button id="btn-back" disabled onclick="
       if(currentPanel==='dashboard'){
-        switchTab('operativa',document.getElementById('tab-operativa'),document.getElementById('nav-operativa'));
+        switchTab('documentos',document.querySelectorAll('.tab')[0],document.getElementById('nav-documentos'));
       } else if(breadcrumb.length&gt;1){
         breadcrumb.pop();renderBreadcrumb();renderFolder(breadcrumb[breadcrumb.length-1].id);document.getElementById('scroll-area').scrollTop=0;
       }
     ">&#8592;</button>
     <button id="btn-home" onclick="
-      switchTab('operativa',document.getElementById('tab-operativa'),document.getElementById('nav-operativa'));
-      breadcrumb=[{id:ROOT_ID,name:'Inicio'}];renderBreadcrumb();document.getElementById('scroll-area').scrollTop=0;
+      switchTab('documentos',document.querySelectorAll('.tab')[0],document.getElementById('nav-documentos'));
+      breadcrumb=[{id:ROOT_ID,name:'Inicio'}];renderBreadcrumb();renderFolder(ROOT_ID);document.getElementById('scroll-area').scrollTop=0;
     " title="Inicio" style="font-size:16px">🏠</button>
     <div id="breadcrumb"></div>
     <button id="btn-accesos" onclick="toggleAccesoDirecto()">&#128279; Accesos Directos</button>
@@ -546,8 +459,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 </div>
 
 <div id="tab-bar">
-  <div class="tab-wrap"><button class="tab active" id="tab-operativa" onclick="switchTab('operativa',this)">⚡ Operativa</button></div>
-  <div class="tab-wrap"><button class="tab" id="tab-documentos" onclick="switchTab('documentos',this)">&#128194; Documentos</button></div>
+  <div class="tab-wrap"><button class="tab active" onclick="switchTab('documentos',this)">&#128194; Documentos</button></div>
   <div class="tab-wrap"><button class="tab" onclick="switchTab('turnos',this)">📋 Publicados</button></div>
   <div class="tab-wrap"><button class="tab" onclick="switchTab('avisos',this)">&#128226; Avisos</button><span class="badge" id="badge-avisos">!</span></div>
   <div class="tab-wrap"><button class="tab" onclick="switchTab('afiliate',this)">📅 Calendario</button></div>
@@ -556,87 +468,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 
 <div id="scroll-area">
 
-  <div class="panel active" id="panel-operativa">
-    <p class="op-sec">Vuelos hoy · ALC</p>
-    <div class="op-vuelos" onclick="openLive()">
-      <span class="op-plane">✈</span>
-      <div class="op-v-mid">
-        <div class="op-v-title" id="op-v-title">En directo</div>
-        <div class="op-v-sub" id="op-v-sub">Llegadas y salidas · Aeropuerto Alicante</div>
-        <div class="op-v-nums">
-          <div class="op-v-n"><div class="op-v-nval" id="op-v-total">—</div><div class="op-v-nlbl">total hoy</div></div>
-          <div class="op-v-n"><div class="op-v-nval" id="op-v-turno" style="color:#93c5fd">—</div><div class="op-v-nlbl">en mi turno</div></div>
-        </div>
-      </div>
-      <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="#8a93a8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </div>
-
-    <p class="op-sec">Mi jornada</p>
-    <div class="op-jornada-grid">
-      <div class="op-turno-card state-working" id="op-turno-card" onclick="switchTab('afiliate',document.querySelectorAll('.tab')[4],document.getElementById('nav-afiliate'))">
-        <div class="op-tc-lbl" id="op-tc-lbl">Turno hoy</div>
-        <div class="op-tc-times" id="op-tc-times"></div>
-        <div class="op-tc-meta">
-          <div class="op-tc-sub" id="op-tc-sub">Trabajando</div>
-          <button class="tw-manana-btn-op" onclick="event.stopPropagation();twShowManana()">MAÑANA ›</button>
-        </div>
-        <div class="op-tc-spacer"></div>
-        <div>
-          <div class="op-tc-pct-row">
-            <div class="op-tc-pct" id="op-tc-pct">—</div>
-            <div class="op-tc-rem" id="op-tc-rem"></div>
-          </div>
-          <div class="op-tc-bar-bg"><div class="op-tc-bar" id="op-tc-bar" style="width:0%"></div></div>
-        </div>
-      </div>
-
-      <div class="op-cal-card" id="op-cal-card" onclick="switchTab('afiliate',document.querySelectorAll('.tab')[4],document.getElementById('nav-afiliate'))">
-        <div class="op-cal-head">
-          <div class="op-cal-name">📅 Calendario</div>
-          <div class="op-cal-sub" id="op-cal-mes">—</div>
-        </div>
-        <div class="op-cal-rows">
-          <div class="op-cal-row"><span class="op-cal-rl">Trabajados</span><span class="op-cal-rv" id="op-cal-trab">—</span></div>
-          <div class="op-cal-row"><span class="op-cal-rl">Libres</span><span class="op-cal-rv" id="op-cal-lib">—</span></div>
-          <div class="op-cal-row"><span class="op-cal-rl">Horas mes</span><span class="op-cal-rv" id="op-cal-hmes">—</span></div>
-          <div class="op-cal-row"><span class="op-cal-rl">Contador</span><span class="op-cal-rv" id="op-cal-cont">—</span></div>
-          <div class="op-cal-row"><span class="op-cal-rl">Perentorias</span><span class="op-cal-rv" id="op-cal-peren">—</span></div>
-        </div>
-      </div>
-    </div>
-
-    <p class="op-sec">Compañeros</p>
-    <div class="op-comp-card" onclick="openCalcPanel()">
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:700;margin-bottom:2px">👥 Compañeros hoy</div>
-        <div style="font-size:9px;color:var(--gray)" id="op-comp-sub">Pulsa para ver quién coincide</div>
-      </div>
-      <div>
-        <div class="op-comp-num" id="op-comp-num">—</div>
-        <div class="op-comp-numsub">coinciden</div>
-      </div>
-    </div>
-
-    <p class="op-sec">Turnos publicados</p>
-    <div class="op-pub-card">
-      <div class="op-pub-top">
-        <div class="op-pub-title">📋 Últimos turnos publicados</div>
-        <div class="op-pub-sub">FTP · FIJI · Elige tu colectivo</div>
-      </div>
-      <div class="op-pub-row">
-        <button class="op-pub-btn" onclick="switchTab('turnos',document.querySelectorAll('.tab')[2],document.getElementById('nav-turnos'));setTimeout(function(){var btns=document.querySelectorAll('.turnos-filter-btn');if(btns[0])btns[0].click();},200)">
-          <span class="op-pb-ico">✈️</span>
-          <div><span class="op-pb-lbl">Rampa</span><span class="op-pb-sub">Operarios</span></div>
-        </button>
-        <button class="op-pub-btn" onclick="switchTab('turnos',document.querySelectorAll('.tab')[2],document.getElementById('nav-turnos'));setTimeout(function(){var btns=document.querySelectorAll('.turnos-filter-btn');if(btns[1])btns[1].click();},200)">
-          <span class="op-pb-ico">🗂️</span>
-          <div><span class="op-pb-lbl">Administrativos</span><span class="op-pb-sub">Admin.</span></div>
-        </button>
-      </div>
-    </div>
-  </div><!-- /panel-operativa -->
-
-  <div class="panel" id="panel-documentos">
+  <div class="panel active" id="panel-documentos">
     <div id="search-wrap">
       <div id="search-wrap-inner">
         <input id="search-input" type="text" placeholder="🔍  Buscar documento...">
@@ -853,8 +685,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 </div>
 
 <nav id="bottom-nav">
-  <button class="nav-btn active" id="nav-operativa" onclick="switchTab('operativa',document.getElementById('tab-operativa'),this)"><span class="nav-ico">⚡</span>Operativa</button>
-  <button class="nav-btn" id="nav-documentos" onclick="switchTab('documentos',document.getElementById('tab-documentos'),this)"><span class="nav-ico">&#128194;</span>Docs</button>
+  <button class="nav-btn active" id="nav-documentos" onclick="switchTab('documentos',document.querySelectorAll('.tab')[0],this)"><span class="nav-ico">&#128194;</span>Docs</button>
   <button class="nav-btn" id="nav-turnos" onclick="switchTab('turnos',document.querySelectorAll('.tab')[1],this)"><span class="nav-ico">📋</span>Publicados</button>
   <button class="nav-btn" id="nav-avisos" onclick="switchTab('avisos',document.querySelectorAll('.tab')[2],this)" style="position:relative"><span class="nav-ico">&#128226;</span>Avisos<span class="badge" id="badge-avisos-nav">!</span></button>
   <button class="nav-btn" id="nav-afiliate" onclick="switchTab('afiliate',document.querySelectorAll('.tab')[3],this)"><span class="nav-ico">📅</span>Calendario</button>
@@ -997,232 +828,8 @@ function driveList(params){
 }
 
 var currentPanel='documentos';
-
-// ═══════════════════════════════════════════════════════════════
-// OPERATIVA PANEL
-// ═══════════════════════════════════════════════════════════════
-function openCalcPanel(){
-  var panel=document.getElementById('calc-panel');
-  var overlay=document.getElementById('calc-overlay');
-  if(panel){panel.classList.add('show');if(overlay)overlay.classList.add('show');}
-  window._grupoOffsetDias=0;
-  setTimeout(function(){
-    var gp=document.getElementById('grupo-panel');
-    if(gp&&!gp.classList.contains('open'))verCompanerosHoy();
-  },80);
-}
-
-function openLive(){
-  var btn=document.getElementById('btn-live');
-  if(btn)btn.click();
-}
-
-function renderOperativa(){
-  if(typeof currentPanel!=='undefined'&&currentPanel!=='operativa')return;
-  var now=new Date();
-  var meses=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
-  var MESES_ES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-
-  // ─ Calendario stats ─
-  var raw;try{raw=localStorage.getItem('cta_ed_'+now.getFullYear());}catch(e){}
-  var ue={};try{if(raw)ue=JSON.parse(raw);}catch(e){}
-  var mesKey=meses[now.getMonth()];
-  var mData=(ue[mesKey])||{};
-  var trab=0,libre=0,horasMes=0;
-  var ACTIVOS_CAL=['trabajado','hl','hlp','h6','festivo','baja','rm','curso','vacaciones'];
-  for(var d=1;d<=31;d++){
-    var day=mData[d];if(!day)continue;
-    var t=day.tipo||'libre';
-    if(ACTIVOS_CAL.indexOf(t)>=0){trab++;horasMes+=day.total||0;}
-    else libre++;
-  }
-  var daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
-  var worked=0;
-  for(var d2=1;d2<=daysInMonth;d2++){var d2o=mData[d2];if(!d2o||ACTIVOS_CAL.indexOf(d2o.tipo||'libre')<0)worked++;}
-  libre=daysInMonth-trab;
-
-  // Contador anual
-  var horasCont=0;
-  var CONT_TIPOS=['trabajado','hl','hlp','h6','curso','baja','rm'];
-  meses.forEach(function(m){var md=ue[m]||{};Object.values(md).forEach(function(dd){if(CONT_TIPOS.indexOf(dd.tipo||'')>=0)horasCont+=dd.total||0;});});
-
-  // Perentorias mes
-  var pdRaw;try{pdRaw=localStorage.getItem('cta_pd_'+now.getFullYear());}catch(e){}
-  var PD={};try{if(pdRaw)PD=JSON.parse(pdRaw);}catch(e){}
-  var perenMes=0;
-  Object.keys(PD).forEach(function(key){var mp=key.split(':')[0];if(mp===mesKey){perenMes+=(PD[key].gen||0);}});
-  var perenStr=perenMes>0?(function(){var h=Math.floor(perenMes),mm=Math.round((perenMes-h)*60);return h+':'+(mm<10?'0':'')+mm;})():'0:00';
-
-  var mesEl=document.getElementById('op-cal-mes');if(mesEl)mesEl.textContent=MESES_ES[now.getMonth()]+' '+now.getFullYear();
-  var tEl=document.getElementById('op-cal-trab');if(tEl)tEl.textContent=trab;
-  var lEl=document.getElementById('op-cal-lib');if(lEl)lEl.textContent=libre;
-  var hEl=document.getElementById('op-cal-hmes');if(hEl)hEl.textContent=Math.round(horasMes*10)/10+'h';
-  var cEl=document.getElementById('op-cal-cont');if(cEl)cEl.textContent=Math.round(horasCont*10)/10+'h';
-  var pEl=document.getElementById('op-cal-peren');if(pEl)pEl.textContent=perenStr;
-
-  // ─ Turno card ─
-  var d=null;try{d=(mData[now.getDate()])||null;}catch(e){}
-  var card=document.getElementById('op-turno-card');
-  var lbl=document.getElementById('op-tc-lbl');
-  var timesEl=document.getElementById('op-tc-times');
-  var subEl=document.getElementById('op-tc-sub');
-  var pctEl=document.getElementById('op-tc-pct');
-  var remEl=document.getElementById('op-tc-rem');
-  var barEl=document.getElementById('op-tc-bar');
-  if(!card)return;
-
-  function toMin(t){if(!t)return null;var p=t.split(':');return +p[0]*60+(+p[1]||0);}
-  function fmtHM(m){var h=Math.floor(m/60),mn=m%60;return h>0?h+'h'+(mn?' '+mn+'m':''):mn+'m';}
-
-  var nowMin=now.getHours()*60+now.getMinutes();
-
-  // Remove state classes
-  ['state-working','state-pausa','state-rest','state-next'].forEach(function(c){card.classList.remove(c);});
-
-  if(!d||!d.tipo||d.tipo==='libre'||(!d.e1&&['festivo','hl','hlp','vacaciones'].indexOf(d.tipo)<0)){
-    // No shift today
-    card.classList.add('state-rest');
-    if(lbl)lbl.textContent='Turno hoy';
-    if(timesEl)timesEl.innerHTML='<span style="font-size:12px;color:var(--gray)">Sin turno</span>';
-    if(subEl)subEl.textContent='Día libre';
-    if(pctEl)pctEl.textContent='';
-    if(remEl)remEl.textContent='';
-    if(barEl){barEl.style.width='0%';}
-    return;
-  }
-
-  // Restdays
-  if(['festivo','hl','hlp','vacaciones'].indexOf(d.tipo)>=0){
-    card.classList.add('state-rest');
-    if(lbl)lbl.textContent='Turno hoy';
-    if(timesEl)timesEl.innerHTML='<span style="font-size:13px;color:#4ade80">Descanso</span>';
-    if(subEl)subEl.textContent='Descanso hasta el próximo turno';
-    if(pctEl)pctEl.textContent='💤';
-    if(remEl)remEl.textContent='';
-    return;
-  }
-
-  var e1=toMin(d.e1),s1=toMin(d.s1),e2=d.e2?toMin(d.e2):null,s2=d.s2?toMin(d.s2):null;
-  var shiftEnd=s2||s1;
-  var totalMin=(s1&&e1?(s1<e1?s1+1440-e1:s1-e1):0)+(s2&&e2?(s2<e2?s2+1440-e2:s2-e2):0);
-  var elapsedMin=0;
-
-  // Build times HTML
-  var tHtml='<span>'+d.e1+' → '+d.s1+'</span>';
-  if(d.e2&&d.s2)tHtml+='<span>'+d.e2+' → '+d.s2+'</span>';
-  if(timesEl)timesEl.innerHTML=tHtml;
-  if(lbl)lbl.textContent='Turno hoy · '+Math.round(totalMin/6)/10+'h';
-
-  var isInShift1=e1!==null&&s1!==null&&nowMin>=e1&&nowMin<s1;
-  var isInShift2=e2!==null&&s2!==null&&nowMin>=e2&&nowMin<s2;
-  var isPausa=e2!==null&&s1!==null&&nowMin>=s1&&nowMin<e2;
-  var isFinished=shiftEnd!==null&&nowMin>=shiftEnd;
-  var notStarted=e1!==null&&nowMin<e1;
-
-  if(isInShift1||isInShift2){
-    // WORKING
-    card.classList.add('state-working');
-    if(isInShift1)elapsedMin=nowMin-e1;
-    else elapsedMin=(s1-e1)+(nowMin-e2);
-    var pct=Math.min(100,Math.round(elapsedMin/totalMin*100));
-    if(subEl)subEl.textContent='Trabajando';
-    if(pctEl)pctEl.textContent=pct+'%';
-    var remMin=shiftEnd-nowMin+(isInShift1&&e2&&nowMin<e2?e2-s1:0);
-    if(remEl)remEl.textContent='Quedan '+fmtHM(Math.max(0,remMin));
-    if(barEl){barEl.style.width=pct+'%';}
-  } else if(isPausa){
-    // PAUSA
-    card.classList.add('state-pausa');
-    elapsedMin=s1-e1;
-    var pct2=Math.round(elapsedMin/totalMin*100);
-    if(subEl)subEl.textContent='Pausa · Vuelves a las '+d.e2;
-    if(pctEl)pctEl.textContent=pct2+'%';
-    if(remEl)remEl.textContent='Pausa '+(e2-nowMin)+'m';
-    if(barEl){barEl.style.width=pct2+'%';}
-  } else if(isFinished){
-    // REST
-    card.classList.add('state-rest');
-    if(subEl)subEl.textContent='Descanso hasta el próximo turno';
-    // Show countdown in times span AND big number
-    var meses2=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
-    var nxtRaw;try{nxtRaw=localStorage.getItem('cta_ed_'+now.getFullYear());}catch(e){}
-    var nxtUe={};try{if(nxtRaw)nxtUe=JSON.parse(nxtRaw);}catch(e){}
-    var nxtDay=null,nxtMin=null;
-    for(var di=1;di<=7;di++){
-      var nDate=new Date(now.getFullYear(),now.getMonth(),now.getDate()+di);
-      var nMes=meses2[nDate.getMonth()];
-      var nMd=(nxtUe[nMes]||{})[nDate.getDate()];
-      if(nMd&&nMd.e1){nxtDay=nMd;nxtMin=toMin(nMd.e1);break;}
-    }
-    var restMins=nxtMin!==null?((nxtMin+1440-nowMin)%1440+(Math.floor((nxtMin<nowMin?1:0))*0)):null;
-    if(nxtMin!==null){var diff=(nxtMin-nowMin+1440*7)%(1440);restMins=diff;}
-    if(pctEl){
-      if(restMins!==null){
-        var rh=Math.floor(restMins/60),rm=restMins%60;
-        var countStr=(rh>0?rh+'h ':'')+rm+'m';
-        if(timesEl)timesEl.innerHTML='<span>'+countStr+'</span>';
-        pctEl.textContent=nxtDay?'Próximo turno '+nxtDay.e1:'';
-      } else {pctEl.textContent='💤';if(timesEl)timesEl.innerHTML='<span>💤</span>';}
-    }
-    if(remEl)remEl.textContent='';
-    if(barEl){barEl.style.width='100%';}
-  } else if(notStarted){
-    // NEXT SHIFT
-    card.classList.add('state-next');
-    if(subEl)subEl.textContent='Próximo turno';
-    var minsLeft=e1-nowMin;
-    if(pctEl)pctEl.textContent='0%';
-    if(remEl)remEl.textContent='Empieza en '+fmtHM(minsLeft);
-    if(barEl){barEl.style.width='0%';}
-  }
-
-  // ─ Compañeros count ─
-  var grupMap={};try{grupMap=JSON.parse(localStorage.getItem('cta_grupo_2026_map')||'{}');}catch(e){}
-  var compCount=0;
-  if(Object.keys(grupMap).length>0&&d&&d.e1){
-    var myE1=toMin(d.e1),myS1=toMin(d.s1);
-    var myE2=d.e2?toMin(d.e2):null,myS2=d.s2?toMin(d.s2):null;
-    var mesKeyG=mesKey;
-    Object.keys(grupMap).forEach(function(nom){
-      var emp=grupMap[nom];
-      var dias=(emp.meses&&emp.meses[mesKeyG])||null;
-      if(!dias)return;
-      var turno=dias[now.getDate()];
-      if(!turno||!turno.e1)return;
-      var grE1=toMin(turno.e1),grS1=toMin(turno.s1);
-      var grE2=turno.e2?toMin(turno.e2):null,grS2=turno.s2?toMin(turno.s2):null;
-      // Check overlap
-      function solapan(a0,a1,b0,b1){if(a0===null||a1===null||b0===null||b1===null)return false;var ae=a1<a0?a1+1440:a1,be=b1<b0?b1+1440:b1;return a0<be&&ae>b0;}
-      if(solapan(myE1,myS1,grE1,grS1)||solapan(myE1,myS1,grE2,grS2)||solapan(myE2,myS2,grE1,grS1)||solapan(myE2,myS2,grE2,grS2))compCount++;
-    });
-  }
-  var cnEl=document.getElementById('op-comp-num');
-  var csEl=document.getElementById('op-comp-sub');
-  if(cnEl)cnEl.textContent=compCount>0?compCount:'—';
-  if(csEl)csEl.textContent=compCount>0?'Coincidencias en tu turno':'Sin datos del grupo importados';
-
-  // ─ Vuelos count (from live panel) ─
-  var vTotalEl=document.getElementById('op-v-total');
-  var vTurnoEl=document.getElementById('op-v-turno');
-  var vTitleEl=document.getElementById('op-v-title');
-  var fechaEl=document.getElementById('btn-live-fecha');
-  if(vTitleEl&&fechaEl&&fechaEl.textContent){
-    vTitleEl.textContent='En directo · '+fechaEl.textContent;
-  }
-  // Count from live containers if available
-  setTimeout(function(){
-    var llegadas=document.querySelectorAll('#llegadas-container .vuelo-row');
-    var salidas=document.querySelectorAll('#salidas-container .vuelo-row');
-    var total=(llegadas?llegadas.length:0)+(salidas?salidas.length:0);
-    if(total>0&&vTotalEl)vTotalEl.textContent=total;
-  },2000);
-}
-
-// Re-render operativa on tab switch
-var _origSwitchTab=typeof switchTab!=='undefined'?switchTab:null;
 function switchTab(name,tabEl,navEl){
   currentPanel=name;
-  if(name==='operativa')setTimeout(renderOperativa,50);
   document.querySelectorAll(".panel").forEach(function(p){p.classList.remove("active")});
   document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active")});
   document.querySelectorAll(".nav-btn").forEach(function(n){n.classList.remove("active")});
