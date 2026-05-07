@@ -252,7 +252,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 
 /* ─── TURNO BOTTOM BAR ─────────────────────────────────────────── */
 #bottom-turno{display:none;flex-shrink:0;background:rgba(13,22,35,.98);border-top:1px solid rgba(200,168,75,.2);padding:7px 14px 10px;transition:background .5s}
-@keyframes twpulse{0%,100%{background:rgba(239,68,68,.18)}50%{background:rgba(239,68,68,.03)}}
+@keyframes twpulse{0%,100%{background:rgba(239,68,68,.32)}50%{background:rgba(239,68,68,.05)}}
 #bottom-turno.saliendo{animation:twpulse 2s ease-in-out infinite;border-top-color:rgba(239,68,68,.4)}
 .tw-main{display:flex;align-items:center;gap:10px;margin-bottom:7px}
 .tw-ico-wrap{width:36px;height:36px;border-radius:10px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.18);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
@@ -397,7 +397,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .calc-small-btn.active{background:rgba(200,168,75,.15);border-color:rgba(200,168,75,.3);color:var(--gold)}
 .hora-exit{transition:color .2s}
 .hora-exit.saliendo{color:#ef4444!important}
-@keyframes rowpulse{0%,100%{background:rgba(239,68,68,.18)}50%{background:rgba(239,68,68,.03)}}
+@keyframes rowpulse{0%,100%{background:rgba(239,68,68,.32)}50%{background:rgba(239,68,68,.05)}}
 .grupo-item.saliendo-ahora{animation:rowpulse 2s ease-in-out infinite;border-color:rgba(239,68,68,.2)}
 .grupo-item.saliendo-ahora .grupo-solapamiento{background:#ef4444!important}
 .grupo-item-saliendo{border-left:2px solid #ef4444}
@@ -444,7 +444,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
     <button id="btn-back" disabled onclick="
       if(currentPanel==='dashboard'){
         switchTab('documentos',document.querySelectorAll('.tab')[0],document.getElementById('nav-documentos'));
-      } else if(breadcrumb.length>1){
+      } else if(breadcrumb.length&gt;1){
         breadcrumb.pop();renderBreadcrumb();renderFolder(breadcrumb[breadcrumb.length-1].id);document.getElementById('scroll-area').scrollTop=0;
       }
     ">&#8592;</button>
@@ -3234,6 +3234,39 @@ function procesarGrupoXlsx(file){
   document.getElementById('grupo-file-input').value='';
 }
 
+
+var _NICKNAMES={
+  'Alejandro Lopez':   'Alejandro Botella',
+  'Alejandro López':   'Alejandro Botella',
+  'Angel Lopez':       'Angel Lopez Murcia',
+  'Ángel Lopez':       'Angel Lopez Murcia',
+  'Ángel López':       'Angel Lopez Murcia',
+  'Angel López':       'Angel Lopez Murcia',
+  'Alejandro Gozalvez':'Alejandro Leon',
+  'Alejandro Gonzálvez':'Alejandro Leon',
+  'Alejandro Gonzalvez':'Alejandro Leon',
+  'Enrique A. Lopez':  'Enrique Navarro',
+  'Enrique A. López':  'Enrique Navarro',
+  'Raul Sanchez':      'Raul "Killo"',
+  'Raúl Sanchez':      'Raul "Killo"',
+  'Raúl Sánchez':      'Raul "Killo"',
+  'Raul Sánchez':      'Raul "Killo"',
+  'Jose Antonio Martinez': 'Jose Antonio Marti',
+  'José Antonio Martinez': 'Jose Antonio Marti',
+  'José Antonio Martínez': 'Jose Antonio Marti',
+  'Jose Antonio Martínez': 'Jose Antonio Marti',
+  'Jose Julian Sanchez': 'Jose Julian Guillen',
+  'José Julián Sánchez': 'Jose Julian Guillen',
+  'Jose Julian Sánchez': 'Jose Julian Guillen',
+  'Jose Luis Fernandez': 'Jose Luis Pastor',
+  'José Luis Fernández': 'Jose Luis Pastor',
+  'Jose Luis Fernández': 'Jose Luis Pastor',
+  'Enrique Garcia':    'Enrique Tendero',
+  'Enrique García':    'Enrique Tendero'
+};
+function applyNickname(nombre){
+  return _NICKNAMES[nombre]||nombre;
+}
 function formatNombre(full){
   // Format: "Apellido1 Apellido2, Nombre Doble" → "Nombre Doble Apellido1"
   if(!full)return full.trim();
@@ -3248,9 +3281,9 @@ function formatNombre(full){
     }
     var nombreCompleto=parts[1].trim(); // full first name including double names
     // Remove trailing initial like "A." if alone
-    return nombreCompleto+' '+apellido1;
+    return applyNickname(nombreCompleto+' '+apellido1);
   }
-  return full;
+  return applyNickname(full);
 }
 
 function parseTurnoGrupo(cell){
