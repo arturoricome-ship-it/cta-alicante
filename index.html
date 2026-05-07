@@ -3379,7 +3379,9 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
         if(esDiaActual&&grE1!==null&&grS1!==null&&grS1<grE1)enT1=(ahoraMin>=grE1);
         if(esDiaActual&&grE2!==null&&grS2!==null&&grS2<grE2)enT2=(ahoraMin>=grE2);
         var opAhora=esDiaActual&&(enT1||enT2)&&!turno.disponibilidadNoConfirmada&&!turno.noVieneInterrogacion;
-        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false});
+        // Mark as future-overnight if shift starts tonight but hasn't begun yet
+        var _futOvn=(grS1!==null&&grE1!==null&&grS1<grE1&&nowMinReal<grE1);
+        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false,futuraNoche:_futOvn});
       }
     }
     // Yesterday's overnight shift crossing into today
@@ -3426,7 +3428,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
       var _nameExtra=c.overnight?' 🌙':'';
       var _nameColor=c.overnight?'color:#fb923c;':''
       var _hor=buildHorarioHtml(c);
-      html+='<div class="grupo-item'+(c.operativoAhora?' grupo-item-operativo':'')+'">'+
+      html+='<div class="grupo-item'+(c.operativoAhora?' grupo-item-operativo':'')+'"'+(c.futuraNoche?' data-futura-noche="1"':'')+'>'+
         '<div class="grupo-solapamiento" style="background:'+_dot+'"></div>'+
         '<div class="grupo-nombre'+((c.noVieneInterrogacion||c.disponibilidadNoConfirmada)?' grupo-no-viene':'')+'" style="'+_nameColor+'">'+c.nombre+_nameExtra+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+
         '<div class="grupo-horario" style="'+_nameColor+'">'+_hor+'</div></div>';
@@ -3497,6 +3499,7 @@ function checkExitBlinks(){
   var rows=document.querySelectorAll('.grupo-item[data-s1],[data-s2]');
   // Use data attrs on items for exit times
   document.querySelectorAll('.grupo-item').forEach(function(row){
+    if(row.dataset.futuraNoche==='1'){row.classList.remove('saliendo-ahora');return;}
     var exits=row.querySelectorAll('.hora-exit');
     var saliendo=false;
     exits.forEach(function(el){
