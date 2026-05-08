@@ -2268,6 +2268,9 @@ function initGoogle(){
         ✅ Importar turnos
       </button>
     </div>
+    <button onclick="exportarICS()" style="width:100%;background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.25);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--gold);cursor:pointer;margin-bottom:8px">
+      📅 Exportar calendario (.ics) con alarmas
+    </button>
     <button onclick="tiResetData()" style="width:100%;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;color:#f87171;cursor:pointer;margin-bottom:6px">
       🗑️ Borrar todos los turnos importados
     </button>
@@ -2542,6 +2545,127 @@ function positionImportPanel(){
 window.addEventListener('resize',positionImportPanel);
 document.addEventListener('DOMContentLoaded',positionImportPanel);
 setTimeout(positionImportPanel,300);
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORTAR .ICS — turnos del mes con alarma 70min antes
+// ═══════════════════════════════════════════════════════════════
+function exportarICS(){
+  var now=new Date();
+  var year=now.getFullYear();
+  var MESES=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+  var MESES_NUM=["01","02","03","04","05","06","07","08","09","10","11","12"];
+
+  var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(e){}
+  if(!raw){alert('No tienes turnos importados.');return;}
+  var ue;try{ue=JSON.parse(raw);}catch(e){alert('Error leyendo turnos.');return;}
+
+  var TIPOS_TRABAJO=['trabajado','hl','hlp','h6','festivo','baja','rm','curso'];
+
+  function pad(n){return String(n).padStart(2,'0');}
+  function dtStr(y,m,d,h,mn){
+    return y+MESES_NUM[m]+pad(d)+'T'+pad(h)+pad(mn)+'00';
+  }
+  function parseHM(str){
+    if(!str)return null;
+    var p=str.split(':');return {h:+p[0],m:+p[1]||0};
+  }
+  function addMin(dt, mins){
+    // dt is a Date object, returns new Date
+    return new Date(dt.getTime()-mins*60000);
+  }
+
+  var lines=[];
+  lines.push('BEGIN:VCALENDAR');
+  lines.push('VERSION:2.0');
+  lines.push('PRODID:-//CTA Alicante//Turnos//ES');
+  lines.push('CALSCALE:GREGORIAN');
+  lines.push('X-WR-TIMEZONE:Europe/Madrid');
+  // UTC times used — no VTIMEZONE needed
+
+  var eventCount=0;
+
+  MESES.forEach(function(mesKey, mIdx){
+    var mData=ue[mesKey];
+    if(!mData)return;
+    var daysInMonth=new Date(year,mIdx+1,0).getDate();
+    for(var day=1;day<=daysInMonth;day++){
+      var d=mData[day];
+      if(!d||!d.e1||TIPOS_TRABAJO.indexOf(d.tipo||'libre')<0)continue;
+
+      var e1=parseHM(d.e1),s2=d.s2?parseHM(d.s2):null,s1=parseHM(d.s1);
+      if(!e1||!s1)continue;
+      var endTime=s2||s1;
+
+      // Build title: tramos
+      var titulo=d.e1+' a '+d.s1;
+      if(d.e2&&d.s2)titulo+=', '+d.e2+' a '+d.s2;
+
+      // Convert local time to UTC
+      // Use Date object to handle DST automatically
+      function toUTC(y,m,d,h,mn){
+        var localDt=new Date(y,m,d,h,mn,0);
+        var utc=new Date(localDt.getTime()-localDt.getTimezoneOffset()*60000);
+        // Use actual offset from a Madrid-like Date
+        // Simpler: create date and use getTimezoneOffset
+        // Since we're running in user's browser, use Date directly
+        var dt=new Date(y,m,d,h,mn,0);
+        var uo=dt.getTimezoneOffset(); // in minutes, negative for UTC+
+        var utcMs=dt.getTime()+uo*60000;
+        var ud=new Date(utcMs);
+        return dtStr(ud.getFullYear(),ud.getMonth(),ud.getDate(),ud.getHours(),ud.getMinutes());
+      }
+      var dtStart=toUTC(year,mIdx,day,e1.h,e1.m);
+      // DTEND — handle overnight
+      var endDate=new Date(year,mIdx,day,endTime.h,endTime.m,0);
+      if(endTime.h<e1.h||(endTime.h===e1.h&&endTime.m<e1.m)){
+        endDate=new Date(year,mIdx,day+1,endTime.h,endTime.m,0);
+      }
+      var uo2=endDate.getTimezoneOffset();
+      var utcEnd=new Date(endDate.getTime()+uo2*60000);
+      var dtEnd=dtStr(utcEnd.getFullYear(),utcEnd.getMonth(),utcEnd.getDate(),utcEnd.getHours(),utcEnd.getMinutes());
+
+      // UID único
+      var uid='turno-'+year+'-'+MESES_NUM[mIdx]+'-'+pad(day)+'@cta-alicante.es';
+
+      // DTSTAMP
+      var stamp=dtStr(now.getFullYear(),now.getMonth(),now.getDate(),now.getHours(),now.getMinutes());
+
+      lines.push('BEGIN:VEVENT');
+      lines.push('UID:'+uid);
+      lines.push('DTSTAMP:'+stamp+'Z');
+      lines.push('DTSTART:'+dtStart+'Z');
+      lines.push('DTEND:'+dtEnd+'Z');
+      lines.push('SUMMARY:'+titulo);
+      lines.push('DESCRIPTION:');
+      lines.push('LOCATION:');
+      lines.push('CATEGORIES:Tomate');
+      lines.push('COLOR:red');
+      lines.push('X-APPLE-CALENDAR-COLOR:#FF2968');
+      lines.push('BEGIN:VALARM');
+      lines.push('TRIGGER:-PT1H10M');
+      lines.push('ACTION:DISPLAY');
+      lines.push('DESCRIPTION:Tu turno empieza en 1h 10min');
+      lines.push('END:VALARM');
+      lines.push('END:VEVENT');
+      eventCount++;
+    }
+  });
+
+  lines.push('END:VCALENDAR');
+
+  if(eventCount===0){alert('No hay turnos trabajados en el calendario.');return;}
+
+  var icsContent=lines.join('\r\n');
+  var blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='turnos-'+year+'.ics';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+  alert('✅ Descargados '+eventCount+' turnos. Ábrelo en el móvil para importar a Google Calendar con alarmas.');
+}
 function closeTrypImport(){
   var panel=document.getElementById('tryp-import-panel');
   panel.style.transform='translateY(100%)';
