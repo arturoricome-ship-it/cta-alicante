@@ -1526,7 +1526,11 @@ function getLiveCutoffsFromTurnoHoy(){
   var hasMañana=typeof liveData!=="undefined"&&((liveData.lle||[]).concat(liveData.sal||[])).some(function(v){return !!v.esManana;});
   function getDay(date){var m=data[meses[date.getMonth()]];return m?m[date.getDate()]||null:null;}
   var d=getDay(now);
-  if(hasMañana){var tom=new Date(now);tom.setDate(tom.getDate()+1);var dt=getDay(tom);if(dt&&dt.e1)d=dt;}
+  if(hasMañana){
+    var tom=new Date(now);tom.setDate(tom.getDate()+1);var dt=getDay(tom);
+    if(dt&&dt.e1){d=dt;} // tomorrow has shift → use it
+    else{return {s:[],e:[],windows:[]};} // tomorrow is libre → no lines
+  }
   if(!d||!d.e1)return {s:[],e:[],windows:[]};
   var s=[],e=[],windows=[];
   var e1=hToMin(d.e1||""),s1=hToMin(d.s1||"");
@@ -3598,8 +3602,11 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   }
   var html='<div class="grupo-header-sticky">'+navHtml;
   html+='<div class="grupo-title">👥 '+(modoToda?'Toda la plantilla':'Coincidencias')+' · '+coinciden.length+'</div>';
-  if(myDay&&myDay.e1)html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gold)"></div><div class="grupo-nombre" style="color:var(--gold);font-size:12px">Tú · Libre</div><div class="grupo-horario" style="color:var(--gold)">'+myHorario+'</div></div>';
-  else html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gray)"></div><div class="grupo-nombre" style="color:var(--gray);font-size:12px">Tú · Libre</div><div class="grupo-horario" style="color:var(--gray)">—</div></div>';
+  if(myDay&&myDay.e1){
+    html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gold)"></div><div class="grupo-nombre" style="color:var(--gold);font-size:12px">Tú</div><div class="grupo-horario" style="color:var(--gold)">'+myHorario+'</div></div>';
+  } else {
+    html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gray)"></div><div class="grupo-nombre" style="color:var(--gray);font-size:12px">Tú · Libre</div><div class="grupo-horario" style="color:var(--gray)">—</div></div>';
+  }
   html+='</div>';
   Object.keys(cats).sort().forEach(function(cat){
     if(cat!=='_all')html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
