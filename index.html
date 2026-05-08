@@ -24,7 +24,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .header-portal{font-size:10px;color:var(--gray);letter-spacing:.5px}
 #btn-logout{position:fixed;top:10px;right:10px;z-index:200;background:rgba(13,22,35,.85);border:1px solid var(--border);border-radius:8px;color:var(--gray);font-size:10px;font-weight:600;padding:5px 8px;cursor:pointer;font-family:"Outfit",sans-serif;transition:all .2s;backdrop-filter:blur(8px)}
 #btn-logout:hover{background:rgba(230,80,70,.2);border-color:rgba(230,80,70,.5);color:#f07070}
-#nav-bar{display:flex;align-items:center;gap:8px;padding:6px 0 8px}
+#nav-bar{display:flex;align-items:center;gap:8px;padding:6px 14px 8px}
 #btn-back{height:32px;padding:0 12px 0 8px;border-radius:10px;border:1px solid rgba(200,168,75,.35);background:linear-gradient(135deg,rgba(200,168,75,.18),rgba(200,168,75,.08));color:var(--gold);font-size:16px;display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;transition:all .2s;font-family:"Outfit",sans-serif;font-weight:700;letter-spacing:.3px}
 #btn-back::after{content:"Atrás";font-size:11px;font-weight:700;color:var(--gold)}
 #btn-back:hover{background:linear-gradient(135deg,rgba(200,168,75,.32),rgba(200,168,75,.15));border-color:var(--gold);box-shadow:0 2px 10px rgba(200,168,75,.25)}
@@ -409,6 +409,66 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #grupo-panel::-webkit-scrollbar-track{background:transparent}
 #grupo-panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
 #grupo-panel .grupo-item:last-child{margin-bottom:12px}
+
+/* ═══ OPERATIVA ════ */
+#bottom-turno{display:none!important}
+#calc-btn{display:none!important}
+.op-sec{font-size:9px;color:var(--gray);letter-spacing:.9px;text-transform:uppercase;margin:11px 0 7px}
+.op-sec:first-child{margin-top:4px}
+@keyframes planepulse{0%,100%{opacity:1}50%{opacity:.18}}
+.op-plane{animation:planepulse 2.5s ease-in-out infinite;font-size:28px;filter:hue-rotate(200deg) saturate(3) brightness(1.4);flex-shrink:0}
+.op-vuelos{background:linear-gradient(135deg,rgba(96,165,250,.1),rgba(96,165,250,.03));border:1px solid rgba(96,165,250,.3);border-radius:16px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:13px}
+.op-v-title{font-size:12px;font-weight:700;color:#60a5fa}
+.op-v-nval{font-size:18px;font-weight:800;color:#60a5fa;line-height:1}
+.op-v-nlbl{font-size:8px;color:var(--gray)}
+.op-jornada-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.op-turno-card{border-radius:16px;padding:14px 12px;cursor:pointer;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
+.op-turno-card:active{transform:scale(.98)}
+.op-tc-lbl{font-size:7.5px;color:var(--gray);letter-spacing:.7px;text-transform:uppercase;margin-bottom:6px}
+.op-tc-times{display:flex;flex-direction:column;gap:4px;width:100%}
+.op-tc-times span{display:block;width:100%;border-radius:8px;padding:5px 8px;text-align:center;font-size:13px;font-weight:800;color:var(--white)}
+.op-tc-meta{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.op-tc-sub{font-size:8px}
+.op-tc-spacer{flex:1;min-height:10px}
+.op-tc-pct-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px}
+.op-tc-pct{font-size:26px;font-weight:800;line-height:1}
+.op-tc-rem{font-size:8px}
+.op-tc-bar-bg{background:rgba(255,255,255,.08);border-radius:100px;height:4px;overflow:hidden}
+.op-tc-bar{height:100%;border-radius:100px}
+.op-turno-card.state-working{background:linear-gradient(160deg,rgba(200,168,75,.08),rgba(200,168,75,.02));border:1px solid rgba(200,168,75,.3)}
+.op-turno-card.state-working .op-tc-times span{border:1px solid rgba(200,168,75,.2)}
+.op-turno-card.state-working .op-tc-sub,.op-turno-card.state-working .op-tc-pct{color:var(--gold)}
+.op-turno-card.state-working .op-tc-bar{background:var(--gold)}
+.op-turno-card.state-working .op-tc-rem{color:var(--gray)}
+.op-turno-card.state-pausa{background:linear-gradient(160deg,rgba(192,132,252,.08),rgba(192,132,252,.02));border:1px solid rgba(192,132,252,.3)}
+.op-turno-card.state-pausa .op-tc-times span{border:1px solid rgba(192,132,252,.2)}
+.op-turno-card.state-pausa .op-tc-sub,.op-turno-card.state-pausa .op-tc-pct{color:#c084fc}
+.op-turno-card.state-pausa .op-tc-bar{background:#c084fc}
+.op-turno-card.state-rest{background:linear-gradient(160deg,rgba(34,197,94,.08),rgba(34,197,94,.02));border:1px solid rgba(34,197,94,.3)}
+.op-turno-card.state-rest .op-tc-times span{border:1px solid rgba(34,197,94,.2);font-size:22px;font-weight:800;color:#4ade80}
+.op-turno-card.state-rest .op-tc-pct{color:#4ade80;font-size:22px;font-weight:800}
+.op-turno-card.state-rest .op-tc-rem{color:var(--gold);font-weight:700}
+.op-turno-card.state-next{background:linear-gradient(160deg,rgba(96,165,250,.08),rgba(96,165,250,.02));border:1px solid rgba(96,165,250,.3)}
+.op-turno-card.state-next .op-tc-times span{border:1px solid rgba(96,165,250,.2)}
+.op-turno-card.state-next .op-tc-sub,.op-turno-card.state-next .op-tc-pct{color:#60a5fa}
+.op-turno-card.state-next .op-tc-bar{background:#60a5fa}
+.op-turno-card.state-next .op-tc-rem{color:var(--gray)}
+.op-cal-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 12px;cursor:pointer;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
+.op-cal-card:active{transform:scale(.98)}
+.op-cal-rows{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.op-cal-row{display:flex;justify-content:space-between;align-items:center;padding:4px 7px;background:rgba(255,255,255,.04);border-radius:6px}
+.op-cal-rl{font-size:8px;color:var(--gray)}
+.op-cal-rv{font-size:11px;font-weight:700;color:var(--gold)}
+.op-comp-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent}
+.op-comp-card:active{transform:scale(.98)}
+.op-comp-num{font-size:36px;font-weight:800;color:#f87171;line-height:1}
+.op-pub-card{background:var(--card);border:1px solid rgba(192,132,252,.2);border-radius:16px;overflow:hidden}
+.op-pub-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 10px 10px}
+.op-pub-btn{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:"Outfit",sans-serif;width:100%;-webkit-tap-highlight-color:transparent}
+
+.vuelo-countdown{font-size:9px;font-weight:700;color:var(--gray);white-space:nowrap;text-align:right;line-height:1.2;margin-left:auto;padding-left:6px;flex-shrink:0}
+.vuelo-countdown.ct-soon{color:#f87171}
+.vuelo-countdown.ct-now{color:#4ade80}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -449,26 +509,109 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
       }
     ">&#8592;</button>
     <button id="btn-home" onclick="
-      switchTab('documentos',document.querySelectorAll('.tab')[0],document.getElementById('nav-documentos'));
-      breadcrumb=[{id:ROOT_ID,name:'Inicio'}];renderBreadcrumb();renderFolder(ROOT_ID);document.getElementById('scroll-area').scrollTop=0;
+      switchTab('operativa',document.getElementById('tab-operativa'),document.getElementById('nav-operativa'));document.getElementById('scroll-area').scrollTop=0;
     " title="Inicio" style="font-size:16px">🏠</button>
-    <div id="breadcrumb"></div>
+    <div id="breadcrumb" style="display:none"></div>
+    <div style="flex:1"></div>
     <button id="btn-accesos" onclick="toggleAccesoDirecto()">&#128279; Accesos Directos</button>
-    <button id="btn-live"><span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.5px"><span class="live-plane">✈</span> VUELOS</span><span id="btn-live-fecha" style="font-size:8px;color:rgba(240,112,112,.7);letter-spacing:.3px"></span></button>
+    <button id="btn-live" style="display:none"><span style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.5px"><span class="live-plane">✈</span> VUELOS</span><span id="btn-live-fecha" style="font-size:8px;color:rgba(240,112,112,.7);letter-spacing:.3px"></span></button>
   </div>
 </div>
 
 <div id="tab-bar">
-  <div class="tab-wrap"><button class="tab active" onclick="switchTab('documentos',this)">&#128194; Documentos</button></div>
+  <div class="tab-wrap"><button class="tab active" id="tab-operativa" onclick="switchTab('operativa',this)">⚡ Operativa</button></div>
+  <div class="tab-wrap"><button class="tab" onclick="switchTab('documentos',this)">&#128194; Documentos</button></div>
   <div class="tab-wrap"><button class="tab" onclick="switchTab('turnos',this)">📋 Publicados</button></div>
-  <div class="tab-wrap"><button class="tab" onclick="switchTab('avisos',this)">&#128226; Avisos</button><span class="badge" id="badge-avisos">!</span></div>
   <div class="tab-wrap"><button class="tab" onclick="switchTab('afiliate',this)">📅 Calendario</button></div>
-  <div class="tab-wrap"><button class="tab" onclick="switchTab('grupos',this)">&#128172; Grupos</button></div>
+  <div class="tab-wrap"><button class="tab" onclick="switchTab('avisos',this)">&#128226; Avisos</button><span class="badge" id="badge-avisos">!</span></div>
 </div>
 
 <div id="scroll-area">
 
-  <div class="panel active" id="panel-documentos">
+  <div class="panel active" id="panel-operativa">
+    <p class="op-sec">Vuelos hoy · ALC</p>
+    <div class="op-vuelos" onclick="document.getElementById('btn-live').click()">
+      <span class="op-plane">✈</span>
+      <div style="flex:1">
+        <div class="op-v-title">En directo · ALC</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+          <div style="background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);border-radius:10px;padding:7px 9px">
+            <div style="font-size:8px;color:var(--gray);text-transform:uppercase;margin-bottom:4px">Hoy</div>
+            <div style="display:flex;gap:10px">
+              <div><div class="op-v-nval" id="op-v-total">—</div><div class="op-v-nlbl">total</div></div>
+              <div><div class="op-v-nval" id="op-v-turno" style="color:#93c5fd">—</div><div class="op-v-nlbl">mi turno</div></div>
+            </div>
+          </div>
+          <div style="background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.15);border-radius:10px;padding:7px 9px">
+            <div style="font-size:8px;color:var(--gray);text-transform:uppercase;margin-bottom:4px">Mañana</div>
+            <div style="display:flex;gap:10px">
+              <div><div class="op-v-nval" id="op-v-total-tom" style="color:var(--gold)">—</div><div class="op-v-nlbl">total</div></div>
+              <div><div class="op-v-nval" id="op-v-turno-tom" style="color:var(--gl)">—</div><div class="op-v-nlbl">mi turno</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="#8a93a8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <p class="op-sec">Mi jornada</p>
+    <div class="op-jornada-grid">
+      <div class="op-turno-card state-working" id="op-turno-card" onclick="switchTab('afiliate',null,document.getElementById('nav-afiliate'))">
+        <div class="op-tc-lbl" id="op-tc-lbl">Turno hoy</div>
+        <div class="op-tc-times" id="op-tc-times"><span style="color:var(--gray);font-size:11px">Cargando...</span></div>
+        <div class="op-tc-meta">
+          <div class="op-tc-sub" id="op-tc-sub">—</div>
+          <button class="tw-manana-btn" onclick="event.stopPropagation();if(typeof twShowManana==='function')twShowManana()">MAÑANA ›</button>
+        </div>
+        <div class="op-tc-spacer"></div>
+        <div>
+          <div class="op-tc-pct-row">
+            <div class="op-tc-pct" id="op-tc-pct">—</div>
+            <div class="op-tc-rem" id="op-tc-rem"></div>
+          </div>
+          <div class="op-tc-bar-bg"><div class="op-tc-bar" id="op-tc-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="op-cal-card" onclick="switchTab('afiliate',null,document.getElementById('nav-afiliate'))">
+        <div style="font-size:11px;font-weight:700">📅 Calendario</div>
+        <div style="font-size:8px;color:var(--gray);margin-top:1px" id="op-cal-mes">—</div>
+        <div class="op-cal-rows">
+          <div class="op-cal-row"><span class="op-cal-rl">Trabajados</span><span class="op-cal-rv" id="op-cal-trab">—</span></div>
+          <div class="op-cal-row"><span class="op-cal-rl">Libres</span><span class="op-cal-rv" id="op-cal-lib">—</span></div>
+          <div class="op-cal-row"><span class="op-cal-rl">Horas mes</span><span class="op-cal-rv" id="op-cal-hmes">—</span></div>
+          <div class="op-cal-row"><span class="op-cal-rl">Contador</span><span class="op-cal-rv" id="op-cal-cont" style="color:#4ade80">—</span></div>
+          <div class="op-cal-row"><span class="op-cal-rl">Perentorias</span><span class="op-cal-rv" id="op-cal-peren">—</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="op-sec">📊 Resumen operativo del día</p>
+    <!-- RESUMEN OPERATIVO -->
+    <div class="op-comp-card" style="flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden;cursor:pointer" onclick="if(typeof verCompanerosHoy==='function'){var p=document.getElementById('calc-panel');var o=document.getElementById('calc-overlay');if(p){p.classList.add('show');if(o)o.classList.add('show');setTimeout(function(){verCompanerosHoy();},80);}}">
+      <!-- Sub-tabs a todo ancho, pegados al borde superior -->
+      <div style="display:flex;gap:0">
+        <button id="op-tab-dist" onclick="event.stopPropagation();opResTab('dist')" style="flex:1;background:rgba(200,168,75,.15);border:none;border-right:1px solid var(--border);border-bottom:2px solid var(--gold);color:var(--gold);font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;padding:9px 4px;cursor:pointer;letter-spacing:.3px">Distribución</button>
+        <button id="op-tab-pico" onclick="event.stopPropagation();opResTab('pico')" style="flex:1;background:none;border:none;border-right:1px solid var(--border);border-bottom:2px solid transparent;color:var(--gray);font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;padding:9px 4px;cursor:pointer;letter-spacing:.3px">Picos</button>
+        <button id="op-tab-now" onclick="event.stopPropagation();opResTab('now')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray);font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;padding:9px 4px;cursor:pointer;letter-spacing:.3px">Ahora</button>
+        <div id="op-ver-btn" style="flex-shrink:0;background:none;border:none;border-left:1px solid var(--border);border-bottom:2px solid transparent;color:#60a5fa;font-size:10px;font-weight:800;padding:9px 14px;letter-spacing:.5px;cursor:pointer;display:flex;align-items:center" onclick="event.stopPropagation();if(typeof verCompanerosHoy==='function'){var p=document.getElementById('calc-panel');var o=document.getElementById('calc-overlay');if(p){p.classList.add('show');if(o)o.classList.add('show');setTimeout(function(){verCompanerosHoy();},80);}}">VER</div>
+      </div>
+      <!-- Content panels -->
+      <div id="op-res-dist" style="padding:12px 14px">
+        <div id="op-comp-num" style="display:none"></div><div id="op-comp-sub" style="display:none"></div>
+        <div style="font-size:11px;color:var(--gray)">Cargando...</div>
+      </div>
+      <div id="op-res-pico" style="display:none;padding:12px 14px"></div>
+      <div id="op-res-now" style="display:none;padding:12px 14px"></div>
+    </div>
+    <p class="op-sec">Turnos publicados</p>
+    <div class="op-pub-card">
+      <div style="padding:10px 14px 8px;text-align:center"><div style="font-size:12px;font-weight:700">📋 Turnos publicados empresa</div><div style="font-size:9px;color:var(--gray);margin-top:1px">FTP · FIJI · Elige tu colectivo</div></div>
+      <div class="op-pub-row">
+        <button class="op-pub-btn" onclick="navToFolderByName('01_Turnos Rampa')"><span style="font-size:20px">✈️</span><div><span style="font-size:11px;font-weight:700;color:var(--white);display:block">Rampa</span><span style="font-size:8px;color:var(--gray);display:block;margin-top:1px">Operarios</span></div></button>
+        <button class="op-pub-btn" onclick="navToFolderByName('01b_Turnos Administrativos')"><span style="font-size:20px">🗂️</span><div><span style="font-size:11px;font-weight:700;color:var(--white);display:block">Administrativos</span><span style="font-size:8px;color:var(--gray);display:block;margin-top:1px">Admin.</span></div></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-documentos">
     <div id="search-wrap">
       <div id="search-wrap-inner">
         <input id="search-input" type="text" placeholder="🔍  Buscar documento...">
@@ -685,11 +828,12 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 </div>
 
 <nav id="bottom-nav">
-  <button class="nav-btn active" id="nav-documentos" onclick="switchTab('documentos',document.querySelectorAll('.tab')[0],this)"><span class="nav-ico">&#128194;</span>Docs</button>
+  <button class="nav-btn active" id="nav-operativa" onclick="switchTab('operativa',document.getElementById('tab-operativa'),this)"><span class="nav-ico">⚡</span>Operativa</button>
+  <button class="nav-btn" id="nav-documentos" onclick="switchTab('documentos',document.querySelectorAll('.tab')[0],this)"><span class="nav-ico">&#128194;</span>Docs</button>
   <button class="nav-btn" id="nav-turnos" onclick="switchTab('turnos',document.querySelectorAll('.tab')[1],this)"><span class="nav-ico">📋</span>Publicados</button>
   <button class="nav-btn" id="nav-avisos" onclick="switchTab('avisos',document.querySelectorAll('.tab')[2],this)" style="position:relative"><span class="nav-ico">&#128226;</span>Avisos<span class="badge" id="badge-avisos-nav">!</span></button>
   <button class="nav-btn" id="nav-afiliate" onclick="switchTab('afiliate',document.querySelectorAll('.tab')[3],this)"><span class="nav-ico">📅</span>Calendario</button>
-  <button class="nav-btn" id="nav-grupos" onclick="switchTab('grupos',document.querySelectorAll('.tab')[4],this)"><span class="nav-ico">&#128101;</span>Grupos</button>
+  <button class="nav-btn" id="nav-grupos" style="display:none" onclick="switchTab('grupos',document.querySelectorAll('.tab')[4],this)"><span class="nav-ico">&#128101;</span>Grupos</button>
 </nav>
 
 <!-- ACCESOS DIRECTOS -->
@@ -1375,21 +1519,21 @@ function getLiveCutoffsFromTurnoHoy(){
   var now=new Date();
   var meses=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
   var raw;
-  try{raw=localStorage.getItem("cta_ed_"+now.getFullYear());}catch(e){return {s:[],e:[]};}
-  if(!raw)return {s:[],e:[]};
+  try{raw=localStorage.getItem("cta_ed_"+now.getFullYear());}catch(e){return {s:[],e:[],windows:[]};}
+  if(!raw)return {s:[],e:[],windows:[]};
   var data;
-  try{data=JSON.parse(raw);}catch(e){return {s:[],e:[]};}
-  var mes=data[meses[now.getMonth()]];
-  var d=mes?mes[now.getDate()]||null:null;
-  if(!d)return {s:[],e:[]};
-  var s=[],e=[];
+  try{data=JSON.parse(raw);}catch(e){return {s:[],e:[],windows:[]};}
+  var hasMañana=typeof liveData!=="undefined"&&((liveData.lle||[]).concat(liveData.sal||[])).some(function(v){return !!v.esManana;});
+  function getDay(date){var m=data[meses[date.getMonth()]];return m?m[date.getDate()]||null:null;}
+  var d=getDay(now);
+  if(hasMañana){var tom=new Date(now);tom.setDate(tom.getDate()+1);var dt=getDay(tom);if(dt&&dt.e1)d=dt;}
+  if(!d||!d.e1)return {s:[],e:[],windows:[]};
+  var s=[],e=[],windows=[];
   var e1=hToMin(d.e1||""),s1=hToMin(d.s1||"");
   var e2=hToMin(d.e2||""),s2=hToMin(d.s2||"");
-  if(e1!==null)e.push(e1);
-  if(e2!==null)e.push(e2);
-  if(s1!==null)s.push(s1);
-  if(s2!==null)s.push(s2);
-  return {s:s,e:e};
+  if(e1!==null&&s1!==null){e.push(e1);s.push(s1);windows.push([e1,s1]);}
+  if(e2!==null&&s2!==null){e.push(e2);s.push(s2);windows.push([e2,s2]);}
+  return {s:s,e:e,windows:windows};
 }
 
 function renderLive(){
@@ -1408,38 +1552,26 @@ function renderLive(){
   if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
   container.innerHTML="";
 
-  var cortesS={};  // idx → red bottom line (S1/S2 in departures)
-  var cortesE={};  // idx → green top line (E1/E2 in arrivals)
+  var cortesS={};  // idx → red bottom line (last flight in shift window)
+  var cortesE={};  // idx → green top line (first flight in shift window)
   var cutoffs=getLiveCutoffsFromTurnoHoy();
-  if(esS){
-    // S1/S2: last departure <= exit time → red line BELOW that row
-    // If 2 share same cut, pick the one lower (higher index) in list
-    cutoffs.s.forEach(function(cut){
-      var bestIdx=-1,bestMin=-1;
-      for(var i=0;i<data.length;i++){
-        var vv=data[i];
-        if((vv.estadoClass||"")==="e-cancelled")continue;
-        var vm=hToMin(vv.horaReal||vv.horaProg||"");
-        if(vm===null)continue;
-        if(vm<=cut&&vm>=bestMin){bestMin=vm;bestIdx=i;} // >= keeps latest idx for ties
+  // For each shift window [eN, sN]: find first and last flight WITHIN that window
+  (cutoffs.windows||[]).forEach(function(win){
+    var winE=win[0],winS=win[1];
+    var firstIdx=-1,firstMin=99999,lastIdx=-1,lastMin=-1;
+    for(var i=0;i<data.length;i++){
+      var vv=data[i];
+      if((vv.estadoClass||"")==="e-cancelled")continue;
+      var vm=hToMin(vv.horaReal||vv.horaProg||"");
+      if(vm===null)continue;
+      if(vm>=winE&&vm<=winS){
+        if(vm<firstMin){firstMin=vm;firstIdx=i;}
+        if(vm>lastMin||(vm===lastMin&&i>lastIdx)){lastMin=vm;lastIdx=i;}
       }
-      if(bestIdx>=0)cortesS[bestIdx]=true;
-    });
-  } else {
-    // E1/E2: first arrival >= entry time → green line ON TOP of that row
-    // If 2 share same cut, pick the one higher (lower index) in list
-    cutoffs.e.forEach(function(cut){
-      var bestIdx=-1,bestMin=99999;
-      for(var i=0;i<data.length;i++){
-        var vv=data[i];
-        if((vv.estadoClass||"")==="e-cancelled")continue;
-        var vm=hToMin(vv.horaReal||vv.horaProg||"");
-        if(vm===null)continue;
-        if(vm>=cut&&vm<=bestMin){bestMin=vm;bestIdx=i;} // <= keeps lowest idx for ties
-      }
-      if(bestIdx>=0)cortesE[bestIdx]=true;
-    });
-  }
+    }
+    if(firstIdx>=0)cortesE[firstIdx]=true;  // green top
+    if(lastIdx>=0)cortesS[lastIdx]=true;    // red bottom
+  });
 
   var separadorPuesto=false;
   data.forEach(function(v,idx){
@@ -1468,13 +1600,35 @@ function renderLive(){
     if(cortesS[idx])row.classList.add("vuelo-corte-s");
     if(cortesE[idx])row.classList.add("vuelo-corte-e");
     if(rowStyle)row.style.cssText=rowStyle;
+    var horaEfectiva=v.horaReal||v.horaProg||"";
+    row.setAttribute("data-hora",horaEfectiva);
     row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
       +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
-      +"<div class='vuelo-estado "+(v.estadoClass||"e-scheduled")+"'>"+(v.estado||"Programado")+"</div>";
+      +"<div style='display:flex;flex-direction:column;align-items:flex-end;gap:3px'><div class='vuelo-estado "+(v.estadoClass||"e-scheduled")+"'>"+(v.estado||"Programado")+"</div><div class='vuelo-countdown' data-hora='"+(horaEfectiva||"")+"'>—</div></div>";
     container.appendChild(row);
   });
+  // Update countdowns immediately after every render
+  if(typeof updateFlightCountdowns==='function')setTimeout(updateFlightCountdowns,0);
 }
 
+
+function updateFlightCountdowns(){
+  var now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
+  document.querySelectorAll('.vuelo-countdown[data-hora]').forEach(function(el){
+    var h=el.getAttribute('data-hora');
+    if(!h||h==='--:--'){el.textContent='';return;}
+    var p=h.split(':'),flMin=(+p[0]||0)*60+(+p[1]||0);
+    // Handle next-day flights (hora < nowMin by a lot means tomorrow)
+    var diff=flMin-nowMin;
+    if(diff<-120)diff+=1440; // crosses midnight
+    if(diff<0){el.textContent='';el.className='vuelo-countdown';return;}
+    var hh=Math.floor(diff/60),mm=diff%60;
+    var str=(hh>0?hh+'h ':'')+mm+'m';
+    el.textContent=str;
+    el.className='vuelo-countdown'+(diff<=15?' ct-soon':diff<=60?' ct-now':'');
+  });
+}
+setInterval(updateFlightCountdowns,30000);
 var RAILWAY="https://aena-vuelos-server-production.up.railway.app";
 
 function loadLive(){
@@ -1494,6 +1648,7 @@ function loadLive(){
       var hNow=new Date();
       document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
       renderLive();
+    setTimeout(updateFlightCountdowns,100);
     })
     .catch(function(){
       container.innerHTML="<div class='error-box'>Error al cargar vuelos. Pulsa ↻ para reintentar.</div>";
@@ -1506,6 +1661,7 @@ document.getElementById("btn-live").addEventListener("click",function(){
   document.getElementById("live-overlay").classList.add("show");
   document.getElementById("live-panel").classList.add("show");
   if(!liveLoaded)loadLive();
+  if(typeof logActividad==="function")logActividad("ver_vuelos");
 });
 document.getElementById("live-overlay").addEventListener("click",function(){
   document.getElementById("live-overlay").classList.remove("show");
@@ -1574,7 +1730,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
     <button class="calc-small-btn" id="btn-import-grupo" onclick="importarGrupo()">📥 Importar</button>
     <button class="calc-small-btn" id="btn-mismo-turno" onclick="filtrarMismoTurno()">🎯 Mismo turno</button>
     <button class="calc-small-btn" id="btn-en-turno" onclick="filtrarEnTurno()">⚡ En turno</button>
-    <button id="btn-hide-tachados" onclick="toggleHideTachados()" title="Ocultar/mostrar no disponibles" style="background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:5px 9px;cursor:pointer;font-size:13px;line-height:1">👁</button>
+    <button id="btn-sort-salida" onclick="toggleSortSalida()" title="Ordenar por próxima salida" style="background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:5px 9px;cursor:pointer;font-size:13px;line-height:1">⇅</button>
     <input type="file" id="grupo-file-input" accept=".xlsx" style="display:none" onchange="procesarGrupoXlsx(this.files[0])">
   </div>
   <div id="grupo-panel"></div>
@@ -1597,90 +1753,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   <button class="calc-reset" id="calc-reset">Limpiar</button>
 </div>
 
-<script>
-(function(){
-  var btn=document.getElementById("calc-btn");
-  var overlay=document.getElementById("calc-overlay");
-  var panel=document.getElementById("calc-panel");
-  var uniInput=document.getElementById("calc-uni");
-  var hrsInput=document.getElementById("calc-hrs");
-  var convertPanel=document.getElementById("convert-panel");
-  var RATIO=0.175;
 
-  function openCalc(){
-    panel.classList.add("show");overlay.classList.add("show");
-    // Auto-show today's companions if group data is loaded
-    try{
-      var gmap=localStorage.getItem(_GRUPO_KEY+'_map');
-      if(gmap&&gmap!=='{}'){
-        window._grupoOffsetDias=0;
-        setTimeout(function(){
-          var gp=document.getElementById('grupo-panel');
-          if(gp&&!gp.classList.contains('open')){verCompanerosHoy();}
-        },80);
-      }
-    }catch(e){}
-  }
-  function resetCompanerosPanel(){
-    window._grupoOffsetDias=0;
-    var gp=document.getElementById("grupo-panel");
-    if(gp)gp.classList.remove("open");
-  }
-  function closeCalc(){panel.classList.remove("show");overlay.classList.remove("show");resetCompanerosPanel();}
-  function initCalcDragClose(){
-    var handle=panel.querySelector(".calc-handle");
-    if(!handle)return;
-    var dragging=false,startY=0,delta=0;
-    function getY(e){return e.touches?e.touches[0].clientY:e.clientY;}
-    function onStart(e){dragging=true;startY=getY(e);delta=0;panel.style.transition="none";}
-    function onMove(e){
-      if(!dragging)return;
-      delta=Math.max(0,getY(e)-startY);
-      panel.style.transform="translateY("+delta+"px)";
-    }
-    function onEnd(){
-      if(!dragging)return;
-      dragging=false;
-      panel.style.transition="transform .3s cubic-bezier(.4,0,.2,1)";
-      if(delta>90){closeCalc();return;}
-      panel.style.transform="translateY(0)";
-    }
-    handle.addEventListener("touchstart",onStart,{passive:true});
-    window.addEventListener("touchmove",onMove,{passive:true});
-    window.addEventListener("touchend",onEnd);
-    handle.addEventListener("mousedown",onStart);
-    window.addEventListener("mousemove",onMove);
-    window.addEventListener("mouseup",onEnd);
-  }
-  function openConvertPanel(){convertPanel.style.transform="translateY(0)";overlay.classList.add("show");}
-  function closeConvertPanel(){convertPanel.style.transform="translateY(100%)";}
-
-  btn.addEventListener("click",openCalc);
-  initCalcDragClose();
-  overlay.addEventListener("click",function(){closeCalc();closeConvertPanel();overlay.classList.remove("show");});
-  window.openConvertPanel=openConvertPanel;
-
-  uniInput.addEventListener("input",function(){
-    var v=parseFloat(uniInput.value);
-    if(isNaN(v)||uniInput.value===""){hrsInput.value="";return;}
-    var hrs=v/RATIO;
-    var h=Math.floor(hrs);
-    var m=Math.round((hrs-h)*60);
-    hrsInput.value=hrs.toFixed(3);
-  });
-
-  hrsInput.addEventListener("input",function(){
-    var v=parseFloat(hrsInput.value);
-    if(isNaN(v)||hrsInput.value===""){uniInput.value="";return;}
-    var uni=v*RATIO;
-    uniInput.value=uni.toFixed(3);
-  });
-
-  document.getElementById("calc-reset").addEventListener("click",function(){
-    uniInput.value="";hrsInput.value="";resultado.textContent="";uniInput.focus();
-  });
-})();
-</script>
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script>
 var CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
@@ -2180,7 +2253,7 @@ function initGoogle(){
   </div>
 
   <!-- Footer buttons -->
-  <div style="flex-shrink:0;padding:0 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);padding-top:10px;background:#182135">
+  <div style="flex-shrink:0;position:sticky;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);background:#182135;z-index:2">
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <button onclick="closeTrypImport()"
         style="flex:1;background:var(--card2);border:none;border-radius:12px;padding:13px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--gray);cursor:pointer">
@@ -3320,10 +3393,44 @@ function turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2){
   return false;
 }
 
+
+function navToFolderByName(searchTerm){
+  // Switch to documentos and navigate into the matching subfolder of ROOT_ID
+  switchTab('documentos',null,document.getElementById('nav-documentos'));
+  setTimeout(function(){
+    driveList({q:"'"+ROOT_ID+"' in parents and trashed=false and mimeType='application/vnd.google-apps.folder'",fields:"files(id,name)"})
+    .then(function(data){
+      var folders=data.files||[];
+      var found=null;
+      for(var i=0;i<folders.length;i++){
+        if(folders[i].name.toLowerCase().indexOf(searchTerm.toLowerCase())!==-1){
+          found=folders[i];break;
+        }
+      }
+      if(found){
+        breadcrumb=[{id:ROOT_ID,name:'Inicio'},{id:found.id,name:found.name}];
+        renderBreadcrumb();
+        renderFolder(found.id);
+        document.getElementById('scroll-area').scrollTop=0;
+      } else {
+        // Not found at root, just open documentos
+        breadcrumb=[{id:ROOT_ID,name:'Inicio'}];
+        renderBreadcrumb();
+        renderFolder(ROOT_ID);
+      }
+    }).catch(function(){
+      breadcrumb=[{id:ROOT_ID,name:'Inicio'}];renderBreadcrumb();renderFolder(ROOT_ID);
+    });
+  },350);
+}
 function verCompanerosHoy(){
   window._grupoOffsetDias=0;
   if(typeof window._grupoMostrarTodaPlantilla!=='boolean')window._grupoMostrarTodaPlantilla=false;
-  return renderCompanerosDia(window._grupoOffsetDias,true);
+  if(typeof logActividad==='function')logActividad('ver_companeros');
+  // Always render, never toggle — reset open state first
+  var gp=document.getElementById('grupo-panel');
+  if(gp)gp.classList.remove('open');
+  return renderCompanerosDia(window._grupoOffsetDias,false);
 }
 
 function moverCompanerosDia(delta){
@@ -3382,13 +3489,18 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   var myData={};
   try{myData=JSON.parse(localStorage.getItem('cta_ed_'+target.getFullYear())||'{}')}catch(e){}
   var myDay=(myData[monthKey]||{})[day];
+  var myE1=myDay&&myDay.e1?toMinG(myDay.e1):null;
+  var myS1=myDay&&myDay.s1?toMinG(myDay.s1):null;
+  var myE2=myDay&&myDay.e2?toMinG(myDay.e2):null;
+  var myS2=myDay&&myDay.s2?toMinG(myDay.s2):null;
   if(!myDay||!myDay.e1){
-    panel.innerHTML=navHtml+'<div class="grupo-empty">📅 No tienes turno ese día</div>';
-    panel.classList.add('open');return;
+    if(!modoToda){
+      panel.innerHTML=navHtml+'<div class="grupo-empty">📅 No tienes turno ese día</div>';
+      panel.classList.add('open');return;
+    }
+    // modoToda + día libre → continuar mostrando toda la plantilla
   }
 
-  var myE1=toMinG(myDay.e1),myS1=toMinG(myDay.s1);
-  var myE2=myDay.e2?toMinG(myDay.e2):null,myS2=myDay.s2?toMinG(myDay.s2):null;
   var ahoraMin=now.getHours()*60+now.getMinutes();
   var esDiaActual=offsetDias===0;
 
@@ -3419,7 +3531,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
         var opAhora=esDiaActual&&(enT1||enT2)&&!turno.disponibilidadNoConfirmada&&!turno.noVieneInterrogacion;
         // Mark as future-overnight if shift starts tonight but hasn't begun yet
         var _futOvn=(grS1!==null&&grE1!==null&&grS1<grE1&&nowMinReal<grE1);
-        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false,futuraNoche:_futOvn});
+        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,e2:grE2,s2:grS2,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false,futuraNoche:_futOvn});
       }
     }
     // Yesterday's overnight shift crossing into today
@@ -3449,18 +3561,48 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   }
 
   // Sort by start time
-  coinciden.sort(function(a,b){return a.e1-b.e1;});
+  var _nowMin=(function(){var n=new Date();return n.getHours()*60+n.getMinutes();})();
+  if(window._sortBySalida){
+    function nextExit(c){
+      var e1=c.e1,s1=c.s1,e2=c.e2||null,s2=c.s2||null;
+      // Overnight T1: s1 is next day (e.g. 20:00→01:30, s1=90 < e1=1200)
+      var overnight1=(e1!==null&&s1!==null&&s1<e1);
+      var effS1=overnight1?s1+1440:s1;
+      if(effS1!==null&&effS1>_nowMin)return effS1;
+      // Overnight T2
+      var overnight2=(e2!==null&&s2!==null&&s2<e2);
+      var effS2=s2!==null?(overnight2?s2+1440:s2):null;
+      if(effS2!==null&&effS2>_nowMin)return effS2;
+      return null; // truly already left
+    }
+    var activos=coinciden.filter(function(c){return nextExit(c)!==null;});
+    var yaSalieron=coinciden.filter(function(c){return nextExit(c)===null;});
+    activos.sort(function(a,b){return nextExit(a)-nextExit(b);});
+    yaSalieron.sort(function(a,b){
+      var sa=a.s2||a.s1||0,sb=b.s2||b.s1||0;return sb-sa; // most recent exit first
+    });
+    coinciden=activos; // activos first in main array
+    window._yaSalieron=yaSalieron;
+  } else {
+    coinciden.sort(function(a,b){return a.e1-b.e1;});
+    window._yaSalieron=[];
+  }
 
-  var myHorario=myDay.e1+'→'+myDay.s1+(myDay.e2?' / '+myDay.e2+'→'+myDay.s2:'');
+  var myHorario=(myDay&&myDay.e1)?(myDay.e1+'→'+myDay.s1+(myDay.e2?' / '+myDay.e2+'→'+myDay.s2:'')):'—';
   // Group by category
   var cats={};
-  coinciden.forEach(function(c){var cat=c.categoria||'General';if(!cats[cat])cats[cat]=[];cats[cat].push(c);});
+  if(window._sortBySalida){
+    cats['_all']=coinciden; // no category grouping when sorted by exit
+  } else {
+    coinciden.forEach(function(c){var cat=c.categoria||'General';if(!cats[cat])cats[cat]=[];cats[cat].push(c);});
+  }
   var html='<div class="grupo-header-sticky">'+navHtml;
   html+='<div class="grupo-title">👥 '+(modoToda?'Toda la plantilla':'Coincidencias')+' · '+coinciden.length+'</div>';
-  html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gold)"></div><div class="grupo-nombre" style="color:var(--gold);font-size:12px">Tú</div><div class="grupo-horario" style="color:var(--gold)">'+myHorario+'</div></div>';
+  if(myDay&&myDay.e1)html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gold)"></div><div class="grupo-nombre" style="color:var(--gold);font-size:12px">Tú · Libre</div><div class="grupo-horario" style="color:var(--gold)">'+myHorario+'</div></div>';
+  else html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gray)"></div><div class="grupo-nombre" style="color:var(--gray);font-size:12px">Tú · Libre</div><div class="grupo-horario" style="color:var(--gray)">—</div></div>';
   html+='</div>';
   Object.keys(cats).sort().forEach(function(cat){
-    html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
+    if(cat!=='_all')html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
     cats[cat].forEach(function(c){
       var _dot=c.overnight?'#fb923c':'#60a5fa';
       var _nameExtra=c.overnight?' 🌙':'';
@@ -3472,6 +3614,18 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
         '<div class="grupo-horario" style="'+_nameColor+'">'+_hor+'</div></div>';
     });
   });
+  // Add "Ya salieron" section if any
+  if(window._sortBySalida&&window._yaSalieron&&window._yaSalieron.length>0){
+    html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:8px 0 4px;border-top:1px solid rgba(255,255,255,.08);margin-top:4px;opacity:.7">✓ Ya salieron · '+window._yaSalieron.length+'</div>';
+    window._yaSalieron.forEach(function(c){
+      var _dot=c.overnight?'#fb923c':'#8a93a8';
+      var _hor=buildHorarioHtml(c);
+      html+='<div class="grupo-item" style="opacity:.45">'+
+        '<div class="grupo-solapamiento" style="background:'+_dot+'"></div>'+
+        '<div class="grupo-nombre">'+c.nombre+'</div>'+
+        '<div class="grupo-horario">'+_hor+'</div></div>';
+    });
+  }
   panel.innerHTML=html+'<div style="height:16px"></div>';
   panel.classList.add('open');
   setTimeout(checkExitBlinks,100);
@@ -3492,7 +3646,8 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
 
 var _enTurnoMode=false;
 var _hideTachados=false;
-window._showExcl=false; // exclamation mark companions hidden by default
+window._showExcl=false;
+window._sortBySalida=false;
 
 function filtrarEnTurno(){
   _enTurnoMode=!_enTurnoMode;
@@ -3502,10 +3657,24 @@ function filtrarEnTurno(){
   renderCompanerosDia(window._grupoOffsetDias);
 }
 
-function toggleHideTachados(){
-  window._showExcl=!window._showExcl;
-  var btn=document.getElementById('btn-hide-tachados');
-  if(btn){btn.style.opacity=window._showExcl?'1':'0.5';btn.title=window._showExcl?'Ocultar no disponibles':'Mostrar no disponibles';}
+
+function opResTab(tab){
+  ['dist','pico','now'].forEach(function(t){
+    var btn=document.getElementById('op-tab-'+t);
+    var panel=document.getElementById('op-res-'+t);
+    var active=(t===tab);
+    if(btn){
+      btn.style.background=active?'rgba(200,168,75,.12)':'none';
+      btn.style.color=active?'var(--gold)':'var(--gray)';
+      btn.style.borderBottom=active?'2px solid var(--gold)':'2px solid transparent';
+    }
+    if(panel)panel.style.display=active?'block':'none';
+  });
+}
+function toggleSortSalida(){
+  window._sortBySalida=!window._sortBySalida;
+  var btn=document.getElementById('btn-sort-salida');
+  if(btn){btn.style.background=window._sortBySalida?'rgba(200,168,75,.3)':'rgba(200,168,75,.12)';btn.style.color=window._sortBySalida?'var(--gold)':'inherit';}
   renderCompanerosDia(window._grupoOffsetDias||0);
 }
 var _mismoTurnoMode=false;
@@ -3578,5 +3747,283 @@ function showDisponibilidadCartel(){
 }
 </script>
 <div id="disp-cartel">Disponibilidad no confirmada</div>
+<script>
+(function(){
+var MESES=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+var MESES_ES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+var ACTIVOS=["trabajado","hl","hlp","h6","festivo","baja","rm","curso","vacaciones"];
+var CONT=["trabajado","hl","hlp","h6","curso","baja","rm"];
+function g(id){return document.getElementById(id);}
+function toM(t){if(!t)return null;var p=t.split(":");return +p[0]*60+(+p[1]||0);}
+function fmtT(m){if(!m&&m!==0)return"";var h=Math.floor(m/60),mn=m%60;return h>0?h+"h"+(mn?" "+mn+"m":""):mn+"m";}
+
+window.renderOperativa=function(){
+  var now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
+  var mK=MESES[now.getMonth()];
+  var ue={};try{var r=localStorage.getItem("cta_ed_"+now.getFullYear());if(r)ue=JSON.parse(r);}catch(e){}
+  var mD=ue[mK]||{};
+  var dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  var trab=0,lib=0,hMes=0,hCont=0;
+  for(var di=1;di<=dim;di++){var dy=mD[di];if(!dy){lib++;continue;}if(ACTIVOS.indexOf(dy.tipo||"libre")>=0){trab++;hMes+=dy.total||0;}else lib++;}
+  MESES.forEach(function(m){var md=ue[m]||{};Object.keys(md).forEach(function(d){var dx=md[d];if(CONT.indexOf(dx.tipo||"")>=0)hCont+=dx.total||0;});});
+  // Annual perentorias — same logic as calendar tab (anualPerenMin + carryover)
+  var MESES_ALL=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+  var anualPerenMin=0;
+  MESES_ALL.forEach(function(mk){
+    var md2=ue[mk]||{};
+    Object.keys(md2).forEach(function(dd){
+      var dy=md2[dd];
+      if(!dy||!dy.perenDur||dy.perenDur==='0:00')return;
+      var _pStr=String(dy.perenDur),_pParts=_pStr.split(':');
+      var pdur=(+_pParts[0]||0)*60+(+_pParts[1]||0);
+      if(dy.perenTipo==='cp')anualPerenMin-=pdur;
+      else anualPerenMin+=pdur;
+    });
+  });
+  // Add carryover
+  var _coRawOp;try{_coRawOp=localStorage.getItem('cta_peren_carryover_'+now.getFullYear());}catch(e){}
+  var _coOp=0;if(_coRawOp){var _cop=_coRawOp.split(':');_coOp=(+_cop[0]||0)*60+(+_cop[1]||0);}
+  var totalPerenMin=anualPerenMin+_coOp;
+  var pMes=totalPerenMin/60; // keep pMes for display compatibility
+  function fP(h){var hh=Math.floor(h),mm=Math.round((h-hh)*60);return hh+":"+(mm<10?"0":"")+mm;}
+  if(g("op-cal-mes"))g("op-cal-mes").textContent=MESES_ES[now.getMonth()]+" "+now.getFullYear();
+  if(g("op-cal-trab"))g("op-cal-trab").textContent=trab;
+  if(g("op-cal-lib"))g("op-cal-lib").textContent=lib;
+  if(g("op-cal-hmes"))g("op-cal-hmes").textContent=Math.round(hMes*10)/10+"h";
+  if(g("op-cal-cont"))g("op-cal-cont").textContent=Math.round(hCont*10)/10+"h";
+  if(g("op-cal-peren")){
+    var absMin=Math.abs(totalPerenMin);
+    var hh=Math.floor(absMin/60),mm=Math.round(absMin%60);
+    var perenStr=hh+":"+(mm<10?"0":"")+mm;
+    g("op-cal-peren").textContent=totalPerenMin===0?"—":perenStr+(totalPerenMin<0?" comp.":"");
+  }
+
+  var d=mD[now.getDate()]||null;
+  var card=g("op-turno-card");
+  if(!card)return;
+  ["state-working","state-pausa","state-rest","state-next"].forEach(function(c){card.classList.remove(c);});
+
+  if(!d||!d.tipo||d.tipo==="libre"||(!d.e1&&["festivo","hl","hlp","vacaciones"].indexOf(d.tipo)<0)){
+    card.classList.add("state-next");
+    if(g("op-tc-lbl"))g("op-tc-lbl").textContent="Turno hoy";
+    if(g("op-tc-times"))g("op-tc-times").innerHTML="<span style='color:var(--gray);font-size:11px'>Dia libre</span>";
+    if(g("op-tc-sub"))g("op-tc-sub").textContent="";
+    if(g("op-tc-pct"))g("op-tc-pct").textContent="";
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="";
+    return;
+  }
+  if(["festivo","hl","hlp","vacaciones"].indexOf(d.tipo)>=0){
+    card.classList.add("state-rest");
+    if(g("op-tc-lbl"))g("op-tc-lbl").textContent="Turno hoy";
+    if(g("op-tc-times"))g("op-tc-times").innerHTML="<span>Descanso</span>";
+    if(g("op-tc-pct"))g("op-tc-pct").textContent="";
+    return;
+  }
+
+  var e1=toM(d.e1),s1=toM(d.s1),e2=d.e2?toM(d.e2):null,s2=d.s2?toM(d.s2):null;
+  var shEnd=s2||s1,totMin=0;
+  if(e1!==null&&s1!==null)totMin+=(s1>=e1?s1-e1:s1+1440-e1);
+  if(e2!==null&&s2!==null)totMin+=(s2>=e2?s2-e2:s2+1440-e2);
+  if(g("op-tc-lbl"))g("op-tc-lbl").textContent="Turno hoy · "+fmtT(totMin);
+  var th="<span>"+d.e1+" → "+d.s1+"</span>";
+  if(d.e2&&d.s2)th+="<span>"+d.e2+" → "+d.s2+"</span>";
+
+  var inS1=e1!==null&&s1!==null&&nowMin>=e1&&nowMin<s1;
+  var inS2=e2!==null&&s2!==null&&nowMin>=e2&&nowMin<s2;
+  var isPausa=e2!==null&&s1!==null&&nowMin>=s1&&nowMin<e2;
+  var isDone=shEnd!==null&&nowMin>=shEnd;
+  var notYet=e1!==null&&nowMin<e1;
+
+  if(inS1||inS2){
+    card.classList.add("state-working");
+    if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
+    var el2=inS1?nowMin-e1:(s1-e1)+(nowMin-e2);
+    var pct=Math.min(100,Math.round(el2/totMin*100));
+    var rem=shEnd-nowMin+(inS1&&e2?Math.max(0,e2-s1):0);
+    if(g("op-tc-sub"))g("op-tc-sub").textContent="Trabajando";
+    if(g("op-tc-pct"))g("op-tc-pct").textContent=pct+"%";
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="Quedan "+fmtT(Math.max(0,rem));
+    if(g("op-tc-bar"))g("op-tc-bar").style.width=pct+"%";
+  } else if(isPausa){
+    card.classList.add("state-pausa");
+    if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
+    var el3=s1-e1,pct3=Math.round(el3/totMin*100);
+    if(g("op-tc-sub"))g("op-tc-sub").textContent="Pausa · Vuelves a las "+d.e2;
+    if(g("op-tc-pct"))g("op-tc-pct").textContent=pct3+"%";
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="Pausa "+fmtT(e2-nowMin);
+    if(g("op-tc-bar"))g("op-tc-bar").style.width=pct3+"%";
+  } else if(isDone){
+    card.classList.add("state-rest");
+    var nxtMin=null,nxtStr="",nxtDays=0;
+    var ANXT=["trabajado","hl","hlp","h6","festivo","baja","rm","curso"];
+    for(var dd2=1;dd2<=30;dd2++){
+      var nD=new Date(now.getFullYear(),now.getMonth(),now.getDate()+dd2);
+      var nMd=(ue[MESES[nD.getMonth()]]||{})[nD.getDate()];
+      if(nMd&&nMd.e1&&nMd.tipo&&ANXT.indexOf(nMd.tipo)>=0){nxtMin=toM(nMd.e1);nxtStr=nMd.e1;nxtDays=dd2;break;}
+    }
+    // Calculate total minutes remaining (including full days)
+    var restM=nxtMin!==null?(nxtDays*1440+nxtMin-nowMin):null;
+    function fmtRest(m){
+      if(m===null||m<0)return "💤";
+      var d=Math.floor(m/1440),h=Math.floor((m%1440)/60),mn=m%60;
+      if(d>0){
+        // Days in gold, time in green
+        return "<span style='display:flex;flex-direction:column;align-items:center;gap:2px'>"
+          +"<span style='font-size:13px;color:var(--gold);font-weight:700'>"+d+" días</span>"
+          +"<span style='font-size:22px;font-weight:800;color:#4ade80'>"+h+"h"+(mn?" "+mn+"m":"")+"</span>"
+          +"</span>";
+      }
+      if(h>0)return h+"h "+(mn?mn+"m":"");
+      return mn+"m";
+    }
+    var cnt=fmtRest(restM);
+    if(g("op-tc-lbl"))g("op-tc-lbl").textContent="Descanso";
+    // For multi-day: use raw HTML, otherwise wrap in span
+    var cntHtml=restM!==null&&Math.floor(restM/1440)>0?cnt:"<span>"+(cnt||"💤")+"</span>";
+    if(g("op-tc-times"))g("op-tc-times").innerHTML=cntHtml;
+    if(g("op-tc-sub"))g("op-tc-sub").textContent=nxtStr?"Próximo turno "+nxtStr:"";
+    // % of rest REMAINING (what's left to enjoy)
+    var restElapsed=nowMin-shEnd;if(restElapsed<0)restElapsed+=1440;
+    var totalRest=(restElapsed+(restM||0));
+    var restRemPct=totalRest>0?Math.round((restM||0)/totalRest*100):0;
+    if(g("op-tc-pct"))g("op-tc-pct").textContent=restRemPct+"%";
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="";
+    if(g("op-tc-bar"))g("op-tc-bar").style.width=restRemPct+"%";
+  } else if(notYet){
+    card.classList.add("state-next");
+    if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
+    if(g("op-tc-sub"))g("op-tc-sub").textContent="Próximo turno";
+    if(g("op-tc-pct"))g("op-tc-pct").textContent="0%";
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="Empieza en "+fmtT(e1-nowMin);
+    if(g("op-tc-bar"))g("op-tc-bar").style.width="0%";
+  }
+
+  // ─ Resumen Operativo ─────────────────────────────────────
+  var gmap={};try{gmap=JSON.parse(localStorage.getItem("cta_grupo_2026_map")||"{}");}catch(e){}
+  var todayNum=now.getDate();
+  var trabajanHoy=[],compN=0;
+  var mE1o=d&&d.e1?toM(d.e1):null,mS1o=d&&d.s1?toM(d.s1):null;
+  var mE2o=d&&d.e2?toM(d.e2):null,mS2o=d&&d.s2?toM(d.s2):null;
+  Object.keys(gmap).forEach(function(nom){
+    var emp=gmap[nom],dias=(emp.meses&&emp.meses[mK])||null;
+    if(!dias)return;
+    var t=dias[todayNum];if(!t||!t.e1)return;
+    var excl=!!(t.noVieneInterrogacion||t.disponibilidadNoConfirmada);if(excl)return;
+    var gE1=toM(t.e1),gS1=toM(t.s1),gE2=t.e2?toM(t.e2):null,gS2=t.s2?toM(t.s2):null;
+    trabajanHoy.push({nombre:nom,e1:gE1,s1:gS1,e2:gE2,s2:gS2});
+    if(mE1o!==null&&typeof turnosSeSuperponen==="function"&&turnosSeSuperponen(mE1o,mS1o,mE2o,mS2o,gE1,gS1,gE2,gS2))compN++;
+  });
+
+  function isWorkingAt(emp,min){
+    function inT(e,s,m){if(e===null||s===null)return false;if(s<e)return m>=e||m<s;return m>=e&&m<s;}
+    return inT(emp.e1,emp.s1,min)||inT(emp.e2,emp.s2,min);
+  }
+  var total=trabajanHoy.length;
+  var manana=trabajanHoy.filter(function(e){return e.e1>=240&&e.e1<901;}).length;
+  var tarde=trabajanHoy.filter(function(e){return e.e1>=901||e.e1<240;}).length;
+
+  // Distribución tab
+  var dEl=g("op-res-dist");
+  if(dEl)dEl.innerHTML='<div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:8px">Hoy trabajan <span style="color:var(--gold)">'+total+'</span> compañeros</div>'
+    +'<div style="display:flex;flex-direction:column;gap:4px">'
+    +'<div style="display:flex;justify-content:space-between;padding:5px 8px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:10px;color:var(--gray)">☀️ Turno mañana (04:00-15:00)</span><span style="font-size:12px;font-weight:700;color:var(--gold)">'+manana+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:5px 8px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:10px;color:var(--gray)">🌙 Turno tarde/noche (15:01+)</span><span style="font-size:12px;font-weight:700;color:var(--gold)">'+tarde+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:5px 8px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:8px"><span style="font-size:10px;color:var(--gray)">🔴 Coinciden contigo</span><span style="font-size:12px;font-weight:700;color:#f87171">'+compN+'</span></div>'
+    +'</div>';
+
+  // Picos tab
+  var maxW=0,minW=999,maxSlot=0,minSlot=0;
+  for(var hh=0;hh<48;hh++){
+    var cnt30=trabajanHoy.filter(function(e){return isWorkingAt(e,hh*30);}).length;
+    if(cnt30>maxW){maxW=cnt30;maxSlot=hh;}
+    if(cnt30<minW&&cnt30>0){minW=cnt30;minSlot=hh;}
+  }
+  function slotS(i){var h=Math.floor(i/2),m=i%2===0?'00':'30';return (h<10?'0':'')+h+':'+m;}
+  var pEl=g("op-res-pico");
+  if(pEl)pEl.innerHTML='<div style="display:flex;flex-direction:column;gap:8px">'
+    +'<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:10px 12px">'
+    +'<div style="font-size:9px;color:#4ade80;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px">↑ Pico de plantilla</div>'
+    +'<div style="font-size:10px;color:var(--gray)">Mayor concentración de personal</div>'
+    +'<div style="font-size:13px;font-weight:700;color:var(--white);margin:3px 0">'+slotS(maxSlot)+' – '+slotS(maxSlot+2)+'</div>'
+    +'<div style="font-size:12px;font-weight:700;color:#4ade80">'+maxW+' compañeros a la vez</div></div>'
+    +'<div style="background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.15);border-radius:10px;padding:10px 12px">'
+    +'<div style="font-size:9px;color:#fbbf24;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px">↓ Franja más floja</div>'
+    +'<div style="font-size:10px;color:var(--gray)">Franja con menos personal</div>'
+    +'<div style="font-size:13px;font-weight:700;color:var(--white);margin:3px 0">'+slotS(minSlot)+' – '+slotS(minSlot+2)+'</div>'
+    +'<div style="font-size:12px;font-weight:700;color:#fbbf24">'+(minW===999?0:minW)+' compañeros disponibles</div></div></div>';
+
+  // Ahora tab
+  var wNow=trabajanHoy.filter(function(e){return isWorkingAt(e,nowMin);}).length;
+  var eNow=trabajanHoy.filter(function(e){
+    var d1=e.e1-nowMin,d2=e.e2!==null?e.e2-nowMin:9999;
+    return (d1>0&&d1<=120)||(d2>0&&d2<=120);
+  }).length;
+  var sNow=trabajanHoy.filter(function(e){
+    function nextS(em){
+      var ov=em.s1!==null&&em.e1!==null&&em.s1<em.e1;
+      var es=ov?em.s1+1440:em.s1;
+      if(es!==null){var dd=es-nowMin;if(dd>0&&dd<=60)return true;}
+      if(em.s2!==null){var dd2=em.s2-nowMin;if(dd2>0&&dd2<=60)return true;}
+      return false;
+    }
+    return nextS(e);
+  }).length;
+  var nEl=g("op-res-now");
+  if(nEl)nEl.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--white);margin-bottom:8px">Compañeros disponibles ahora</div>'
+    +'<div style="display:flex;flex-direction:column;gap:5px">'
+    +'<div style="display:flex;justify-content:space-between;padding:7px 10px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);border-radius:10px"><span style="font-size:10px;color:var(--gray)">✈️ Trabajando ahora mismo</span><span style="font-size:14px;font-weight:800;color:#60a5fa">'+wNow+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:7px 10px;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);border-radius:10px"><span style="font-size:10px;color:var(--gray)">▶ Entran en las próximas 2h</span><span style="font-size:14px;font-weight:800;color:#4ade80">'+eNow+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:7px 10px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px"><span style="font-size:10px;color:var(--gray)">■ Salen en la próxima hora</span><span style="font-size:14px;font-weight:800;color:#f87171">'+sNow+'</span></div>'
+    +'</div>';
+
+
+  // Flights
+  if(typeof liveData==="undefined")return;
+  var aL=liveData.lle||[],aS=liveData.sal||[];
+  var lH=aL.filter(function(v){return !v.esManana;}),sH=aS.filter(function(v){return !v.esManana;});
+  var lT=aL.filter(function(v){return !!v.esManana;}),sT=aS.filter(function(v){return !!v.esManana;});
+  var tStr=now.toDateString(),totH=lH.length+sH.length,cH=0;
+  try{var cv=localStorage.getItem("op_vt");if(cv){var cpo=JSON.parse(cv);if(cpo.d===tStr)cH=cpo.t;}}catch(e){}
+  // Only update cache if new count is HIGHER — once set, never go down during the day
+  if(totH>cH){cH=totH;try{localStorage.setItem("op_vt",JSON.stringify({d:tStr,t:cH}));}catch(e){}}
+  if(g("op-v-total"))g("op-v-total").textContent=cH>0?cH:"—";
+  var totT=lT.length+sT.length;
+  // Cache tomorrow total — same logic as today: only goes up, resets at midnight
+  var tom=new Date(now);tom.setDate(tom.getDate()+1);
+  var tStr2=tom.toDateString(),cT=0;
+  try{var cv2=localStorage.getItem("op_vt_tom");if(cv2){var cpt=JSON.parse(cv2);if(cpt.d===tStr2)cT=cpt.t;}}catch(e){}
+  if(totT>cT){cT=totT;try{localStorage.setItem("op_vt_tom",JSON.stringify({d:tStr2,t:cT}));}catch(e){}}
+  if(g("op-v-total-tom"))g("op-v-total-tom").textContent=cT>0?cT:"—";
+  function cntSh(fls,e1p,s1p,e2p,s2p){var n=0;fls.forEach(function(v){var t=typeof hToMin==="function"?hToMin(v.horaReal||v.horaProg||""):null;if(t===null)return;if(e1p!==null&&s1p!==null&&t>=e1p&&t<=s1p)n++;else if(e2p!==null&&s2p!==null&&t>=e2p&&t<=s2p)n++;});return n;}
+  var _shDone=(shEnd!==null&&nowMin>=shEnd);
+  var iH=(e1!==null&&!_shDone)?cntSh(lH.concat(sH),e1,s1,e2,s2):0;
+  if(g("op-v-turno"))g("op-v-turno").textContent=String(iH);
+  var tom=new Date(now);tom.setDate(tom.getDate()+1);
+  var dT=(ue[MESES[tom.getMonth()]]||{})[tom.getDate()]||null;
+  var tE1=dT&&dT.e1?toM(dT.e1):null,tS1=dT&&dT.s1?toM(dT.s1):null;
+  var tE2=dT&&dT.e2?toM(dT.e2):null,tS2=dT&&dT.s2?toM(dT.s2):null;
+  var iT=tE1!==null&&totT>0?cntSh(lT.concat(sT),tE1,tS1,tE2,tS2):0;
+  if(g("op-v-turno-tom"))g("op-v-turno-tom").textContent=totT>0?String(iT):"—";
+};
+
+// Hook switchTab safely
+var _st=window.switchTab;
+if(typeof _st==="function"){window.switchTab=function(n,t,v){_st(n,t,v);if(n==="operativa")setTimeout(window.renderOperativa,50);};}
+
+// Hook initTurnoWidget safely
+var _iw=window.initTurnoWidget;
+window.initTurnoWidget=function(){
+  if(typeof _iw==="function")_iw();
+  setTimeout(function(){
+    window.renderOperativa();
+    if(typeof loadLive==="function"&&typeof liveData!=="undefined"&&liveData.lle.length===0)loadLive();
+    setTimeout(window.renderOperativa,3500);
+    setInterval(window.renderOperativa,60000);
+  },200);
+};
+})();
+</script>
+
+
 </body>
 </html>
