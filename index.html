@@ -2789,7 +2789,7 @@ function tiColorToTipo(sheet,row,col){
   var rgb=fg.rgb||fg.argb||'';
   if(rgb.length===8)rgb=rgb.slice(2);
   rgb=rgb.toUpperCase();
-  if(rgb==='A9D0F5')return'hl';
+  if(rgb==='A9D0F5')return'baja'; // azul → Baja por defecto
   if(rgb==='AEFC04')return'vacaciones';
   return null;
 }
@@ -4137,8 +4137,9 @@ window.renderOperativa=function(){
   if(g("op-v-total-tom"))g("op-v-total-tom").textContent=cT>0?cT:"—";
   function cntSh(fls,e1p,s1p,e2p,s2p){var n=0;fls.forEach(function(v){var t=typeof hToMin==="function"?hToMin(v.horaReal||v.horaProg||""):null;if(t===null)return;if(e1p!==null&&s1p!==null&&t>=e1p&&t<=s1p)n++;else if(e2p!==null&&s2p!==null&&t>=e2p&&t<=s2p)n++;});return n;}
   var _shDone=(shEnd!==null&&nowMin>=shEnd);
-  var iH=(e1!==null&&!_shDone)?cntSh(lH.concat(sH),e1,s1,e2,s2):0;
-  if(g("op-v-turno"))g("op-v-turno").textContent=String(iH);
+  var _liveEmpty=(lH.length===0&&sH.length===0);
+  var iH=(e1!==null&&!_shDone&&!_liveEmpty)?cntSh(lH.concat(sH),e1,s1,e2,s2):0;
+  if(g("op-v-turno"))g("op-v-turno").textContent=(_shDone||_liveEmpty)?"—":String(iH);
   var tom=new Date(now);tom.setDate(tom.getDate()+1);
   var dT=(ue[MESES[tom.getMonth()]]||{})[tom.getDate()]||null;
   var tE1=dT&&dT.e1?toM(dT.e1):null,tS1=dT&&dT.s1?toM(dT.s1):null;
@@ -4229,10 +4230,13 @@ window.renderOperativa=function(){
   } else if(isPausa){
     card.classList.add("state-pausa");
     if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
-    var el3=s1-e1,pct3=Math.round(el3/totMin*100);
+    // Pausa: % descending = remaining pause time / total pause duration
+    var pausaTot=e2-s1; // total pause minutes
+    var pausaRem=e2-nowMin; // remaining pause minutes
+    var pct3=pausaTot>0?Math.round(pausaRem/pausaTot*100):0;
     if(g("op-tc-sub"))g("op-tc-sub").textContent="Pausa · Vuelves a las "+d.e2;
     if(g("op-tc-pct"))g("op-tc-pct").textContent=pct3+"%";
-    if(g("op-tc-rem"))g("op-tc-rem").textContent="Pausa "+fmtT(e2-nowMin);
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="Vuelves en "+fmtT(pausaRem);
     if(g("op-tc-bar"))g("op-tc-bar").style.width=pct3+"%";
   } else if(isDone){
     card.classList.add("state-rest");
