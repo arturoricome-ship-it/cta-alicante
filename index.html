@@ -4008,8 +4008,17 @@ window.renderOperativa=function(){
     return inT(emp.e1,emp.s1,min)||inT(emp.e2,emp.s2,min);
   }
   var total=trabajanHoy.length;
-  var manana=trabajanHoy.filter(function(e){return e.e1>=240&&e.e1<901;}).length;
-  var tarde=trabajanHoy.filter(function(e){return e.e1>=901||e.e1<240;}).length;
+  // Check if a tramo [e,s] overlaps with a time period [pStart, pEnd]
+  function tramoOverlaps(e,s,pStart,pEnd){
+    if(e===null||s===null)return false;
+    var effS=s<e?s+1440:s; // handle overnight
+    return e<pEnd&&effS>pStart;
+  }
+  // Mañana: 04:00-15:00 (240-900), Tarde: 15:01-28:00 (901-1680=next 04:00)
+  function isMañana(c){return tramoOverlaps(c.e1,c.s1,240,901)||tramoOverlaps(c.e2,c.s2,240,901);}
+  function isTarde(c){return tramoOverlaps(c.e1,c.s1,901,1680)||tramoOverlaps(c.e2,c.s2,901,1680);}
+  var manana=trabajanHoy.filter(isMañana).length;
+  var tarde=trabajanHoy.filter(isTarde).length;
 
   // Distribución tab
   var dEl=g("op-res-dist");
