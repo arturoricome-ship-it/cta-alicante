@@ -74,7 +74,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #tab-bar::-webkit-scrollbar{display:none}
 .tab{flex:1;min-width:0;padding:8px 0;border-radius:100px;font-size:11px;font-weight:600;cursor:pointer;color:var(--gray);background:transparent;border:none;font-family:"Outfit",sans-serif;transition:all .25s;letter-spacing:.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
 .tab.active{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);box-shadow:0 4px 12px rgba(200,168,75,.35)}
-#scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 12px 90px;-webkit-overflow-scrolling:touch}
+#scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(72px + env(safe-area-inset-bottom));padding:12px 12px 90px;-webkit-overflow-scrolling:touch}
 .panel{display:none;animation:fadeUp .3s ease}.panel.active{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:400px){.vuelo-estado{font-size:9px;padding:3px 6px}}
@@ -144,8 +144,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .search-empty{text-align:center;padding:28px;font-size:13px;color:var(--gray)}
 /* BADGE AVISOS */
 .tab-wrap{position:relative;flex:1;min-width:0;display:flex;justify-content:center}
-.badge{position:absolute;top:0px;right:4px;background:#e64646;color:white;font-size:9px;font-weight:700;border-radius:100px;padding:1px 5px;min-width:16px;text-align:center;display:none;line-height:14px;z-index:10}
-.badge.show{display:block}
+.badge{position:absolute;top:-4px;right:-4px;background:#e64646;color:white;font-size:9px;font-weight:700;border-radius:100px;padding:1px 5px;min-width:16px;text-align:center;display:none;line-height:14px;z-index:10}
+.badge.show{display:block;}
 /* PANEL HOY */
 .hoy-hero{background:linear-gradient(135deg,var(--navy),var(--navy-light));border:1px solid rgba(200,168,75,.25);border-radius:16px;padding:20px;margin-bottom:14px;text-align:center}
 .hoy-fecha{font-family:"Bebas Neue",sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
@@ -254,6 +254,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #bottom-turno{display:none;flex-shrink:0;background:rgba(13,22,35,.98);border-top:1px solid rgba(200,168,75,.2);padding:7px 14px 10px;transition:background .5s}
 @keyframes twpulse{0%,100%{background:rgba(239,68,68,.32)}50%{background:rgba(239,68,68,.05)}}
 #bottom-turno.saliendo{animation:twpulse 2s ease-in-out infinite;border-top-color:rgba(239,68,68,.4)}
+@keyframes cardPulseRed{0%,100%{background:rgba(239,68,68,.03);border-color:rgba(239,68,68,.2);box-shadow:0 0 0 0 rgba(239,68,68,0)}50%{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.8);box-shadow:0 0 18px rgba(239,68,68,.25)}}
+.op-tc-card.saliendo{animation:cardPulseRed 1.4s ease-in-out infinite!important;}
 .tw-main{display:flex;align-items:center;gap:10px;margin-bottom:7px}
 .tw-ico-wrap{width:36px;height:36px;border-radius:10px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.18);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
 .tw-info{flex:1;min-width:0}
@@ -469,6 +471,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .vuelo-countdown{font-size:9px;font-weight:700;color:var(--gray);white-space:nowrap;text-align:right;line-height:1.2;margin-left:auto;padding-left:6px;flex-shrink:0}
 .vuelo-countdown.ct-soon{color:#f87171}
 .vuelo-countdown.ct-now{color:#4ade80}
+
+@keyframes badgePulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(230,70,70,.7);}50%{transform:scale(1.15);box-shadow:0 0 0 5px rgba(230,70,70,0);}}
+.badge.show{animation:badgePulse 1.4s ease-in-out infinite;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -518,7 +523,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   </div>
 </div>
 
-<div id="tab-bar">
+<div id="tab-bar" style="display:none">
   <div class="tab-wrap"><button class="tab active" id="tab-operativa" onclick="switchTab('operativa',this)">⚡ Operativa</button></div>
   <div class="tab-wrap"><button class="tab" onclick="switchTab('documentos',this)">&#128194; Documentos</button></div>
   <div class="tab-wrap"><button class="tab" onclick="switchTab('turnos',this)">📋 Publicados</button></div>
@@ -1300,6 +1305,7 @@ function loadAvisos(){
       var bn=document.getElementById("badge-avisos-nav");
       if(b)b.classList.add("show");
       if(bn)bn.classList.add("show");
+      if(typeof showPushNotif==="function")showPushNotif("📢 CTA Alicante","Hay avisos nuevos sin leer");
     }
     return fetch(DRIVE_API+"/files/"+files[0].id+"?alt=media&key="+API_KEY)
     .then(function(r){return r.text();})
@@ -2720,6 +2726,26 @@ function dashCheckSession(){
     document.getElementById('dash-real').style.display='block';
   }
 }
+
+// ── Notificaciones push del navegador ─────────────────────────
+function requestNotifPermission(){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='default'){
+    Notification.requestPermission().then(function(p){
+      console.log('Notification permission:',p);
+    });
+  }
+}
+function showPushNotif(title,body){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  try{
+    if(navigator.serviceWorker&&navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage({type:'show_notif',title:title,body:body});
+    } else {
+      new Notification(title,{body:body,icon:'/icon-192.png',badge:'/icon-192.png',tag:'cta-aviso',renotify:true});
+    }
+  }catch(e){console.warn('Notif error',e);}
+}
 function closeTrypImport(){
   var panel=document.getElementById('tryp-import-panel');
   panel.style.transform='translateY(100%)';
@@ -3902,6 +3928,9 @@ function checkTurnoSalida(){
   if(d.s2){var t2=hToMin(d.s2);if(t2!==null)salidas.push(t2);}
   var saliendo=salidas.some(function(t){var diff=t-nowMin;return diff>=0&&diff<=10;});
   tw.classList.toggle('saliendo',saliendo);
+  // Also apply to operativa card
+  var opCard=document.querySelector('.op-tc-card');
+  if(opCard)opCard.classList.toggle('saliendo',saliendo);
 }
 function checkExitBlinks(){
   var now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
@@ -4179,6 +4208,10 @@ window.renderOperativa=function(){
     if(g("op-tc-pct"))g("op-tc-pct").textContent=pct+"%";
     if(g("op-tc-rem"))g("op-tc-rem").textContent="Quedan "+fmtT(Math.max(0,rem));
     if(g("op-tc-bar"))g("op-tc-bar").style.width=pct+"%";
+    // Pulse red if ≤10min to end of any tramo
+    var salidas2=[];if(s1!==null)salidas2.push(s1);if(s2!==null)salidas2.push(s2);
+    var saliendoNow=salidas2.some(function(t){var d=t-nowMin;return d>=0&&d<=10;});
+    if(card)card.classList.toggle('saliendo',saliendoNow);
   } else if(isPausa){
     card.classList.add("state-pausa");
     if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
