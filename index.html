@@ -728,6 +728,23 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 
 
   <div class="panel" id="panel-dashboard">
+    <!-- MANTENIMIENTO / ACCESO CON CONTRASEÑA -->
+    <div id="dash-maint" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:20px">
+      <div style="font-size:52px;margin-bottom:16px" onclick="dashTapCount(this)">🔧</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--white);margin-bottom:8px">En mantenimiento</div>
+      <div style="font-size:13px;color:var(--gray);line-height:1.6;max-width:280px">Esta sección está temporalmente en mantenimiento. Vuelve más tarde.</div>
+      <div id="dash-pwd-box" style="display:none;margin-top:28px;width:100%;max-width:280px">
+        <div style="font-size:11px;color:var(--gray);margin-bottom:8px;letter-spacing:.5px;text-transform:uppercase">Acceso administrador</div>
+        <input id="dash-pwd-input" type="password" placeholder="Contraseña" onkeydown="if(event.key==='Enter')dashCheckPwd()"
+          style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--white);font-family:'Outfit',sans-serif;font-size:15px;padding:12px 14px;outline:none;text-align:center;letter-spacing:2px">
+        <div id="dash-pwd-err" style="color:#f87171;font-size:11px;margin-top:6px;min-height:16px"></div>
+        <button onclick="dashCheckPwd()" style="width:100%;margin-top:4px;background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.3);border-radius:12px;color:var(--gold);font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;padding:11px;cursor:pointer">Acceder</button>
+      </div>
+    </div>
+    <!-- CONTENIDO REAL (oculto hasta contraseña correcta) -->
+    <div id="dash-real" style="display:none">
+      <button onclick="sessionStorage.removeItem('dash_ok');document.getElementById('dash-maint').style.display='flex';document.getElementById('dash-real').style.display='none';" style="display:flex;align-items:center;gap:6px;background:none;border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:6px 12px;color:#f87171;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer;margin-bottom:14px">🔒 Cerrar acceso</button>
+
     <button onclick="switchTab('documentos',document.querySelectorAll('.tab')[0],document.getElementById('nav-documentos'))" style="display:flex;align-items:center;gap:6px;background:none;border:1px solid rgba(200,168,75,.3);border-radius:10px;padding:7px 14px;color:var(--gold);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:14px;transition:all .2s" onmouseover="this.style.background='rgba(200,168,75,.1)'" onmouseout="this.style.background='none'">← Volver a documentos</button>
     <div class="dash-hero">
       <div class="dash-hero-title">📋 Dashboard Nóminas</div>
@@ -782,7 +799,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
     </div>
 
     <button class="dash-dl-btn" onclick="window.open('https://cta-alicante.es/dashboard-nominas.html','_blank')">🚀 Acceder al Dashboard</button>
-  </div>
+    </div><!-- /dash-real -->
+  </div><!-- /panel-dashboard -->
 
   <!-- Overlay imagen Tryp -->
   <div id="tryp-overlay" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:700;backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
@@ -989,6 +1007,7 @@ function switchTab(name,tabEl,navEl){
   }
   if(name==="turnos"&&!turnosLoaded)loadTurnos();
   if(name==="hoy")renderHoy();
+  if(name==="dashboard")setTimeout(dashCheckSession,50);
   if(name==="afiliate"){if(typeof mcRender==="function")mcRender();logActividad('ver_calendario');}
   // Habilitar btn-back si estamos en dashboard
   var bb=document.getElementById("btn-back");
@@ -2666,6 +2685,41 @@ function exportarICS(){
   setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
   alert('✅ Descargados '+eventCount+' turnos. Ábrelo en el móvil para importar a Google Calendar con alarmas.');
 }
+
+// ── Dashboard password ────────────────────────────────────────
+var _dashTaps=0,_dashTapTimer=null;
+function dashTapCount(){
+  _dashTaps++;
+  clearTimeout(_dashTapTimer);
+  if(_dashTaps>=5){
+    _dashTaps=0;
+    document.getElementById('dash-pwd-box').style.display='block';
+    setTimeout(function(){document.getElementById('dash-pwd-input').focus();},100);
+  }
+  _dashTapTimer=setTimeout(function(){_dashTaps=0;},2000);
+}
+function dashCheckPwd(){
+  var v=document.getElementById('dash-pwd-input').value;
+  var err=document.getElementById('dash-pwd-err');
+  // Simple hash check — password: Pepita
+  if(v==='Pepita'){
+    sessionStorage.setItem('dash_ok','1');
+    document.getElementById('dash-maint').style.display='none';
+    document.getElementById('dash-real').style.display='block';
+    document.getElementById('dash-pwd-input').value='';
+    err.textContent='';
+  } else {
+    err.textContent='Contraseña incorrecta';
+    document.getElementById('dash-pwd-input').value='';
+    document.getElementById('dash-pwd-input').focus();
+  }
+}
+function dashCheckSession(){
+  if(sessionStorage.getItem('dash_ok')==='1'){
+    document.getElementById('dash-maint').style.display='none';
+    document.getElementById('dash-real').style.display='block';
+  }
+}
 function closeTrypImport(){
   var panel=document.getElementById('tryp-import-panel');
   panel.style.transform='translateY(100%)';
@@ -3883,7 +3937,7 @@ function showDisponibilidadCartel(){
 var MESES=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
 var MESES_ES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 var ACTIVOS=["trabajado","hl","hlp","h6","festivo","baja","rm","curso","vacaciones"];
-var CONT=["trabajado","hl","hlp","h6","curso","baja","rm"];
+var CONT_OP=["trabajado","hl","hlp","baja","rm","curso"]; // matches calendar contTypes exactly
 function g(id){return document.getElementById(id);}
 function toM(t){if(!t)return null;var p=t.split(":");return +p[0]*60+(+p[1]||0);}
 function fmtT(m){if(!m&&m!==0)return"";var h=Math.floor(m/60),mn=m%60;return h>0?h+"h"+(mn?" "+mn+"m":""):mn+"m";}
@@ -3896,7 +3950,9 @@ window.renderOperativa=function(){
   var dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
   var trab=0,lib=0,hMes=0,hCont=0;
   for(var di=1;di<=dim;di++){var dy=mD[di];if(!dy){lib++;continue;}if(ACTIVOS.indexOf(dy.tipo||"libre")>=0){trab++;hMes+=dy.total||0;}else lib++;}
-  MESES.forEach(function(m){var md=ue[m]||{};Object.keys(md).forEach(function(d){var dx=md[d];if(CONT.indexOf(dx.tipo||"")>=0)hCont+=dx.total||0;});});
+  // Use same method as calendar: prefer e1/s1 calculated duration over stored total
+  function mcMinOp2(e,s){if(!e||!s)return 0;var ep=e.split(":"),sp=s.split(":");if(ep.length<2||sp.length<2)return 0;var em=(+ep[0]||0)*60+(+ep[1]||0),sm=(+sp[0]||0)*60+(+sp[1]||0);if(sm<em)sm+=1440;return sm-em;}
+  MESES.forEach(function(m){var md=ue[m]||{};Object.keys(md).forEach(function(d){var dx=md[d];if(!dx||!dx.tipo)return;if(CONT_OP.indexOf(dx.tipo)<0)return;var mins=mcMinOp2(dx.e1,dx.s1)+mcMinOp2(dx.e2,dx.s2);var eff=mins>0?mins:(dx.total?Math.round(dx.total*60):0);hCont+=eff/60;});});
   // Annual perentorias — same logic as calendar tab (anualPerenMin + carryover)
   var MESES_ALL=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
   var anualPerenMin=0;
@@ -3931,104 +3987,6 @@ window.renderOperativa=function(){
 
   var d=mD[now.getDate()]||null;
   var card=g("op-turno-card");
-  if(!card)return;
-  ["state-working","state-pausa","state-rest","state-next"].forEach(function(c){card.classList.remove(c);});
-
-  if(!d||!d.tipo||d.tipo==="libre"||(!d.e1&&["festivo","hl","hlp","vacaciones"].indexOf(d.tipo)<0)){
-    card.classList.add("state-next");
-    if(g("op-tc-lbl"))g("op-tc-lbl").textContent="Turno hoy";
-    if(g("op-tc-times"))g("op-tc-times").innerHTML="<span style='color:var(--gray);font-size:11px'>Dia libre</span>";
-    if(g("op-tc-sub"))g("op-tc-sub").textContent="";
-    if(g("op-tc-pct"))g("op-tc-pct").textContent="";
-    if(g("op-tc-rem"))g("op-tc-rem").textContent="";
-    return;
-  }
-  if(["festivo","hl","hlp","vacaciones"].indexOf(d.tipo)>=0){
-    card.classList.add("state-rest");
-    if(g("op-tc-lbl"))g("op-tc-lbl").textContent="Turno hoy";
-    if(g("op-tc-times"))g("op-tc-times").innerHTML="<span>Descanso</span>";
-    if(g("op-tc-pct"))g("op-tc-pct").textContent="";
-    return;
-  }
-
-  var e1=toM(d.e1),s1=toM(d.s1),e2=d.e2?toM(d.e2):null,s2=d.s2?toM(d.s2):null;
-  var shEnd=s2||s1,totMin=0;
-  if(e1!==null&&s1!==null)totMin+=(s1>=e1?s1-e1:s1+1440-e1);
-  if(e2!==null&&s2!==null)totMin+=(s2>=e2?s2-e2:s2+1440-e2);
-  if(g("op-tc-lbl"))g("op-tc-lbl").textContent="Turno hoy · "+fmtT(totMin);
-  var th="<span>"+d.e1+" → "+d.s1+"</span>";
-  if(d.e2&&d.s2)th+="<span>"+d.e2+" → "+d.s2+"</span>";
-
-  var inS1=e1!==null&&s1!==null&&nowMin>=e1&&nowMin<s1;
-  var inS2=e2!==null&&s2!==null&&nowMin>=e2&&nowMin<s2;
-  var isPausa=e2!==null&&s1!==null&&nowMin>=s1&&nowMin<e2;
-  var isDone=shEnd!==null&&nowMin>=shEnd;
-  var notYet=e1!==null&&nowMin<e1;
-
-  if(inS1||inS2){
-    card.classList.add("state-working");
-    if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
-    var el2=inS1?nowMin-e1:(s1-e1)+(nowMin-e2);
-    var pct=Math.min(100,Math.round(el2/totMin*100));
-    var rem=shEnd-nowMin+(inS1&&e2?Math.max(0,e2-s1):0);
-    if(g("op-tc-sub"))g("op-tc-sub").textContent="Trabajando";
-    if(g("op-tc-pct"))g("op-tc-pct").textContent=pct+"%";
-    if(g("op-tc-rem"))g("op-tc-rem").textContent="Quedan "+fmtT(Math.max(0,rem));
-    if(g("op-tc-bar"))g("op-tc-bar").style.width=pct+"%";
-  } else if(isPausa){
-    card.classList.add("state-pausa");
-    if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
-    var el3=s1-e1,pct3=Math.round(el3/totMin*100);
-    if(g("op-tc-sub"))g("op-tc-sub").textContent="Pausa · Vuelves a las "+d.e2;
-    if(g("op-tc-pct"))g("op-tc-pct").textContent=pct3+"%";
-    if(g("op-tc-rem"))g("op-tc-rem").textContent="Pausa "+fmtT(e2-nowMin);
-    if(g("op-tc-bar"))g("op-tc-bar").style.width=pct3+"%";
-  } else if(isDone){
-    card.classList.add("state-rest");
-    var nxtMin=null,nxtStr="",nxtDays=0;
-    var ANXT=["trabajado","hl","hlp","h6","festivo","baja","rm","curso"];
-    for(var dd2=1;dd2<=30;dd2++){
-      var nD=new Date(now.getFullYear(),now.getMonth(),now.getDate()+dd2);
-      var nMd=(ue[MESES[nD.getMonth()]]||{})[nD.getDate()];
-      if(nMd&&nMd.e1&&nMd.tipo&&ANXT.indexOf(nMd.tipo)>=0){nxtMin=toM(nMd.e1);nxtStr=nMd.e1;nxtDays=dd2;break;}
-    }
-    // Calculate total minutes remaining (including full days)
-    var restM=nxtMin!==null?(nxtDays*1440+nxtMin-nowMin):null;
-    function fmtRest(m){
-      if(m===null||m<0)return "💤";
-      var d=Math.floor(m/1440),h=Math.floor((m%1440)/60),mn=m%60;
-      if(d>0){
-        // Days in gold, time in green
-        return "<span style='display:flex;flex-direction:column;align-items:center;gap:2px'>"
-          +"<span style='font-size:13px;color:var(--gold);font-weight:700'>"+d+" días</span>"
-          +"<span style='font-size:22px;font-weight:800;color:#4ade80'>"+h+"h"+(mn?" "+mn+"m":"")+"</span>"
-          +"</span>";
-      }
-      if(h>0)return h+"h "+(mn?mn+"m":"");
-      return mn+"m";
-    }
-    var cnt=fmtRest(restM);
-    if(g("op-tc-lbl"))g("op-tc-lbl").textContent="Descanso";
-    // For multi-day: use raw HTML, otherwise wrap in span
-    var cntHtml=restM!==null&&Math.floor(restM/1440)>0?cnt:"<span>"+(cnt||"💤")+"</span>";
-    if(g("op-tc-times"))g("op-tc-times").innerHTML=cntHtml;
-    if(g("op-tc-sub"))g("op-tc-sub").textContent=nxtStr?"Próximo turno "+nxtStr:"";
-    // % of rest REMAINING (what's left to enjoy)
-    var restElapsed=nowMin-shEnd;if(restElapsed<0)restElapsed+=1440;
-    var totalRest=(restElapsed+(restM||0));
-    var restRemPct=totalRest>0?Math.round((restM||0)/totalRest*100):0;
-    if(g("op-tc-pct"))g("op-tc-pct").textContent=restRemPct+"%";
-    if(g("op-tc-rem"))g("op-tc-rem").textContent="";
-    if(g("op-tc-bar"))g("op-tc-bar").style.width=restRemPct+"%";
-  } else if(notYet){
-    card.classList.add("state-next");
-    if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
-    if(g("op-tc-sub"))g("op-tc-sub").textContent="Próximo turno";
-    if(g("op-tc-pct"))g("op-tc-pct").textContent="0%";
-    if(g("op-tc-rem"))g("op-tc-rem").textContent="Empieza en "+fmtT(e1-nowMin);
-    if(g("op-tc-bar"))g("op-tc-bar").style.width="0%";
-  }
-
   // ─ Resumen Operativo ─────────────────────────────────────
   var gmap={};try{gmap=JSON.parse(localStorage.getItem("cta_grupo_2026_map")||"{}");}catch(e){}
   var todayNum=now.getDate();
@@ -4135,6 +4093,139 @@ window.renderOperativa=function(){
   var tE2=dT&&dT.e2?toM(dT.e2):null,tS2=dT&&dT.s2?toM(dT.s2):null;
   var iT=tE1!==null&&totT>0?cntSh(lT.concat(sT),tE1,tS1,tE2,tS2):0;
   if(g("op-v-turno-tom"))g("op-v-turno-tom").textContent=totT>0?String(iT):"—";
+  if(!card)return;
+  ["state-working","state-pausa","state-rest","state-next"].forEach(function(c){card.classList.remove(c);});
+
+  var _isFreeDay=false;
+  if(!d||!d.tipo||d.tipo==="libre"||(!d.e1&&["festivo","hl","hlp","vacaciones"].indexOf(d.tipo)<0)||["festivo","hl","hlp","vacaciones"].indexOf(d.tipo)>=0){
+    _isFreeDay=true;
+    card.classList.add("state-rest");
+    if(g("op-tc-lbl"))g("op-tc-lbl").textContent="Descanso";
+    // Find next shift (up to 30 days)
+    var nxtMinF=null,nxtStrF="",nxtDaysF=0;
+    var ANXTF=["trabajado","hl","hlp","h6","festivo","baja","rm","curso"];
+    for(var ddF=1;ddF<=30;ddF++){
+      var nDF=new Date(now.getFullYear(),now.getMonth(),now.getDate()+ddF);
+      var nMdF=(ue[MESES[nDF.getMonth()]]||{})[nDF.getDate()];
+      if(nMdF&&nMdF.e1&&nMdF.tipo&&ANXTF.indexOf(nMdF.tipo)>=0){nxtMinF=toM(nMdF.e1);nxtStrF=nMdF.e1;nxtDaysF=ddF;break;}
+    }
+    var restMF=nxtMinF!==null?(nxtDaysF*1440+nxtMinF-nowMin):null;
+    function fmtRestF(m){
+      if(m===null||m<0)return "💤";
+      var dd=Math.floor(m/1440),hh=Math.floor((m%1440)/60),mn=m%60;
+      if(dd>0){
+        return "<span style='display:flex;flex-direction:column;align-items:center;gap:2px'>"
+          +"<span style='font-size:13px;color:var(--gold);font-weight:700'>"+dd+" día"+(dd>1?'s':'')+"</span>"
+          +"<span style='font-size:22px;font-weight:800;color:#4ade80'>"+hh+"h"+(mn?" "+mn+"m":"")+"</span>"
+          +"</span>";
+      }
+      if(hh>0)return hh+"h "+(mn?mn+"m":"");
+      return mn+"m";
+    }
+    var cntF=fmtRestF(restMF);
+    var isMultiDay=restMF!==null&&Math.floor(restMF/1440)>0;
+    if(g("op-tc-times"))g("op-tc-times").innerHTML=isMultiDay?cntF:"<span>"+(cntF||"💤")+"</span>";
+    if(g("op-tc-sub"))g("op-tc-sub").textContent=nxtStrF?"Próximo turno "+nxtStrF:"";
+    // % remaining: look back to find when last shift ended
+    var lastShiftEnd=null;
+    for(var ddB=1;ddB<=30;ddB++){
+      var pDB=new Date(now.getFullYear(),now.getMonth(),now.getDate()-ddB);
+      var pMdB=(ue[MESES[pDB.getMonth()]]||{})[pDB.getDate()];
+      if(pMdB&&pMdB.e1&&pMdB.tipo&&ANXTF.indexOf(pMdB.tipo)>=0){
+        var lastS=pMdB.s2?toM(pMdB.s2):toM(pMdB.s1);
+        if(lastS!==null)lastShiftEnd=ddB*1440-lastS+nowMin; // minutes elapsed since last shift ended
+        break;
+      }
+    }
+    var totalRestF2=(lastShiftEnd||nowMin)+(restMF||0);
+    var restRemPctF=totalRestF2>0?Math.round((restMF||0)/totalRestF2*100):0;
+    if(g("op-tc-pct"))g("op-tc-pct").textContent=restMF!==null?restRemPctF+"%":"";
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="";
+    if(g("op-tc-bar"))g("op-tc-bar").style.width=restMF!==null?restRemPctF+"%":"0%";
+  }
+  if(!_isFreeDay){
+  }
+
+  var e1=toM(d.e1),s1=toM(d.s1),e2=d.e2?toM(d.e2):null,s2=d.s2?toM(d.s2):null;
+  var shEnd=s2||s1,totMin=0;
+  if(e1!==null&&s1!==null)totMin+=(s1>=e1?s1-e1:s1+1440-e1);
+  if(e2!==null&&s2!==null)totMin+=(s2>=e2?s2-e2:s2+1440-e2);
+  if(g("op-tc-lbl")&&!_isFreeDay)g("op-tc-lbl").textContent="Turno hoy · "+fmtT(totMin);
+  var th="<span>"+d.e1+" → "+d.s1+"</span>";
+  if(d.e2&&d.s2)th+="<span>"+d.e2+" → "+d.s2+"</span>";
+
+  var inS1=e1!==null&&s1!==null&&nowMin>=e1&&nowMin<s1;
+  var inS2=e2!==null&&s2!==null&&nowMin>=e2&&nowMin<s2;
+  var isPausa=e2!==null&&s1!==null&&nowMin>=s1&&nowMin<e2;
+  var isDone=shEnd!==null&&nowMin>=shEnd;
+  var notYet=e1!==null&&nowMin<e1;
+
+  if(inS1||inS2){
+    card.classList.add("state-working");
+    if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
+    var el2=inS1?nowMin-e1:(s1-e1)+(nowMin-e2);
+    var pct=Math.min(100,Math.round(el2/totMin*100));
+    var rem=shEnd-nowMin+(inS1&&e2?Math.max(0,e2-s1):0);
+    if(g("op-tc-sub"))g("op-tc-sub").textContent="Trabajando";
+    if(g("op-tc-pct"))g("op-tc-pct").textContent=pct+"%";
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="Quedan "+fmtT(Math.max(0,rem));
+    if(g("op-tc-bar"))g("op-tc-bar").style.width=pct+"%";
+  } else if(isPausa){
+    card.classList.add("state-pausa");
+    if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
+    var el3=s1-e1,pct3=Math.round(el3/totMin*100);
+    if(g("op-tc-sub"))g("op-tc-sub").textContent="Pausa · Vuelves a las "+d.e2;
+    if(g("op-tc-pct"))g("op-tc-pct").textContent=pct3+"%";
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="Pausa "+fmtT(e2-nowMin);
+    if(g("op-tc-bar"))g("op-tc-bar").style.width=pct3+"%";
+  } else if(isDone){
+    card.classList.add("state-rest");
+    var nxtMin=null,nxtStr="",nxtDays=0;
+    var ANXT=["trabajado","hl","hlp","h6","festivo","baja","rm","curso"];
+    for(var dd2=1;dd2<=30;dd2++){
+      var nD=new Date(now.getFullYear(),now.getMonth(),now.getDate()+dd2);
+      var nMd=(ue[MESES[nD.getMonth()]]||{})[nD.getDate()];
+      if(nMd&&nMd.e1&&nMd.tipo&&ANXT.indexOf(nMd.tipo)>=0){nxtMin=toM(nMd.e1);nxtStr=nMd.e1;nxtDays=dd2;break;}
+    }
+    // Calculate total minutes remaining (including full days)
+    var restM=nxtMin!==null?(nxtDays*1440+nxtMin-nowMin):null;
+    function fmtRest(m){
+      if(m===null||m<0)return "💤";
+      var d=Math.floor(m/1440),h=Math.floor((m%1440)/60),mn=m%60;
+      if(d>0){
+        // Days in gold, time in green
+        return "<span style='display:flex;flex-direction:column;align-items:center;gap:2px'>"
+          +"<span style='font-size:13px;color:var(--gold);font-weight:700'>"+d+" días</span>"
+          +"<span style='font-size:22px;font-weight:800;color:#4ade80'>"+h+"h"+(mn?" "+mn+"m":"")+"</span>"
+          +"</span>";
+      }
+      if(h>0)return h+"h "+(mn?mn+"m":"");
+      return mn+"m";
+    }
+    var cnt=fmtRest(restM);
+    if(g("op-tc-lbl"))g("op-tc-lbl").textContent="Descanso";
+    // For multi-day: use raw HTML, otherwise wrap in span
+    var cntHtml=restM!==null&&Math.floor(restM/1440)>0?cnt:"<span>"+(cnt||"💤")+"</span>";
+    if(g("op-tc-times"))g("op-tc-times").innerHTML=cntHtml;
+    if(g("op-tc-sub"))g("op-tc-sub").textContent=nxtStr?"Próximo turno "+nxtStr:"";
+    // % of rest REMAINING (what's left to enjoy)
+    var restElapsed=nowMin-shEnd;if(restElapsed<0)restElapsed+=1440;
+    var totalRest=(restElapsed+(restM||0));
+    var restRemPct=totalRest>0?Math.round((restM||0)/totalRest*100):0;
+    if(g("op-tc-pct"))g("op-tc-pct").textContent=restRemPct+"%";
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="";
+    if(g("op-tc-bar"))g("op-tc-bar").style.width=restRemPct+"%";
+  } else if(notYet){
+    card.classList.add("state-next");
+    if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
+    if(g("op-tc-sub"))g("op-tc-sub").textContent="Próximo turno";
+    if(g("op-tc-pct"))g("op-tc-pct").textContent="0%";
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="Empieza en "+fmtT(e1-nowMin);
+    if(g("op-tc-bar"))g("op-tc-bar").style.width="0%";
+  }
+
+
+
 };
 
 // Hook switchTab safely
