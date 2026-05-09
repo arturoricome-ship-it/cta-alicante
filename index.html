@@ -3450,6 +3450,9 @@ function procesarGrupoXlsx(file){
       if(lastToken.length>2&&lastToken.length<50&&!/^\d+$/.test(lastToken)){
         categoria=lastToken;
       }
+      // FD detection: check filename AND row2 for "FD"
+      var isFD=/\bFD\b/i.test(file&&file.name||'')||/\bFD\b/i.test(row2)||/\bFD\b/i.test(row2clean);
+      if(isFD)categoria='FD';
 
       // Detect month from row 3 or sheet name
       var sheetName=wb.SheetNames[0];
@@ -3812,8 +3815,19 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gray)"></div><div class="grupo-nombre" style="color:var(--gray);font-size:12px">Tú · Libre</div><div class="grupo-horario" style="color:var(--gray)">—</div></div>';
   }
   html+='</div>';
-  Object.keys(cats).sort().forEach(function(cat){
-    if(cat!=='_all')html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
+  // Sort categories: FD always last, rest alphabetical
+  var catKeys=Object.keys(cats).sort(function(a,b){
+    if(a==='_all')return 0;
+    if(a==='FD')return 1;
+    if(b==='FD')return -1;
+    return a.localeCompare(b,'es');
+  });
+  catKeys.forEach(function(cat){
+    if(cat==='FD'){
+      html+='<div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;padding:7px 0 3px;border-top:2px dashed rgba(255,255,255,.1);margin-top:6px;display:flex;align-items:center;gap:6px"><span style="background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:6px;color:#fbbf24;font-size:8px;font-weight:700;padding:1px 6px">FD</span><span style="color:var(--gray)">Fijos Discontinuos</span></div>';
+    } else if(cat!=='_all'){
+      html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
+    }
     cats[cat].forEach(function(c){
       var _dot=c.overnight?'#fb923c':'#60a5fa';
       var _nameExtra=c.overnight?' 🌙':'';
