@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V16_PRESION_MORADA_MUY_ALTA_2026-05-11 -->
+<!-- CTA_OPERATIVA_V35_HL_COMO_LIBRE_DESCANSO_2026-05-12 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -50,9 +50,6 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .vuelo-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:8px;display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center}
 .vuelo-row.vuelo-corte-s{box-shadow:inset 0 -2px 0 rgba(239,68,68,.5)}
 .vuelo-row.vuelo-corte-e{box-shadow:inset 0 2px 0 rgba(34,197,94,.5)}
-.vuelo-row.vuelo-en-turno{border-color:rgba(34,197,94,.26);background:linear-gradient(90deg,rgba(34,197,94,.055),var(--card) 28%)}
-.vuelo-row.vuelo-en-turno.vuelo-corte-s{box-shadow:inset 0 -2px 0 rgba(239,68,68,.65)}
-.vuelo-row.vuelo-en-turno.vuelo-corte-e{box-shadow:inset 0 2px 0 rgba(34,197,94,.65)}
 .vuelo-estado{font-size:10px;font-weight:700;padding:3px 7px;border-radius:100px;white-space:nowrap;min-width:0;text-align:center}
 .vuelo-num{font-family:"Bebas Neue",sans-serif;font-size:16px;color:var(--gold);letter-spacing:1px}
 .vuelo-dest{font-size:13px;font-weight:700}
@@ -196,7 +193,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-btn-wa{background:linear-gradient(135deg,#25D366,#1da851)}
 .grupo-btn:hover{transform:translateY(-2px);opacity:.9}
 .grupo-proximamente{font-size:12px;color:var(--gray);font-style:italic;padding:8px 0}
-#bottom-nav{position:fixed!important;bottom:0!important;left:0!important;right:0!important;background:rgba(13,22,35,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);display:flex!important;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:999!important;visibility:visible!important;opacity:1!important}
+#bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(13,22,35,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);display:flex;padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border:none;background:none;color:var(--gray);font-family:"Outfit",sans-serif;font-size:8px;font-weight:600;letter-spacing:.2px;text-transform:uppercase;transition:color .2s;padding:2px 0}
 .nav-btn.active{color:var(--gold)}.nav-ico{font-size:20px;line-height:1}
 #install-banner{display:none;position:fixed;bottom:80px;left:12px;right:12px;background:var(--navy-light);border:1px solid rgba(200,168,75,.4);border-radius:16px;padding:12px 14px;z-index:300;flex-direction:row;align-items:center;gap:11px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
@@ -343,8 +340,10 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-stat.gold{border-color:rgba(200,168,75,.2)}.mc-stat.gold .mc-stat-val{color:var(--gold)}
 .mc-stat.green{border-color:rgba(34,197,94,.2)}.mc-stat.green .mc-stat-val{color:#4ade80}
 .mc-stat.peren{border-color:rgba(251,146,60,.25);background:rgba(251,146,60,.05)}
+.mc-stat.fest{border-color:rgba(251,191,36,.25);background:rgba(251,191,36,.055)}
 .mc-stat-val{font-size:18px;font-weight:700;color:#60a5fa;line-height:1;margin-bottom:2px}
 .mc-stat.peren .mc-stat-val{color:#fb923c}
+.mc-stat.fest .mc-stat-val{color:#fbbf24}
 .mc-stat.annual .mc-stat-val{color:#60a5fa;opacity:.75}
 .mc-stat-lbl{font-size:9px;color:var(--gray);letter-spacing:.4px;text-transform:uppercase}
 .mc-day.cp{background:rgba(251,146,60,.1);color:#fb923c}
@@ -484,18 +483,24 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 /* ─── Panel operativo ampliado ───────────────────────────── */
 .op-dashboard{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 @media(max-width:720px){.op-dashboard{grid-template-columns:1fr}}
-.op-pressure-card,.op-now-card,.op-load-card,.op-peaks-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 14px;overflow:hidden}
+.op-pressure-card,.op-now-card,.op-load-card,.op-peaks-card,.op-productivity-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 14px;overflow:hidden}
 .op-pressure-card{border-color:rgba(200,168,75,.28);background:linear-gradient(160deg,rgba(200,168,75,.08),rgba(200,168,75,.025))}
+.op-productivity-card{border-color:rgba(34,197,94,.22);background:linear-gradient(160deg,rgba(34,197,94,.07),rgba(34,197,94,.02))}
 .op-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
 .op-card-title{font-size:12px;font-weight:800;color:var(--white);letter-spacing:.2px}
 .op-card-sub{font-size:8.5px;color:var(--gray);margin-top:2px;line-height:1.4}
 .op-pressure-level{font-size:10px;font-weight:900;border-radius:999px;padding:4px 8px;background:rgba(255,255,255,.06);color:var(--gray);white-space:nowrap;text-transform:uppercase;letter-spacing:.5px}
 .op-pressure-level.low{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25)}
 .op-pressure-level.mid{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25)}
-.op-pressure-level.high{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.28)}
-.op-pressure-level.very{background:rgba(192,38,211,.14);color:#e879f9;border:1px solid rgba(192,38,211,.28)}
-.op-pressure-pct.low{color:#4ade80}.op-pressure-pct.mid{color:#fbbf24}.op-pressure-pct.high{color:#f87171}.op-pressure-pct.very{color:#e879f9}
-.op-pressure-bar.low{background:#4ade80}.op-pressure-bar.mid{background:#fbbf24}.op-pressure-bar.high{background:#f87171}.op-pressure-bar.very{background:#e879f9}
+.op-pressure-level.high{background:rgba(251,146,60,.12);color:#fb923c;border:1px solid rgba(251,146,60,.3)}
+/* Escala presión operativa: verde → amarillo → naranja → rojo → morado */
+.op-pressure-level.very{background:rgba(239,68,68,.13);color:#f87171;border:1px solid rgba(239,68,68,.32)}
+.op-pressure-level.max{background:rgba(168,85,247,.16);color:#c084fc;border:1px solid rgba(168,85,247,.42);box-shadow:0 0 14px rgba(168,85,247,.16)}
+.op-pressure-pct.low{color:#4ade80}.op-pressure-pct.mid{color:#fbbf24}.op-pressure-pct.high{color:#fb923c}.op-pressure-pct.very{color:#f87171}.op-pressure-pct.max{color:#c084fc}
+.op-pressure-bar.low{background:#4ade80}.op-pressure-bar.mid{background:#fbbf24}.op-pressure-bar.high{background:#fb923c}.op-pressure-bar.very{background:#f87171}.op-pressure-bar.max{background:#c084fc;box-shadow:0 0 10px rgba(168,85,247,.45)}
+.op-pressure-level.ok{background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.28)}
+.op-pressure-pct.ok{color:#60a5fa}
+.op-pressure-bar.ok{background:#60a5fa}
 .op-pressure-main{display:flex;align-items:center;gap:12px;margin:8px 0}
 .op-pressure-pct{font-size:34px;font-weight:900;line-height:1;color:var(--gold)}
 .op-pressure-bar-bg{flex:1;height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
@@ -516,40 +521,52 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .op-pill.high{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.28);color:#f87171}
 
 
-/* ─── V13: detalles desplegable + estética exacta picos/horas ─── */
-.op-details{margin:10px 0 12px}
-.op-details summary{list-style:none;cursor:pointer;background:linear-gradient(135deg,rgba(96,165,250,.12),rgba(96,165,250,.035));border:1px solid rgba(96,165,250,.28);border-radius:14px;padding:12px 14px;font-size:12px;font-weight:900;color:#93c5fd;display:flex;justify-content:space-between;align-items:center;gap:10px;letter-spacing:.2px}
-.op-details summary::-webkit-details-marker{display:none}
-.op-details summary::after{content:'+';font-size:18px;color:#60a5fa;font-weight:900;line-height:1}
-.op-details[open] summary{border-radius:14px 14px 8px 8px;background:linear-gradient(135deg,rgba(96,165,250,.18),rgba(96,165,250,.055))}
-.op-details[open] summary::after{content:'−'}
-.op-details-body{padding-top:10px}
-.op-peaks-list{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:6px!important;margin-top:10px!important}
-@media(max-width:380px){.op-peaks-list{grid-template-columns:repeat(2,1fr)!important}}
-.op-peak-chip{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:8px 6px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px}
-.op-peak-chip .op-peak-hour{font-size:10px;font-weight:800;color:var(--white);line-height:1}
-.op-peak-chip .op-peak-count{font-size:8px;color:rgba(255,255,255,.38);line-height:1}
-.op-pill{font-size:8px;font-weight:900;border-radius:999px;padding:3px 6px;min-width:42px;text-align:center;text-transform:uppercase;letter-spacing:.3px}
-.op-pill.low{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#4ade80}
-.op-pill.mid{background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25);color:#fbbf24}
-.op-pill.high{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.28);color:#f87171}
-.op-pill.very{background:rgba(192,38,211,.14);border:1px solid rgba(192,38,211,.28);color:#e879f9}
-.op-peak-chip.low{border-color:rgba(34,197,94,.18);background:rgba(34,197,94,.045)}
-.op-peak-chip.mid{border-color:rgba(251,191,36,.18);background:rgba(251,191,36,.045)}
-.op-peak-chip.high{border-color:rgba(239,68,68,.22);background:rgba(239,68,68,.055)}
-.op-peak-chip.very{border-color:rgba(192,38,211,.25);background:rgba(192,38,211,.06)}
-.op-hourly-list{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
-@media(max-width:380px){.op-hourly-list{grid-template-columns:repeat(3,1fr)}}
-.op-hour-chip{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:7px 7px;min-height:60px;display:flex;flex-direction:column;justify-content:space-between;gap:3px}
-.op-hour-chip.low{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.17)}
-.op-hour-chip.mid{background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.17)}
-.op-hour-chip.high{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.2)}
-.op-hour-chip.very{background:rgba(192,38,211,.08);border-color:rgba(192,38,211,.22)}
-.op-hour-top{display:flex;align-items:center;justify-content:space-between;gap:4px}
-.op-hour-h{font-size:10px;font-weight:900;color:var(--white);letter-spacing:.2px}
-.op-hour-r{font-size:13px;font-weight:900;color:var(--gold);line-height:1}
-.op-hour-r.low{color:#4ade80}.op-hour-r.mid{color:#fbbf24}.op-hour-r.high{color:#f87171}.op-hour-r.very{color:#e879f9}
-.op-hour-meta{font-size:8px;color:var(--gray);line-height:1.25;white-space:nowrap}
+/* CTA V22: detalles, historial y barra inferior */
+#bottom-nav{display:flex!important;visibility:visible!important;opacity:1!important;position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:99999!important;transform:none!important;pointer-events:auto!important}
+#scroll-area{padding-bottom:calc(92px + env(safe-area-inset-bottom))!important}
+.op-pressure-formula{margin-top:6px;font-size:9px;color:var(--gray);line-height:1.45;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:7px 8px}
+.op-bars-24{display:grid!important;grid-template-columns:repeat(24,minmax(0,1fr))!important;gap:2px!important;align-items:end;height:142px;margin-top:10px;padding:8px 4px 18px;border-left:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);background:linear-gradient(to top,rgba(255,255,255,.04) 1px,transparent 1px) 0 0/100% 25%;overflow:visible!important}
+.op-bar-col{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;min-width:0;position:relative;cursor:pointer}.op-bar-fill{width:58%;min-height:2px;border-radius:5px 5px 0 0;background:#4ade80;border:1px solid rgba(255,255,255,.16);transition:filter .15s,transform .15s}.op-bar-col:active .op-bar-fill,.op-bar-col.show .op-bar-fill{filter:brightness(1.35);transform:scaleX(1.18)}.op-bar-val{position:absolute;bottom:100%;margin-bottom:4px;font-size:9px;font-weight:900;color:var(--white);background:rgba(13,22,35,.96);border:1px solid rgba(200,168,75,.35);border-radius:7px;padding:2px 5px;display:none;white-space:nowrap;z-index:2}.op-bar-col.show .op-bar-val{display:block}.op-bar-lab{font-size:7px;color:var(--gray);line-height:1;transform:rotate(-70deg);transform-origin:center;white-space:nowrap;margin-top:6px}@media(max-width:430px){.op-bars-24{gap:1px;height:132px;padding-left:2px;padding-right:2px}.op-bar-fill{width:64%}.op-bar-lab{font-size:6px}.op-bar-val{font-size:8px;padding:2px 4px}}
+
+/* ─── Detalles operativos: misma estética que Historial ───────────────── */
+.op-details{background:var(--card)!important;border:1px solid rgba(96,165,250,.18)!important;border-radius:16px!important;margin:12px 0 14px!important;overflow:hidden!important}
+.op-details[open]{border-color:rgba(96,165,250,.32)!important;box-shadow:0 8px 28px rgba(0,0,0,.16)!important}
+.op-details summary{list-style:none!important;cursor:pointer!important;background:linear-gradient(135deg,rgba(96,165,250,.12),rgba(96,165,250,.035))!important;border-bottom:1px solid rgba(255,255,255,.06)!important;padding:12px 14px!important;font-size:12px!important;font-weight:900!important;color:#93c5fd!important;display:flex!important;justify-content:space-between!important;align-items:center!important;gap:10px!important;letter-spacing:.2px!important}
+.op-details summary::-webkit-details-marker{display:none!important}
+.op-details summary::after{content:'+'!important;font-size:18px!important;color:#60a5fa!important;font-weight:900!important;line-height:1!important}
+.op-details[open] summary::after{content:'−'!important}
+.op-details-body{padding:12px 14px 14px!important;display:flex!important;flex-direction:column!important;gap:12px!important}
+
+/* CTA V34: ayuda orientativa en detalles e historial */
+.op-summary-title{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.op-info-btn{width:22px;height:22px;border-radius:999px;border:1px solid rgba(96,165,250,.42);background:rgba(96,165,250,.10);color:#93c5fd;font-family:"Outfit",sans-serif;font-size:12px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;line-height:1;box-shadow:0 0 0 0 rgba(96,165,250,0);transition:all .15s ease}
+.op-info-btn:active{transform:scale(.94);background:rgba(96,165,250,.20)}
+#op-info-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:12000;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:22px}
+#op-info-overlay.show{display:flex}
+.op-info-modal{width:100%;max-width:360px;background:var(--card);border:1px solid rgba(96,165,250,.32);border-radius:20px;padding:18px 17px 16px;box-shadow:0 18px 60px rgba(0,0,0,.45)}
+.op-info-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.op-info-title{font-size:14px;font-weight:900;color:#93c5fd;letter-spacing:.2px}
+.op-info-close{width:28px;height:28px;border-radius:9px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:var(--gray);font-size:18px;line-height:1;cursor:pointer}
+.op-info-text{font-size:12px;color:var(--white);line-height:1.6;margin-bottom:8px}
+.op-info-warn{font-size:11px;color:var(--gold);line-height:1.55;background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.20);border-radius:12px;padding:9px 10px}
+
+
+.op-history-details{background:var(--card);border:1px solid rgba(96,165,250,.18);border-radius:16px;margin:12px 0 14px;overflow:hidden}.op-history-details[open]{border-color:rgba(96,165,250,.32);box-shadow:0 8px 28px rgba(0,0,0,.16)}.op-history-details summary{list-style:none;cursor:pointer;background:linear-gradient(135deg,rgba(96,165,250,.12),rgba(96,165,250,.035));border-bottom:1px solid rgba(255,255,255,.06);padding:12px 14px;font-size:12px;font-weight:900;color:#93c5fd;display:flex;justify-content:space-between;align-items:center;gap:10px;letter-spacing:.2px}.op-history-details summary::-webkit-details-marker{display:none}.op-history-details summary::after{content:'+';font-size:18px;color:#60a5fa;font-weight:900;line-height:1}.op-history-details[open] summary::after{content:'−'}.op-history-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:12px}.op-history-card{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:14px;padding:12px;overflow:hidden}.op-history-title{font-size:13px;font-weight:900;color:var(--white);margin-bottom:2px}.op-history-sub{font-size:9px;color:var(--gray);margin-bottom:10px;line-height:1.35}.op-bars-7{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:130px;margin-top:10px;padding:8px 7px 18px;border-left:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);background:linear-gradient(to top,rgba(255,255,255,.04) 1px,transparent 1px) 0 0/100% 25%}.op-bars-7 .op-bar-fill{width:70%}.op-bars-7 .op-bar-lab{font-size:10px;transform:none;margin-top:4px}.op-heat-wrap{overflow-x:auto;padding-bottom:2px}.op-heat-grid{display:grid;grid-template-columns:38px repeat(24,28px);gap:4px;min-width:max-content;align-items:center}.op-heat-head,.op-heat-day{font-size:9px;color:var(--gray);text-align:center}.op-heat-day{text-align:right;padding-right:4px;font-size:10px}.op-heat-cell{height:28px;border-radius:7px;border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:rgba(255,255,255,.78);background:rgba(255,255,255,.025)}
+
+
+/* CTA V24 fixes: detalles operativos, gráficas a ancho completo */
+.op-hourly-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 14px;overflow:hidden}
+.op-hourly-list{display:grid!important;grid-template-columns:repeat(24,minmax(0,1fr))!important;gap:2px!important;align-items:end;width:100%;min-width:0;height:136px;margin-top:10px;padding:8px 4px 18px;border-left:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);background:linear-gradient(to top,rgba(255,255,255,.04) 1px,transparent 1px) 0 0/100% 25%;overflow:visible!important}
+.op-hour-chip{height:100%;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;position:relative;border-radius:0;background:transparent!important;border:0!important;padding:0!important}
+.op-hour-chip::before{content:"";display:block;width:58%;height:var(--h,2%);min-height:2px;border-radius:5px 5px 0 0;background:#4ade80;border:1px solid rgba(255,255,255,.16)}
+.op-hour-chip.mid::before{background:#fbbf24}.op-hour-chip.high::before,.op-hour-chip.very::before{background:#f87171}
+.op-hour-top{display:flex!important;flex-direction:column-reverse!important;align-items:center!important;gap:2px!important;width:100%}
+.op-hour-h{font-size:6px!important;color:var(--gray)!important;line-height:1!important;transform:rotate(-70deg);transform-origin:center;white-space:nowrap;margin-top:6px}
+.op-hour-r{position:absolute;bottom:100%;margin-bottom:4px;font-size:8px;font-weight:900;color:var(--white);background:rgba(13,22,35,.96);border:1px solid rgba(200,168,75,.35);border-radius:7px;padding:2px 4px;display:none;white-space:nowrap;z-index:2}
+.op-hour-chip:active .op-hour-r,.op-hour-chip.show .op-hour-r{display:block}
+.op-hour-meta{display:none!important}
+.op-pressure-pct{white-space:nowrap}
+@media(max-width:430px){.op-hourly-list{gap:1px;height:128px;padding-left:2px;padding-right:2px}.op-hour-chip::before{width:64%}.op-hour-r{font-size:7px}}
 
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -621,7 +638,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
             <div style="font-size:8px;color:var(--gray);text-transform:uppercase;margin-bottom:4px">Hoy</div>
             <div style="display:flex;gap:10px">
               <div><div class="op-v-nval" id="op-v-total">—</div><div class="op-v-nlbl">total</div></div>
-              <div><div class="op-v-nval" id="op-v-turno" style="color:#93c5fd">—</div><div class="op-v-nlbl">quedan turno</div></div>
+              <div><div class="op-v-nval" id="op-v-turno" style="color:#93c5fd">—</div><div class="op-v-nlbl">mi turno</div></div>
             </div>
           </div>
           <div style="background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.15);border-radius:10px;padding:7px 9px">
@@ -683,14 +700,15 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
       <div id="op-res-pico" style="display:none;padding:12px 14px"></div>
       <div id="op-res-now" style="display:none;padding:12px 14px"></div>
     </div>
+
     <details class="op-details">
-      <summary>📊 Detalles operativos del día</summary>
+      <summary><span class="op-summary-title">📊 Detalles operativos del día</span><button type="button" class="op-info-btn" aria-label="Información sobre los datos operativos" onclick="opShowDataInfo(event)">?</button></summary>
       <div class="op-details-body">
         <div class="op-dashboard">
           <div class="op-pressure-card">
             <div class="op-card-head">
               <div>
-                <div class="op-card-title">Presión operativa</div>
+                <div class="op-card-title">Presión operativa en tiempo real</div>
                 <div class="op-card-sub">Estimación interna, no dato oficial</div>
               </div>
               <div id="op-pressure-level" class="op-pressure-level">—</div>
@@ -699,7 +717,19 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
               <div id="op-pressure-pct" class="op-pressure-pct">—</div>
               <div class="op-pressure-bar-bg"><div id="op-pressure-bar" class="op-pressure-bar" style="width:0%"></div></div>
             </div>
-            <div id="op-pressure-note" class="op-mini-note">Calculada con vuelos, picos, plantilla y retrasos.</div>
+            <div id="op-pressure-note" class="op-mini-note">Calculada solo con vuelos en tierra y personal activo ahora.</div>
+            <div id="op-pressure-formula" class="op-pressure-formula">Resumen: necesarios / disponibles para vuelos. 50% = equilibrio.</div>
+          </div>
+
+          <div class="op-productivity-card">
+            <div class="op-card-title">Productividad operativa del día</div>
+            <div class="op-card-sub">Vuelos del día divididos entre horas planificadas</div>
+            <div class="op-metric-list">
+              <div class="op-metric-row"><span>Productividad</span><b id="op-prod-vh">—</b></div>
+              <div class="op-metric-row"><span>Horas por vuelo</span><b id="op-prod-hv">—</b></div>
+              <div class="op-metric-row"><span>Horas planificadas</span><b id="op-prod-hours">—</b></div>
+              <div class="op-metric-row"><span>Vuelos del día</span><b id="op-prod-flights">—</b></div>
+            </div>
           </div>
 
           <div class="op-now-card">
@@ -729,40 +759,50 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
           <div class="op-hourly-card">
             <div class="op-card-title">Personas por avión por hora</div>
             <div class="op-card-sub">Plantilla presente en cada hora dividida entre vuelos de esa hora</div>
-            <div id="op-hourly-ratio-list" class="op-hourly-list">
-              <div class="op-hour-chip"><span class="op-hour-h">Cargando...</span></div>
-            </div>
+            <div id="op-hourly-ratio-list" class="op-hourly-list"><div class="op-hour-chip"><span class="op-hour-h">Cargando...</span></div></div>
           </div>
 
           <div class="op-peaks-card" style="grid-column:1/-1">
             <div class="op-card-title">Picos previstos por vuelos</div>
-            <div class="op-card-sub">Estimación orientativa por franjas de 2 horas</div>
-            <div id="op-peaks-list" class="op-peaks-list">
-          <div class="op-peak-chip"><span class="op-peak-hour">00-02</span><b class="op-pill mid">—</b><small class="op-peak-count">— vuelos</small></div>
-          <div class="op-peak-chip"><span class="op-peak-hour">02-04</span><b class="op-pill mid">—</b><small class="op-peak-count">— vuelos</small></div>
-          <div class="op-peak-chip"><span class="op-peak-hour">04-06</span><b class="op-pill mid">—</b><small class="op-peak-count">— vuelos</small></div>
-          <div class="op-peak-chip"><span class="op-peak-hour">06-08</span><b class="op-pill mid">—</b><small class="op-peak-count">— vuelos</small></div>
-          <div class="op-peak-chip"><span class="op-peak-hour">08-10</span><b class="op-pill mid">—</b><small class="op-peak-count">— vuelos</small></div>
-          <div class="op-peak-chip"><span class="op-peak-hour">10-12</span><b class="op-pill mid">—</b><small class="op-peak-count">— vuelos</small></div>
-          <div class="op-peak-chip"><span class="op-peak-hour">12-14</span><b class="op-pill mid">—</b><small class="op-peak-count">— vuelos</small></div>
-          <div class="op-peak-chip"><span class="op-peak-hour">14-16</span><b class="op-pill mid">—</b><small class="op-peak-count">— vuelos</small></div>
-          <div class="op-peak-chip"><span class="op-peak-hour">16-18</span><b class="op-pill mid">—</b><small class="op-peak-count">— vuelos</small></div>
-          <div class="op-peak-chip"><span class="op-peak-hour">18-20</span><b class="op-pill mid">—</b><small class="op-peak-count">— vuelos</small></div>
-          <div class="op-peak-chip"><span class="op-peak-hour">20-22</span><b class="op-pill mid">—</b><small class="op-peak-count">— vuelos</small></div>
-          <div class="op-peak-chip"><span class="op-peak-hour">22-00</span><b class="op-pill mid">—</b><small class="op-peak-count">— vuelos</small></div>
-            </div>
+            <div class="op-card-sub">Barras por hora. Toca una barra para ver el número de vuelos.</div>
+            <div id="op-peaks-list" class="op-bars-24"></div>
           </div>
         </div>
       </div>
     </details>
-<p class="op-sec">Turnos publicados</p>
-    <div class="op-pub-card">
-      <div style="padding:10px 14px 8px;text-align:center"><div style="font-size:12px;font-weight:700">📋 Turnos publicados empresa</div><div style="font-size:9px;color:var(--gray);margin-top:1px">FTP · FIJI · Elige tu colectivo</div></div>
-      <div class="op-pub-row">
-        <button class="op-pub-btn" onclick="navToFolderByName('01_Turnos Rampa')"><span style="font-size:20px">✈️</span><div><span style="font-size:11px;font-weight:700;color:var(--white);display:block">Rampa</span><span style="font-size:8px;color:var(--gray);display:block;margin-top:1px">Operarios</span></div></button>
-        <button class="op-pub-btn" onclick="navToFolderByName('01b_Turnos Administrativos')"><span style="font-size:20px">🗂️</span><div><span style="font-size:11px;font-weight:700;color:var(--white);display:block">Administrativos</span><span style="font-size:8px;color:var(--gray);display:block;margin-top:1px">Admin.</span></div></button>
+
+    <details class="op-history-details" id="op-history-details">
+      <summary><span class="op-summary-title">📈 Historial operativa vuelos</span><button type="button" class="op-info-btn" aria-label="Información sobre el historial operativo" onclick="opShowDataInfo(event)">?</button></summary>
+      <div class="op-history-body">
+        <div class="op-history-card">
+          <div class="op-history-title">Distribución por hora</div>
+          <div class="op-history-sub">Toca una barra para ver el número.</div>
+          <div id="op-history-hour-bars" class="op-bars-24"></div>
+        </div>
+        <div class="op-history-card">
+          <div class="op-history-title">Distribución por días</div>
+          <div class="op-history-sub">Toca una barra para ver el número.</div>
+          <div id="op-history-day-bars" class="op-bars-7"></div>
+        </div>
+        <div class="op-history-card">
+          <div class="op-history-title">Mapa de calor día x hora</div>
+          <div class="op-history-sub">Verde = menos vuelos. Rojo = más vuelos.</div>
+          <div class="op-heat-wrap"><div id="op-history-heat" class="op-heat-grid"></div></div>
+        </div>
+      </div>
+    </details>
+
+    <div id="op-info-overlay" onclick="opHideDataInfo()">
+      <div class="op-info-modal" onclick="event.stopPropagation()">
+        <div class="op-info-head">
+          <div class="op-info-title">Datos orientativos</div>
+          <button type="button" class="op-info-close" onclick="opHideDataInfo()">×</button>
+        </div>
+        <div class="op-info-text">Estos datos son siempre orientativos. Están calculados pensando en personal de rampa y dependen de que los vuelos y los grupos de trabajo estén correctamente cargados.</div>
+        <div class="op-info-warn">Si no tienes importados todos los grupos de trabajo, la plantilla disponible será incompleta y los resultados pueden salir falseados.</div>
       </div>
     </div>
+
   </div>
 
   <div class="panel" id="panel-documentos">
@@ -834,6 +874,17 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
         oninput="mcSaveCarryover(this.value)">
     </div>
   </div>
+  <div id="mc-fest-carryover-wrap" style="display:none;margin-top:4px;margin-bottom:4px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.22);border-radius:12px;padding:10px 14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div>
+        <div style="font-size:9px;color:#fbbf24;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px">↩ Festivos arrastre</div>
+        <div style="font-size:10px;color:var(--gray);line-height:1.3">Festivos pendientes de años anteriores<br><span style="font-size:9px;opacity:.7">Se suman al total anual pendiente</span></div>
+      </div>
+      <input type="number" id="mc-fest-carryover" placeholder="0" min="0" step="1"
+        style="width:72px;background:#1f2d47;border:1px solid rgba(251,191,36,.32);border-radius:8px;color:#fbbf24;font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;padding:7px 8px;text-align:center"
+        oninput="mcSaveFestCarryover(this.value)">
+    </div>
+  </div>
   <div id="mc-summary"  style="display:none;margin-top:4px;margin-bottom:16px;background:var(--card);border-radius:14px;padding:12px 14px;border:1px solid var(--border)">
     <div style="font-size:10px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px" id="mc-sum-label">Resumen mes</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -847,6 +898,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
         <div class="mc-stat blue"><div class="mc-stat-val" id="mc-sum-anual">—</div><div class="mc-stat-lbl">Totales año</div></div>
         <div class="mc-stat green"><div class="mc-stat-val" id="mc-sum-anual-cont">—</div><div class="mc-stat-lbl">Contador anual</div></div>
         <div class="mc-stat peren"><div class="mc-stat-val" id="mc-sum-peren-anual">—</div><div class="mc-stat-lbl">Perentorias año</div></div>
+        <div class="mc-stat fest"><div class="mc-stat-val" id="mc-sum-fest-anual">—</div><div class="mc-stat-lbl">Festivos pendientes</div></div>
       </div>
     </div>
   </div>
@@ -1689,7 +1741,17 @@ function hToMin(h){
   return hh*60+mm;
 }
 
-function getShiftWindowsForOffset(dayOffset){
+function llegadaFinalizada30(v,refMin){
+  var tm=hToMin((v&& (v.horaReal||v.horaProg))||"");
+  if(tm===null)return false;
+  var nowM=(typeof refMin==="number")?refMin:(new Date().getHours()*60+new Date().getMinutes());
+  var diff=nowM-tm;
+  // Si la diferencia es negativa, ese vuelo aún no ha llegado o pertenece a mañana.
+  // En llegadas de hoy, a partir de 30 minutos desde la hora real/programada se da por terminado.
+  return diff>=30;
+}
+
+function getLiveCutoffsFromTurnoHoy(){
   var now=new Date();
   var meses=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
   var raw;
@@ -1697,22 +1759,22 @@ function getShiftWindowsForOffset(dayOffset){
   if(!raw)return {s:[],e:[],windows:[]};
   var data;
   try{data=JSON.parse(raw);}catch(e){return {s:[],e:[],windows:[]};}
-  var target=new Date(now);target.setDate(now.getDate()+(dayOffset||0));
-  var m=data[meses[target.getMonth()]]||{};
-  var d=m[target.getDate()]||null;
+  var hasMañana=typeof liveData!=="undefined"&&((liveData.lle||[]).concat(liveData.sal||[])).some(function(v){return !!v.esManana;});
+  function getDay(date){var m=data[meses[date.getMonth()]];return m?m[date.getDate()]||null:null;}
+  var d=getDay(now);
+  if(hasMañana){
+    var tom=new Date(now);tom.setDate(tom.getDate()+1);var dt=getDay(tom);
+    if(dt&&dt.e1){d=dt;} // tomorrow has shift → use it
+    else{return {s:[],e:[],windows:[]};} // tomorrow is libre → no lines
+  }
   if(!d||!d.e1)return {s:[],e:[],windows:[]};
   var s=[],e=[],windows=[];
-  function addWin(a,b){
-    if(a===null||b===null)return;
-    var aa=a,bb=b;
-    if(bb<aa)bb+=1440;
-    e.push(aa);s.push(bb);windows.push([aa,bb]);
-  }
-  addWin(hToMin(d.e1||""),hToMin(d.s1||""));
-  addWin(hToMin(d.e2||""),hToMin(d.s2||""));
+  var e1=hToMin(d.e1||""),s1=hToMin(d.s1||"");
+  var e2=hToMin(d.e2||""),s2=hToMin(d.s2||"");
+  if(e1!==null&&s1!==null){e.push(e1);s.push(s1);windows.push([e1,s1]);}
+  if(e2!==null&&s2!==null){e.push(e2);s.push(s2);windows.push([e2,s2]);}
   return {s:s,e:e,windows:windows};
 }
-function getLiveCutoffsFromTurnoHoy(){return getShiftWindowsForOffset(0);}
 
 function renderLive(){
   var container=document.getElementById("live-container");
@@ -1722,50 +1784,37 @@ function renderLive(){
   if(liveFiltro){
     data=data.filter(function(v){
       var s=v.estadoClass||"";
-      if(liveMode==="llegadas") return s!=="e-landed"&&s!=="e-final"&&s!=="e-taxiing"&&s!=="e-boarding"&&s!=="e-gate";
+      if(liveMode==="llegadas"){
+        if(llegadaFinalizada30(v))return false;
+        return s!=="e-landed"&&s!=="e-final"&&s!=="e-taxiing"&&s!=="e-boarding"&&s!=="e-gate";
+      }
       else return s!=="e-active"&&s!=="e-final";
     });
   }
-
-  // Orden cronológico real: evita que un vuelo dentro de tu turno quede visualmente
-  // fuera de las rayas verde/roja si la API devuelve vuelos desordenados.
-  data.sort(function(a,b){
-    var ah=hToMin(a.horaReal||a.horaProg||"");
-    var bh=hToMin(b.horaReal||b.horaProg||"");
-    if(ah===null)ah=9999;if(bh===null)bh=9999;
-    if(a.esManana)ah+=1440;if(b.esManana)bh+=1440;
-    return ah-bh;
-  });
 
   if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
   container.innerHTML="";
 
   var cortesS={};  // idx → red bottom line (last flight in shift window)
   var cortesE={};  // idx → green top line (first flight in shift window)
-  function markCutoffsFor(offset){
-    var cutoffs=getShiftWindowsForOffset(offset);
-    (cutoffs.windows||[]).forEach(function(win){
-      var winE=win[0],winS=win[1];
-      var firstIdx=-1,firstMin=99999,lastIdx=-1,lastMin=-1;
-      for(var i=0;i<data.length;i++){
-        var vv=data[i];
-        if(offset===1&&!vv.esManana)continue;
-        if(offset===0&&vv.esManana)continue;
-        if((vv.estadoClass||"")==="e-cancelled")continue;
-        var vm=hToMin(vv.horaReal||vv.horaProg||"");
-        if(vm===null)continue;
-        if(winS>=1440&&vm<winE)vm+=1440;
-        if(vm>=winE&&vm<=winS){
-          if(vm<firstMin){firstMin=vm;firstIdx=i;}
-          if(vm>lastMin||(vm===lastMin&&i>lastIdx)){lastMin=vm;lastIdx=i;}
-        }
+  var cutoffs=getLiveCutoffsFromTurnoHoy();
+  // For each shift window [eN, sN]: find first and last flight WITHIN that window
+  (cutoffs.windows||[]).forEach(function(win){
+    var winE=win[0],winS=win[1];
+    var firstIdx=-1,firstMin=99999,lastIdx=-1,lastMin=-1;
+    for(var i=0;i<data.length;i++){
+      var vv=data[i];
+      if((vv.estadoClass||"")==="e-cancelled")continue;
+      var vm=hToMin(vv.horaReal||vv.horaProg||"");
+      if(vm===null)continue;
+      if(vm>=winE&&vm<=winS){
+        if(vm<firstMin){firstMin=vm;firstIdx=i;}
+        if(vm>lastMin||(vm===lastMin&&i>lastIdx)){lastMin=vm;lastIdx=i;}
       }
-      if(firstIdx>=0)cortesE[firstIdx]=true;
-      if(lastIdx>=0)cortesS[lastIdx]=true;
-    });
-  }
-  markCutoffsFor(0);
-  markCutoffsFor(1);
+    }
+    if(firstIdx>=0)cortesE[firstIdx]=true;  // green top
+    if(lastIdx>=0)cortesS[lastIdx]=true;    // red bottom
+  });
 
   var separadorPuesto=false;
   data.forEach(function(v,idx){
@@ -1793,26 +1842,16 @@ function renderLive(){
     var row=document.createElement("div");row.className="vuelo-row";
     if(cortesS[idx])row.classList.add("vuelo-corte-s");
     if(cortesE[idx])row.classList.add("vuelo-corte-e");
-    // Marca suave todos los vuelos que caen dentro de tu turno, no solo el primero/último.
-    // Así un vuelo como 08:25 queda claramente dentro si tu turno es 05:00-10:00.
-    try{
-      var off=v.esManana?1:0;
-      var cw=getShiftWindowsForOffset(off);
-      var vmIn=hToMin(v.horaReal||v.horaProg||"");
-      var dentro=(cw.windows||[]).some(function(win){
-        var a=win[0],b=win[1],x=vmIn;
-        if(x===null)return false;
-        if(b>=1440&&x<a)x+=1440;
-        return x>=a&&x<=b;
-      });
-      if(dentro)row.classList.add("vuelo-en-turno");
-    }catch(_e){}
     if(rowStyle)row.style.cssText=rowStyle;
     var horaEfectiva=v.horaReal||v.horaProg||"";
+    var esEnVueloSalida=esS&&(v.estadoClass||"")=="e-active";
     row.setAttribute("data-hora",horaEfectiva);
+    row.setAttribute("data-live-mode",esS?"salidas":"llegadas");
+    row.setAttribute("data-estado-class",v.estadoClass||"");
+    var countdownAttr=esEnVueloSalida?"":(" data-hora='"+(horaEfectiva||"")+"'");
     row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
       +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
-      +"<div style='display:flex;flex-direction:column;align-items:flex-end;gap:3px'><div class='vuelo-estado "+(v.estadoClass||"e-scheduled")+"'>"+(v.estado||"Programado")+"</div><div class='vuelo-countdown' data-hora='"+(horaEfectiva||"")+"' data-manana='"+(v.esManana?'1':'0')+"'>—</div></div>";
+      +"<div style='display:flex;flex-direction:column;align-items:flex-end;gap:3px'><div class='vuelo-estado "+(v.estadoClass||"e-scheduled")+"'>"+(v.estado||"Programado")+"</div><div class='vuelo-countdown'"+countdownAttr+">"+(esEnVueloSalida?"":"—")+"</div></div>";
     container.appendChild(row);
   });
   // Update countdowns immediately after every render
@@ -1822,16 +1861,18 @@ function renderLive(){
 
 function updateFlightCountdowns(){
   var now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
-  document.querySelectorAll('.vuelo-countdown[data-hora]').forEach(function(el){
+  document.querySelectorAll('.vuelo-countdown').forEach(function(el){
+    var row=el.closest?el.closest('.vuelo-row'):null;
+    var mode=row?row.getAttribute('data-live-mode'):'';
+    var estado=row?row.getAttribute('data-estado-class'):'';
+    // En salidas, cuando el vuelo ya está "En vuelo", no se muestra ningún tiempo restante.
+    if(mode==='salidas'&&estado==='e-active'){el.textContent='';el.className='vuelo-countdown';return;}
     var h=el.getAttribute('data-hora');
     if(!h||h==='--:--'){el.textContent='';return;}
     var p=h.split(':'),flMin=(+p[0]||0)*60+(+p[1]||0);
-    // Si el vuelo está en el bloque de mañana, siempre suma 24h.
-    // No lo deduzcas solo por la hora, porque a las 20:30 un vuelo de mañana a las 21:00
-    // parecía erróneamente que quedaban 30m.
-    var isTom=el.getAttribute('data-manana')==='1';
-    var diff=(isTom?flMin+1440:flMin)-nowMin;
-    if(!isTom&&diff<-120)diff+=1440; // cruces reales de medianoche de hoy
+    // Handle next-day flights (hora < nowMin by a lot means tomorrow)
+    var diff=flMin-nowMin;
+    if(diff<-120)diff+=1440; // crosses midnight
     if(diff<0){el.textContent='';el.className='vuelo-countdown';return;}
     var hh=Math.floor(diff/60),mm=diff%60;
     var str=(hh>0?hh+'h ':'')+mm+'m';
@@ -1859,6 +1900,10 @@ function loadLive(){
       var hNow=new Date();
       document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
       renderLive();
+      if(typeof window.renderOperativa==='function'){
+        setTimeout(window.renderOperativa,50);
+        setTimeout(window.renderOperativa,500);
+      }
     setTimeout(updateFlightCountdowns,100);
     })
     .catch(function(){
@@ -2127,7 +2172,7 @@ function initGoogle(){
     // Festivo/HL/vacaciones → rest countdown
     var _restTipos=['festivo','hl','hlp','vacaciones'];
     if(_restTipos.indexOf(d?d.tipo:'')>=0){
-      if(bar)bar.style.display='none';if(nav)nav.style.display='flex';
+      if(bar)bar.style.display='block';if(nav)nav.style.display='none';
       var twT_=document.getElementById('tw-times');
       twT_.style.fontSize='22px';twT_.style.fontWeight='800';twT_.style.letterSpacing='0';twT_.style.color='#22c55e';
       document.getElementById('tw-ico').textContent='😴';document.getElementById('tw-ico').style.background='rgba(34,197,94,.08)';
@@ -2153,7 +2198,7 @@ function initGoogle(){
       var sa2=document.getElementById('scroll-area');if(sa2)sa2.style.paddingBottom='90px';
       return;
     }
-    if(nav)nav.style.display='flex';
+    if(nav)nav.style.display='none';
     if(bar)bar.style.display='block';
     var cb=document.getElementById('calc-btn');if(cb)cb.style.bottom='215px';
     var sa=document.getElementById('scroll-area');if(sa)sa.style.paddingBottom='90px';
@@ -2555,34 +2600,61 @@ function tiRefreshExportSummary(){
     var total=0;found.forEach(function(m){total+=Object.keys(data[m]).length;});
     lines.push('<b style="color:var(--white)">'+y+'</b> — '+found.length+' meses, '+total+' días');
   });
+  var extra=0,hist=false;
+  try{
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(k==='cta_session')continue;
+      if(k&&k.indexOf('cta_historial_operativa_vuelos')===0)hist=true;
+      if(k&&(k.indexOf('cta_')===0||k.indexOf('op_')===0||k==='avisos_seen'))extra++;
+    }
+  }catch(e){}
+  if(hist)lines.push('<b style="color:var(--white)">Histórico operativa</b> — incluido');
+  if(extra)lines.push('<span style="color:var(--gray)">Backup completo: '+extra+' claves locales</span>');
   var el=document.getElementById('ti-exp-summary');
   if(el)el.innerHTML=lines.length?lines.join('<br>'):'<span style="color:rgba(255,255,255,.3)">No hay datos guardados</span>';
 }
 
 function tiDoExport(){
-  var backup={_version:'horarios_v1',_fecha:new Date().toISOString()};
-  var year=new Date().getFullYear();
+  var backup={
+    _version:'cta_backup_completo_v2',
+    _fecha:new Date().toISOString(),
+    _tipo:'backup_completo_localStorage',
+    _nota:'Incluye datos locales de la app. Por seguridad no incluye cta_session.'
+  };
   var found=0;
-  [year-1,year,year+1].forEach(function(y){
-    var raw;try{raw=localStorage.getItem('cta_ed_'+y);}catch(e){return;}
-    if(raw){backup['cta_ed_'+y]=raw;found++;}
-  });
-  // Also backup config keys
-  for(var i=0;i<localStorage.length;i++){
-    var k=localStorage.key(i);
-    if(k&&(k.startsWith('cta_cfg_')||k.startsWith('cta_nom_')||k.startsWith('cta_cnt_'))){
-      try{backup[k]=localStorage.getItem(k);}catch(e){}
+  var skipped=[];
+  var includeKey=function(k){
+    if(!k)return false;
+    // No exportar la sesión/login por seguridad.
+    if(k==='cta_session')return false;
+    // Backup completo de datos de la app.
+    if(k.indexOf('cta_')===0)return true;
+    if(k.indexOf('op_')===0)return true;
+    if(k==='avisos_seen')return true;
+    return false;
+  };
+  try{
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(includeKey(k)){
+        try{backup[k]=localStorage.getItem(k);found++;}catch(e){}
+      }else if(k==='cta_session'){
+        skipped.push(k);
+      }
     }
-  }
-  if(!found){alert('No hay datos de turnos para exportar.');return;}
+  }catch(e){}
+  if(!found){alert('No hay datos locales de la app para exportar.');return;}
+  backup._keys_exportadas=found;
+  backup._keys_excluidas=skipped;
   var json=JSON.stringify(backup,null,2);
   var blob=new Blob([json],{type:'application/json'});
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a');
   a.href=url;
   var fecha=new Date().toISOString().slice(0,10);
-  a.download='horarios_backup_'+fecha+'.json';
-  logActividad('exportar');
+  a.download='cta_backup_completo_'+fecha+'.json';
+  logActividad('exportar_backup_completo');
   document.body.appendChild(a);a.click();
   setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},1000);
 }
@@ -2617,51 +2689,55 @@ function tiLoadBackup(file){
       var top;
       try{top=JSON.parse(raw);}catch(je){alert('El archivo no es un JSON válido.\n'+je.message);return;}
 
-      // Must have at least one cta_ed_XXXX key
-      var edKeys=Object.keys(top).filter(function(k){return /^cta_ed_\d{4}$/.test(k);});
-      if(edKeys.length===0){
-        alert('No se encontraron datos de calendario en el archivo.\nClaves encontradas: '+Object.keys(top).join(', '));
+      var allKeys=Object.keys(top).filter(function(k){return k.charAt(0)!=='_';});
+      var importableKeys=allKeys.filter(function(k){return k!=='cta_session';});
+      var edKeys=importableKeys.filter(function(k){return /^cta_ed_\d{4}$/.test(k);});
+      var histKeys=importableKeys.filter(function(k){return k.indexOf('cta_historial_operativa_vuelos')===0;});
+      var cfgKeys=importableKeys.filter(function(k){return k.indexOf('cta_cfg_')===0;});
+      var nomKeys=importableKeys.filter(function(k){return k.indexOf('cta_nom_')===0;});
+      var cntKeys=importableKeys.filter(function(k){return k.indexOf('cta_cnt_')===0;});
+      var perenKeys=importableKeys.filter(function(k){return k.indexOf('cta_peren_carryover_')===0;});
+      var opKeys=importableKeys.filter(function(k){return k.indexOf('op_')===0;});
+
+      if(importableKeys.length===0){
+        alert('No se encontraron datos importables en el JSON.');
         return;
       }
 
       _tiBackupRaw=top;
 
-      // Populate year selector with available years from backup
       var years=edKeys.map(function(k){return parseInt(k.replace('cta_ed_',''));}).sort();
       var ySel=document.getElementById('ti-backup-year');
       if(ySel){
-        // Clear and repopulate with available years
         ySel.innerHTML='';
-        years.forEach(function(y){
+        if(years.length){
+          years.forEach(function(y){
+            var opt=document.createElement('option');
+            opt.value=y;opt.textContent=y;
+            if(y===new Date().getFullYear())opt.selected=true;
+            ySel.appendChild(opt);
+          });
+        }else{
           var opt=document.createElement('option');
-          opt.value=y;opt.textContent=y;
-          if(y===2026)opt.selected=true;
+          opt.value='all';opt.textContent='Todo';opt.selected=true;
           ySel.appendChild(opt);
-        });
+        }
       }
-
-      // Only use the latest year available
-      var latestYear=years[years.length-1];
-      var ySel=document.getElementById('ti-backup-year');
-      if(ySel){
-        ySel.innerHTML='';
-        var opt=document.createElement('option');
-        opt.value=latestYear;opt.textContent=latestYear;opt.selected=true;
-        ySel.appendChild(opt);
-      }
-
-      var key='cta_ed_'+latestYear;
-      var parsed;
-      try{parsed=JSON.parse(top[key]);}catch(e){alert('Error leyendo datos: '+e.message);return;}
-      var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-      var found=months.filter(function(m){return parsed[m]&&typeof parsed[m]==='object'&&Object.keys(parsed[m]).length>0;});
-      var total=0;found.forEach(function(m){total+=Object.keys(parsed[m]).length;});
 
       document.getElementById('ti-backup-txt').textContent='✅ '+file.name;
       var prev=document.getElementById('ti-backup-preview');
-      prev.style.display='block';
-      prev.innerHTML='<b style="color:var(--white)">'+latestYear+': '+found.length+' meses · '+total+' días</b><br>'+
-        found.map(function(m){return m.charAt(0)+m.slice(1).toLowerCase()+': '+Object.keys(parsed[m]).length+'d';}).join(' · ');
+      if(prev){
+        prev.style.display='block';
+        var parts=[];
+        if(edKeys.length)parts.push('Calendarios: '+edKeys.length);
+        if(histKeys.length)parts.push('Histórico operativa: sí');
+        if(cfgKeys.length)parts.push('Configuración: '+cfgKeys.length);
+        if(nomKeys.length)parts.push('Nóminas: '+nomKeys.length);
+        if(cntKeys.length)parts.push('Contadores: '+cntKeys.length);
+        if(perenKeys.length)parts.push('Perentorias: '+perenKeys.length);
+        if(opKeys.length)parts.push('Datos operativa: '+opKeys.length);
+        prev.innerHTML='<b style="color:var(--white)">Backup completo detectado</b><br>'+parts.join(' · ')+'<br><span style="color:var(--gray)">'+importableKeys.length+' claves importables</span>';
+      }
 
       tiUpdateApplyBtn();
     }catch(err){
@@ -2673,24 +2749,28 @@ function tiLoadBackup(file){
 
 function tiApplyBackup(){
   if(!_tiBackupRaw)return;
-  var year=document.getElementById('ti-backup-year').value;
-  var key='cta_ed_'+year;
-  var rawVal=_tiBackupRaw[key];
-  if(!rawVal){alert('No hay datos para el año '+year+' en este backup.');return;}
-  var edData;
-  try{edData=typeof rawVal==='string'?JSON.parse(rawVal):rawVal;}
-  catch(e){alert('Error leyendo datos del año '+year+': '+e.message);return;}
-  var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-  var found=months.filter(function(m){return edData[m]&&typeof edData[m]==='object';});
-  if(found.length===0){alert('El año '+year+' no tiene meses con datos.');return;}
-  try{localStorage.setItem('cta_ed_'+year,JSON.stringify(edData));}
-  catch(e){alert('Error guardando: '+e.message);return;}
+  var keys=Object.keys(_tiBackupRaw).filter(function(k){return k.charAt(0)!=='_';});
+  var restored=0;
+  var skipped=[];
+  keys.forEach(function(k){
+    // No restaurar sesión/login desde un JSON.
+    if(k==='cta_session'){skipped.push(k);return;}
+    try{
+      var v=_tiBackupRaw[k];
+      if(typeof v==='undefined' || v===null)return;
+      localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));
+      restored++;
+    }catch(e){skipped.push(k);}
+  });
+  if(!restored){alert('No se pudo restaurar ningún dato del backup.');return;}
   closeTrypImport();
   setTimeout(function(){
-    logActividad('restaurar_backup');
-    alert('✅ Backup '+year+' cargado: '+found.length+' meses.');
+    logActividad('restaurar_backup_completo');
+    alert('✅ Backup completo restaurado: '+restored+' claves.'+(skipped.length?'\nNo restauradas: '+skipped.join(', '):''));
     if(typeof mcRender==='function')mcRender();
     if(typeof initTurnoWidget==='function')initTurnoWidget();
+    if(typeof opActualizarDashboard==='function')opActualizarDashboard();
+    if(typeof renderDashboardOperativa==='function')renderDashboardOperativa();
   },400);
 }
 
@@ -3249,6 +3329,21 @@ function mcSaveCarryover(val){
   try{localStorage.setItem('cta_peren_carryover_'+_mcYear, val||'0:00');}catch(e){}
   mcRenderSummary(null);// re-render just the summary
 }
+function mcSaveFestCarryover(val){
+  var n=parseInt(val,10);
+  if(isNaN(n)||n<0)n=0;
+  try{localStorage.setItem('cta_fest_carryover_'+_mcYear, String(n));}catch(e){}
+  mcRenderSummary(null);// re-render just the summary
+}
+function _mcFestivoCuentaDia(day){
+  if(!day)return false;
+  var tipos=['trabajado','vacaciones','curso','hl','hlp','baja','rm','hfun','festivo'];
+  if(tipos.indexOf(day.tipo)>=0)return true;
+  if(day.perenDur&&day.perenDur!=='0:00')return true;
+  if(day.hfunDur&&day.hfunDur!=='0:00')return true;
+  if(day.perenTipo==='cp'||day.perenTipo==='perentorias')return true;
+  return false;
+}
 function _mcDuration(str){if(!str)return 0;var p=str.split(":");return (+p[0]||0)*60+(+p[1]||0);}
 function _mcMin(e,s){
   if(!e||!s)return 0;
@@ -3308,15 +3403,28 @@ function mcRenderSummary(ue){
   // Show carryover only in January
   var coEl=document.getElementById('mc-peren-carryover-wrap');
   if(coEl)coEl.style.display=(_mcMonth===0)?'block':'none';
-  // Annual perentorias
+  var fcoWrap=document.getElementById('mc-fest-carryover-wrap');
+  if(fcoWrap)fcoWrap.style.display=(_mcMonth===0)?'block':'none';
+  // Annual perentorias and pending festivos
   var anualPerenMin=0;
+  var festivosGenerados=0,festivosUsados=0;
   _MC_MONTHS.forEach(function(mk){
     var md2=(ue&&ue[mk])||{};
+    var diasComputablesFestivo=0;
+    var festivosUsadosMes={};
     Object.keys(md2).forEach(function(dd){
-      var dy=md2[dd];if(!dy||!dy.perenDur||dy.perenDur==='0:00')return;
-      if(dy.perenTipo==='cp')anualPerenMin-=_mcDuration(dy.perenDur);
-      else anualPerenMin+=_mcDuration(dy.perenDur);
+      var dy=md2[dd];
+      if(!dy)return;
+      if(dy.perenDur&&dy.perenDur!=='0:00'){
+        if(dy.perenTipo==='cp')anualPerenMin-=_mcDuration(dy.perenDur);
+        else anualPerenMin+=_mcDuration(dy.perenDur);
+      }
+      // Un día marcado como festivo cuenta para llegar a 24 días computables,
+      // pero solo descuenta 1 festivo pendiente por día, nunca 2.
+      if(_mcFestivoCuentaDia(dy))diasComputablesFestivo++;
+      if(dy.tipo==='festivo'&&!festivosUsadosMes[dd]){festivosUsadosMes[dd]=true;festivosUsados++;}
     });
+    if(diasComputablesFestivo>=24)festivosGenerados+=2;
   });
   document.getElementById('mc-sum-total').textContent=totalMin>0?_mcFmtH(totalMin):'0h';
   document.getElementById('mc-sum-anual').textContent=anualMin>0?_mcFmtH(anualMin):'0h';
@@ -3331,6 +3439,13 @@ function mcRenderSummary(ue){
   var totalPerenAnual=anualPerenMin+_co;
   var apEl=document.getElementById('mc-sum-peren-anual');
   if(apEl)apEl.textContent=totalPerenAnual>0?_mcFmtH(totalPerenAnual):totalPerenAnual<0?_mcFmtH(Math.abs(totalPerenAnual))+' comp.':'—';
+  var _fcoRaw;try{_fcoRaw=localStorage.getItem('cta_fest_carryover_'+_mcYear);}catch(e){}
+  var _fco=parseInt(_fcoRaw,10);if(isNaN(_fco))_fco=0;
+  var _fcoEl=document.getElementById('mc-fest-carryover');
+  if(_fcoEl&&document.activeElement!==_fcoEl)_fcoEl.value=_fcoRaw||'';
+  var festivosPendientes=_fco+festivosGenerados-festivosUsados;
+  var festEl=document.getElementById('mc-sum-fest-anual');
+  if(festEl)festEl.textContent=String(festivosPendientes);
 }
 
 // ─── Day edit modal ──────────────────────────────────────────────
@@ -4212,10 +4327,6 @@ window.renderOperativa=function(){
 
   var d=mD[now.getDate()]||null;
   var card=g("op-turno-card");
-  // Turno propio de hoy: se define aquí para que vuelos/ratios y resumen usen la misma base.
-  var e1=d&&d.e1?toM(d.e1):null, s1=d&&d.s1?toM(d.s1):null;
-  var e2=d&&d.e2?toM(d.e2):null, s2=d&&d.s2?toM(d.s2):null;
-  var shEnd=s2||s1;
   // ─ Resumen Operativo ─────────────────────────────────────
   var gmap={};try{gmap=JSON.parse(localStorage.getItem("cta_grupo_2026_map")||"{}");}catch(e){}
   var todayNum=now.getDate();
@@ -4235,6 +4346,10 @@ window.renderOperativa=function(){
   function isWorkingAt(emp,min){
     function inT(e,s,m){if(e===null||s===null)return false;if(s<e)return m>=e||m<s;return m>=e&&m<s;}
     return inT(emp.e1,emp.s1,min)||inT(emp.e2,emp.s2,min);
+  }
+  function plannedMinutesEmp(emp){
+    function dur(e,s){if(e===null||s===null)return 0;var ss=s<e?s+1440:s;return Math.max(0,ss-e);}
+    return dur(emp.e1,emp.s1)+dur(emp.e2,emp.s2);
   }
   var total=trabajanHoy.length;
   // Check if a tramo [e,s] overlaps with a time period [pStart, pEnd]
@@ -4305,17 +4420,19 @@ window.renderOperativa=function(){
 
 
   function setTextOp(id,val){var el=g(id);if(el)el.textContent=val;}
-  function setPressureOp(pct,delays,peakFlights){
-    pct=Math.max(0,Math.min(100,Math.round(pct||0)));
-    var lvl='Baja',cls='low';
-    if(pct>=80){lvl='Muy alta';cls='very';}
-    else if(pct>=60){lvl='Alta';cls='high';}
-    else if(pct>=35){lvl='Media';cls='mid';}
+  function setPressureOp(score,necesarios,disponiblesVuelos){
+    score=Math.max(0,Math.min(100,Math.round(score||0)));
+    var lvl='Muy holgado',cls='low';
+    if(score>=90){lvl='Crítica';cls='max';}
+    else if(score>=70){lvl='Alta';cls='very';}
+    else if(score>=51){lvl='Ajustada';cls='high';}
+    else if(score===50){lvl='Equilibrio';cls='mid';}
+    else if(score>=30){lvl='Holgada';cls='ok';}
     var le=g('op-pressure-level');if(le){le.textContent=lvl;le.className='op-pressure-level '+cls;}
-    var pe=g('op-pressure-pct');if(pe){pe.textContent=pct+'%';pe.className='op-pressure-pct '+cls;}
-    var bar=g('op-pressure-bar');if(bar){bar.style.width=pct+'%';bar.className='op-pressure-bar '+cls;}
-    setTextOp('op-pressure-note','Vuelos + pico '+(peakFlights||0)+' + retrasos '+(delays||0)+' + plantilla '+total+'.');
-    setTextOp('op-load-lack',pct>=75?'Sí':'No');
+    var pctNode=g('op-pressure-pct');if(pctNode){pctNode.textContent=score+'%';pctNode.className='op-pressure-pct '+cls;}
+    var bar=g('op-pressure-bar');if(bar){bar.style.width=score+'%';bar.className='op-pressure-bar '+cls;}
+    setTextOp('op-pressure-note','50% = equilibrio. Presión en tiempo real con vuelos en tierra y personal disponible para aviones.');
+    setTextOp('op-load-lack',score>=70?'Sí':'No');
   }
   setTextOp('op-load-workers',total||'—');
   setTextOp('op-load-flights','—');
@@ -4326,7 +4443,11 @@ window.renderOperativa=function(){
   setTextOp('op-now-arrivals','—');
   setTextOp('op-now-departures','—');
   setTextOp('op-now-delays','—');
-  setPressureOp(total?25:0,0,0);
+  setTextOp('op-prod-vh','—');
+  setTextOp('op-prod-hv','—');
+  setTextOp('op-prod-hours','—');
+  setTextOp('op-prod-flights','—');
+  setPressureOp(0,0,0,wNow||0);
 
   // Flights
   if(typeof liveData==="undefined")return;
@@ -4338,6 +4459,17 @@ window.renderOperativa=function(){
   // Only update cache if new count is HIGHER — once set, never go down during the day
   if(totH>cH){cH=totH;try{localStorage.setItem("op_vt",JSON.stringify({d:tStr,t:cH}));}catch(e){}}
   if(g("op-v-total"))g("op-v-total").textContent=cH>0?cH:"—";
+  var horasPlanificadasDia=trabajanHoy.reduce(function(sum,e){return sum+plannedMinutesEmp(e);},0)/60;
+  var vuelosProductividad=cH||totH||0;
+  if(horasPlanificadasDia>0&&vuelosProductividad>0){
+    setTextOp('op-prod-vh',(vuelosProductividad/horasPlanificadasDia).toFixed(2).replace('.',',')+' vuelos/h');
+    setTextOp('op-prod-hv',(horasPlanificadasDia/vuelosProductividad).toFixed(2).replace('.',',')+' h/vuelo');
+  }else{
+    setTextOp('op-prod-vh','—');
+    setTextOp('op-prod-hv','—');
+  }
+  setTextOp('op-prod-hours',horasPlanificadasDia>0?(Math.round(horasPlanificadasDia*10)/10).toString().replace('.',',')+' h':'—');
+  setTextOp('op-prod-flights',vuelosProductividad>0?vuelosProductividad:'—');
   var totT=lT.length+sT.length;
   // Cache tomorrow total — same logic as today: only goes up, resets at midnight
   var tom=new Date(now);tom.setDate(tom.getDate()+1);
@@ -4345,30 +4477,11 @@ window.renderOperativa=function(){
   try{var cv2=localStorage.getItem("op_vt_tom");if(cv2){var cpt=JSON.parse(cv2);if(cpt.d===tStr2)cT=cpt.t;}}catch(e){}
   if(totT>cT){cT=totT;try{localStorage.setItem("op_vt_tom",JSON.stringify({d:tStr2,t:cT}));}catch(e){}}
   if(g("op-v-total-tom"))g("op-v-total-tom").textContent=cT>0?cT:"—";
-  function cntSh(fls,e1p,s1p,e2p,s2p,remainingOnly){
-    var n=0;
-    function inTramo(t,a,b){
-      if(a===null||b===null)return false;
-      var end=b<a?b+1440:b, x=t;
-      if(end>=1440&&x<a)x+=1440;
-      if(remainingOnly){
-        var nowX=nowMin;
-        if(end>=1440&&nowX<a)nowX+=1440;
-        if(x<nowX)return false;
-      }
-      return x>=a&&x<=end;
-    }
-    fls.forEach(function(v){
-      if((v.estadoClass||"")==="e-cancelled")return;
-      var t=typeof hToMin==="function"?hToMin(v.horaReal||v.horaProg||""):null;
-      if(t===null)return;
-      if(inTramo(t,e1p,s1p)||inTramo(t,e2p,s2p))n++;
-    });
-    return n;
-  }
+  function cntSh(fls,e1p,s1p,e2p,s2p){var n=0;fls.forEach(function(v){var t=typeof hToMin==="function"?hToMin(v.horaReal||v.horaProg||""):null;if(t===null)return;if(e1p!==null&&s1p!==null&&t>=e1p&&t<=s1p)n++;else if(e2p!==null&&s2p!==null&&t>=e2p&&t<=s2p)n++;});return n;}
+  var _shDone=(shEnd!==null&&nowMin>=shEnd);
   var _liveEmpty=(lH.length===0&&sH.length===0);
-  var iH=(e1!==null&&!_liveEmpty)?cntSh(lH.concat(sH),e1,s1,e2,s2,true):0;
-  if(g("op-v-turno"))g("op-v-turno").textContent=_liveEmpty?"—":String(iH);
+  var iH=(e1!==null&&!_shDone&&!_liveEmpty)?cntSh(lH.concat(sH),e1,s1,e2,s2):0;
+  if(g("op-v-turno"))g("op-v-turno").textContent=(_shDone||_liveEmpty)?"—":String(iH);
   var tom=new Date(now);tom.setDate(tom.getDate()+1);
   var dT=(ue[MESES[tom.getMonth()]]||{})[tom.getDate()]||null;
   var tE1=dT&&dT.e1?toM(dT.e1):null,tS1=dT&&dT.s1?toM(dT.s1):null;
@@ -4378,72 +4491,142 @@ window.renderOperativa=function(){
 
   // ─ Panel operativo ampliado: picos, ahora, carga/plantilla y presión ─
   function flMin(v){return typeof hToMin==="function"?hToMin(v.horaReal||v.horaProg||""):null;}
+  function arrDone30(v){return typeof llegadaFinalizada30==="function"&&llegadaFinalizada30(v,nowMin);}
+  var lHOperativa=lH.filter(function(v){return (v.estadoClass||"")!=="e-cancelled"&&!arrDone30(v);});
+  var sHOperativa=sH.filter(function(v){return (v.estadoClass||"")!=="e-cancelled";});
   var allH=lH.concat(sH).filter(function(v){return (v.estadoClass||"")!=="e-cancelled";});
+  var allHOperativa=lHOperativa.concat(sHOperativa);
   function inWindowCount(arr,a,b){return arr.filter(function(v){var tm=flMin(v);return tm!==null&&tm>=a&&tm<b;}).length;}
-  var windows=[];
-  for(var wh=0;wh<24;wh+=2){
-    var nx=(wh+2)%24;
-    windows.push({label:(wh<10?'0':'')+wh+'-'+(nx<10?'0':'')+nx,a:wh*60,b:wh*60+120});
-  }
+  var hourCounts=Array(24).fill(0);
+  allH.forEach(function(v){var tm=flMin(v);if(tm!==null)hourCounts[Math.floor(tm/60)%24]++;});
+  var windows=[
+    {label:'05:00 - 07:00',a:300,b:420},
+    {label:'10:00 - 12:00',a:600,b:720},
+    {label:'14:00 - 16:00',a:840,b:960},
+    {label:'20:00 - 22:00',a:1200,b:1320}
+  ];
   windows.forEach(function(w){w.count=inWindowCount(allH,w.a,w.b);});
   var maxFlights=windows.reduce(function(m,w){return Math.max(m,w.count);},0);
-  function lvlFor(c){if(maxFlights<=0)return {txt:'—',cls:'mid'};if(c>=Math.max(6,Math.ceil(maxFlights*.9)))return {txt:'Muy alto',cls:'very'};if(c>=Math.max(3,Math.ceil(maxFlights*.65)))return {txt:'Alto',cls:'high'};if(c>=Math.max(1,Math.ceil(maxFlights*.35)))return {txt:'Medio',cls:'mid'};return {txt:'Bajo',cls:'low'};}
+  function lvlFor(c){if(maxFlights<=0)return {txt:'—',cls:'mid'};if(c>=Math.max(3,Math.ceil(maxFlights*.75)))return {txt:'Alto',cls:'high'};if(c>=Math.max(1,Math.ceil(maxFlights*.4)))return {txt:'Medio',cls:'mid'};return {txt:'Bajo',cls:'low'};}
+
+  function opColorFromRatio(x,max){var r=max>0?x/max:0;if(r>=.75)return '#f87171';if(r>=.45)return '#fbbf24';return '#4ade80';}
+  function opBars24Html(counts,max,unit){max=max||Math.max.apply(null,counts.concat([1]));return counts.map(function(c,h){var pct=max>0?Math.max(2,Math.round(c/max*100)):2;var col=opColorFromRatio(c,max);var lab=(h<10?'0':'')+h;return '<div class="op-bar-col" onclick="this.classList.toggle(&quot;show&quot;)" title="'+lab+':00 · '+c+' '+unit+'"><span class="op-bar-val">'+c+' '+unit+'</span><div class="op-bar-fill" style="height:'+pct+'%;background:'+col+';border-color:'+col+'"></div><span class="op-bar-lab">'+lab+'</span></div>';}).join('');}
+  function opBars7Html(counts,max){var labs=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];max=max||Math.max.apply(null,counts.concat([1]));return counts.map(function(c,i){var pct=max>0?Math.max(2,Math.round(c/max*100)):2;var col=opColorFromRatio(c,max);return '<div class="op-bar-col" onclick="this.classList.toggle(&quot;show&quot;)" title="'+labs[i]+' · '+c+' vuelos"><span class="op-bar-val">'+c+' vuelos</span><div class="op-bar-fill" style="height:'+pct+'%;background:'+col+';border-color:'+col+'"></div><span class="op-bar-lab">'+labs[i]+'</span></div>';}).join('');}
+  function opSaveAndRenderHistory(todayCounts){var key='cta_historial_operativa_vuelos_v1';var y=now.getFullYear(),m=('0'+(now.getMonth()+1)).slice(-2),d0=('0'+now.getDate()).slice(-2);var ds=y+'-'+m+'-'+d0;var data={};try{data=JSON.parse(localStorage.getItem(key)||'{}');}catch(e){data={};}if(!data[ds])data[ds]={hours:Array(24).fill(0),dow:(now.getDay()+6)%7};data[ds].hours=data[ds].hours.map(function(v,i){return Math.max(v||0,todayCounts[i]||0);});try{localStorage.setItem(key,JSON.stringify(data));}catch(e){}var hourTotals=Array(24).fill(0),dayTotals=Array(7).fill(0),heat={};Object.keys(data).forEach(function(date){var rec=data[date]||{},arr=rec.hours||[],dow=(rec.dow!==undefined)?rec.dow:0;for(var i=0;i<24;i++){var v=arr[i]||0;hourTotals[i]+=v;dayTotals[dow]+=v;if(!heat[dow])heat[dow]=Array(24).fill(0);heat[dow][i]+=v;}});var maxH=Math.max.apply(null,hourTotals.concat([1]));var hb=g('op-history-hour-bars');if(hb)hb.innerHTML=opBars24Html(hourTotals,maxH,'vuelos');var maxD=Math.max.apply(null,dayTotals.concat([1]));var db=g('op-history-day-bars');if(db)db.innerHTML=opBars7Html(dayTotals,maxD);var hg=g('op-history-heat');if(hg){var labs=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];var maxCell=1;for(var dd=0;dd<7;dd++){var row=heat[dd]||Array(24).fill(0);for(var hh2=0;hh2<24;hh2++)maxCell=Math.max(maxCell,row[hh2]||0);}var html='<div></div>'+Array.from({length:24},function(_,h){return '<div class="op-heat-head">'+('0'+h).slice(-2)+'</div>';}).join('');for(var dd2=0;dd2<7;dd2++){html+='<div class="op-heat-day">'+labs[dd2]+'</div>';var row2=heat[dd2]||Array(24).fill(0);for(var h2=0;h2<24;h2++){var v=row2[h2]||0;var ratio=maxCell?v/maxCell:0;var bg=v===0?'rgba(255,255,255,.025)':('rgba('+(ratio>.55?'239,68,68':'34,197,94')+','+(0.10+ratio*0.35).toFixed(2)+')');var border=v===0?'rgba(255,255,255,.06)':(ratio>.55?'rgba(239,68,68,.35)':'rgba(34,197,94,.35)');html+='<div class="op-heat-cell" style="background:'+bg+';border-color:'+border+'" title="'+labs[dd2]+' '+('0'+h2).slice(-2)+':00 · '+v+' vuelos">'+(v||'')+'</div>';}}hg.innerHTML=html;}}
+
   var pl=g('op-peaks-list');
-  if(pl)pl.innerHTML=windows.map(function(w){var l=lvlFor(w.count);return '<div class="op-peak-chip '+l.cls+'"><span class="op-peak-hour">'+w.label+'</span><b class="op-pill '+l.cls+'">'+l.txt+'</b><small class="op-peak-count">'+w.count+' vuelos</small></div>';}).join('');
-  var peakWin=windows.slice().sort(function(a,b){return b.count-a.count;})[0]||null;
-  setTextOp('op-load-workers',total||'—');
+  var maxHourFlights=Math.max.apply(null,hourCounts.concat([1]));
+  if(pl)pl.innerHTML=opBars24Html(hourCounts,maxHourFlights,'vuelos');
+  if(typeof opSaveAndRenderHistory==='function')opSaveAndRenderHistory(hourCounts);
+  var peakHour=hourCounts.reduce(function(best,c,h){return c>(best.count||0)?{hour:h,count:c}:best;},{hour:0,count:0});
+  var peakWin=peakHour.count>0?{label:(('0'+peakHour.hour).slice(-2)+':00 - '+('0'+((peakHour.hour+1)%24)).slice(-2)+':00'),count:peakHour.count}:null;
+  setTextOp('op-load-workers',wNow||'—');
   setTextOp('op-load-flights',cH>0?cH:'—');
-  setTextOp('op-load-ratio',(total&&cH)?(total/cH).toFixed(2).replace('.',','):'—');
+  setTextOp('op-load-ratio','—');
   setTextOp('op-load-peak',peakWin&&peakWin.count>0?peakWin.label:'—');
-  function hourLabelOp(h){return (h<10?'0':'')+h+':00';}
-  function workersAtHour(h){var min=h*60;return trabajanHoy.filter(function(e){return isWorkingAt(e,min);}).length;}
-  function levelByRatio(r,fl){if(!fl)return 'low'; if(r>=8)return 'low'; if(r>=5)return 'mid'; if(r>=3)return 'high'; return 'very';}
+
   var hrList=g('op-hourly-ratio-list');
   if(hrList){
-    var hourly=[];
-    for(var hh2=0;hh2<24;hh2++){
-      var fl=inWindowCount(allH,hh2*60,hh2*60+60);
-      var wk=workersAtHour(hh2);
-      hourly.push({h:hh2,flights:fl,workers:wk,ratio:(fl>0&&wk>0)?(wk/fl):null});
-    }
-    hrList.innerHTML=hourly.map(function(x){
-      var cls=levelByRatio(x.ratio,x.flights);
-      var ratioTxt=x.ratio===null?'—':x.ratio.toFixed(1).replace('.',',');
-      return '<div class="op-hour-chip '+cls+'"><div class="op-hour-top"><span class="op-hour-h">'+hourLabelOp(x.h)+'</span><b class="op-hour-r '+cls+'">'+ratioTxt+'</b></div><div class="op-hour-meta">'+x.workers+' pers. / '+x.flights+' vuelos</div></div>';
+    hrList.innerHTML=hourCounts.map(function(fc,h){
+      var people=trabajanHoy.filter(function(e){return isWorkingAt(e,h*60);}).length;
+      var ratio=fc>0?people/fc:null;
+      var cls='low';
+      if(ratio===null)cls='low'; else if(ratio<3)cls='very'; else if(ratio<4)cls='high'; else if(ratio<6)cls='mid'; else cls='low';
+      var val=ratio===null?'—':ratio.toFixed(1).replace('.',',');
+      var hPct=(ratio===null?2:Math.max(2,Math.min(100,Math.round((ratio/8)*100))));
+      return '<div class="op-hour-chip '+cls+'" style="--h:'+hPct+'%" onclick="this.classList.toggle(&quot;show&quot;)" title="'+('0'+h).slice(-2)+':00 · '+people+' pers. / '+fc+' vuelos"><div class="op-hour-top"><span class="op-hour-h">'+('0'+h).slice(-2)+':00</span><span class="op-hour-r '+cls+'">'+val+'</span></div><div class="op-hour-meta">'+people+' pers. / '+fc+' vuelos</div></div>';
     }).join('');
   }
 
-
   function isDelay(v){var e=(v.estadoClass||'')+' '+(v.estado||'');return /delay|retras/i.test(e);}
   function inNext(v,min){var tm=flMin(v);if(tm===null)return false;var dd=tm-nowMin;if(dd<0)dd+=1440;return dd>=0&&dd<=min;}
-  var activeFlights=allH.filter(function(v){var c=v.estadoClass||'';return c==='e-active'||c==='e-boarding'||c==='e-gate'||c==='e-taxiing'||inNext(v,10);}).length;
-  var arr30=lH.filter(function(v){return (v.estadoClass||'')!=='e-cancelled'&&inNext(v,30);}).length;
-  var dep30=sH.filter(function(v){return (v.estadoClass||'')!=='e-cancelled'&&inNext(v,30);}).length;
-  var delays=allH.filter(isDelay).length;
-  var upcoming=allH.filter(function(v){return inNext(v,180);}).sort(function(a,b){return (flMin(a)||9999)-(flMin(b)||9999);});
+  function isEnVuelo(v){var c=(v.estadoClass||'');var e=String(v.estado||'').toLowerCase();return c==='e-active'||e.indexOf('en vuelo')>=0||e.indexOf('en route')>=0;}
+  function depActive(v){var tm=flMin(v);if(tm===null||isEnVuelo(v))return false;var a=tm-35,b=tm;return nowMin>=a&&nowMin<=b;}
+  function arrActive(v){var tm=flMin(v);if(tm===null||isEnVuelo(v))return false;return nowMin>=tm&&nowMin<tm+30;}
+  var salidasActivasList=sHOperativa.filter(depActive);
+  var llegadasActivasList=lHOperativa.filter(arrActive);
+  var salidasActivas=salidasActivasList.length;
+  var llegadasActivas=llegadasActivasList.length;
+  var activeFlights=salidasActivas+llegadasActivas;
+  var arr30=lHOperativa.filter(function(v){return !isEnVuelo(v)&&inNext(v,30);}).length;
+  var dep30=sHOperativa.filter(function(v){return !isEnVuelo(v)&&inNext(v,30);}).length;
+  var vuelosActivosTierra=salidasActivasList.concat(llegadasActivasList);
+  var delays=vuelosActivosTierra.filter(isDelay).length;
+  var upcoming=allHOperativa.filter(function(v){return !isEnVuelo(v)&&inNext(v,180);}).sort(function(a,b){return (flMin(a)||9999)-(flMin(b)||9999);});
   var critical=upcoming.filter(isDelay)[0]||upcoming[0]||null;
   setTextOp('op-now-active',activeFlights);
   setTextOp('op-now-critical',critical?((critical.numero||'Vuelo')+' - '+(critical.horaReal||critical.horaProg||'--:--')):'—');
   setTextOp('op-now-arrivals',arr30);
   setTextOp('op-now-departures',dep30);
   setTextOp('op-now-delays',delays);
-  var ratioScore=(total&&cH)?Math.min(45,(cH/total)*35):0;
-  var peakScore=peakWin?Math.min(30,peakWin.count*4):0;
-  var delayScore=Math.min(15,delays*5);
-  var nowScore=Math.min(10,activeFlights*2);
-  setPressureOp(ratioScore+peakScore+delayScore+nowScore,delays,peakWin?peakWin.count:0);
+  function isScaleGround(v){var c=v.estadoClass||'';return !isEnVuelo(v)&&(c==='e-boarding'||c==='e-gate'||c==='e-taxiing'||c==='e-landed');}
+  function minDiffSameDay(a,b){
+    if(a===null||b===null)return null;
+    var d=b-a;
+    if(d<-720)d+=1440;
+    if(d>720)d-=1440;
+    return d;
+  }
+  // Prioridad operativa: si una llegada y una salida forman una escala, ese avión cuenta una sola vez como escala.
+  // Así evitamos el doble conteo: escala (4) + su propia salida/llegada (3).
+  var llegadasUsadasEnEscala=new Set();
+  var salidasUsadasEnEscala=new Set();
+  var escalasDetectadas=[];
+  var llegadasParaEscala=lH.filter(function(v){
+    if((v.estadoClass||'')==='e-cancelled'||isEnVuelo(v))return false;
+    var tm=flMin(v);
+    if(tm===null)return false;
+    var age=nowMin-tm;
+    if(age<0)age+=1440;
+    // Una llegada puede dejar de contar como llegada activa a los 30 min,
+    // pero seguir sirviendo para identificar que la salida posterior es el mismo avión en escala.
+    return age>=0&&age<=180;
+  });
+  salidasActivasList.forEach(function(sal){
+    var ts=flMin(sal);if(ts===null)return;
+    var mejor=null,mejorDiff=9999;
+    llegadasParaEscala.forEach(function(lle){
+      if(llegadasUsadasEnEscala.has(lle))return;
+      var tl=flMin(lle);var diff=minDiffSameDay(tl,ts);
+      if(diff===null)return;
+      // Escala razonable: la llegada ya está en tierra y la salida está entre 0 y 180 min después.
+      if(diff>=0&&diff<=180&&diff<mejorDiff){mejor=lle;mejorDiff=diff;}
+    });
+    if(mejor){
+      llegadasUsadasEnEscala.add(mejor);
+      salidasUsadasEnEscala.add(sal);
+      escalasDetectadas.push({llegada:mejor,salida:sal,minutos:mejorDiff});
+    }
+  });
+  var avionesEnEscala=escalasDetectadas.length;
+  var soloLlegadasActivas=llegadasActivasList.filter(function(v){return !llegadasUsadasEnEscala.has(v);}).length;
+  var soloSalidasActivas=salidasActivasList.filter(function(v){return !salidasUsadasEnEscala.has(v);}).length;
+  var operariosActivosAhora=wNow||0;
+  var puestosFijos=4; // 2 jardineras + 2 patios. No cuentan para aviones.
+  var operariosDisponiblesVuelos=Math.max(0,operariosActivosAhora-puestosFijos);
+  var genteNecesaria=(avionesEnEscala*4)+(soloLlegadasActivas*3)+(soloSalidasActivas*3);
+  var pressureScore=0;
+  if(genteNecesaria>0&&operariosDisponiblesVuelos===0){pressureScore=100;}
+  else if(operariosDisponiblesVuelos>0){pressureScore=(genteNecesaria/operariosDisponiblesVuelos)*50;}
+  pressureScore=Math.max(0,Math.min(100,pressureScore));
+  setPressureOp(pressureScore,genteNecesaria,operariosDisponiblesVuelos);
+  setTextOp('op-load-workers',operariosActivosAhora||'—');
+  var vuelosRatio=activeFlights||soloSalidasActivas+soloLlegadasActivas+avionesEnEscala;
+  setTextOp('op-load-ratio',(operariosDisponiblesVuelos&&vuelosRatio)?(operariosDisponiblesVuelos/vuelosRatio).toFixed(2).replace('.',','):'—');
+  var pf=g('op-pressure-formula');if(pf)pf.textContent='Resumen: '+genteNecesaria+' necesarios / '+operariosDisponiblesVuelos+' disponibles para vuelos. Fijos no computan: 2 jardineras + 2 patios.';
 
   if(!card)return;
   ["state-working","state-pausa","state-rest","state-next"].forEach(function(c){card.classList.remove(c);});
 
   var _isFreeDay=false;
+  // Libre, Festivo, HL/HLP y Vacaciones se pintan como descanso en Mi jornada.
   if(!d||!d.tipo||d.tipo==="libre"||(!d.e1&&["festivo","hl","hlp","vacaciones"].indexOf(d.tipo)<0)||["festivo","hl","hlp","vacaciones"].indexOf(d.tipo)>=0){
     _isFreeDay=true;
     card.classList.add("state-rest");
     if(g("op-tc-lbl"))g("op-tc-lbl").textContent="Descanso";
     // Find next shift (up to 30 days)
     var nxtMinF=null,nxtStrF="",nxtDaysF=0;
-    var ANXTF=["trabajado","hl","hlp","h6","festivo","baja","rm","curso"];
+    var ANXTF=["trabajado","h6","baja","rm","curso"]; // HL/HLP se tratan como libre: descanso, no próximo turno
     for(var ddF=1;ddF<=30;ddF++){
       var nDF=new Date(now.getFullYear(),now.getMonth(),now.getDate()+ddF);
       var nMdF=(ue[MESES[nDF.getMonth()]]||{})[nDF.getDate()];
@@ -4483,10 +4666,15 @@ window.renderOperativa=function(){
     if(g("op-tc-rem"))g("op-tc-rem").textContent="";
     if(g("op-tc-bar"))g("op-tc-bar").style.width=restMF!==null?restRemPctF+"%":"0%";
   }
-  if(!_isFreeDay){
+  // Si no hay turno trabajado hoy (libre/festivo/HL/vacaciones o sin datos),
+  // ya hemos pintado la tarjeta de descanso arriba. No seguimos, porque d puede ser null
+  // y eso dejaba Operativa a medias con "Cargando...".
+  if(_isFreeDay){
+    return;
   }
 
-  var totMin=0;
+  var e1=toM(d.e1),s1=toM(d.s1),e2=d.e2?toM(d.e2):null,s2=d.s2?toM(d.s2):null;
+  var shEnd=s2||s1,totMin=0;
   if(e1!==null&&s1!==null)totMin+=(s1>=e1?s1-e1:s1+1440-e1);
   if(e2!==null&&s2!==null)totMin+=(s2>=e2?s2-e2:s2+1440-e2);
   if(g("op-tc-lbl")&&!_isFreeDay)g("op-tc-lbl").textContent="Turno hoy · "+fmtT(totMin);
@@ -4527,7 +4715,7 @@ window.renderOperativa=function(){
   } else if(isDone){
     card.classList.add("state-rest");
     var nxtMin=null,nxtStr="",nxtDays=0;
-    var ANXT=["trabajado","hl","hlp","h6","festivo","baja","rm","curso"];
+    var ANXT=["trabajado","h6","baja","rm","curso"]; // HL/HLP se tratan como libre: descanso, no próximo turno
     for(var dd2=1;dd2<=30;dd2++){
       var nD=new Date(now.getFullYear(),now.getMonth(),now.getDate()+dd2);
       var nMd=(ue[MESES[nD.getMonth()]]||{})[nD.getDate()];
@@ -4595,24 +4783,46 @@ window.initTurnoWidget=function(){
 
 
 <script>
-// CTA bottom nav hard force - no ocultar barra inferior
+(function(){function forceBottomNav(){var n=document.getElementById('bottom-nav');if(!n)return;n.style.setProperty('display','flex','important');n.style.setProperty('visibility','visible','important');n.style.setProperty('opacity','1','important');n.style.setProperty('position','fixed','important');n.style.setProperty('bottom','0','important');n.style.setProperty('z-index','99999','important');}forceBottomNav();setInterval(forceBottomNav,1200);document.addEventListener('DOMContentLoaded',forceBottomNav);})();
+</script>
+
+<script>
+// Arranque reforzado de Operativa: carga vuelos y repinta aunque no se abra el panel de vuelos.
 (function(){
-  function forceBottomNav(){
-    var nav=document.getElementById('bottom-nav');
-    if(!nav)return;
-    nav.style.setProperty('display','flex','important');
-    nav.style.setProperty('visibility','visible','important');
-    nav.style.setProperty('opacity','1','important');
-    nav.style.setProperty('position','fixed','important');
-    nav.style.setProperty('bottom','0','important');
-    nav.style.setProperty('left','0','important');
-    nav.style.setProperty('right','0','important');
-    nav.style.setProperty('z-index','999','important');
+  function kickOperativaData(){
+    try{
+      if(typeof loadLive==='function' && typeof liveData!=='undefined' && !(liveData.lle||[]).length && !(liveData.sal||[]).length){
+        loadLive();
+      }
+    }catch(e){}
+    try{ if(typeof window.renderOperativa==='function') window.renderOperativa(); }catch(e){ console.warn('renderOperativa error',e); }
   }
-  document.addEventListener('DOMContentLoaded',forceBottomNav);
-  window.addEventListener('load',forceBottomNav);
-  setInterval(forceBottomNav,1000);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',kickOperativaData);
+  else kickOperativaData();
+  window.addEventListener('load',function(){
+    setTimeout(kickOperativaData,300);
+    setTimeout(kickOperativaData,1800);
+    setTimeout(kickOperativaData,4500);
+  });
 })();
 </script>
+
+
+<script>
+// CTA V34: aviso contextual para detalles/historial operativo
+function opShowDataInfo(ev){
+  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+  var o=document.getElementById('op-info-overlay');
+  if(o) o.classList.add('show');
+}
+function opHideDataInfo(){
+  var o=document.getElementById('op-info-overlay');
+  if(o) o.classList.remove('show');
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape') opHideDataInfo();
+});
+</script>
+
 </body>
 </html>
