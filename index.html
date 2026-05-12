@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V37_MODAL_CALENDARIO_VISIBLE_2026-05-12 -->
+<!-- CTA_OPERATIVA_V47_SELECTOR_HOY_MANANA_DETALLES_2026-05-12 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -41,12 +41,12 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .live-dot{width:6px;height:6px;border-radius:50%;background:#f07070;flex-shrink:0;animation:livepulse 3s ease-in-out infinite}
 .live-plane{animation:livepulse 1.8s ease-in-out infinite;display:inline-block}
 @keyframes livepulse{0%,100%{opacity:1}50%{opacity:.2}}
-#live-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400}
+#live-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100000}
 #live-overlay.show{display:block}
-#live-panel{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-radius:20px 20px 0 0;z-index:401;transform:translateY(100%);transition:transform .3s ease;max-height:88vh;display:flex;flex-direction:column}
+#live-panel{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-radius:20px 20px 0 0;z-index:100001;transform:translateY(100%);transition:transform .3s ease;height:88vh;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
 #live-panel.show{transform:translateY(0)}
 .live-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:14px auto 12px}
-#live-body{overflow-y:auto;padding:0 14px 40px;flex:1}
+#live-body{overflow-y:auto;overflow-x:hidden;padding:0 14px calc(92px + env(safe-area-inset-bottom));flex:1;min-height:0;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 .vuelo-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:8px;display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center}
 .vuelo-row.vuelo-corte-s{box-shadow:inset 0 -2px 0 rgba(239,68,68,.5)}
 .vuelo-row.vuelo-corte-e{box-shadow:inset 0 2px 0 rgba(34,197,94,.5)}
@@ -520,6 +520,10 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .op-pill.mid{background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25);color:#fbbf24}
 .op-pill.high{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.28);color:#f87171}
 
+.op-day-toggle{grid-column:1/-1;display:flex;gap:6px;background:rgba(255,255,255,.045);border:1px solid var(--border);border-radius:12px;padding:4px;margin:2px 0 0}
+.op-day-toggle button{flex:1;border:none;border-radius:9px;background:transparent;color:var(--gray);font-family:"Outfit",sans-serif;font-size:11px;font-weight:800;padding:8px 10px;cursor:pointer;letter-spacing:.4px;text-transform:uppercase}
+.op-day-toggle button.active{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);box-shadow:0 3px 10px rgba(200,168,75,.25)}
+
 
 /* CTA V22: detalles, historial y barra inferior */
 #bottom-nav{display:flex!important;visibility:visible!important;opacity:1!important;position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:99999!important;transform:none!important;pointer-events:auto!important}
@@ -656,7 +660,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
             <div style="font-size:8px;color:var(--gray);text-transform:uppercase;margin-bottom:4px">Mañana</div>
             <div style="display:flex;gap:10px">
               <div><div class="op-v-nval" id="op-v-total-tom" style="color:var(--gold)">—</div><div class="op-v-nlbl">total</div></div>
-              <div><div class="op-v-nval" id="op-v-turno-tom" style="color:var(--gl)">—</div><div class="op-v-nlbl">mi turno</div></div>
+              <div><div class="op-v-nval" id="op-v-turno-tom" style="color:var(--gold-light)">—</div><div class="op-v-nlbl">mi turno</div></div>
             </div>
           </div>
         </div>
@@ -765,6 +769,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
               <div class="op-metric-row"><span>Franja más cargada</span><b id="op-load-peak">—</b></div>
               <div class="op-metric-row warn"><span>Posible falta de personal</span><b id="op-load-lack">—</b></div>
             </div>
+          </div>
+
+          <div class="op-day-toggle" aria-label="Selector día detalles operativos">
+            <button type="button" id="op-day-hoy" onclick="event.stopPropagation();opSetDetalleDia('hoy')">Hoy</button>
+            <button type="button" id="op-day-manana" onclick="event.stopPropagation();opSetDetalleDia('manana')">Mañana</button>
           </div>
 
           <div class="op-hourly-card">
@@ -1142,6 +1151,28 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 </div>
 
 <script>
+// CTA V42: limpieza única del histórico local antiguo de vuelos.
+// Borra solo los datos locales de "Historial operativa vuelos" para evitar mezclarlo con Sheets.
+try {
+  var _ctaResetHistKey = "cta_reset_historial_vuelos_v42";
+  if (localStorage.getItem(_ctaResetHistKey) !== "ok") {
+    Object.keys(localStorage).forEach(function(k) {
+      if (k && k.indexOf("cta_historial_operativa_vuelos") === 0) {
+        localStorage.removeItem(k);
+      }
+    });
+    localStorage.setItem(_ctaResetHistKey, "ok");
+  }
+} catch(e) {}
+// Mientras migramos a Sheets, no permitimos que el histórico local antiguo se regenere.
+try {
+  Object.keys(localStorage).forEach(function(k) {
+    if (k && k.indexOf("cta_historial_operativa_vuelos") === 0) {
+      localStorage.removeItem(k);
+    }
+  });
+} catch(e) {}
+
 var API_KEY="AIzaSyBK2GCTdfHt7PPhl-OBa3DTvCdZEQ5mprc";
 var ROOT_ID="1TS5vDO29JBTqd4JsGvO3a39YUIC7stbz";
 var DRIVE_API="https://www.googleapis.com/drive/v3";
@@ -1708,6 +1739,7 @@ var liveMode="llegadas";
 var liveFiltro=true;
 var liveLoaded=false;
 var liveData={sal:[],lle:[]};
+var liveLastServerEmpty=false;
 
 var CIUDADES={"ALC":"Alicante","BCN":"Barcelona","MAD":"Madrid","VLC":"Valencia","SVQ":"Sevilla","BIO":"Bilbao","PMI":"Palma","IBZ":"Ibiza","MAH":"Menorca","TFN":"Tenerife Norte","TFS":"Tenerife Sur","LPA":"Gran Canaria","ACE":"Lanzarote","FUE":"Fuerteventura","LCG":"A Coruña","SCQ":"Santiago","OVD":"Asturias","VGO":"Vigo","ZAZ":"Zaragoza","GRX":"Granada","AGP":"Málaga","XRY":"Jerez","CDG":"París","ORY":"París Orly","LHR":"Londres","LGW":"Londres","STN":"Londres","AMS":"Ámsterdam","FCO":"Roma","MXP":"Milán","VCE":"Venecia","NCE":"Niza","DUB":"Dublín","LIS":"Lisboa","OPO":"Oporto","ATH":"Atenas","IST":"Estambul","BRU":"Bruselas","FRA":"Fráncfort","MUC":"Múnich","VIE":"Viena","WAW":"Varsovia","PRG":"Praga","BUD":"Budapest","GVA":"Ginebra","ZRH":"Zúrich","CPH":"Copenhague","ARN":"Estocolmo","HEL":"Helsinki","OSL":"Oslo","TLV":"Tel Aviv","CMN":"Casablanca","RAK":"Marrakech","TUN":"Túnez","ALG":"Argel","ORN":"Orán","BOD":"Burdeos","NTE":"Nantes","TLS":"Toulouse","MPL":"Montpellier","REU":"Reus","GRO":"Gerona","SDR":"Santander","LEI":"Almería","RMU":"Murcia"};
 
@@ -1803,7 +1835,14 @@ function renderLive(){
     });
   }
 
-  if(!data.length){container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";return;}
+  if(!data.length){
+    if(!liveFiltro&&liveLastServerEmpty){
+      container.innerHTML="<div class='empty-box'>No se han recibido vuelos del servidor en esta actualización.<br><span style='font-size:11px;color:var(--gray)'>Pulsa ↻. Si sigue igual, probablemente Railway/AENA está devolviendo la lista vacía.</span></div>";
+    }else{
+      container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";
+    }
+    return;
+  }
   container.innerHTML="";
 
   var cortesS={};  // idx → red bottom line (last flight in shift window)
@@ -1894,6 +1933,25 @@ function updateFlightCountdowns(){
 setInterval(updateFlightCountdowns,30000);
 var RAILWAY="https://aena-vuelos-server-production.up.railway.app";
 
+function extractLiveVuelos(res,tipo){
+  // V38: Railway puede devolver distintos formatos según caché/endpoint.
+  // Antes solo se leía res.vuelos; si el backend devolvía llegadas/salidas/items/data, la app quedaba vacía.
+  if(!res)return [];
+  if(Array.isArray(res))return res;
+  if(Array.isArray(res.vuelos))return res.vuelos;
+  if(tipo==="llegadas"&&Array.isArray(res.llegadas))return res.llegadas;
+  if(tipo==="salidas"&&Array.isArray(res.salidas))return res.salidas;
+  if(Array.isArray(res.data))return res.data;
+  if(Array.isArray(res.items))return res.items;
+  if(Array.isArray(res.flights))return res.flights;
+  if(res.result){
+    if(Array.isArray(res.result))return res.result;
+    if(Array.isArray(res.result.vuelos))return res.result.vuelos;
+    if(tipo==="llegadas"&&Array.isArray(res.result.llegadas))return res.result.llegadas;
+    if(tipo==="salidas"&&Array.isArray(res.result.salidas))return res.result.salidas;
+  }
+  return [];
+}
 function loadLive(){
   liveLoaded=true;
   var container=document.getElementById("live-container");
@@ -1903,11 +1961,12 @@ function loadLive(){
   fetch(RAILWAY+"/vuelos?tipo=llegadas")
     .then(function(r){return r.json();})
     .then(function(resLle){
-      liveData.lle=(resLle.vuelos||[]);
+      liveData.lle=extractLiveVuelos(resLle,"llegadas");
       return fetch(RAILWAY+"/vuelos?tipo=salidas").then(function(r){return r.json();});
     })
     .then(function(resSal){
-      liveData.sal=(resSal.vuelos||[]);
+      liveData.sal=extractLiveVuelos(resSal,"salidas");
+      liveLastServerEmpty=((liveData.lle||[]).length===0&&(liveData.sal||[]).length===0);
       var hNow=new Date();
       document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
       renderLive();
@@ -1915,11 +1974,15 @@ function loadLive(){
         setTimeout(window.renderOperativa,50);
         setTimeout(window.renderOperativa,500);
       }
-    setTimeout(updateFlightCountdowns,100);
+      setTimeout(updateFlightCountdowns,100);
     })
     .catch(function(){
-      container.innerHTML="<div class='error-box'>Error al cargar vuelos. Pulsa ↻ para reintentar.</div>";
+      liveData.lle=[];
+      liveData.sal=[];
+      liveLastServerEmpty=true;
+      container.innerHTML="<div class='error-box'>Error al cargar vuelos desde Railway/AENA. Pulsa ↻ para reintentar.</div>";
       liveLoaded=false;
+      if(typeof window.renderOperativa==='function')setTimeout(window.renderOperativa,100);
     });
 }
 
@@ -3762,8 +3825,10 @@ function procesarGrupoXlsx(file){
       if(lastToken.length>2&&lastToken.length<50&&!/^\d+$/.test(lastToken)){
         categoria=lastToken;
       }
-      // FD detection: check filename AND row2 for "FD"
-      var isFD=/\bFD\b/i.test(file&&file.name||'')||/\bFD\b/i.test(row2)||/\bFD\b/i.test(row2clean);
+      // FD/FDS detection: filename, row2, cleaned header or detected category.
+      // Keeps fixed-discontinuous workers separated at the end instead of mixing them as General.
+      var _fdSource=[file&&file.name||'',row2,row2clean,categoria,lastToken].join(' ');
+      var isFD=/\bFDS?\b|FIJOS?\s+DISCONTINUOS?/i.test(_fdSource);
       if(isFD)categoria='FD';
 
       // Detect month from row 3 or sheet name
@@ -3976,6 +4041,12 @@ function formateaFechaGrupo(baseDate,offsetDias){
   return d.toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'2-digit'});
 }
 
+function normalizaCategoriaGrupo(cat){
+  cat=String(cat||'General').trim();
+  if(/\bFDS?\b|FIJOS?\s+DISCONTINUOS?/i.test(cat))return 'FD';
+  return cat||'General';
+}
+
 function renderCompanerosDia(offsetDias,toggleIfOpen){
   var panel=document.getElementById('grupo-panel');
   if(toggleIfOpen&&panel.classList.contains('open')){panel.classList.remove('open');return;}
@@ -4112,13 +4183,6 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   }
 
   var myHorario=(myDay&&myDay.e1)?(myDay.e1+'→'+myDay.s1+(myDay.e2?' / '+myDay.e2+'→'+myDay.s2:'')):'—';
-  // Group by category
-  var cats={};
-  if(window._sortBySalida){
-    cats['_all']=coinciden; // no category grouping when sorted by exit
-  } else {
-    coinciden.forEach(function(c){var cat=c.categoria||'General';if(!cats[cat])cats[cat]=[];cats[cat].push(c);});
-  }
   var html='<div class="grupo-header-sticky">'+navHtml;
   html+='<div class="grupo-title">👥 '+(modoToda?'Toda la plantilla':'Coincidencias')+' · '+coinciden.length+'</div>';
   if(myDay&&myDay.e1){
@@ -4127,30 +4191,45 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     html+='<div class="grupo-item" style="opacity:.6"><div class="grupo-solapamiento" style="background:var(--gray)"></div><div class="grupo-nombre" style="color:var(--gray);font-size:12px">Tú · Libre</div><div class="grupo-horario" style="color:var(--gray)">—</div></div>';
   }
   html+='</div>';
-  // Sort categories: FD always last, rest alphabetical
-  var catKeys=Object.keys(cats).sort(function(a,b){
-    if(a==='_all')return 0;
-    if(a==='FD')return 1;
-    if(b==='FD')return -1;
-    return a.localeCompare(b,'es');
-  });
-  catKeys.forEach(function(cat){
-    if(cat==='FD'){
-      html+='<div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;padding:7px 0 3px;border-top:2px dashed rgba(255,255,255,.1);margin-top:6px;display:flex;align-items:center;gap:6px"><span style="background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:6px;color:#fbbf24;font-size:8px;font-weight:700;padding:1px 6px">FD</span><span style="color:var(--gray)">Fijos Discontinuos</span></div>';
-    } else if(cat!=='_all'){
-      html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
-    }
-    cats[cat].forEach(function(c){
-      var _dot=c.overnight?'#fb923c':'#60a5fa';
-      var _nameExtra=c.overnight?' 🌙':'';
-      var _nameColor=c.overnight?'color:#fb923c;':''
-      var _hor=buildHorarioHtml(c);
-      html+='<div class="grupo-item'+(c.operativoAhora?' grupo-item-operativo':'')+'"'+(c.futuraNoche?' data-futura-noche="1"':'')+'>'+
-        '<div class="grupo-solapamiento" style="background:'+_dot+'"></div>'+
-        '<div class="grupo-nombre'+((c.noVieneInterrogacion||c.disponibilidadNoConfirmada)?' grupo-no-viene':'')+'" style="'+_nameColor+'">'+c.nombre+_nameExtra+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+
-        '<div class="grupo-horario" style="'+_nameColor+'">'+_hor+'</div></div>';
+
+  function renderGrupoPersona(c, extraStyle){
+    var _dot=c.overnight?'#fb923c':'#60a5fa';
+    var _nameExtra=c.overnight?' 🌙':'';
+    var _nameColor=c.overnight?'color:#fb923c;':'';
+    var _hor=buildHorarioHtml(c);
+    return '<div class="grupo-item'+(c.operativoAhora?' grupo-item-operativo':'')+'" '+(extraStyle?'style="'+extraStyle+'"':'')+(c.futuraNoche?' data-futura-noche="1"':'')+'>'+ 
+      '<div class="grupo-solapamiento" style="background:'+_dot+'"></div>'+
+      '<div class="grupo-nombre'+((c.noVieneInterrogacion||c.disponibilidadNoConfirmada)?' grupo-no-viene':'')+'" style="'+_nameColor+'">'+c.nombre+_nameExtra+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+ 
+      '<div class="grupo-horario" style="'+_nameColor+'">'+_hor+'</div></div>';
+  }
+
+  if(window._sortBySalida){
+    // When sorting by exit time, FD/FDS must be mixed with everyone else and ordered only by exit time.
+    coinciden.forEach(function(c){ html+=renderGrupoPersona(c,''); });
+  } else {
+    // Normal view: group by category and keep FD/FDS separated at the end.
+    var cats={};
+    coinciden.forEach(function(c){
+      var cat=normalizaCategoriaGrupo(c.categoria||'General');
+      if(!cats[cat])cats[cat]=[];
+      cats[cat].push(c);
     });
-  });
+    var catKeys=Object.keys(cats).sort(function(a,b){
+      var afd=normalizaCategoriaGrupo(a)==='FD';
+      var bfd=normalizaCategoriaGrupo(b)==='FD';
+      if(afd&&!bfd)return 1;
+      if(!afd&&bfd)return -1;
+      return a.localeCompare(b,'es');
+    });
+    catKeys.forEach(function(cat){
+      if(cat==='FD'){
+        html+='<div style="font-size:9px;letter-spacing:.8px;text-transform:uppercase;padding:7px 0 3px;border-top:2px dashed rgba(255,255,255,.1);margin-top:6px;display:flex;align-items:center;gap:6px"><span style="background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:6px;color:#fbbf24;font-size:8px;font-weight:700;padding:1px 6px">FD</span><span style="color:var(--gray)">Fijos Discontinuos</span></div>';
+      } else if(cat!=='_all'){
+        html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.05);margin-top:2px">'+cat+'</div>';
+      }
+      cats[cat].forEach(function(c){ html+=renderGrupoPersona(c,''); });
+    });
+  }
   // Add "Ya salieron" section if any
   if(window._sortBySalida&&window._yaSalieron&&window._yaSalieron.length>0){
     html+='<div style="font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;padding:8px 0 4px;border-top:1px solid rgba(255,255,255,.08);margin-top:4px;opacity:.7">✓ Ya salieron · '+window._yaSalieron.length+'</div>';
@@ -4297,6 +4376,11 @@ function g(id){return document.getElementById(id);}
 function toM(t){if(!t)return null;var p=t.split(":");return +p[0]*60+(+p[1]||0);}
 function fmtT(m){if(!m&&m!==0)return"";var h=Math.floor(m/60),mn=m%60;return h>0?h+"h"+(mn?" "+mn+"m":""):mn+"m";}
 
+window.opSetDetalleDia=function(dia){
+  try{localStorage.setItem('op_detalle_dia',dia==='manana'?'manana':'hoy');}catch(e){}
+  if(typeof window.renderOperativa==='function')window.renderOperativa();
+};
+
 window.renderOperativa=function(){
   var now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
   var mK=MESES[now.getMonth()];
@@ -4365,6 +4449,16 @@ window.renderOperativa=function(){
   function plannedMinutesEmp(emp){
     function dur(e,s){if(e===null||s===null)return 0;var ss=s<e?s+1440:s;return Math.max(0,ss-e);}
     return dur(emp.e1,emp.s1)+dur(emp.e2,emp.s2);
+  }
+  function opTrabajadoresFecha(dateObj){
+    var mk=MESES[dateObj.getMonth()],dn=dateObj.getDate(),out=[];
+    Object.keys(gmap).forEach(function(nom){
+      var emp=gmap[nom],dias=(emp.meses&&emp.meses[mk])||null;if(!dias)return;
+      var t=dias[dn];if(!t||!t.e1)return;
+      var excl=!!(t.noVieneInterrogacion||t.disponibilidadNoConfirmada);if(excl)return;
+      out.push({nombre:nom,e1:toM(t.e1),s1:toM(t.s1),e2:t.e2?toM(t.e2):null,s2:t.s2?toM(t.s2):null});
+    });
+    return out;
   }
   var total=trabajanHoy.length;
   // Check if a tramo [e,s] overlaps with a time period [pStart, pEnd]
@@ -4473,6 +4567,17 @@ window.renderOperativa=function(){
   try{var cv=localStorage.getItem("op_vt");if(cv){var cpo=JSON.parse(cv);if(cpo.d===tStr)cH=cpo.t;}}catch(e){}
   // Only update cache if new count is HIGHER — once set, never go down during the day
   if(totH>cH){cH=totH;try{localStorage.setItem("op_vt",JSON.stringify({d:tStr,t:cH}));}catch(e){}}
+  function opHistKey(dateObj){return dateObj.getFullYear()+'-'+String(dateObj.getMonth()+1).padStart(2,'0')+'-'+String(dateObj.getDate()).padStart(2,'0');}
+  function opHistRecord(dateObj){var hist=window._opRemoteHistory||{};return hist[opHistKey(dateObj)]||null;}
+  function opHistTotal(rec){if(!rec)return 0;var h=(rec.hours||[]).concat(Array(24).fill(0)).slice(0,24);var sum=h.reduce(function(a,b){return a+Number(b||0);},0);return Math.max(Number(rec.total||0),sum);}
+  function opSegOverlap(a,b,c,d){if(a===null||b===null||c===null||d===null)return false;var bb=b<a?b+1440:b;var dd=d<c?d+1440:d;return a<dd&&bb>c;}
+  function opHistTurnoCount(rec,e1p,s1p,e2p,s2p){if(!rec)return 0;var hours=(rec.hours||[]).concat(Array(24).fill(0)).slice(0,24);var n=0;for(var h=0;h<24;h++){var hs=h*60,he=hs+60;if(opSegOverlap(hs,he,e1p,s1p)||opSegOverlap(hs,he,e2p,s2p))n+=Number(hours[h]||0);}return n;}
+  function cntSh(fls,e1p,s1p,e2p,s2p){var n=0;fls.forEach(function(v){var t=typeof hToMin==="function"?hToMin(v.horaReal||v.horaProg||""):null;if(t===null)return;if(e1p!==null&&s1p!==null&&t>=e1p&&t<=s1p)n++;else if(e2p!==null&&s2p!==null&&t>=e2p&&t<=s2p)n++;});return n;}
+
+  var tom=new Date(now);tom.setDate(tom.getDate()+1);
+  var recHoy=opHistRecord(now),recTom=opHistRecord(tom);
+  var remoteHoyTotal=opHistTotal(recHoy),remoteTomTotal=opHistTotal(recTom);
+  if(remoteHoyTotal>cH)cH=remoteHoyTotal;
   if(g("op-v-total"))g("op-v-total").textContent=cH>0?cH:"—";
   var horasPlanificadasDia=trabajanHoy.reduce(function(sum,e){return sum+plannedMinutesEmp(e);},0)/60;
   var vuelosProductividad=cH||totH||0;
@@ -4487,22 +4592,34 @@ window.renderOperativa=function(){
   setTextOp('op-prod-flights',vuelosProductividad>0?vuelosProductividad:'—');
   var totT=lT.length+sT.length;
   // Cache tomorrow total — same logic as today: only goes up, resets at midnight
-  var tom=new Date(now);tom.setDate(tom.getDate()+1);
   var tStr2=tom.toDateString(),cT=0;
   try{var cv2=localStorage.getItem("op_vt_tom");if(cv2){var cpt=JSON.parse(cv2);if(cpt.d===tStr2)cT=cpt.t;}}catch(e){}
+  if(remoteTomTotal>cT)cT=remoteTomTotal;
   if(totT>cT){cT=totT;try{localStorage.setItem("op_vt_tom",JSON.stringify({d:tStr2,t:cT}));}catch(e){}}
   if(g("op-v-total-tom"))g("op-v-total-tom").textContent=cT>0?cT:"—";
-  function cntSh(fls,e1p,s1p,e2p,s2p){var n=0;fls.forEach(function(v){var t=typeof hToMin==="function"?hToMin(v.horaReal||v.horaProg||""):null;if(t===null)return;if(e1p!==null&&s1p!==null&&t>=e1p&&t<=s1p)n++;else if(e2p!==null&&s2p!==null&&t>=e2p&&t<=s2p)n++;});return n;}
   var _shDone=(shEnd!==null&&nowMin>=shEnd);
   var _liveEmpty=(lH.length===0&&sH.length===0);
   var iH=(e1!==null&&!_shDone&&!_liveEmpty)?cntSh(lH.concat(sH),e1,s1,e2,s2):0;
   if(g("op-v-turno"))g("op-v-turno").textContent=(_shDone||_liveEmpty)?"—":String(iH);
-  var tom=new Date(now);tom.setDate(tom.getDate()+1);
   var dT=(ue[MESES[tom.getMonth()]]||{})[tom.getDate()]||null;
   var tE1=dT&&dT.e1?toM(dT.e1):null,tS1=dT&&dT.s1?toM(dT.s1):null;
   var tE2=dT&&dT.e2?toM(dT.e2):null,tS2=dT&&dT.s2?toM(dT.s2):null;
   var iT=tE1!==null&&totT>0?cntSh(lT.concat(sT),tE1,tS1,tE2,tS2):0;
-  if(g("op-v-turno-tom"))g("op-v-turno-tom").textContent=totT>0?String(iT):"—";
+  var iTRemote=tE1!==null?opHistTurnoCount(recTom,tE1,tS1,tE2,tS2):0;
+  iT=Math.max(iT,iTRemote);
+  if(g("op-v-turno-tom"))g("op-v-turno-tom").textContent=cT>0?String(iT):"—";
+
+  window.opApplyRemoteFlightSummary=function(hist){
+    window._opRemoteHistory=hist||{};
+    var rT=opHistRecord(tom),rHT=opHistRecord(now);
+    var hTot=Math.max(cH,opHistTotal(rHT));
+    var tTot=Math.max(cT,opHistTotal(rT));
+    if(g("op-v-total"))g("op-v-total").textContent=hTot>0?hTot:"—";
+    if(g("op-v-total-tom"))g("op-v-total-tom").textContent=tTot>0?tTot:"—";
+    var rtMi=tE1!==null?opHistTurnoCount(rT,tE1,tS1,tE2,tS2):0;
+    if(g("op-v-turno-tom"))g("op-v-turno-tom").textContent=tTot>0?String(Math.max(iT,rtMi)):"—";
+    if(!window._opRemoteHistoryLoadedOnce){window._opRemoteHistoryLoadedOnce=1;setTimeout(function(){if(typeof window.renderOperativa==='function')window.renderOperativa();},80);}
+  };
 
   // ─ Panel operativo ampliado: picos, ahora, carga/plantilla y presión ─
   function flMin(v){return typeof hToMin==="function"?hToMin(v.horaReal||v.horaProg||""):null;}
@@ -4514,6 +4631,33 @@ window.renderOperativa=function(){
   function inWindowCount(arr,a,b){return arr.filter(function(v){var tm=flMin(v);return tm!==null&&tm>=a&&tm<b;}).length;}
   var hourCounts=Array(24).fill(0);
   allH.forEach(function(v){var tm=flMin(v);if(tm!==null)hourCounts[Math.floor(tm/60)%24]++;});
+
+  var opDetalleSel='hoy';try{opDetalleSel=localStorage.getItem('op_detalle_dia')||'hoy';}catch(e){}
+  if(opDetalleSel!=='manana')opDetalleSel='hoy';
+  var opBaseDate=new Date(now);if(opBaseDate.getHours()<3)opBaseDate.setDate(opBaseDate.getDate()-1);
+  var opDetalleDate=new Date(opBaseDate);if(opDetalleSel==='manana')opDetalleDate.setDate(opDetalleDate.getDate()+1);
+  var bHoy=g('op-day-hoy'),bMan=g('op-day-manana');
+  if(bHoy)bHoy.classList.toggle('active',opDetalleSel==='hoy');
+  if(bMan)bMan.classList.toggle('active',opDetalleSel==='manana');
+
+  var opDetalleRec=opHistRecord(opDetalleDate);
+  var opDetalleRemoteHours=opDetalleRec?(opDetalleRec.hours||[]).concat(Array(24).fill(0)).slice(0,24):Array(24).fill(0);
+  var opDetalleLive=(opDetalleSel==='manana'?lT.concat(sT):allH);
+  var opDetalleLiveHours=Array(24).fill(0);
+  opDetalleLive.forEach(function(v){var tm=flMin(v);if(tm!==null)opDetalleLiveHours[Math.floor(tm/60)%24]++;});
+  hourCounts=hourCounts.map(function(_,i){return Math.max(Number(opDetalleRemoteHours[i]||0),Number(opDetalleLiveHours[i]||0));});
+  var opDetalleTotal=Math.max(opHistTotal(opDetalleRec),opDetalleLive.length,hourCounts.reduce(function(a,b){return a+Number(b||0);},0));
+  var opDetalleTrabajadores=opDetalleSel==='hoy'?trabajanHoy:opTrabajadoresFecha(opDetalleDate);
+  var opDetalleHorasPlan=opDetalleTrabajadores.reduce(function(sum,e){return sum+plannedMinutesEmp(e);},0)/60;
+  if(opDetalleHorasPlan>0&&opDetalleTotal>0){
+    setTextOp('op-prod-vh',(opDetalleTotal/opDetalleHorasPlan).toFixed(2).replace('.',',')+' vuelos/h');
+    setTextOp('op-prod-hv',(opDetalleHorasPlan/opDetalleTotal).toFixed(2).replace('.',',')+' h/vuelo');
+  }else{setTextOp('op-prod-vh','—');setTextOp('op-prod-hv','—');}
+  setTextOp('op-prod-hours',opDetalleHorasPlan>0?(Math.round(opDetalleHorasPlan*10)/10).toString().replace('.',',')+' h':'—');
+  setTextOp('op-prod-flights',opDetalleTotal>0?opDetalleTotal:'—');
+  setTextOp('op-load-workers',opDetalleTrabajadores.length||'—');
+  setTextOp('op-load-flights',opDetalleTotal>0?opDetalleTotal:'—');
+
   var windows=[
     {label:'05:00 - 07:00',a:300,b:420},
     {label:'10:00 - 12:00',a:600,b:720},
@@ -4527,7 +4671,13 @@ window.renderOperativa=function(){
   function opColorFromRatio(x,max){var r=max>0?x/max:0;if(r>=.75)return '#f87171';if(r>=.45)return '#fbbf24';return '#4ade80';}
   function opBars24Html(counts,max,unit){max=max||Math.max.apply(null,counts.concat([1]));return counts.map(function(c,h){var pct=max>0?Math.max(2,Math.round(c/max*100)):2;var col=opColorFromRatio(c,max);var lab=(h<10?'0':'')+h;return '<div class="op-bar-col" onclick="this.classList.toggle(&quot;show&quot;)" title="'+lab+':00 · '+c+' '+unit+'"><span class="op-bar-val">'+c+' '+unit+'</span><div class="op-bar-fill" style="height:'+pct+'%;background:'+col+';border-color:'+col+'"></div><span class="op-bar-lab">'+lab+'</span></div>';}).join('');}
   function opBars7Html(counts,max){var labs=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];max=max||Math.max.apply(null,counts.concat([1]));return counts.map(function(c,i){var pct=max>0?Math.max(2,Math.round(c/max*100)):2;var col=opColorFromRatio(c,max);return '<div class="op-bar-col" onclick="this.classList.toggle(&quot;show&quot;)" title="'+labs[i]+' · '+c+' vuelos"><span class="op-bar-val">'+c+' vuelos</span><div class="op-bar-fill" style="height:'+pct+'%;background:'+col+';border-color:'+col+'"></div><span class="op-bar-lab">'+labs[i]+'</span></div>';}).join('');}
-  function opSaveAndRenderHistory(todayCounts){var key='cta_historial_operativa_vuelos_v1';var y=now.getFullYear(),m=('0'+(now.getMonth()+1)).slice(-2),d0=('0'+now.getDate()).slice(-2);var ds=y+'-'+m+'-'+d0;var data={};try{data=JSON.parse(localStorage.getItem(key)||'{}');}catch(e){data={};}if(!data[ds])data[ds]={hours:Array(24).fill(0),dow:(now.getDay()+6)%7};data[ds].hours=data[ds].hours.map(function(v,i){return Math.max(v||0,todayCounts[i]||0);});try{localStorage.setItem(key,JSON.stringify(data));}catch(e){}var hourTotals=Array(24).fill(0),dayTotals=Array(7).fill(0),heat={};Object.keys(data).forEach(function(date){var rec=data[date]||{},arr=rec.hours||[],dow=(rec.dow!==undefined)?rec.dow:0;for(var i=0;i<24;i++){var v=arr[i]||0;hourTotals[i]+=v;dayTotals[dow]+=v;if(!heat[dow])heat[dow]=Array(24).fill(0);heat[dow][i]+=v;}});var maxH=Math.max.apply(null,hourTotals.concat([1]));var hb=g('op-history-hour-bars');if(hb)hb.innerHTML=opBars24Html(hourTotals,maxH,'vuelos');var maxD=Math.max.apply(null,dayTotals.concat([1]));var db=g('op-history-day-bars');if(db)db.innerHTML=opBars7Html(dayTotals,maxD);var hg=g('op-history-heat');if(hg){var labs=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];var maxCell=1;for(var dd=0;dd<7;dd++){var row=heat[dd]||Array(24).fill(0);for(var hh2=0;hh2<24;hh2++)maxCell=Math.max(maxCell,row[hh2]||0);}var html='<div></div>'+Array.from({length:24},function(_,h){return '<div class="op-heat-head">'+('0'+h).slice(-2)+'</div>';}).join('');for(var dd2=0;dd2<7;dd2++){html+='<div class="op-heat-day">'+labs[dd2]+'</div>';var row2=heat[dd2]||Array(24).fill(0);for(var h2=0;h2<24;h2++){var v=row2[h2]||0;var ratio=maxCell?v/maxCell:0;var bg=v===0?'rgba(255,255,255,.025)':('rgba('+(ratio>.55?'239,68,68':'34,197,94')+','+(0.10+ratio*0.35).toFixed(2)+')');var border=v===0?'rgba(255,255,255,.06)':(ratio>.55?'rgba(239,68,68,.35)':'rgba(34,197,94,.35)');html+='<div class="op-heat-cell" style="background:'+bg+';border-color:'+border+'" title="'+labs[dd2]+' '+('0'+h2).slice(-2)+':00 · '+v+' vuelos">'+(v||'')+'</div>';}}hg.innerHTML=html;}}
+  function opBuildLocalHistory(todayCounts){return {};}
+  function opParseRemoteHourArray(v){if(Array.isArray(v))return v.map(function(n){return Number(n||0);}).concat(Array(24).fill(0)).slice(0,24);return String(v||'').split(',').map(function(n){return Number(String(n).trim()||0);}).concat(Array(24).fill(0)).slice(0,24);}
+  function opDowFromISO(ds){var d=new Date(ds+'T12:00:00');if(isNaN(d.getTime()))return 0;return (d.getDay()+6)%7;}
+  function opNormalizeHistRows(payload){var rows=[];if(Array.isArray(payload))rows=payload;else if(payload&&Array.isArray(payload.registros))rows=payload.registros;else if(payload&&Array.isArray(payload.rows))rows=payload.rows;else if(payload&&Array.isArray(payload.data))rows=payload.data;var data={};rows.forEach(function(r){var fecha=String(r.fecha||r.Fecha||'').trim();if(!fecha)return;data[fecha]={hours:opParseRemoteHourArray(r.por_hora||r.porHora||r.hours||r.horas),dow:opDowFromISO(fecha),total:Number(r.total_vuelos||r.total||0),salidas:Number(r.salidas||0),llegadas:Number(r.llegadas||0),estado:String(r.estado||'')};});return data;}
+  function opMergeHistory(a,b){var out={};Object.keys(a||{}).forEach(function(k){out[k]={hours:(a[k].hours||Array(24).fill(0)).slice(0,24),dow:a[k].dow!==undefined?a[k].dow:opDowFromISO(k),total:Number(a[k].total||0)};});Object.keys(b||{}).forEach(function(k){var arr=(b[k].hours||Array(24).fill(0)).concat(Array(24).fill(0)).slice(0,24);if(!out[k])out[k]={hours:Array(24).fill(0),dow:b[k].dow!==undefined?b[k].dow:opDowFromISO(k),total:Number(b[k].total||0)};out[k].hours=out[k].hours.map(function(v,i){return Math.max(v||0,arr[i]||0);});out[k].total=Math.max(Number(out[k].total||0),Number(b[k].total||0));});return out;}
+  function opRenderHistoryData(data){var hourTotals=Array(24).fill(0),dayTotals=Array(7).fill(0),heat={};Object.keys(data||{}).forEach(function(date){var rec=data[date]||{},arr=rec.hours||[],dow=(rec.dow!==undefined)?rec.dow:opDowFromISO(date);for(var i=0;i<24;i++){var v=Number(arr[i]||0);hourTotals[i]+=v;dayTotals[dow]+=v;if(!heat[dow])heat[dow]=Array(24).fill(0);heat[dow][i]+=v;}});var maxH=Math.max.apply(null,hourTotals.concat([1]));var hb=g('op-history-hour-bars');if(hb)hb.innerHTML=opBars24Html(hourTotals,maxH,'vuelos');var maxD=Math.max.apply(null,dayTotals.concat([1]));var db=g('op-history-day-bars');if(db)db.innerHTML=opBars7Html(dayTotals,maxD);var hg=g('op-history-heat');if(hg){var labs=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];var maxCell=1;for(var dd=0;dd<7;dd++){var row=heat[dd]||Array(24).fill(0);for(var hh2=0;hh2<24;hh2++)maxCell=Math.max(maxCell,row[hh2]||0);}var html='<div></div>'+Array.from({length:24},function(_,h){return '<div class="op-heat-head">'+('0'+h).slice(-2)+'</div>';}).join('');for(var dd2=0;dd2<7;dd2++){html+='<div class="op-heat-day">'+labs[dd2]+'</div>';var row2=heat[dd2]||Array(24).fill(0);for(var h2=0;h2<24;h2++){var v=row2[h2]||0;var ratio=maxCell?v/maxCell:0;var bg=v===0?'rgba(255,255,255,.025)':('rgba('+(ratio>.55?'239,68,68':'34,197,94')+','+(0.10+ratio*0.35).toFixed(2)+')');var border=v===0?'rgba(255,255,255,.06)':(ratio>.55?'rgba(239,68,68,.35)':'rgba(34,197,94,.35)');html+='<div class="op-heat-cell" style="background:'+bg+';border-color:'+border+'" title="'+labs[dd2]+' '+('0'+h2).slice(-2)+':00 · '+v+' vuelos">'+(v||'')+'</div>';}}hg.innerHTML=html;}}
+  function opSaveAndRenderHistory(todayCounts){try{Object.keys(localStorage).forEach(function(k){if(k&&k.indexOf('cta_historial_operativa_vuelos')===0)localStorage.removeItem(k);});}catch(e){}var empty={};opRenderHistoryData(empty);var url='https://script.google.com/macros/s/AKfycbz44ZHwMDkVnJ3DRFPLBmqol473EpklTwLMD2kS-SA2ReeFb2XmpyKeo4JuYWfdABMw1A/exec?action=historico';if(!url)return;fetch(url,{cache:'no-store'}).then(function(r){return r.json();}).then(function(payload){if(payload&&payload.ok===false)return;var remoteData=opNormalizeHistRows(payload);window._opRemoteHistory=remoteData;if(typeof window.opApplyRemoteFlightSummary==='function')window.opApplyRemoteFlightSummary(remoteData);opRenderHistoryData(remoteData);}).catch(function(){opRenderHistoryData({});});}
 
   var pl=g('op-peaks-list');
   var maxHourFlights=Math.max.apply(null,hourCounts.concat([1]));
@@ -4535,15 +4685,14 @@ window.renderOperativa=function(){
   if(typeof opSaveAndRenderHistory==='function')opSaveAndRenderHistory(hourCounts);
   var peakHour=hourCounts.reduce(function(best,c,h){return c>(best.count||0)?{hour:h,count:c}:best;},{hour:0,count:0});
   var peakWin=peakHour.count>0?{label:(('0'+peakHour.hour).slice(-2)+':00 - '+('0'+((peakHour.hour+1)%24)).slice(-2)+':00'),count:peakHour.count}:null;
-  setTextOp('op-load-workers',wNow||'—');
-  setTextOp('op-load-flights',cH>0?cH:'—');
+  // Trabajadores/vuelos de detalles se actualizan según selector Hoy/Mañana
   setTextOp('op-load-ratio','—');
   setTextOp('op-load-peak',peakWin&&peakWin.count>0?peakWin.label:'—');
 
   var hrList=g('op-hourly-ratio-list');
   if(hrList){
     hrList.innerHTML=hourCounts.map(function(fc,h){
-      var people=trabajanHoy.filter(function(e){return isWorkingAt(e,h*60);}).length;
+      var people=opDetalleTrabajadores.filter(function(e){return isWorkingAt(e,h*60);}).length;
       var ratio=fc>0?people/fc:null;
       var cls='low';
       if(ratio===null)cls='low'; else if(ratio<3)cls='very'; else if(ratio<4)cls='high'; else if(ratio<6)cls='mid'; else cls='low';
