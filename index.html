@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V35_HL_COMO_LIBRE_DESCANSO_2026-05-12 -->
+<!-- CTA_OPERATIVA_V36_GUARDA_HORARIOS_EDITADOS_CALENDARIO_2026-05-12 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -3538,17 +3538,21 @@ function mcEditSave(){
     // If day was libre, mark as trabajado so shift shows
     if(!ue[month][day].tipo||ue[month][day].tipo==='libre')ue[month][day].tipo='trabajado';
   } else {
-    // Keep existing shift times — only update tipo and clear peren overlay
+    // Update tipo and SAVE the edited times from the modal.
+    // Antes se priorizaban los horarios existentes (existingDay.e1 || e1),
+    // por eso al editar y guardar parecían no cambiar.
+    var totalMin = _mcMin(e1, s1) + _mcMin(e2, s2);
     ue[month][day]={
       tipo:tipoVal,
-      e1:existingDay.e1||e1,
-      s1:existingDay.s1||s1,
-      e2:existingDay.e2||e2,
-      s2:existingDay.s2||s2,
-      total:existingDay.total||0
+      e1:e1,
+      s1:s1,
+      e2:e2,
+      s2:s2,
+      total: totalMin ? Math.round((totalMin / 60) * 100) / 100 : 0
     };
     delete ue[month][day].perenDur;
     delete ue[month][day].perenTipo;
+    delete ue[month][day].hfunDur;
   }
   try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(er){alert('Error: '+er.message);}
   mcEditClose();
