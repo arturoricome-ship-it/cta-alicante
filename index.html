@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V36_GUARDA_HORARIOS_EDITADOS_CALENDARIO_2026-05-12 -->
+<!-- CTA_OPERATIVA_V37_MODAL_CALENDARIO_VISIBLE_2026-05-12 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -567,6 +567,17 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .op-hour-meta{display:none!important}
 .op-pressure-pct{white-space:nowrap}
 @media(max-width:430px){.op-hourly-list{gap:1px;height:128px;padding-left:2px;padding-right:2px}.op-hour-chip::before{width:64%}.op-hour-r{font-size:7px}}
+
+/* CTA V37: editor calendario siempre visible por encima de la barra inferior */
+#mc-edit-bg{z-index:100000!important}
+#mc-edit-panel{
+  z-index:100001!important;
+  bottom:0!important;
+  max-height:calc(100vh - 72px)!important;
+  padding-bottom:calc(110px + env(safe-area-inset-bottom))!important;
+  overscroll-behavior:contain;
+}
+#mc-edit-panel.open{transform:translateY(0)!important}
 
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
