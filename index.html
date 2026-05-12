@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V57_ESTADOS_MANTIENEN_TURNO_2026-05-12 -->
+<!-- CTA_OPERATIVA_V58_LIMPIA_HISTORIAL_SIN_PARPADEO_2026-05-12 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -1157,27 +1157,19 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 </div>
 
 <script>
-// CTA V42: limpieza única del histórico local antiguo de vuelos.
-// Borra solo los datos locales de "Historial operativa vuelos" para evitar mezclarlo con Sheets.
-try {
-  var _ctaResetHistKey = "cta_reset_historial_vuelos_v42";
-  if (localStorage.getItem(_ctaResetHistKey) !== "ok") {
+// CTA V58: histórico de vuelos solo desde Sheets.
+// Borra siempre el histórico local antiguo y evita mezclarlo con datos remotos.
+function ctaClearLocalFlightHistory(){
+  try {
     Object.keys(localStorage).forEach(function(k) {
       if (k && k.indexOf("cta_historial_operativa_vuelos") === 0) {
         localStorage.removeItem(k);
       }
     });
-    localStorage.setItem(_ctaResetHistKey, "ok");
-  }
-} catch(e) {}
-// Mientras migramos a Sheets, no permitimos que el histórico local antiguo se regenere.
-try {
-  Object.keys(localStorage).forEach(function(k) {
-    if (k && k.indexOf("cta_historial_operativa_vuelos") === 0) {
-      localStorage.removeItem(k);
-    }
-  });
-} catch(e) {}
+  } catch(e) {}
+}
+ctaClearLocalFlightHistory();
+try { localStorage.setItem("cta_reset_historial_vuelos_v58", "ok"); } catch(e) {}
 
 var API_KEY="AIzaSyBK2GCTdfHt7PPhl-OBa3DTvCdZEQ5mprc";
 var ROOT_ID="1TS5vDO29JBTqd4JsGvO3a39YUIC7stbz";
@@ -2706,7 +2698,7 @@ function tiRefreshExportSummary(){
       if(k&&(k.indexOf('cta_')===0||k.indexOf('op_')===0||k==='avisos_seen'))extra++;
     }
   }catch(e){}
-  if(hist)lines.push('<b style="color:var(--white)">Histórico operativa</b> — incluido');
+  if(hist)lines.push('<b style="color:var(--white)">Histórico operativa local</b> — se limpiará, no se exporta');
   if(extra)lines.push('<span style="color:var(--gray)">Backup completo: '+extra+' claves locales</span>');
   var el=document.getElementById('ti-exp-summary');
   if(el)el.innerHTML=lines.length?lines.join('<br>'):'<span style="color:rgba(255,255,255,.3)">No hay datos guardados</span>';
@@ -2725,6 +2717,8 @@ function tiDoExport(){
     if(!k)return false;
     // No exportar la sesión/login por seguridad.
     if(k==='cta_session')return false;
+    // El histórico operativo de vuelos ya vive en Sheets: no exportar datos locales antiguos.
+    if(k.indexOf('cta_historial_operativa_vuelos')===0)return false;
     // Backup completo de datos de la app.
     if(k.indexOf('cta_')===0)return true;
     if(k.indexOf('op_')===0)return true;
@@ -2827,7 +2821,7 @@ function tiLoadBackup(file){
         prev.style.display='block';
         var parts=[];
         if(edKeys.length)parts.push('Calendarios: '+edKeys.length);
-        if(histKeys.length)parts.push('Histórico operativa: sí');
+        if(histKeys.length)parts.push('Histórico operativa local: se ignorará');
         if(cfgKeys.length)parts.push('Configuración: '+cfgKeys.length);
         if(nomKeys.length)parts.push('Nóminas: '+nomKeys.length);
         if(cntKeys.length)parts.push('Contadores: '+cntKeys.length);
@@ -2850,8 +2844,9 @@ function tiApplyBackup(){
   var restored=0;
   var skipped=[];
   keys.forEach(function(k){
-    // No restaurar sesión/login desde un JSON.
+    // No restaurar sesión/login ni histórico local de vuelos desde un JSON.
     if(k==='cta_session'){skipped.push(k);return;}
+    if(k.indexOf('cta_historial_operativa_vuelos')===0){skipped.push(k);return;}
     try{
       var v=_tiBackupRaw[k];
       if(typeof v==='undefined' || v===null)return;
@@ -4790,7 +4785,38 @@ window.renderOperativa=function(){
   function opNormalizeHistRows(payload){var rows=[];if(Array.isArray(payload))rows=payload;else if(payload&&Array.isArray(payload.registros))rows=payload.registros;else if(payload&&Array.isArray(payload.rows))rows=payload.rows;else if(payload&&Array.isArray(payload.data))rows=payload.data;var data={};rows.forEach(function(r){var fecha=String(r.fecha||r.Fecha||'').trim();if(!fecha)return;data[fecha]={hours:opParseRemoteHourArray(r.por_hora||r.porHora||r.hours||r.horas),dow:opDowFromISO(fecha),total:Number(r.total_vuelos||r.total||0),salidas:Number(r.salidas||0),llegadas:Number(r.llegadas||0),estado:String(r.estado||'')};});return data;}
   function opMergeHistory(a,b){var out={};Object.keys(a||{}).forEach(function(k){out[k]={hours:(a[k].hours||Array(24).fill(0)).slice(0,24),dow:a[k].dow!==undefined?a[k].dow:opDowFromISO(k),total:Number(a[k].total||0)};});Object.keys(b||{}).forEach(function(k){var arr=(b[k].hours||Array(24).fill(0)).concat(Array(24).fill(0)).slice(0,24);if(!out[k])out[k]={hours:Array(24).fill(0),dow:b[k].dow!==undefined?b[k].dow:opDowFromISO(k),total:Number(b[k].total||0)};out[k].hours=out[k].hours.map(function(v,i){return Math.max(v||0,arr[i]||0);});out[k].total=Math.max(Number(out[k].total||0),Number(b[k].total||0));});return out;}
   function opRenderHistoryData(data){var hourTotals=Array(24).fill(0),dayTotals=Array(7).fill(0),heat={};Object.keys(data||{}).forEach(function(date){var rec=data[date]||{},arr=rec.hours||[],dow=(rec.dow!==undefined)?rec.dow:opDowFromISO(date);for(var i=0;i<24;i++){var v=Number(arr[i]||0);hourTotals[i]+=v;dayTotals[dow]+=v;if(!heat[dow])heat[dow]=Array(24).fill(0);heat[dow][i]+=v;}});var maxH=Math.max.apply(null,hourTotals.concat([1]));var hb=g('op-history-hour-bars');if(hb)hb.innerHTML=opBars24Html(hourTotals,maxH,'vuelos');var maxD=Math.max.apply(null,dayTotals.concat([1]));var db=g('op-history-day-bars');if(db)db.innerHTML=opBars7Html(dayTotals,maxD);var hg=g('op-history-heat');if(hg){var labs=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];var maxCell=1;for(var dd=0;dd<7;dd++){var row=heat[dd]||Array(24).fill(0);for(var hh2=0;hh2<24;hh2++)maxCell=Math.max(maxCell,row[hh2]||0);}var html='<div></div>'+Array.from({length:24},function(_,h){return '<div class="op-heat-head">'+('0'+h).slice(-2)+'</div>';}).join('');for(var dd2=0;dd2<7;dd2++){html+='<div class="op-heat-day">'+labs[dd2]+'</div>';var row2=heat[dd2]||Array(24).fill(0);for(var h2=0;h2<24;h2++){var v=row2[h2]||0;var ratio=maxCell?v/maxCell:0;var bg=v===0?'rgba(255,255,255,.025)':('rgba('+(ratio>.55?'239,68,68':'34,197,94')+','+(0.10+ratio*0.35).toFixed(2)+')');var border=v===0?'rgba(255,255,255,.06)':(ratio>.55?'rgba(239,68,68,.35)':'rgba(34,197,94,.35)');html+='<div class="op-heat-cell" style="background:'+bg+';border-color:'+border+'" title="'+labs[dd2]+' '+('0'+h2).slice(-2)+':00 · '+v+' vuelos">'+(v||'')+'</div>';}}hg.innerHTML=html;}}
-  function opSaveAndRenderHistory(todayCounts){try{Object.keys(localStorage).forEach(function(k){if(k&&k.indexOf('cta_historial_operativa_vuelos')===0)localStorage.removeItem(k);});}catch(e){}var empty={};opRenderHistoryData(empty);var url='https://script.google.com/macros/s/AKfycbz44ZHwMDkVnJ3DRFPLBmqol473EpklTwLMD2kS-SA2ReeFb2XmpyKeo4JuYWfdABMw1A/exec?action=historico';if(!url)return;fetch(url,{cache:'no-store'}).then(function(r){return r.json();}).then(function(payload){if(payload&&payload.ok===false)return;var remoteData=opNormalizeHistRows(payload);window._opRemoteHistory=remoteData;if(typeof window.opApplyRemoteFlightSummary==='function')window.opApplyRemoteFlightSummary(remoteData);opRenderHistoryData(remoteData);}).catch(function(){opRenderHistoryData({});});}
+  function opSaveAndRenderHistory(todayCounts){
+    try{if(typeof ctaClearLocalFlightHistory==='function')ctaClearLocalFlightHistory();}catch(e){}
+    var url='https://script.google.com/macros/s/AKfycbz44ZHwMDkVnJ3DRFPLBmqol473EpklTwLMD2kS-SA2ReeFb2XmpyKeo4JuYWfdABMw1A/exec?action=historico';
+    if(!url)return;
+    var now=Date.now();
+    // Evita parpadeos: no vacía las gráficas antes del fetch y no refetch cada 2-3 segundos.
+    if(window._opHistFetchInFlight)return;
+    if(window._opRemoteHistory && window._opLastHistFetchTs && (now-window._opLastHistFetchTs)<60000){
+      return;
+    }
+    window._opHistFetchInFlight=true;
+    fetch(url,{cache:'no-store'})
+      .then(function(r){return r.json();})
+      .then(function(payload){
+        if(payload&&payload.ok===false)return;
+        var remoteData=opNormalizeHistRows(payload);
+        var hash='';
+        try{hash=JSON.stringify(remoteData);}catch(e){hash=String(Date.now());}
+        window._opRemoteHistory=remoteData;
+        window._opLastHistFetchTs=Date.now();
+        if(typeof window.opApplyRemoteFlightSummary==='function')window.opApplyRemoteFlightSummary(remoteData);
+        if(hash!==window._opLastHistRenderHash){
+          window._opLastHistRenderHash=hash;
+          opRenderHistoryData(remoteData);
+        }
+      })
+      .catch(function(){
+        window._opLastHistFetchTs=Date.now();
+        if(!window._opRemoteHistory)opRenderHistoryData({});
+      })
+      .finally(function(){window._opHistFetchInFlight=false;});
+  }
 
   var pl=g('op-peaks-list');
   var maxHourFlights=Math.max.apply(null,hourCounts.concat([1]));
