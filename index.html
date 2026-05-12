@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V58_LIMPIA_HISTORIAL_SIN_PARPADEO_2026-05-12 -->
+<!-- CTA_OPERATIVA_V60_LIMPIA_LOCAL_MANTIENE_SHEETS_2026-05-12 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -1157,19 +1157,26 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 </div>
 
 <script>
-// CTA V58: histórico de vuelos solo desde Sheets.
+// CTA V60: histórico de vuelos solo desde Sheets. Borra histórico local, pero NO filtra ni borra datos que vienen de Sheets.
 // Borra siempre el histórico local antiguo y evita mezclarlo con datos remotos.
 function ctaClearLocalFlightHistory(){
   try {
     Object.keys(localStorage).forEach(function(k) {
-      if (k && k.indexOf("cta_historial_operativa_vuelos") === 0) {
+      if (k && (k.indexOf("cta_historial_operativa_vuelos") === 0 || k.indexOf("op_historial_vuelos") === 0)) {
         localStorage.removeItem(k);
+      }
+    });
+  } catch(e) {}
+  try {
+    Object.keys(sessionStorage).forEach(function(k) {
+      if (k && (k.indexOf("cta_historial_operativa_vuelos") === 0 || k.indexOf("op_historial_vuelos") === 0)) {
+        sessionStorage.removeItem(k);
       }
     });
   } catch(e) {}
 }
 ctaClearLocalFlightHistory();
-try { localStorage.setItem("cta_reset_historial_vuelos_v58", "ok"); } catch(e) {}
+try { localStorage.setItem("cta_reset_historial_vuelos_v60", "ok"); } catch(e) {}
 
 var API_KEY="AIzaSyBK2GCTdfHt7PPhl-OBa3DTvCdZEQ5mprc";
 var ROOT_ID="1TS5vDO29JBTqd4JsGvO3a39YUIC7stbz";
