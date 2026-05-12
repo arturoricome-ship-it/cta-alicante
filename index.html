@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V56_EXCLUSION_ARTURO_MAYO_2026-05-12 -->
+<!-- CTA_OPERATIVA_V57_ESTADOS_MANTIENEN_TURNO_2026-05-12 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -3651,18 +3651,29 @@ function mcEditSave(){
       hfunDur:hfunTxt
     });
   } else {
-    // Update tipo and SAVE the edited times from the modal.
-    // Antes se priorizaban los horarios existentes (existingDay.e1 || e1),
-    // por eso al editar y guardar parecían no cambiar.
-    var totalMin = _mcMin(e1, s1) + _mcMin(e2, s2);
-    ue[month][day]={
-      tipo:tipoVal,
-      e1:e1,
-      s1:s1,
-      e2:e2,
-      s2:s2,
-      total: totalMin ? Math.round((totalMin / 60) * 100) / 100 : 0
-    };
+    if(tipoVal==='trabajado'||tipoVal==='curso'){
+      // Trabajado/Curso sí permiten editar y guardar horarios manualmente.
+      var totalMin = _mcMin(e1, s1) + _mcMin(e2, s2);
+      ue[month][day]={
+        tipo:tipoVal,
+        e1:e1,
+        s1:s1,
+        e2:e2,
+        s2:s2,
+        total: totalMin ? Math.round((totalMin / 60) * 100) / 100 : 0
+      };
+    } else {
+      // Resto de estados: NO sustituyen ni borran el turno original.
+      // Solo cambian el color/estado del día manteniendo horarios y total.
+      ue[month][day]=Object.assign({},existingDay,{
+        tipo:tipoVal,
+        e1:existingDay.e1||'',
+        s1:existingDay.s1||'',
+        e2:existingDay.e2||'',
+        s2:existingDay.s2||'',
+        total:existingDay.total||0
+      });
+    }
     delete ue[month][day].perenDur;
     delete ue[month][day].perenTipo;
     delete ue[month][day].hfunDur;
