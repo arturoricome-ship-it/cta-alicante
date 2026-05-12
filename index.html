@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V47_SELECTOR_HOY_MANANA_DETALLES_2026-05-12 -->
+<!-- CTA_OPERATIVA_V50_HFUN_MANTIENE_TURNO_ORIGINAL_2026-05-12 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -308,6 +308,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-day.baja{background:rgba(239,68,68,.1);color:#f87171}
 .mc-day.perentorias{background:rgba(251,146,60,.12);color:#fb923c}
 .mc-day.h6,.mc-day.hfun{background:rgba(99,102,241,.12);color:#818cf8}
+.mc-day.hfun-mark{box-shadow:inset 0 -2px 0 rgba(129,140,248,.9)}
 .mc-day.bp,.mc-day.rm,.mc-day.nh{background:rgba(20,184,166,.1);color:#2dd4bf}
 .mc-day.hoy{box-shadow:0 0 0 2px var(--gold)!important}
 .mc-day-num{font-weight:700;font-size:11px;line-height:1.2}
@@ -3271,7 +3272,8 @@ function mcRender(){
     // cls now computed per-cell below (hasPeren check)
     var hasPeren=dayObj&&dayObj.perenDur&&dayObj.perenDur!=='0:00';
     var hasHfun=dayObj&&dayObj.hfunDur&&dayObj.hfunDur!=='0:00';
-    var dispCls='mc-day '+(hasPeren?'perentorias':hasHfun?'hfun':(tipo||'libre'));
+    var dispCls='mc-day '+(hasPeren?'perentorias':(tipo||'libre'));
+    if(hasHfun)dispCls+=' hfun-mark';
     if(isThisMonth&&d===today.getDate())dispCls+=' hoy';
     var timeLines='';
     if(dayObj&&dayObj.e1&&dayObj.s1){
@@ -3563,7 +3565,7 @@ function mcEditDay(day,e){
   var ptEl=document.getElementById('mc-peren-total');
   if(ptEl)ptEl.value=dayObj.perenDur||'';
   var hfEl=document.getElementById('mc-hfun-total');
-  if(hfEl)hfEl.value=dayObj.hfunDur||'';
+  if(hfEl)hfEl.value=dayObj.hfunDur||'0:30';
   // Auto-show correct section
   var showTimesEl=document.getElementById('mc-edit-times');
   var showPerenEl=document.getElementById('mc-edit-peren');
@@ -3611,6 +3613,21 @@ function mcEditSave(){
     });
     // If day was libre, mark as trabajado so shift shows
     if(!ue[month][day].tipo||ue[month][day].tipo==='libre')ue[month][day].tipo='trabajado';
+  } else if(tipoVal==='hfun'){
+    // Overlay: H. Función NO sustituye el turno del día.
+    // Mantiene tipo, horarios y total existentes; solo añade la línea morada +hh:mm.
+    var hfunTxt=(document.getElementById('mc-hfun-total').value.trim()||'0:30');
+    var baseTipo=existingDay.tipo;
+    if(!baseTipo||baseTipo==='libre'||baseTipo==='hfun')baseTipo='trabajado';
+    ue[month][day]=Object.assign({},existingDay,{
+      tipo:baseTipo,
+      e1:existingDay.e1||'',
+      s1:existingDay.s1||'',
+      e2:existingDay.e2||'',
+      s2:existingDay.s2||'',
+      total:existingDay.total||0,
+      hfunDur:hfunTxt
+    });
   } else {
     // Update tipo and SAVE the edited times from the modal.
     // Antes se priorizaban los horarios existentes (existingDay.e1 || e1),
@@ -3662,6 +3679,8 @@ function mcTipoSel(btn){
     showTimes.style.display='none';
     showPeren.style.display='none';
     if(showHfun)showHfun.style.display='block';
+    var hf=document.getElementById('mc-hfun-total');
+    if(hf&&!hf.value.trim())hf.value='0:30';
   } else {
     showTimes.style.display='none';
     showPeren.style.display='none';
@@ -3734,7 +3753,7 @@ document.addEventListener('DOMContentLoaded',function(){
     </div>
   </div>
   <div class="mc-edit-hfun" id="mc-edit-hfun" style="display:none;margin-bottom:12px">
-    <div style="font-size:11px;color:var(--gray);margin-bottom:8px">Horas de H. Función realizadas (no cuentan para contador ni total)</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:8px">Horas de H. Función realizadas</div>
     <div style="display:flex;align-items:center;gap:10px">
       <div style="flex:1">
         <label style="font-size:10px;color:var(--gray);display:block;margin-bottom:4px">Total (hh:mm)</label>
@@ -3765,6 +3784,27 @@ document.addEventListener('DOMContentLoaded',function(){
 // ─── GRUPO COMPAÑEROS ────────────────────────────────────────────
 var _GRUPO_KEY='cta_grupo_2026';
 var _GRUPO_MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+
+
+// Exclusiones manuales de plantilla por fecha.
+// Prueba: Arturo Rico no aparece ni computa el 14/05/2026.
+var _EXCLUSIONES_PLANTILLA_MANUAL={
+  '2026-05-14':['ARTURO RICO']
+};
+function _normPlantillaNombre(v){
+  return String(v||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+function _fechaISOPlantilla(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function _estaExcluidoPlantilla(nombre,fechaISO){
+  var lista=_EXCLUSIONES_PLANTILLA_MANUAL[fechaISO]||[];
+  var n=_normPlantillaNombre(nombre);
+  return lista.some(function(x){
+    var e=_normPlantillaNombre(x);
+    return n===e||n.indexOf(e)>=0||e.indexOf(n)>=0;
+  });
+}
 
 
 function resetGrupo(){
@@ -4074,6 +4114,11 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
       if(_dias)empleados.push({nomina:_emp.nomina,nombre:_emp.nombre,categoria:_emp.categoria,dias:_dias});
     }
   }
+  var fechaISOGrupo=_fechaISOPlantilla(target);
+  empleados=empleados.filter(function(emp){
+    return !_estaExcluidoPlantilla(emp.nombre||emp.nomina,fechaISOGrupo);
+  });
+
   if(!empleados.length){
     panel.innerHTML='<div class="grupo-empty">📋 Importa el Excel del grupo primero</div>';
     panel.classList.add('open');return;
@@ -4434,6 +4479,7 @@ window.renderOperativa=function(){
   var mE2o=d&&d.e2?toM(d.e2):null,mS2o=d&&d.s2?toM(d.s2):null;
   Object.keys(gmap).forEach(function(nom){
     var emp=gmap[nom],dias=(emp.meses&&emp.meses[mK])||null;
+    if(_estaExcluidoPlantilla((emp&&emp.nombre)||nom,_fechaISOPlantilla(now)))return;
     if(!dias)return;
     var t=dias[todayNum];if(!t||!t.e1)return;
     var excl=!!(t.noVieneInterrogacion||t.disponibilidadNoConfirmada);if(excl)return;
@@ -4453,7 +4499,7 @@ window.renderOperativa=function(){
   function opTrabajadoresFecha(dateObj){
     var mk=MESES[dateObj.getMonth()],dn=dateObj.getDate(),out=[];
     Object.keys(gmap).forEach(function(nom){
-      var emp=gmap[nom],dias=(emp.meses&&emp.meses[mk])||null;if(!dias)return;
+      var emp=gmap[nom],dias=(emp.meses&&emp.meses[mk])||null;if(_estaExcluidoPlantilla((emp&&emp.nombre)||nom,_fechaISOPlantilla(dateObj)))return;if(!dias)return;
       var t=dias[dn];if(!t||!t.e1)return;
       var excl=!!(t.noVieneInterrogacion||t.disponibilidadNoConfirmada);if(excl)return;
       out.push({nombre:nom,e1:toM(t.e1),s1:toM(t.s1),e2:t.e2?toM(t.e2):null,s2:t.s2?toM(t.s2):null});
