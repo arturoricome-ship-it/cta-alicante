@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V51_BARRAS_SOLO_ULTIMA_SELECCION_2026-05-12 -->
+<!-- CTA_OPERATIVA_V52_DETALLES_CORTE_0300_2026-05-12 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -4688,12 +4688,22 @@ window.renderOperativa=function(){
 
   var opDetalleRec=opHistRecord(opDetalleDate);
   var opDetalleRemoteHours=opDetalleRec?(opDetalleRec.hours||[]).concat(Array(24).fill(0)).slice(0,24):Array(24).fill(0);
-  var opDetalleLive=(opDetalleSel==='manana'?lT.concat(sT):allH);
+  var opNowDateKey=opHistKey(now);
+  var opTomorrowReal=new Date(now);opTomorrowReal.setDate(opTomorrowReal.getDate()+1);
+  var opTomorrowDateKey=opHistKey(opTomorrowReal);
+  var opDetalleDateKey=opHistKey(opDetalleDate);
+  var opDetalleLive=[];
+  // Corte operativo a las 03:00:
+  // - Antes de las 03:00, "Hoy" es el día operativo anterior y no debe tomar vuelos del día nuevo.
+  // - "Mañana" solo toma directo si coincide con el mañana real mostrado por AENA.
+  // - Si no coincide, usa solo Sheets para no mezclar datos de fechas.
+  if(opDetalleDateKey===opNowDateKey)opDetalleLive=allH;
+  else if(opDetalleDateKey===opTomorrowDateKey)opDetalleLive=lT.concat(sT);
   var opDetalleLiveHours=Array(24).fill(0);
   opDetalleLive.forEach(function(v){var tm=flMin(v);if(tm!==null)opDetalleLiveHours[Math.floor(tm/60)%24]++;});
   hourCounts=hourCounts.map(function(_,i){return Math.max(Number(opDetalleRemoteHours[i]||0),Number(opDetalleLiveHours[i]||0));});
   var opDetalleTotal=Math.max(opHistTotal(opDetalleRec),opDetalleLive.length,hourCounts.reduce(function(a,b){return a+Number(b||0);},0));
-  var opDetalleTrabajadores=opDetalleSel==='hoy'?trabajanHoy:opTrabajadoresFecha(opDetalleDate);
+  var opDetalleTrabajadores=opTrabajadoresFecha(opDetalleDate);
   var opDetalleHorasPlan=opDetalleTrabajadores.reduce(function(sum,e){return sum+plannedMinutesEmp(e);},0)/60;
   if(opDetalleHorasPlan>0&&opDetalleTotal>0){
     setTextOp('op-prod-vh',(opDetalleTotal/opDetalleHorasPlan).toFixed(2).replace('.',',')+' vuelos/h');
@@ -4710,7 +4720,11 @@ window.renderOperativa=function(){
     {label:'14:00 - 16:00',a:840,b:960},
     {label:'20:00 - 22:00',a:1200,b:1320}
   ];
-  windows.forEach(function(w){w.count=inWindowCount(allH,w.a,w.b);});
+  windows.forEach(function(w){
+    var aH=Math.floor(w.a/60),bH=Math.ceil(w.b/60),sum=0;
+    for(var hi=aH;hi<bH;hi++)sum+=Number(hourCounts[hi%24]||0);
+    w.count=sum;
+  });
   var maxFlights=windows.reduce(function(m,w){return Math.max(m,w.count);},0);
   function lvlFor(c){if(maxFlights<=0)return {txt:'—',cls:'mid'};if(c>=Math.max(3,Math.ceil(maxFlights*.75)))return {txt:'Alto',cls:'high'};if(c>=Math.max(1,Math.ceil(maxFlights*.4)))return {txt:'Medio',cls:'mid'};return {txt:'Bajo',cls:'low'};}
 
@@ -4833,9 +4847,10 @@ window.renderOperativa=function(){
   else if(operariosDisponiblesVuelos>0){pressureScore=(genteNecesaria/operariosDisponiblesVuelos)*50;}
   pressureScore=Math.max(0,Math.min(100,pressureScore));
   setPressureOp(pressureScore,genteNecesaria,operariosDisponiblesVuelos);
-  setTextOp('op-load-workers',operariosActivosAhora||'—');
-  var vuelosRatio=activeFlights||soloSalidasActivas+soloLlegadasActivas+avionesEnEscala;
-  setTextOp('op-load-ratio',(operariosDisponiblesVuelos&&vuelosRatio)?(operariosDisponiblesVuelos/vuelosRatio).toFixed(2).replace('.',','):'—');
+  // Carga/plantilla respeta el selector Hoy/Mañana y el corte operativo de las 03:00.
+  setTextOp('op-load-workers',opDetalleTrabajadores.length||'—');
+  setTextOp('op-load-flights',opDetalleTotal>0?opDetalleTotal:'—');
+  setTextOp('op-load-ratio',(opDetalleTrabajadores.length&&opDetalleTotal)?(opDetalleTrabajadores.length/opDetalleTotal).toFixed(2).replace('.',','):'—');
   var pf=g('op-pressure-formula');if(pf)pf.textContent='Resumen: '+genteNecesaria+' necesarios / '+operariosDisponiblesVuelos+' disponibles para vuelos. Fijos no computan: 2 jardineras + 2 patios.';
 
   if(!card)return;
