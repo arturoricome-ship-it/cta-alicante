@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V50_HFUN_MANTIENE_TURNO_ORIGINAL_2026-05-12 -->
+<!-- CTA_OPERATIVA_V51_BARRAS_SOLO_ULTIMA_SELECCION_2026-05-12 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -4715,8 +4715,21 @@ window.renderOperativa=function(){
   function lvlFor(c){if(maxFlights<=0)return {txt:'—',cls:'mid'};if(c>=Math.max(3,Math.ceil(maxFlights*.75)))return {txt:'Alto',cls:'high'};if(c>=Math.max(1,Math.ceil(maxFlights*.4)))return {txt:'Medio',cls:'mid'};return {txt:'Bajo',cls:'low'};}
 
   function opColorFromRatio(x,max){var r=max>0?x/max:0;if(r>=.75)return '#f87171';if(r>=.45)return '#fbbf24';return '#4ade80';}
-  function opBars24Html(counts,max,unit){max=max||Math.max.apply(null,counts.concat([1]));return counts.map(function(c,h){var pct=max>0?Math.max(2,Math.round(c/max*100)):2;var col=opColorFromRatio(c,max);var lab=(h<10?'0':'')+h;return '<div class="op-bar-col" onclick="this.classList.toggle(&quot;show&quot;)" title="'+lab+':00 · '+c+' '+unit+'"><span class="op-bar-val">'+c+' '+unit+'</span><div class="op-bar-fill" style="height:'+pct+'%;background:'+col+';border-color:'+col+'"></div><span class="op-bar-lab">'+lab+'</span></div>';}).join('');}
-  function opBars7Html(counts,max){var labs=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];max=max||Math.max.apply(null,counts.concat([1]));return counts.map(function(c,i){var pct=max>0?Math.max(2,Math.round(c/max*100)):2;var col=opColorFromRatio(c,max);return '<div class="op-bar-col" onclick="this.classList.toggle(&quot;show&quot;)" title="'+labs[i]+' · '+c+' vuelos"><span class="op-bar-val">'+c+' vuelos</span><div class="op-bar-fill" style="height:'+pct+'%;background:'+col+';border-color:'+col+'"></div><span class="op-bar-lab">'+labs[i]+'</span></div>';}).join('');}
+  function opShowOnlyBar(el){
+    try{
+      var root=el&&el.closest?el.closest('.op-bars-24,.op-bars-7'):null;
+      if(root){
+        root.querySelectorAll('.op-bar-col.show').forEach(function(x){if(x!==el)x.classList.remove('show');});
+      }else{
+        document.querySelectorAll('.op-bar-col.show').forEach(function(x){if(x!==el)x.classList.remove('show');});
+      }
+      el.classList.toggle('show');
+    }catch(e){
+      if(el)el.classList.toggle('show');
+    }
+  }
+  function opBars24Html(counts,max,unit){max=max||Math.max.apply(null,counts.concat([1]));return counts.map(function(c,h){var pct=max>0?Math.max(2,Math.round(c/max*100)):2;var col=opColorFromRatio(c,max);var lab=(h<10?'0':'')+h;return '<div class="op-bar-col" onclick="opShowOnlyBar(this)" title="'+lab+':00 · '+c+' '+unit+'"><span class="op-bar-val">'+c+' '+unit+'</span><div class="op-bar-fill" style="height:'+pct+'%;background:'+col+';border-color:'+col+'"></div><span class="op-bar-lab">'+lab+'</span></div>';}).join('');}
+  function opBars7Html(counts,max){var labs=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];max=max||Math.max.apply(null,counts.concat([1]));return counts.map(function(c,i){var pct=max>0?Math.max(2,Math.round(c/max*100)):2;var col=opColorFromRatio(c,max);return '<div class="op-bar-col" onclick="opShowOnlyBar(this)" title="'+labs[i]+' · '+c+' vuelos"><span class="op-bar-val">'+c+' vuelos</span><div class="op-bar-fill" style="height:'+pct+'%;background:'+col+';border-color:'+col+'"></div><span class="op-bar-lab">'+labs[i]+'</span></div>';}).join('');}
   function opBuildLocalHistory(todayCounts){return {};}
   function opParseRemoteHourArray(v){if(Array.isArray(v))return v.map(function(n){return Number(n||0);}).concat(Array(24).fill(0)).slice(0,24);return String(v||'').split(',').map(function(n){return Number(String(n).trim()||0);}).concat(Array(24).fill(0)).slice(0,24);}
   function opDowFromISO(ds){var d=new Date(ds+'T12:00:00');if(isNaN(d.getTime()))return 0;return (d.getDay()+6)%7;}
@@ -4744,7 +4757,7 @@ window.renderOperativa=function(){
       if(ratio===null)cls='low'; else if(ratio<3)cls='very'; else if(ratio<4)cls='high'; else if(ratio<6)cls='mid'; else cls='low';
       var val=ratio===null?'—':ratio.toFixed(1).replace('.',',');
       var hPct=(ratio===null?2:Math.max(2,Math.min(100,Math.round((ratio/8)*100))));
-      return '<div class="op-hour-chip '+cls+'" style="--h:'+hPct+'%" onclick="this.classList.toggle(&quot;show&quot;)" title="'+('0'+h).slice(-2)+':00 · '+people+' pers. / '+fc+' vuelos"><div class="op-hour-top"><span class="op-hour-h">'+('0'+h).slice(-2)+':00</span><span class="op-hour-r '+cls+'">'+val+'</span></div><div class="op-hour-meta">'+people+' pers. / '+fc+' vuelos</div></div>';
+      return '<div class="op-hour-chip '+cls+'" style="--h:'+hPct+'%" onclick="opShowOnlyBar(this)" title="'+('0'+h).slice(-2)+':00 · '+people+' pers. / '+fc+' vuelos"><div class="op-hour-top"><span class="op-hour-h">'+('0'+h).slice(-2)+':00</span><span class="op-hour-r '+cls+'">'+val+'</span></div><div class="op-hour-meta">'+people+' pers. / '+fc+' vuelos</div></div>';
     }).join('');
   }
 
