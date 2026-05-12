@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V53_BARRAS_ACTIVAS_PICOS_2026-05-12 -->
+<!-- CTA_OPERATIVA_V55_COUNTDOWN_MANANA_24H_2026-05-12 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -1833,6 +1833,11 @@ function renderLive(){
   if(liveFiltro){
     data=data.filter(function(v){
       var s=v.estadoClass||"";
+      // V54: los vuelos de mañana no se pueden evaluar contra la hora actual de hoy.
+      // Se mantienen bajo su separador y no se descartan por haber "pasado" su hora.
+      if(v.esManana){
+        return s!=="e-cancelled"&&s!=="e-final";
+      }
       if(liveMode==="llegadas"){
         if(llegadaFinalizada30(v))return false;
         return s!=="e-landed"&&s!=="e-final"&&s!=="e-taxiing"&&s!=="e-boarding"&&s!=="e-gate";
@@ -1904,7 +1909,8 @@ function renderLive(){
     row.setAttribute("data-hora",horaEfectiva);
     row.setAttribute("data-live-mode",esS?"salidas":"llegadas");
     row.setAttribute("data-estado-class",v.estadoClass||"");
-    var countdownAttr=esEnVueloSalida?"":(" data-hora='"+(horaEfectiva||"")+"'");
+    row.setAttribute("data-es-manana",v.esManana?"1":"0");
+    var countdownAttr=esEnVueloSalida?"":(" data-hora='"+(horaEfectiva||"")+"' data-es-manana='"+(v.esManana?"1":"0")+"'");
     row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
       +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
       +"<div style='display:flex;flex-direction:column;align-items:flex-end;gap:3px'><div class='vuelo-estado "+(v.estadoClass||"e-scheduled")+"'>"+(v.estado||"Programado")+"</div><div class='vuelo-countdown'"+countdownAttr+">"+(esEnVueloSalida?"":"—")+"</div></div>";
@@ -1921,17 +1927,28 @@ function updateFlightCountdowns(){
     var row=el.closest?el.closest('.vuelo-row'):null;
     var mode=row?row.getAttribute('data-live-mode'):'';
     var estado=row?row.getAttribute('data-estado-class'):'';
+    var esManana=(el.getAttribute('data-es-manana')==='1')||(row&&row.getAttribute('data-es-manana')==='1');
     // En salidas, cuando el vuelo ya está "En vuelo", no se muestra ningún tiempo restante.
     if(mode==='salidas'&&estado==='e-active'){el.textContent='';el.className='vuelo-countdown';return;}
     var h=el.getAttribute('data-hora');
     if(!h||h==='--:--'){el.textContent='';return;}
     var p=h.split(':'),flMin=(+p[0]||0)*60+(+p[1]||0);
-    // Handle next-day flights (hora < nowMin by a lot means tomorrow)
     var diff=flMin-nowMin;
-    if(diff<-120)diff+=1440; // crosses midnight
+
+    // V55: si el vuelo es de mañana, siempre se calcula contra mañana.
+    // Así no se queda en blanco en las horas que ya han pasado hoy, y los vuelos
+    // de mañana por la noche muestran +24h cuando corresponde.
+    if(esManana){
+      diff+=1440;
+    }else if(diff<-120){
+      diff+=1440; // cruza medianoche para vuelos de hoy de madrugada
+    }
+
     if(diff<0){el.textContent='';el.className='vuelo-countdown';return;}
-    var hh=Math.floor(diff/60),mm=diff%60;
-    var str=(hh>0?hh+'h ':'')+mm+'m';
+    var dias=Math.floor(diff/1440);
+    var resto=diff%1440;
+    var hh=Math.floor(resto/60),mm=resto%60;
+    var str=(dias>0?dias+'d ':'')+(hh>0?hh+'h ':'')+mm+'m';
     el.textContent=str;
     el.className='vuelo-countdown'+(diff<=15?' ct-soon':diff<=60?' ct-now':'');
   });
