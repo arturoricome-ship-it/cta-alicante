@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V60_LIMPIA_LOCAL_MANTIENE_SHEETS_2026-05-12 -->
+<!-- CTA_OPERATIVA_V61_PRESION_FIJOS_DINAMICOS_2026-05-13 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -4853,6 +4853,49 @@ window.renderOperativa=function(){
   function isEnVuelo(v){var c=(v.estadoClass||'');var e=String(v.estado||'').toLowerCase();return c==='e-active'||e.indexOf('en vuelo')>=0||e.indexOf('en route')>=0;}
   function depActive(v){var tm=flMin(v);if(tm===null||isEnVuelo(v))return false;var a=tm-35,b=tm;return nowMin>=a&&nowMin<=b;}
   function arrActive(v){var tm=flMin(v);if(tm===null||isEnVuelo(v))return false;return nowMin>=tm&&nowMin<tm+30;}
+
+  // Puestos fijos dinámicos para el cálculo de presión operativa.
+  // Patios depende de la hora. Jardineras solo descuenta personal cuando hay salidas
+  // por puertas remotas, desde 45 min antes hasta la salida del último vuelo afectado.
+  function opPatiosFijos(nowMinute){
+    // 23:00 - 04:30: no se descuenta nadie para patios.
+    if(nowMinute>=1380||nowMinute<270)return 0;
+    // 04:30 - 07:00: solo se descuenta 1 persona para patios.
+    if(nowMinute>=270&&nowMinute<420)return 1;
+    // Resto del día: se descuentan 2 personas para patios.
+    return 2;
+  }
+  function opNormPuerta(p){
+    return String(p||'')
+      .toUpperCase()
+      .replace(/\s+/g,'')
+      .replace(/^PUERTA/,'')
+      .replace(/^GATE/,'');
+  }
+  function opInMinuteRange(nowMinute,startMinute,endMinute){
+    startMinute=((startMinute%1440)+1440)%1440;
+    endMinute=((endMinute%1440)+1440)%1440;
+    if(startMinute<=endMinute)return nowMinute>=startMinute&&nowMinute<=endMinute;
+    return nowMinute>=startMinute||nowMinute<=endMinute;
+  }
+  function opJardinerasFijas(nowMinute,salidasList){
+    var puertasJardinera=new Set([
+      'C50','C48','C46','C44','C42','C40','C38',
+      'B18','B20','B22',
+      'C20','C22','C24','C26','C28','C30','C32','C34'
+    ]);
+    var activa=false;
+    (salidasList||[]).forEach(function(v){
+      if(activa)return;
+      if(isEnVuelo(v))return;
+      var puerta=opNormPuerta(v.puerta||v.gate||v.embarque||v.puertaEmbarque||v.puertaSalida||'');
+      if(!puertasJardinera.has(puerta))return;
+      var salidaMin=flMin(v);
+      if(salidaMin===null)return;
+      if(opInMinuteRange(nowMinute,salidaMin-45,salidaMin))activa=true;
+    });
+    return activa?2:0;
+  }
   var salidasActivasList=sHOperativa.filter(depActive);
   var llegadasActivasList=lHOperativa.filter(arrActive);
   var salidasActivas=salidasActivasList.length;
@@ -4912,7 +4955,9 @@ window.renderOperativa=function(){
   var soloLlegadasActivas=llegadasActivasList.filter(function(v){return !llegadasUsadasEnEscala.has(v);}).length;
   var soloSalidasActivas=salidasActivasList.filter(function(v){return !salidasUsadasEnEscala.has(v);}).length;
   var operariosActivosAhora=wNow||0;
-  var puestosFijos=4; // 2 jardineras + 2 patios. No cuentan para aviones.
+  var patiosFijos=opPatiosFijos(nowMin);
+  var jardinerasFijas=opJardinerasFijas(nowMin,sHOperativa);
+  var puestosFijos=patiosFijos+jardinerasFijas; // Puestos no disponibles para vuelos ahora mismo.
   var operariosDisponiblesVuelos=Math.max(0,operariosActivosAhora-puestosFijos);
   var genteNecesaria=(avionesEnEscala*4)+(soloLlegadasActivas*3)+(soloSalidasActivas*3);
   var pressureScore=0;
@@ -4924,7 +4969,7 @@ window.renderOperativa=function(){
   setTextOp('op-load-workers',opDetalleTrabajadores.length||'—');
   setTextOp('op-load-flights',opDetalleTotal>0?opDetalleTotal:'—');
   setTextOp('op-load-ratio',(opDetalleTrabajadores.length&&opDetalleTotal)?(opDetalleTrabajadores.length/opDetalleTotal).toFixed(2).replace('.',','):'—');
-  var pf=g('op-pressure-formula');if(pf)pf.textContent='Resumen: '+genteNecesaria+' necesarios / '+operariosDisponiblesVuelos+' disponibles para vuelos. Fijos no computan: 2 jardineras + 2 patios.';
+  var pf=g('op-pressure-formula');if(pf)pf.textContent='Resumen: '+genteNecesaria+' necesarios / '+operariosDisponiblesVuelos+' disponibles para vuelos. Fijos ahora: '+jardinerasFijas+' jardineras + '+patiosFijos+' patios.';
 
   if(!card)return;
   ["state-working","state-pausa","state-rest","state-next"].forEach(function(c){card.classList.remove(c);});
