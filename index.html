@@ -436,25 +436,27 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .op-tc-lbl{font-size:7.5px;color:var(--gray);letter-spacing:.7px;text-transform:uppercase;margin-bottom:6px}
 .op-tc-times{display:flex;flex-direction:column;gap:4px;width:100%}
 .op-tc-times span{display:block;width:100%;border-radius:8px;padding:5px 8px;text-align:center;font-size:13px;font-weight:800;color:var(--white)}
-.op-tc-meta{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
-.op-tc-sub{font-size:8px}
+.op-tc-meta{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+.op-tc-sub{font-size:9px;color:var(--gray);line-height:1.5}
+.op-tc-shift{font-size:12px;font-weight:700;margin-top:3px;line-height:1.4}
 .op-tc-spacer{flex:1;min-height:10px}
 .op-tc-pct-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px}
 .op-tc-pct{font-size:26px;font-weight:800;line-height:1}
 .op-tc-rem{font-size:8px}
-.op-tc-bar-bg{background:rgba(255,255,255,.08);border-radius:100px;height:4px;overflow:hidden}
-.op-tc-bar{height:100%;border-radius:100px}
+.op-tc-bar-bg{background:rgba(255,255,255,.08);border-radius:100px;height:8px;overflow:hidden;margin-top:2px}
+.op-tc-bar{height:100%;border-radius:100px;transition:width 1.2s ease}
 .op-turno-card.state-working{background:linear-gradient(160deg,rgba(200,168,75,.08),rgba(200,168,75,.02));border:1px solid rgba(200,168,75,.3)}
 .op-turno-card.state-working .op-tc-times span{border:1px solid rgba(200,168,75,.2)}
 .op-turno-card.state-working .op-tc-sub,.op-turno-card.state-working .op-tc-pct{color:var(--gold)}
-.op-turno-card.state-working .op-tc-bar{background:var(--gold)}
+.op-turno-card.state-working .op-tc-bar{background:linear-gradient(90deg,var(--gold),var(--gold-light));box-shadow:0 0 8px rgba(200,168,75,.5)}
 .op-turno-card.state-working .op-tc-rem{color:var(--gray)}
 .op-turno-card.state-pausa{background:linear-gradient(160deg,rgba(192,132,252,.08),rgba(192,132,252,.02));border:1px solid rgba(192,132,252,.3)}
 .op-turno-card.state-pausa .op-tc-times span{border:1px solid rgba(192,132,252,.2)}
 .op-turno-card.state-pausa .op-tc-sub,.op-turno-card.state-pausa .op-tc-pct{color:#c084fc}
-.op-turno-card.state-pausa .op-tc-bar{background:#c084fc}
+.op-turno-card.state-pausa .op-tc-bar{background:linear-gradient(90deg,#a855f7,#c084fc);box-shadow:0 0 8px rgba(192,132,252,.5)}
 .op-turno-card.state-rest{background:linear-gradient(160deg,rgba(34,197,94,.08),rgba(34,197,94,.02));border:1px solid rgba(34,197,94,.3)}
 .op-turno-card.state-rest .op-tc-times span{border:1px solid rgba(34,197,94,.2);font-size:22px;font-weight:800;color:#4ade80}
+.op-turno-card.state-rest .op-tc-bar{background:linear-gradient(90deg,#22c55e,#4ade80);box-shadow:0 0 8px rgba(74,222,128,.5)}
 .op-turno-card.state-rest .op-tc-pct{color:#4ade80;font-size:22px;font-weight:800}
 .op-turno-card.state-rest .op-tc-rem{color:var(--gold);font-weight:700}
 .op-turno-card.state-next{background:linear-gradient(160deg,rgba(96,165,250,.08),rgba(96,165,250,.02));border:1px solid rgba(96,165,250,.3)}
@@ -679,11 +681,12 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
         <div class="op-tc-lbl" id="op-tc-lbl">Turno hoy</div>
         <div class="op-tc-times" id="op-tc-times"><span style="color:var(--gray);font-size:11px">Cargando...</span></div>
         <div class="op-tc-meta">
-          <div class="op-tc-sub" id="op-tc-sub">—</div>
-          <button class="tw-manana-btn" onclick="event.stopPropagation();if(typeof twShowManana==='function')twShowManana()">MAÑANA ›</button>
+          <div>
+            <div class="op-tc-sub" id="op-tc-sub">—</div>
+            <div class="op-tc-shift" id="op-tc-shift"></div>
+          </div>
         </div>
-        <div class="op-tc-spacer"></div>
-        <div>
+        <div style="margin-top:14px;padding-top:0">
           <div class="op-tc-pct-row">
             <div class="op-tc-pct" id="op-tc-pct">—</div>
             <div class="op-tc-rem" id="op-tc-rem"></div>
@@ -4682,9 +4685,10 @@ window.renderOperativa=function(){
   if(remoteTomTotal>cT)cT=remoteTomTotal;
   if(totT>cT){cT=totT;try{localStorage.setItem("op_vt_tom",JSON.stringify({d:tStr2,t:cT}));}catch(e){}}
   if(g("op-v-total-tom"))g("op-v-total-tom").textContent=cT>0?cT:"—";
-  var _shDone=(shEnd!==null&&nowMin>=shEnd);
+  var _shEndH=mS2o!==null?mS2o:mS1o;
+  var _shDone=(_shEndH!==null&&nowMin>=_shEndH);
   var _liveEmpty=(lH.length===0&&sH.length===0);
-  var iH=(e1!==null&&!_shDone&&!_liveEmpty)?cntSh(lH.concat(sH),e1,s1,e2,s2):0;
+  var iH=(mE1o!==null&&!_shDone&&!_liveEmpty)?cntSh(lH.concat(sH),mE1o,mS1o,mE2o,mS2o):0;
   if(g("op-v-turno"))g("op-v-turno").textContent=(_shDone||_liveEmpty)?"—":String(iH);
   var dT=(ue[MESES[tom.getMonth()]]||{})[tom.getDate()]||null;
   var tE1=dT&&dT.e1?toM(dT.e1):null,tS1=dT&&dT.s1?toM(dT.s1):null;
@@ -4983,10 +4987,11 @@ window.renderOperativa=function(){
     // Find next shift (up to 30 days)
     var nxtMinF=null,nxtStrF="",nxtDaysF=0;
     var ANXTF=["trabajado","h6","baja","rm","curso"]; // HL/HLP se tratan como libre: descanso, no próximo turno
+    var _DIAS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
     for(var ddF=1;ddF<=30;ddF++){
       var nDF=new Date(now.getFullYear(),now.getMonth(),now.getDate()+ddF);
       var nMdF=(ue[MESES[nDF.getMonth()]]||{})[nDF.getDate()];
-      if(nMdF&&nMdF.e1&&nMdF.tipo&&ANXTF.indexOf(nMdF.tipo)>=0){nxtMinF=toM(nMdF.e1);nxtStrF=nMdF.e1;nxtDaysF=ddF;break;}
+      if(nMdF&&nMdF.e1&&nMdF.tipo&&ANXTF.indexOf(nMdF.tipo)>=0){nxtMinF=toM(nMdF.e1);nxtStrF=_DIAS[nDF.getDay()]+' '+nDF.getDate()+'  ·  '+nMdF.e1+(nMdF.s1?' → '+nMdF.s1:'')+(nMdF.e2&&nMdF.s2?'  ·  '+nMdF.e2+' → '+nMdF.s2:'');nxtDaysF=ddF;break;}
     }
     var restMF=nxtMinF!==null?(nxtDaysF*1440+nxtMinF-nowMin):null;
     function fmtRestF(m){
@@ -5004,7 +5009,9 @@ window.renderOperativa=function(){
     var cntF=fmtRestF(restMF);
     var isMultiDay=restMF!==null&&Math.floor(restMF/1440)>0;
     if(g("op-tc-times"))g("op-tc-times").innerHTML=isMultiDay?cntF:"<span>"+(cntF||"💤")+"</span>";
-    if(g("op-tc-sub"))g("op-tc-sub").textContent=nxtStrF?"Próximo turno "+nxtStrF:"";
+    if(g("op-tc-sub"))g("op-tc-sub").textContent=nxtStrF?("Próximo turno: "+_DIAS[nDF.getDay()]+" "+nDF.getDate()):"";
+    if(g("op-tc-shift"))g("op-tc-shift").textContent=nxtStrF?(nMdF.e1+(nMdF.s1?" → "+nMdF.s1:"")+(nMdF.e2&&nMdF.s2?"  ·  "+nMdF.e2+" → "+nMdF.s2:"")):"";
+    if(g("op-tc-shift"))g("op-tc-shift").style.color=nxtStrF?"var(--white)":"";
     // % remaining: look back to find when last shift ended
     var lastShiftEnd=null;
     for(var ddB=1;ddB<=30;ddB++){
@@ -5050,6 +5057,7 @@ window.renderOperativa=function(){
     var pct=Math.min(100,Math.round(el2/totMin*100));
     var rem=shEnd-nowMin+(inS1&&e2?Math.max(0,e2-s1):0);
     if(g("op-tc-sub"))g("op-tc-sub").textContent="Trabajando";
+    if(g("op-tc-shift"))g("op-tc-shift").textContent="";
     if(g("op-tc-pct"))g("op-tc-pct").textContent=pct+"%";
     if(g("op-tc-rem"))g("op-tc-rem").textContent="Quedan "+fmtT(Math.max(0,rem));
     if(g("op-tc-bar"))g("op-tc-bar").style.width=pct+"%";
@@ -5075,7 +5083,7 @@ window.renderOperativa=function(){
     for(var dd2=1;dd2<=30;dd2++){
       var nD=new Date(now.getFullYear(),now.getMonth(),now.getDate()+dd2);
       var nMd=(ue[MESES[nD.getMonth()]]||{})[nD.getDate()];
-      if(nMd&&nMd.e1&&nMd.tipo&&ANXT.indexOf(nMd.tipo)>=0){nxtMin=toM(nMd.e1);nxtStr=nMd.e1;nxtDays=dd2;break;}
+      if(nMd&&nMd.e1&&nMd.tipo&&ANXT.indexOf(nMd.tipo)>=0){var _D2=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];nxtMin=toM(nMd.e1);nxtStr=_D2[nD.getDay()]+' '+nD.getDate()+'  ·  '+nMd.e1+(nMd.s1?' → '+nMd.s1:'')+(nMd.e2&&nMd.s2?'  ·  '+nMd.e2+' → '+nMd.s2:'');nxtDays=dd2;break;}
     }
     // Calculate total minutes remaining (including full days)
     var restM=nxtMin!==null?(nxtDays*1440+nxtMin-nowMin):null;
@@ -5097,7 +5105,10 @@ window.renderOperativa=function(){
     // For multi-day: use raw HTML, otherwise wrap in span
     var cntHtml=restM!==null&&Math.floor(restM/1440)>0?cnt:"<span>"+(cnt||"💤")+"</span>";
     if(g("op-tc-times"))g("op-tc-times").innerHTML=cntHtml;
-    if(g("op-tc-sub"))g("op-tc-sub").textContent=nxtStr?"Próximo turno "+nxtStr:"";
+    var _D2=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    if(g("op-tc-sub"))g("op-tc-sub").textContent=nxtStr?("Próximo turno: "+_D2[nD.getDay()]+" "+nD.getDate()):"";
+    var _shiftHours=nMd?(nMd.e1+(nMd.s1?" → "+nMd.s1:"")+(nMd.e2&&nMd.s2?"  ·  "+nMd.e2+" → "+nMd.s2:"")):"";
+    if(g("op-tc-shift")){g("op-tc-shift").textContent=_shiftHours;g("op-tc-shift").style.color=_shiftHours?"var(--white)":"";}
     // % of rest REMAINING (what's left to enjoy)
     var restElapsed=nowMin-shEnd;if(restElapsed<0)restElapsed+=1440;
     var totalRest=(restElapsed+(restM||0));
@@ -5108,7 +5119,10 @@ window.renderOperativa=function(){
   } else if(notYet){
     card.classList.add("state-next");
     if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
-    if(g("op-tc-sub"))g("op-tc-sub").textContent="Próximo turno";
+    var _D3=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    if(g("op-tc-sub"))g("op-tc-sub").textContent="Próximo turno: "+_D3[now.getDay()]+" "+now.getDate();
+    var _shiftH3=d.e1+(d.s1?" → "+d.s1:"")+(d.e2&&d.s2?"  ·  "+d.e2+" → "+d.s2:"");
+    if(g("op-tc-shift")){g("op-tc-shift").textContent=_shiftH3;g("op-tc-shift").style.color="var(--white)";}
     if(g("op-tc-pct"))g("op-tc-pct").textContent="0%";
     if(g("op-tc-rem"))g("op-tc-rem").textContent="Empieza en "+fmtT(e1-nowMin);
     if(g("op-tc-bar"))g("op-tc-bar").style.width="0%";
