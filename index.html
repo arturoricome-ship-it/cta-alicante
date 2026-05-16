@@ -3685,7 +3685,11 @@ function mcEditSave(){
   }
   try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(er){alert('Error: '+er.message);}
   mcEditClose();
-  setTimeout(function(){mcRender();if(typeof initTurnoWidget==='function')initTurnoWidget();},290);
+  setTimeout(function(){
+    mcRender();
+    if(typeof initTurnoWidget==='function')initTurnoWidget();
+    if(typeof window.renderOperativa==='function')window.renderOperativa();
+  },290);
 }
 
 function mcAddPeren(minutes){
@@ -4481,9 +4485,19 @@ window.renderOperativa=function(){
   var mD=ue[mK]||{};
   var dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
   var trab=0,lib=0,hMes=0,hCont=0;
-  for(var di=1;di<=dim;di++){var dy=mD[di];if(!dy){lib++;continue;}if(ACTIVOS.indexOf(dy.tipo||"libre")>=0){trab++;hMes+=dy.total||0;}else lib++;}
-  // Use same method as calendar: prefer e1/s1 calculated duration over stored total
+  // Usa la misma lógica que el resumen del calendario para que
+  // la viñeta principal se actualice al editar horas manualmente.
   function mcMinOp2(e,s){if(!e||!s)return 0;var ep=e.split(":"),sp=s.split(":");if(ep.length<2||sp.length<2)return 0;var em=(+ep[0]||0)*60+(+ep[1]||0),sm=(+sp[0]||0)*60+(+sp[1]||0);if(sm<em)sm+=1440;return sm-em;}
+  var TOTAL_OP=["trabajado","vacaciones","festivo","hl","hlp","baja","rm","hfun","curso"];
+  for(var di=1;di<=dim;di++){
+    var dy=mD[di];
+    if(!dy){lib++;continue;}
+    var tipoDy=dy.tipo||"libre";
+    if(ACTIVOS.indexOf(tipoDy)>=0){trab++;}else{lib++;}
+    var minsDy=mcMinOp2(dy.e1,dy.s1)+mcMinOp2(dy.e2,dy.s2);
+    var effDy=minsDy>0?minsDy:(dy.total?Math.round(dy.total*60):0);
+    if(TOTAL_OP.indexOf(tipoDy)>=0)hMes+=effDy/60;
+  }
   MESES.forEach(function(m){var md=ue[m]||{};Object.keys(md).forEach(function(d){var dx=md[d];if(!dx||!dx.tipo)return;if(CONT_OP.indexOf(dx.tipo)<0)return;var mins=mcMinOp2(dx.e1,dx.s1)+mcMinOp2(dx.e2,dx.s2);var eff=mins>0?mins:(dx.total?Math.round(dx.total*60):0);hCont+=eff/60;});});
   // Annual perentorias — same logic as calendar tab (anualPerenMin + carryover)
   var MESES_ALL=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
