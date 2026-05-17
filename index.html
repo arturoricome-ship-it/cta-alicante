@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V61_PRESION_FIJOS_DINAMICOS_2026-05-13 -->
+<!-- CTA_OPERATIVA_V63_TIEMPO_LIBRE_MIN20_PRESION_LIMPIA_2026-05-17 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -486,7 +486,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 /* ─── Panel operativo ampliado ───────────────────────────── */
 .op-dashboard{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 @media(max-width:720px){.op-dashboard{grid-template-columns:1fr}}
-.op-pressure-card,.op-now-card,.op-load-card,.op-peaks-card,.op-productivity-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 14px;overflow:hidden}
+.op-pressure-card,.op-now-card,.op-load-card,.op-peaks-card,.op-productivity-card,.op-free-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:13px 14px;overflow:hidden}
 .op-pressure-card{border-color:rgba(200,168,75,.28);background:linear-gradient(160deg,rgba(200,168,75,.08),rgba(200,168,75,.025))}
 .op-productivity-card{border-color:rgba(34,197,94,.22);background:linear-gradient(160deg,rgba(34,197,94,.07),rgba(34,197,94,.02))}
 .op-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
@@ -589,7 +589,117 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 
 /* CTA V53: valores de barras persistentes y visibles */
 .op-peaks-card,.op-history-card{overflow:visible!important}
+.op-free-chip{display:flex;flex-direction:column;align-items:center;background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.18);border-radius:10px;padding:7px 12px;min-width:96px;gap:1px}
+.op-free-chip.past{opacity:.38}
+.op-free-chip.current{background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.45);box-shadow:0 0 8px rgba(74,222,128,.15)}
+.op-free-chip.short{background:rgba(251,146,60,.06);border-color:rgba(251,146,60,.22)}
+.op-free-time{font-size:11px;font-weight:700;color:var(--white)}
+.op-free-dur{font-size:9px;color:var(--gray)}
+.op-free-now{font-size:8px;color:#4ade80;font-weight:700;letter-spacing:.4px}
 .op-bar-col.show .op-bar-val{display:block!important}
+
+/* CTA V64: tiempos libres en columnas reales */
+#op-free-list.op-free-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+  margin-top:10px;
+  align-items:stretch;
+}
+#op-free-list .op-free-title{
+  grid-column:1/-1;
+  font-size:9px;
+  color:var(--gold);
+  font-weight:800;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  margin-bottom:1px;
+}
+#op-free-list .op-free-chip{
+  width:100%;
+  min-width:0;
+  min-height:52px;
+  justify-content:center;
+  text-align:center;
+}
+#op-free-list .op-free-time{
+  font-size:12px;
+  line-height:1.2;
+  font-variant-numeric:tabular-nums;
+}
+#op-free-list .op-free-dur{
+  font-size:10px;
+  font-weight:800;
+  color:#60a5fa;
+}
+#op-free-list .op-free-now{
+  margin-top:1px;
+}
+#op-free-list .op-free-chip.current .op-free-dur{color:#4ade80}
+#op-free-list .op-free-chip.short .op-free-dur{color:#fb923c}
+@media(max-width:340px){
+  #op-free-list.op-free-grid{grid-template-columns:1fr}
+}
+
+
+
+
+/* CTA V63: presión operativa sin texto descriptivo */
+#op-pressure-note,#op-pressure-formula{display:none!important}
+
+/* CTA V69: cada parón muestra hora, duración y cuánto falta */
+#op-free-list .op-free-chip{
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  text-align:left!important;
+  padding:8px 9px!important;
+  min-height:74px!important;
+  gap:5px!important;
+}
+#op-free-list .op-free-main{
+  font-size:12px;
+  font-weight:900;
+  color:var(--white);
+  text-align:center;
+  line-height:1.15;
+  font-variant-numeric:tabular-nums;
+}
+#op-free-list .op-free-cols{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:5px;
+}
+#op-free-list .op-free-cell{
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:7px;
+  padding:4px 5px;
+  min-width:0;
+}
+#op-free-list .op-free-cell.full{grid-column:1/-1}
+#op-free-list .op-free-label{
+  display:block;
+  font-size:7px;
+  line-height:1;
+  color:var(--gray);
+  text-transform:uppercase;
+  letter-spacing:.45px;
+  margin-bottom:2px;
+  font-weight:800;
+}
+#op-free-list .op-free-value{
+  display:block;
+  font-size:10px;
+  line-height:1.15;
+  color:#60a5fa;
+  font-weight:900;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  overflow-wrap:anywhere;
+}
+#op-free-list .op-free-chip.current .op-free-value{color:#4ade80}
+#op-free-list .op-free-chip.short .op-free-value{color:#fb923c}
 
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -733,7 +843,6 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
             <div class="op-card-head">
               <div>
                 <div class="op-card-title">Presión operativa en tiempo real</div>
-                <div class="op-card-sub">Estimación interna, no dato oficial</div>
               </div>
               <div id="op-pressure-level" class="op-pressure-level">—</div>
             </div>
@@ -741,8 +850,12 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
               <div id="op-pressure-pct" class="op-pressure-pct">—</div>
               <div class="op-pressure-bar-bg"><div id="op-pressure-bar" class="op-pressure-bar" style="width:0%"></div></div>
             </div>
-            <div id="op-pressure-note" class="op-mini-note">Calculada solo con vuelos en tierra y personal activo ahora.</div>
-            <div id="op-pressure-formula" class="op-pressure-formula">Resumen: necesarios / disponibles para vuelos. 50% = equilibrio.</div>
+            <div class="op-metric-list op-pressure-details">
+              <div class="op-metric-row"><span>Necesarios</span><b id="op-pressure-needed">—</b></div>
+              <div class="op-metric-row"><span>Disponibles para vuelos</span><b id="op-pressure-available">—</b></div>
+              <div class="op-metric-row"><span>Jardineras</span><b id="op-pressure-jardineras">—</b></div>
+              <div class="op-metric-row"><span>Patios</span><b id="op-pressure-patios">—</b></div>
+            </div>
           </div>
 
           <div class="op-productivity-card">
@@ -795,6 +908,14 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
             <div class="op-card-title">Picos previstos por vuelos</div>
             <div class="op-card-sub">Barras por hora. Toca una barra para ver el número de vuelos.</div>
             <div id="op-peaks-list" class="op-bars-24"></div>
+          </div>
+
+          <div class="op-free-card" style="grid-column:1/-1">
+            <div class="op-card-title">⏱ Tiempos libres del día</div>
+            <div class="op-card-sub">Ventanas sin operativa activa · llegada: −10min+20min · salida: −20min</div>
+            <div id="op-free-list" class="op-free-grid">
+              <div style="font-size:11px;color:var(--gray)">Cargando...</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1761,11 +1882,15 @@ function fmtH(iso){if(!iso)return"--:--";var m=iso.match(/T(\d{2}:\d{2})/);retur
 
 function eLabel(s){
   if(!s)return{t:"Programado",c:"e-scheduled"};
-  s=s.toLowerCase();
+  s=String(s).toLowerCase();
+  // AENA puede devolver textos de llegadas ya en tierra como "Entrega de equipajes".
+  // Eso NO debe pintarse ni tratarse como "En vuelo".
+  if(/entrega|equipaje|baggage|reclaim|cinta|belt/.test(s))return{t:"Entrega equipajes",c:"e-equip"};
+  if(/aterriz|landed|arrived|llegad/.test(s))return{t:"Aterrizado",c:"e-landed"};
+  if(s==="en tierra"||s==="on ground"||s==="tierra")return{t:"En tierra",c:"e-landed"};
   if(s==="active"||s==="en route")return{t:"En vuelo",c:"e-active"};
-  if(s==="landed")return{t:"Aterrizado",c:"e-landed"};
   if(s==="cancelled")return{t:"Cancelado",c:"e-cancelled"};
-  if(s.indexOf("delay")!==-1)return{t:"Retrasado",c:"e-delayed"};
+  if(s.indexOf("delay")!==-1||s.indexOf("retras")!==-1)return{t:"Retrasado",c:"e-delayed"};
   return{t:"Programado",c:"e-scheduled"};
 }
 
@@ -1961,21 +2086,36 @@ var RAILWAY="https://aena-vuelos-server-production.up.railway.app";
 function extractLiveVuelos(res,tipo){
   // V38: Railway puede devolver distintos formatos según caché/endpoint.
   // Antes solo se leía res.vuelos; si el backend devolvía llegadas/salidas/items/data, la app quedaba vacía.
-  if(!res)return [];
-  if(Array.isArray(res))return res;
-  if(Array.isArray(res.vuelos))return res.vuelos;
-  if(tipo==="llegadas"&&Array.isArray(res.llegadas))return res.llegadas;
-  if(tipo==="salidas"&&Array.isArray(res.salidas))return res.salidas;
-  if(Array.isArray(res.data))return res.data;
-  if(Array.isArray(res.items))return res.items;
-  if(Array.isArray(res.flights))return res.flights;
-  if(res.result){
-    if(Array.isArray(res.result))return res.result;
-    if(Array.isArray(res.result.vuelos))return res.result.vuelos;
-    if(tipo==="llegadas"&&Array.isArray(res.result.llegadas))return res.result.llegadas;
-    if(tipo==="salidas"&&Array.isArray(res.result.salidas))return res.result.salidas;
+  var arr=[];
+  if(!res)arr=[];
+  else if(Array.isArray(res))arr=res;
+  else if(Array.isArray(res.vuelos))arr=res.vuelos;
+  else if(tipo==="llegadas"&&Array.isArray(res.llegadas))arr=res.llegadas;
+  else if(tipo==="salidas"&&Array.isArray(res.salidas))arr=res.salidas;
+  else if(Array.isArray(res.data))arr=res.data;
+  else if(Array.isArray(res.items))arr=res.items;
+  else if(Array.isArray(res.flights))arr=res.flights;
+  else if(res.result){
+    if(Array.isArray(res.result))arr=res.result;
+    else if(Array.isArray(res.result.vuelos))arr=res.result.vuelos;
+    else if(tipo==="llegadas"&&Array.isArray(res.result.llegadas))arr=res.result.llegadas;
+    else if(tipo==="salidas"&&Array.isArray(res.result.salidas))arr=res.result.salidas;
   }
-  return [];
+  return arr.map(function(v){return normalizarVueloAenaCliente(v,tipo);});
+}
+
+function normalizarVueloAenaCliente(v,tipo){
+  v=v||{};
+  var txt=[v.estado,v.estadoAena,v.status,v.rawStatus,v.situacion,v.observaciones,v.info,v.remark,v.remarkPublic,v.descripcion].map(function(x){return x||'';}).join(' ').toLowerCase();
+  // Corrección defensiva: si AENA indica entrega de equipajes, cinta o sala, la llegada está en tierra.
+  // Evita que una clase antigua e-active siga mostrando "En vuelo".
+  if(tipo==='llegadas'&&(/entrega|equipaje|baggage|reclaim|cinta|belt/.test(txt)||v.cinta||v.sala)){
+    if((v.estadoClass||'')==='e-active'||/entrega|equipaje|baggage|reclaim|cinta|belt/.test(txt)){
+      v.estado='Entrega equipajes';
+      v.estadoClass='e-equip';
+    }
+  }
+  return v;
 }
 function loadLive(){
   liveLoaded=true;
@@ -4617,19 +4757,30 @@ window.renderOperativa=function(){
 
 
   function setTextOp(id,val){var el=g(id);if(el)el.textContent=val;}
-  function setPressureOp(score,necesarios,disponiblesVuelos){
-    score=Math.max(0,Math.min(100,Math.round(score||0)));
+  function setPressureOp(score,necesarios,disponiblesVuelos, jardinerasFijas, patiosFijos){
+    // Escala CTA: 0 = muy holgado/sin necesidad, 50 = equilibrio normal.
+    // Solo se muestran valores >100 cuando la necesidad supera claramente a los disponibles.
+    score=Math.max(0,Math.round(score||0));
     var lvl='Muy holgado',cls='low';
-    if(score>=90){lvl='Crítica';cls='max';}
-    else if(score>=70){lvl='Alta';cls='very';}
-    else if(score>=51){lvl='Ajustada';cls='high';}
+    if(score>=200){lvl='Desbordada';cls='max';}
+    else if(score>=160){lvl='Crítica +';cls='max';}
+    else if(score>=130){lvl='Sobrepasada';cls='very';}
+    else if(score>100){lvl='Sobrepasada';cls='very';}
+    else if(score>=90){lvl='Crítica';cls='very';}
+    else if(score>=70){lvl='Alta';cls='high';}
+    else if(score>50){lvl='Ajustada';cls='high';}
     else if(score===50){lvl='Equilibrio';cls='mid';}
-    else if(score>=30){lvl='Holgada';cls='ok';}
+    else if(score>=25){lvl='Holgada';cls='ok';}
     var le=g('op-pressure-level');if(le){le.textContent=lvl;le.className='op-pressure-level '+cls;}
     var pctNode=g('op-pressure-pct');if(pctNode){pctNode.textContent=score+'%';pctNode.className='op-pressure-pct '+cls;}
-    var bar=g('op-pressure-bar');if(bar){bar.style.width=score+'%';bar.className='op-pressure-bar '+cls;}
-    setTextOp('op-pressure-note','50% = equilibrio. Presión en tiempo real con vuelos en tierra y personal disponible para aviones.');
-    setTextOp('op-load-lack',score>=70?'Sí':'No');
+    var barPct=Math.min(100,score);
+    var bar=g('op-pressure-bar');if(bar){bar.style.width=barPct+'%';bar.className='op-pressure-bar '+cls;bar.title=score+'%';}
+    setTextOp('op-pressure-needed',(necesarios||0)+' operarios');
+    setTextOp('op-pressure-available',(disponiblesVuelos||0)+' operarios');
+    setTextOp('op-pressure-jardineras',(jardinerasFijas||0)+' operarios');
+    setTextOp('op-pressure-patios',(patiosFijos||0)+' operarios');
+    setTextOp('op-pressure-note',score>100?'Operativa sobrepasada: falta personal respecto a los vuelos activos. 200% queda para el extremo de 0 disponibles.':'0% = sin presión. 50% = equilibrio normal. Más de 100% = falta gente.');
+    setTextOp('op-load-lack',score>100?'Sí':'No');
   }
   setTextOp('op-load-workers',total||'—');
   setTextOp('op-load-flights','—');
@@ -4854,7 +5005,7 @@ window.renderOperativa=function(){
 
   function isDelay(v){var e=(v.estadoClass||'')+' '+(v.estado||'');return /delay|retras/i.test(e);}
   function inNext(v,min){var tm=flMin(v);if(tm===null)return false;var dd=tm-nowMin;if(dd<0)dd+=1440;return dd>=0&&dd<=min;}
-  function isEnVuelo(v){var c=(v.estadoClass||'');var e=String(v.estado||'').toLowerCase();return c==='e-active'||e.indexOf('en vuelo')>=0||e.indexOf('en route')>=0;}
+  function isEnVuelo(v){var c=(v.estadoClass||'');var e=String(v.estado||'').toLowerCase();if(c==='e-equip'||c==='e-landed'||e.indexOf('entrega')>=0||e.indexOf('equipaje')>=0||e.indexOf('baggage')>=0||e.indexOf('reclaim')>=0||e.indexOf('cinta')>=0||e.indexOf('tierra')>=0||e.indexOf('aterrizado')>=0||e.indexOf('aterrizó')>=0||e.indexOf('landed')>=0)return false;return c==='e-active'||e.indexOf('en vuelo')>=0||e.indexOf('en route')>=0;}
   function depActive(v){var tm=flMin(v);if(tm===null||isEnVuelo(v))return false;var a=tm-35,b=tm;return nowMin>=a&&nowMin<=b;}
   function arrActive(v){var tm=flMin(v);if(tm===null||isEnVuelo(v))return false;return nowMin>=tm&&nowMin<tm+30;}
 
@@ -4876,6 +5027,15 @@ window.renderOperativa=function(){
       .replace(/^PUERTA/,'')
       .replace(/^GATE/,'');
   }
+  function opEsPuertaJardinera(v){
+    var puertasJardinera=new Set([
+      'C50','C48','C46','C44','C42','C40','C38',
+      'B18','B20','B22',
+      'C20','C22','C24','C26','C28','C30','C32','C34'
+    ]);
+    var puerta=opNormPuerta(v&& (v.puerta||v.gate||v.embarque||v.puertaEmbarque||v.puertaSalida||''));
+    return puertasJardinera.has(puerta);
+  }
   function opInMinuteRange(nowMinute,startMinute,endMinute){
     startMinute=((startMinute%1440)+1440)%1440;
     endMinute=((endMinute%1440)+1440)%1440;
@@ -4883,17 +5043,10 @@ window.renderOperativa=function(){
     return nowMinute>=startMinute||nowMinute<=endMinute;
   }
   function opJardinerasFijas(nowMinute,salidasList){
-    var puertasJardinera=new Set([
-      'C50','C48','C46','C44','C42','C40','C38',
-      'B18','B20','B22',
-      'C20','C22','C24','C26','C28','C30','C32','C34'
-    ]);
     var activa=false;
     (salidasList||[]).forEach(function(v){
       if(activa)return;
-      if(isEnVuelo(v))return;
-      var puerta=opNormPuerta(v.puerta||v.gate||v.embarque||v.puertaEmbarque||v.puertaSalida||'');
-      if(!puertasJardinera.has(puerta))return;
+      if(isEnVuelo(v)||!opEsPuertaJardinera(v))return;
       var salidaMin=flMin(v);
       if(salidaMin===null)return;
       if(opInMinuteRange(nowMinute,salidaMin-45,salidaMin))activa=true;
@@ -4906,7 +5059,12 @@ window.renderOperativa=function(){
   // Salidas resto: 20min antes, 4 operarios.
   function isMadrug(tm){return tm!==null&&tm>=270&&tm<420;}
   function arrActiveNew(v){var tm=flMin(v);if(tm===null||isEnVuelo(v))return false;return nowMin>=tm&&nowMin<tm+20;}
-  function depActiveNew(v){var tm=flMin(v);if(tm===null||isEnVuelo(v))return false;var ant=isMadrug(tm)?35:20;return nowMin>=tm-ant&&nowMin<=tm;}
+  function depActiveNew(v){
+    var tm=flMin(v);if(tm===null||isEnVuelo(v))return false;
+    // Salida remota/jardinera: empieza a contar 45 min antes, no solo 20.
+    var ant=opEsPuertaJardinera(v)?45:(isMadrug(tm)?35:20);
+    return nowMin>=tm-ant&&nowMin<=tm;
+  }
   function depOps(v){return isMadrug(flMin(v))?3:4;}
   var salidasActivasList=sHOperativa.filter(depActiveNew);
   var llegadasActivasList=lHOperativa.filter(arrActiveNew);
@@ -4931,15 +5089,112 @@ window.renderOperativa=function(){
   var operariosDisponiblesVuelos=Math.max(0,operariosActivosAhora-puestosFijos);
   var genteNecesaria=llegadasActivasList.length*4+salidasActivasList.reduce(function(s,v){return s+depOps(v);},0);
   var pressureScore=0;
-  if(genteNecesaria>0&&operariosDisponiblesVuelos===0){pressureScore=100;}
-  else if(operariosDisponiblesVuelos>0){pressureScore=(genteNecesaria/operariosDisponiblesVuelos)*50;}
-  pressureScore=Math.max(0,Math.min(100,pressureScore));
-  setPressureOp(pressureScore,genteNecesaria,operariosDisponiblesVuelos);
+  if(genteNecesaria>0){
+    if(operariosDisponiblesVuelos>=genteNecesaria){
+      // Escala base CTA: 0 = muy holgado, 50 = equilibrio normal.
+      pressureScore=(genteNecesaria/operariosDisponiblesVuelos)*50;
+    }else{
+      // Sobrecarga progresiva: no dispara 200% solo por tener la mitad de gente.
+      // Ejemplo: 4 necesarios / 2 disponibles = 150%.
+      // 200% queda reservado para el extremo: necesidad real y 0 disponibles para vuelos.
+      var falta=Math.max(0,genteNecesaria-operariosDisponiblesVuelos);
+      pressureScore=100+((falta/genteNecesaria)*100);
+    }
+  }
+  pressureScore=Math.max(0,pressureScore);
+  setPressureOp(pressureScore,genteNecesaria,operariosDisponiblesVuelos,jardinerasFijas,patiosFijos);
   // Carga/plantilla respeta el selector Hoy/Mañana y el corte operativo de las 03:00.
   setTextOp('op-load-workers',opDetalleTrabajadores.length||'—');
   setTextOp('op-load-flights',opDetalleTotal>0?opDetalleTotal:'—');
   setTextOp('op-load-ratio',(opDetalleTrabajadores.length&&opDetalleTotal)?(opDetalleTrabajadores.length/opDetalleTotal).toFixed(2).replace('.',','):'—');
-  var pf=g('op-pressure-formula');if(pf)pf.textContent='Resumen: '+genteNecesaria+' necesarios / '+operariosDisponiblesVuelos+' disponibles para vuelos. Fijos ahora: '+jardinerasFijas+' jardineras + '+patiosFijos+' patios.';
+  var pf=g('op-pressure-formula');if(pf)pf.textContent='Resumen: '+genteNecesaria+' necesarios / '+operariosDisponiblesVuelos+' disponibles. 50% = equilibrio; >100% = falta gente; 200% = extremo sin disponibles. Fijos: '+jardinerasFijas+' jardineras + '+patiosFijos+' patios.';
+
+  // ── Tiempos libres del día ───────────────────────────────────────────────
+  (function(){
+    var fl=g('op-free-list');if(!fl)return;
+    function m2hm(m){m=((m%1440)+1440)%1440;return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2);}
+    function fmtDur(d){var h=Math.floor(d/60),mn=d%60;return h>0?(h+'h'+(mn>0?' '+mn+'m':'')):(mn+'m');}
+    function buildIntervals(lList,sList){
+      var ivs=[];
+      (lList||[]).forEach(function(v){
+        if((v.estadoClass||'')==='e-cancelled')return;
+        var tm=flMin(v);if(tm===null)return;
+        ivs.push([Math.max(0,tm-10),Math.min(1440,tm+20)]);
+      });
+      (sList||[]).forEach(function(v){
+        if((v.estadoClass||'')==='e-cancelled')return;
+        var tm=flMin(v);if(tm===null)return;
+        var ant=opEsPuertaJardinera(v)?45:20;
+        ivs.push([Math.max(0,tm-ant),Math.min(1440,tm)]);
+      });
+      if(ivs.length===0)return [];
+      ivs.sort(function(a,b){return a[0]-b[0];});
+      var mg=[ivs[0].slice()];
+      for(var i=1;i<ivs.length;i++){
+        var last=mg[mg.length-1];
+        if(ivs[i][0]<=last[1])last[1]=Math.max(last[1],ivs[i][1]);
+        else mg.push(ivs[i].slice());
+      }
+      return mg;
+    }
+    function buildGaps(lList,sList,includeDayEdges){
+      var mg=buildIntervals(lList,sList);
+      if(!mg.length)return null;
+      var gaps=[];
+      if(includeDayEdges&&mg[0][0]>=30)gaps.push({s:0,e:mg[0][0],dur:mg[0][0]});
+      for(var j=0;j<mg.length-1;j++){
+        var gs=mg[j][1],ge=mg[j+1][0],dur=ge-gs;
+        if(dur>=20)gaps.push({s:gs,e:ge,dur:dur});
+      }
+      var lastEnd=mg[mg.length-1][1];
+      if(includeDayEdges&&1440-lastEnd>=30)gaps.push({s:lastEnd,e:1440,dur:1440-lastEnd});
+      return gaps;
+    }
+    function tomorrowGaps(){return buildGaps(lT,sT,true);}
+    // Para HOY también incluimos los bordes del día.
+    // Así aparece la ventana 00:00 → primer bloque operativo,
+    // y también el hueco desde el último bloque hasta 24:00 si procede.
+    var gaps=buildGaps(lHOperativa,sHOperativa,true);
+    var titulo='Hoy';
+    if(gaps===null){
+      gaps=tomorrowGaps();titulo='Mañana';
+    }else{
+      var futuros=gaps.filter(function(x){return x.e>nowMin;});
+      if(futuros.length===0){
+        var gt=tomorrowGaps();
+        if(gt&&gt.length){gaps=gt;titulo='Mañana';}
+        else {gaps=futuros;}
+      }else{gaps=futuros;}
+    }
+    gaps=(gaps||[]).filter(function(x){return x.dur>=20;});
+    if(!gaps||gaps.length===0){
+      var hayManana=(lT&&lT.length)||(sT&&sT.length);
+      fl.innerHTML='<span style="font-size:11px;color:var(--gray)">'+(hayManana?'Mañana no hay huecos libres significativos entre bloques de vuelos':'Sin vuelos cargados mañana todavía')+'</span>';
+      return;
+    }
+    fl.innerHTML='<div class="op-free-title">'+titulo+'</div>'+gaps.map(function(gap){
+      var isTomorrow=titulo==='Mañana';
+      var isPast=!isTomorrow&&gap.e<=nowMin,isCurrent=!isTomorrow&&gap.s<=nowMin&&gap.e>nowMin,isShort=gap.dur<20;
+      var cls='op-free-chip'+(isPast?' past':'')+(isCurrent?' current':'')+(isShort?' short':'');
+      var faltaTxt='';
+      if(isTomorrow){
+        faltaTxt='Mañana';
+      }else if(isCurrent){
+        faltaTxt='Queda '+fmtDur(Math.max(0,gap.e-nowMin));
+      }else if(gap.s>nowMin){
+        faltaTxt='En '+fmtDur(gap.s-nowMin);
+      }else{
+        faltaTxt='Pasado';
+      }
+      return '<div class="'+cls+'">'+
+        '<div class="op-free-main">'+m2hm(gap.s)+' → '+m2hm(gap.e)+'</div>'+
+        '<div class="op-free-cols">'+
+          '<div class="op-free-cell"><span class="op-free-label">Parón</span><span class="op-free-value">'+fmtDur(gap.dur)+'</span></div>'+
+          '<div class="op-free-cell"><span class="op-free-label">Falta</span><span class="op-free-value">'+faltaTxt+'</span></div>'+
+        '</div>'+
+        '</div>';
+    }).join('');
+  })();
 
   if(!card)return;
   ["state-working","state-pausa","state-rest","state-next"].forEach(function(c){card.classList.remove(c);});
