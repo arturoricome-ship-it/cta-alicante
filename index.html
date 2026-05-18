@@ -3119,7 +3119,7 @@ var _NOTA_TIPO={
   'V':'vacaciones','V-':'vacaciones','V+':'vacaciones',
   'AL':'perentorias','H6':'h6','HL':'hl','HLP':'hlp','HFUN8':'hfun',
   'B0':'baja','B1':'baja','B2':'baja','B4':'baja','B6':'baja','AC':'baja','ACI':'baja',
-  'BP':'bp','BL':'bp','PP':'nh','NH':'nh','MA':'libre','FM':'libre','FY':'libre','RM':'rm'
+  'BP':'bp','BL':'bp','PP':'nh','NH':'nh','DL':'libre','MA':'libre','FM':'libre','FY':'libre','RM':'rm'
 };
 
 function openTrypImport(){
@@ -3362,31 +3362,74 @@ function tiCellVal(sheet,row,col){
   var v=cell.w||cell.v;if(v===null||v===undefined)return null;
   return String(v).trim();
 }
-function tiColorToTipo(sheet,row,col){
+function tiCellRgb(sheet,row,col){
   var addr=XLSX.utils.encode_cell({r:row,c:col});
   var cell=sheet[addr];
-  if(!cell||!cell.s)return null;
-  var fg=cell.s.fgColor;if(!fg)return null;
+  if(!cell||!cell.s)return '';
+  var fg=cell.s.fgColor||(cell.s.fill&&cell.s.fill.fgColor);
+  if(!fg)return '';
   var rgb=fg.rgb||fg.argb||'';
   if(rgb.length===8)rgb=rgb.slice(2);
-  rgb=rgb.toUpperCase();
+  return String(rgb||'').toUpperCase();
+}
+function tiColorEsGris(sheet,row,col){
+  var rgb=tiCellRgb(sheet,row,col);
+  if(!rgb)return false;
+  if(['D9D9D9','BFBFBF','C0C0C0','E7E6E6','F2F2F2','EDEDED','CCCCCC','808080','A6A6A6'].indexOf(rgb)>=0)return true;
+  if(/^[0-9A-F]{6}$/.test(rgb)){
+    var r=parseInt(rgb.slice(0,2),16),g=parseInt(rgb.slice(2,4),16),b=parseInt(rgb.slice(4,6),16);
+    return Math.max(r,g,b)-Math.min(r,g,b)<=8 && r>=90;
+  }
+  return false;
+}
+function tiColorToTipo(sheet,row,col){
+  var rgb=tiCellRgb(sheet,row,col);
+  if(!rgb)return null;
   if(rgb==='A9D0F5')return'baja'; // azul → Baja por defecto
   if(rgb==='AEFC04')return'vacaciones';
   return null;
 }
-function tiParseCell(raw){
-  if(!raw||raw==='')return null;
-  var s=raw.split('\n').join('').trim();
-  if(!s||s===' ')return null;
-  if(s==='DL')return{tipo:'libre',e1:'',s1:'',e2:'',s2:''};
-  var times=s.match(/[0-9]{2}:[0-9]{2}/g)||[];
+function tiNormalizeImportText(raw){
+  return String(raw||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\u00A0/g,' ')
+    .replace(/\r/g,'\n')
+    .toUpperCase()
+    .trim();
+}
+function tiLooksLibreText(raw){
+  var s=tiNormalizeImportText(raw);
+  var compact=s.replace(/[\s.\-_/\\"']/g,'');
+  return compact==='DL'||compact==='DIALIBRE'||compact==='LIBRE'||compact==='DESCANSO'||compact==='DESCANSOSEMANA';
+}
+function tiParseCell(raw,isGreyCell){
+  if(raw===null||raw===undefined||raw==='')return null;
+  var s=tiNormalizeImportText(raw).split('\n').map(function(x){return x.trim();}).filter(Boolean).join(' ');
+  if(!s)return null;
+  var times=s.match(/[0-9]{1,2}:[0-9]{2}/g)||[];
+  times=times.map(function(t){var p=t.split(':');return String(p[0]).padStart(2,'0')+':'+p[1];});
+
+  // Regla nueva: si la celda es gris y pone DL o parecido, sin turno, se considera libre.
+  // Además, DL con espacios, puntos o caracteres invisibles también se considera libre.
+  if(times.length===0 && tiLooksLibreText(raw)){
+    return{tipo:'libre',e1:'',s1:'',e2:'',s2:''};
+  }
+
   var notes=s.match(/\(([^)]+)\)/g)||[];
   var noteVals=notes.map(function(n){return n.replace(/[()]/g,'').toUpperCase().trim();});
+  Object.keys(_NOTA_TIPO).forEach(function(k){
+    var esc=k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    var re=new RegExp('(^|\\s|\\(|\\)|-|/)'+esc+'($|\\s|\\(|\\)|-|/)');
+    if(re.test(s)&&noteVals.indexOf(k)<0)noteVals.push(k);
+  });
   var tipo='trabajado';
   for(var i=0;i<noteVals.length;i++){if(_NOTA_TIPO[noteVals[i]]){tipo=_NOTA_TIPO[noteVals[i]];break;}}
   var perenMode=null;
   if(noteVals.indexOf('7N')>=0)perenMode='librar';
   if(noteVals.indexOf('7D')>=0)perenMode='cobrar';
+
+  if(times.length===0 && isGreyCell && tiLooksLibreText(raw))return{tipo:'libre',e1:'',s1:'',e2:'',s2:'',perenMode:perenMode};
+
   if(times.length===0)return{tipo:tipo,e1:'',s1:'',e2:'',s2:'',perenMode:perenMode};
   if(times.length>=4)return{tipo:tipo,e1:times[0],s1:times[1],e2:times[2],s2:times[3],perenMode:perenMode};
   if(times.length>=2)return{tipo:tipo,e1:times[0],s1:times[1],e2:'',s2:'',perenMode:perenMode};
@@ -3403,6 +3446,7 @@ function tiParseSheet(sheet,filename){
     for(var col=1;col<=31;col++){
       var raw=tiCellVal(sheet,row,col);
       var colorTipo=tiColorToTipo(sheet,row,col);
+      var isGreyCell=tiColorEsGris(sheet,row,col);
       var isEmpty=!raw||raw.split(' ').join('').split(String.fromCharCode(10)).join('')==='';
       if(isEmpty){
         if(colorTipo){
@@ -3411,7 +3455,7 @@ function tiParseSheet(sheet,filename){
         }else{cE++;}
         continue;
       }
-      var parsed=tiParseCell(raw);
+      var parsed=tiParseCell(raw,isGreyCell);
       if(!parsed){cE++;continue;}
       if(colorTipo&&parsed.tipo==='trabajado')parsed.tipo=colorTipo;
       if(parsed.tipo==='libre')cL++;else cW++;
