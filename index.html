@@ -1961,8 +1961,8 @@ function eLabel(s){
   if(!s)return{t:"Programado",c:"e-scheduled"};
   s=String(s).toLowerCase();
   // AENA puede devolver textos de llegadas ya en tierra como "Entrega de equipajes".
-  // Eso NO debe pintarse ni tratarse como "En vuelo".
-  if(/entrega|equipaje|baggage|reclaim|cinta|belt/.test(s))return{t:"Entrega equipajes",c:"e-equip"};
+  // OJO: tener cinta asignada no significa que ya esté entregando equipajes.
+  if(/entrega|equipaje|baggage|reclaim/.test(s))return{t:"Entrega equipajes",c:"e-equip"};
   if(/aterriz|landed|arrived|llegad/.test(s))return{t:"Aterrizado",c:"e-landed"};
   if(s==="en tierra"||s==="on ground"||s==="tierra")return{t:"En tierra",c:"e-landed"};
   if(s==="active"||s==="en route")return{t:"En vuelo",c:"e-active"};
@@ -2184,10 +2184,34 @@ function extractLiveVuelos(res,tipo){
 function normalizarVueloAenaCliente(v,tipo){
   v=v||{};
   var txt=[v.estado,v.estadoAena,v.status,v.rawStatus,v.situacion,v.observaciones,v.info,v.remark,v.remarkPublic,v.descripcion].map(function(x){return x||'';}).join(' ').toLowerCase();
-  // Corrección defensiva: si AENA indica entrega de equipajes, cinta o sala, la llegada está en tierra.
-  // Evita que una clase antigua e-active siga mostrando "En vuelo".
-  if(tipo==='llegadas'&&(/entrega|equipaje|baggage|reclaim|cinta|belt/.test(txt)||v.cinta||v.sala)){
-    if((v.estadoClass||'')==='e-active'||/entrega|equipaje|baggage|reclaim|cinta|belt/.test(txt)){
+
+  // Corrección importante para llegadas:
+  // AENA puede publicar la cinta/sala antes de que el avión aterrice.
+  // Por eso, tener v.cinta o v.sala NO debe convertir el vuelo en "Entrega equipajes".
+  // Solo se muestra "Entrega equipajes" si AENA lo indica explícitamente o si la hora real/programada ya pasó.
+  if(tipo==='llegadas'){
+    var explicitEquip=/entrega|equipaje|baggage|reclaim/.test(txt);
+    var scheduledMin=hToMin(v.horaReal||v.horaProg||v.hora||'');
+    var nowObj=new Date();
+    var nowM=nowObj.getHours()*60+nowObj.getMinutes();
+    var diff=(scheduledMin===null)?99999:(scheduledMin-nowM);
+    if(v.esManana)diff+=1440;
+
+    if(explicitEquip){
+      v.estado='Entrega equipajes';
+      v.estadoClass='e-equip';
+    }else if((v.estadoClass||'')==='e-active'){
+      // Si todavía falta para la llegada, se mantiene como "En vuelo", aunque ya tenga cinta asignada.
+      if(diff>0){
+        v.estado='En vuelo';
+        v.estadoClass='e-active';
+      }
+      // Si ya pasó la hora real/estimada y hay cinta/sala, entonces sí tiene sentido mostrar equipajes.
+      else if(diff>=-45&&(v.cinta||v.sala)){
+        v.estado='Entrega equipajes';
+        v.estadoClass='e-equip';
+      }
+    }else if((v.estadoClass||'')==='e-landed'&&(v.cinta||v.sala)&&diff<=0&&diff>=-60){
       v.estado='Entrega equipajes';
       v.estadoClass='e-equip';
     }
