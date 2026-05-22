@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V70_PARON_ENTRE_VUELOS_2026-05-17 -->
+<!-- CTA_OPERATIVA_V72_GATE_LABEL_2026-05-21 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -70,6 +70,92 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .e-final{background:rgba(120,120,140,.2);color:#9090b0}
 .live-tab{flex:1;padding:9px;background:transparent;border:none;color:var(--gray);font-family:"Outfit",sans-serif;font-size:12px;font-weight:600;cursor:pointer}
 .live-tab.active{background:rgba(200,168,75,.15);color:var(--gold)}
+
+/* === Sistema de vistas vuelos === */
+/* Toggle ⬛⬛ / lado a lado */
+#live-view-toggle{
+  display:flex;align-items:center;gap:2px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:9px;padding:2px;flex-shrink:0;
+}
+.lv-btn{
+  border:none;border-radius:7px;padding:5px 9px;
+  font:700 11px "Outfit",sans-serif;cursor:pointer;
+  background:transparent;color:var(--gray);
+  transition:all .15s;line-height:1;
+}
+.lv-btn.active{background:rgba(200,168,75,.25);color:var(--gold);}
+
+/* Selector Llegadas / Salidas — idéntico a la captura */
+#live-seg{
+  display:none; /* oculto en modo junto */
+  flex-shrink:0;
+  margin:0 12px 8px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  padding:3px;
+  gap:3px;
+}
+#live-seg.visible{display:flex;}
+#live-seg .seg-btn{
+  flex:1;border:none;border-radius:9px;
+  padding:9px 8px;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:15px;letter-spacing:.8px;
+  cursor:pointer;background:transparent;
+  color:var(--gray);transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+#live-seg .seg-btn.active{
+  background:linear-gradient(135deg,var(--gold),var(--gold-light,#e8c96a));
+  color:var(--navy,#1a2744);
+  box-shadow:0 3px 10px rgba(200,168,75,.30);
+}
+#live-seg .seg-cnt{
+  font-family:'Outfit',sans-serif;
+  font-size:10px;font-weight:700;
+  background:rgba(0,0,0,.15);
+  border-radius:999px;padding:1px 6px;
+  min-width:20px;text-align:center;
+}
+
+/* Modo solo llegadas / solo salidas */
+#live-split.mode-tabs{grid-template-columns:1fr!important;}
+#live-split.mode-tabs .live-col{display:none;}
+#live-split.mode-tabs .live-col.tab-visible{display:flex;}
+/* ── SPLIT VIEW (llegadas + salidas en paralelo) ── */
+#live-split{display:grid;grid-template-columns:1fr 1fr;flex:1;min-height:0;overflow:hidden}
+.live-col{display:flex;flex-direction:column;min-height:0;overflow:hidden;border-right:1px solid var(--border)}
+.live-col:last-child{border-right:none}
+.live-col-head{padding:7px 8px 5px;background:rgba(13,22,35,.95);position:sticky;top:0;z-index:2;flex-shrink:0;border-bottom:1px solid var(--border)}
+.live-col-title{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.8px;display:flex;align-items:center;gap:5px;white-space:nowrap;color:var(--white)}
+.live-col-badge{font-size:8px;font-weight:700;padding:2px 6px;border-radius:100px;background:rgba(200,168,75,.12);color:var(--gold);border:1px solid rgba(200,168,75,.3);margin-left:auto;flex-shrink:0}
+.live-col-body{overflow-y:auto;overflow-x:hidden;flex:1;min-height:0;padding:5px 6px 90px;-webkit-overflow-scrolling:touch;touch-action:pan-y;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent}
+/* Filas compactas de vuelo — layout: info | estado, badge centrado absoluto */
+.vcr{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:8px 9px;margin-bottom:5px;display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;position:relative}
+.vcr.vcr-corte-s{box-shadow:inset 0 -2px 0 rgba(239,68,68,.5)}
+.vcr.vcr-corte-e{box-shadow:inset 0 2px 0 rgba(34,197,94,.5)}
+.vcr-info{min-width:0}
+.vcr-topline{display:flex;align-items:baseline;gap:5px;min-width:0}
+.vcr-num{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--gold);letter-spacing:.8px;flex-shrink:0;line-height:1}
+.vcr-dest{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1}
+.vcr-hora{font-size:10px;color:var(--gray);margin-top:2px}
+.vcr-tag{font-size:8px;color:var(--gray);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px}
+/* Badge centrado horizontal, a la altura de la línea "Puerta" (abajo) */
+.vcr-mid{position:absolute;left:50%;bottom:9px;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;pointer-events:none}
+.vcr-park-lbl{font-size:7px;font-weight:700;color:#8a93a8;letter-spacing:.3px;white-space:nowrap;text-transform:uppercase;background:rgba(138,147,168,.08);border:1px solid rgba(138,147,168,.16);border-radius:4px;padding:1px 4px}
+.vcr-remoto-lbl{font-size:7px;font-weight:700;color:#f0a070;background:rgba(240,160,100,.10);border:1px solid rgba(240,160,100,.28);border-radius:4px;padding:1px 4px;white-space:nowrap}
+.vcr-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+.vcr-estado{font-size:8px;font-weight:700;padding:2px 5px;border-radius:100px;white-space:nowrap;text-align:center}
+.vcr-cnt{font-size:10px;font-weight:700;color:var(--gold);text-align:right;min-height:12px;white-space:nowrap}
+.vcr-cnt.ct-soon{color:#f07070}.vcr-cnt.ct-now{color:#ffb432}
+/* Vista simple: badge más grande */
+#live-split.mode-tabs .vcr-park-lbl{font-size:9px!important;padding:2px 7px!important;letter-spacing:.4px!important}
+#live-split.mode-tabs .vcr-remoto-lbl{font-size:9px!important;padding:2px 7px!important}
+/* Sin número en botones de pestaña */
+#live-seg .seg-cnt{display:none}
 #breadcrumb{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--gray);overflow-x:auto;scrollbar-width:none;white-space:nowrap;flex:1}
 #breadcrumb::-webkit-scrollbar{display:none}
 .bc-item{cursor:pointer;transition:color .2s;flex-shrink:0}.bc-item:hover{color:var(--gold-light)}.bc-item.active{color:var(--white);font-weight:600}
@@ -1331,22 +1417,43 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 <div id="live-overlay"></div>
 <div id="live-panel">
   <div class="live-handle"></div>
-  <div style="padding:0 14px 10px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;display:flex;align-items:center;gap:8px"><span class="live-dot"></span>Vueling · Alicante</div><div id="live-fecha-panel" style="font-size:11px;color:var(--gold);letter-spacing:1px;margin-top:2px"></div>
-      <div style="display:flex;gap:6px">
-        <button id="live-filtro" style="background:rgba(60,180,100,.2);border:1px solid rgba(60,180,100,.3);border-radius:8px;color:#5dd88a;font-size:11px;font-weight:700;padding:5px 10px;cursor:pointer;font-family:'Outfit',sans-serif">Activos</button>
-        <button id="live-refresh" style="background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);border-radius:8px;color:var(--gold);font-size:15px;padding:5px 10px;cursor:pointer">↻</button>
+  <div style="padding:0 12px 7px;flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;display:flex;align-items:center;gap:7px;white-space:nowrap"><span class="live-dot"></span>Vueling · Alicante</div>
+      <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
+        <div id="live-view-toggle" title="Cambiar vista">
+          <button class="lv-btn" id="lv-tabs" onclick="setLiveViewMode('tabs')" title="Llegadas / Salidas separados">☰</button>
+          <button class="lv-btn active" id="lv-split" onclick="setLiveViewMode('split')" title="Llegadas y Salidas juntos">⬛⬛</button>
+        </div>
+        <div id="live-fecha-panel" style="font-size:9px;color:var(--gold);letter-spacing:.8px"></div>
+        <button id="live-filtro" style="background:rgba(60,180,100,.2);border:1px solid rgba(60,180,100,.3);border-radius:8px;color:#5dd88a;font-size:10px;font-weight:700;padding:4px 8px;cursor:pointer;font-family:'Outfit',sans-serif">Activos</button>
+        <button id="live-refresh" style="background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);border-radius:8px;color:var(--gold);font-size:14px;padding:4px 8px;cursor:pointer">&#8635;</button>
       </div>
     </div>
-    <div style="font-size:11px;color:var(--gray);margin-bottom:10px" id="live-hora"></div>
-    <div style="display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden">
-      <button class="live-tab active" id="live-tab-llegadas" onclick="switchLive('llegadas')">🛬 Llegadas</button>
-      <button class="live-tab" id="live-tab-salidas" onclick="switchLive('salidas')">🛫 Salidas</button>
-    </div>
+    <div style="font-size:10px;color:var(--gray)" id="live-hora"></div>
   </div>
-  <div id="live-body">
-    <div id="live-container"></div>
+  <!-- Selector Llegadas / Salidas: visible solo en modo tabs -->
+  <div id="live-seg">
+    <button class="seg-btn active" id="seg-lle" onclick="setLiveActiveTab('lle')">
+      🛬 LLEGADAS <span class="seg-cnt" id="seg-cnt-lle">—</span>
+    </button>
+    <button class="seg-btn" id="seg-sal" onclick="setLiveActiveTab('sal')">
+      🛫 SALIDAS <span class="seg-cnt" id="seg-cnt-sal">—</span>
+    </button>
+  </div>
+  <div id="live-split">
+    <div class="live-col tab-visible" id="live-col-lle">
+      <div class="live-col-head">
+        <div class="live-col-title">&#128748; LLEGADAS <span class="live-col-badge" id="live-cnt-lle">&mdash;</span></div>
+      </div>
+      <div class="live-col-body" id="live-container-lle"></div>
+    </div>
+    <div class="live-col tab-visible" id="live-col-sal">
+      <div class="live-col-head">
+        <div class="live-col-title">&#128747; SALIDAS <span class="live-col-badge" id="live-cnt-sal">&mdash;</span></div>
+      </div>
+      <div class="live-col-body" id="live-container-sal"></div>
+    </div>
   </div>
 </div>
 
@@ -1980,9 +2087,7 @@ function isIB(v){
 }
 
 function switchLive(mode){
-  liveMode=mode;
-  document.getElementById("live-tab-llegadas").classList.toggle("active",mode==="llegadas");
-  document.getElementById("live-tab-salidas").classList.toggle("active",mode==="salidas");
+  liveMode=mode; // mantenemos por compatibilidad; el split view muestra ambas columnas siempre
   renderLive();
 }
 
@@ -2029,111 +2134,174 @@ function getLiveCutoffsFromTurnoHoy(){
   return {s:s,e:e,windows:windows};
 }
 
+// ── Etiqueta operacional de puerta: "Parking X" o "Remoto" ─────────────────
+function gateOperationalLabel(puerta){
+  var raw=String(puerta||'').toUpperCase().trim();
+  if(!raw)return null;
+  var m=raw.match(/([BC])\s*[- ]?\s*(\d{1,2})/);
+  if(!m)return null;
+  var num=m[2];
+  var gate=m[1]+String(parseInt(num,10)).padStart(2,'0');
+  var remoteSet=new Set([
+    'C50','C48','C46','C44','C42','C40','C38',
+    'B18','B20','B22',
+    'C20','C22','C24','C26','C28','C30','C32','C34'
+  ]);
+  if(remoteSet.has(gate))return {text:'Remoto',cls:'remote'};
+  return {text:'Parking '+String(parseInt(num,10)),cls:'parking'};
+}
+
 function renderLive(){
-  var container=document.getElementById("live-container");
-  var data=(liveMode==="salidas"?liveData.sal:liveData.lle).slice();
-  var esS=liveMode==="salidas";
+  renderLiveCol(
+    document.getElementById('live-container-lle'),
+    liveData.lle.slice(),
+    false
+  );
+  renderLiveCol(
+    document.getElementById('live-container-sal'),
+    liveData.sal.slice(),
+    true
+  );
+  if(typeof updateFlightCountdowns==='function')setTimeout(updateFlightCountdowns,0);
+}
+
+function renderLiveCol(container,data,esS){
+  if(!container)return;
+  var cntEl=document.getElementById(esS?'live-cnt-sal':'live-cnt-lle');
 
   if(liveFiltro){
     data=data.filter(function(v){
-      var s=v.estadoClass||"";
-      // V54: los vuelos de mañana no se pueden evaluar contra la hora actual de hoy.
-      // Se mantienen bajo su separador y no se descartan por haber "pasado" su hora.
-      if(v.esManana){
-        return s!=="e-cancelled"&&s!=="e-final";
-      }
-      if(liveMode==="llegadas"){
+      var s=v.estadoClass||'';
+      if(v.esManana)return s!=='e-cancelled'&&s!=='e-final';
+      if(!esS){
         if(llegadaFinalizada30(v))return false;
-        return s!=="e-landed"&&s!=="e-final"&&s!=="e-taxiing"&&s!=="e-boarding"&&s!=="e-gate";
+        return s!=='e-landed'&&s!=='e-final'&&s!=='e-taxiing'&&s!=='e-boarding'&&s!=='e-gate';
       }
-      else return s!=="e-active"&&s!=="e-final";
+      return s!=='e-active'&&s!=='e-final';
     });
   }
 
+  if(cntEl)cntEl.textContent=data.length+' restantes';
+
   if(!data.length){
-    if(!liveFiltro&&liveLastServerEmpty){
-      container.innerHTML="<div class='empty-box'>No se han recibido vuelos del servidor en esta actualización.<br><span style='font-size:11px;color:var(--gray)'>Pulsa ↻. Si sigue igual, probablemente Railway/AENA está devolviendo la lista vacía.</span></div>";
+    if(!liveFiltro&&liveLastServerEmpty&&!esS){
+      container.innerHTML="<div class='empty-box' style='font-size:11px;padding:18px 8px'>Sin datos.<br><span style='font-size:10px;color:var(--gray)'>Pulsa \u21bb</span></div>";
     }else{
-      container.innerHTML="<div class='empty-box'>Sin vuelos"+(liveFiltro?" activos":"")+" en este momento</div>";
+      container.innerHTML="<div class='empty-box' style='font-size:11px;padding:18px 8px'>Sin vuelos"+(liveFiltro?' activos':'')+"</div>";
     }
     return;
   }
-  container.innerHTML="";
+  container.innerHTML='';
 
-  var cortesS={};  // idx → red bottom line (last flight in shift window)
-  var cortesE={};  // idx → green top line (first flight in shift window)
+  // Marcadores de ventana de turno (línea roja/verde)
+  var cortesS={},cortesE={};
   var cutoffs=getLiveCutoffsFromTurnoHoy();
-  // For each shift window [eN, sN]: find first and last flight WITHIN that window
   (cutoffs.windows||[]).forEach(function(win){
     var winE=win[0],winS=win[1];
     var firstIdx=-1,firstMin=99999,lastIdx=-1,lastMin=-1;
     for(var i=0;i<data.length;i++){
       var vv=data[i];
-      if((vv.estadoClass||"")==="e-cancelled")continue;
-      var vm=hToMin(vv.horaReal||vv.horaProg||"");
+      if((vv.estadoClass||'')==='e-cancelled')continue;
+      var vm=hToMin(vv.horaReal||vv.horaProg||'');
       if(vm===null)continue;
       if(vm>=winE&&vm<=winS){
         if(vm<firstMin){firstMin=vm;firstIdx=i;}
         if(vm>lastMin||(vm===lastMin&&i>lastIdx)){lastMin=vm;lastIdx=i;}
       }
     }
-    if(firstIdx>=0)cortesE[firstIdx]=true;  // green top
-    if(lastIdx>=0)cortesS[lastIdx]=true;    // red bottom
+    if(firstIdx>=0)cortesE[firstIdx]=true;
+    if(lastIdx>=0)cortesS[lastIdx]=true;
   });
 
   var separadorPuesto=false;
   data.forEach(function(v,idx){
     if(v.esManana&&!separadorPuesto){
       separadorPuesto=true;
-      var sep=document.createElement("div");sep.className="separador-manana";
+      var sep=document.createElement('div');sep.className='separador-manana';
+      sep.style.cssText='font-size:9px;margin:6px 0 4px';
       var dm=new Date();dm.setDate(dm.getDate()+1);
-      var ms=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-      sep.textContent="Mañana "+dm.getDate()+" "+ms[dm.getMonth()];
+      var ms=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+      sep.textContent='Ma\xf1ana '+dm.getDate()+' '+ms[dm.getMonth()];
       container.appendChild(sep);
     }
-    var num=v.numero||"VY---";
-    var _ciu=esS?(v.destino||"--"):(v.origen||"--");
-    var ciudad=_ciu.split("-")[0].trim()||_ciu;
-    var horaStr=v.horaProg||"--:--";
+
+    var num=v.numero||'VY---';
+    var ciudad=(esS?(v.destino||'--'):(v.origen||'--')).split('-')[0].trim();
+    var horaHtml=v.horaProg||'--:--';
     if(v.horaReal&&v.horaReal!==v.horaProg){
-      horaStr='<span style="color:#f0a070;text-decoration:line-through;margin-right:4px">'+v.horaProg+"</span>"+v.horaReal;
+      horaHtml='<span style="color:#f0a070;text-decoration:line-through;margin-right:2px">'+v.horaProg+'</span>'+v.horaReal;
     }
-    var extraLabel="";
-    if(esS&&v.puerta)extraLabel="Puerta "+v.puerta;
-    if(!esS&&v.cinta)extraLabel="Cinta "+v.cinta;
-    if(!esS&&!v.cinta&&v.sala)extraLabel="Sala "+v.sala;
-    var cancelado=v.estadoClass==="e-cancelled";
-    var rowStyle=cancelado?"opacity:.6;border-color:rgba(230,80,70,.3)":"";
-    var row=document.createElement("div");row.className="vuelo-row";
-    if(cortesS[idx])row.classList.add("vuelo-corte-s");
-    if(cortesE[idx])row.classList.add("vuelo-corte-e");
-    if(rowStyle)row.style.cssText=rowStyle;
-    var horaEfectiva=v.horaReal||v.horaProg||"";
-    var esEnVueloSalida=esS&&(v.estadoClass||"")=="e-active";
-    row.setAttribute("data-hora",horaEfectiva);
-    row.setAttribute("data-live-mode",esS?"salidas":"llegadas");
-    row.setAttribute("data-estado-class",v.estadoClass||"");
-    row.setAttribute("data-es-manana",v.esManana?"1":"0");
-    var countdownAttr=esEnVueloSalida?"":(" data-hora='"+(horaEfectiva||"")+"' data-es-manana='"+(v.esManana?"1":"0")+"'");
-    row.innerHTML="<div><div class='vuelo-num'>"+num+"</div>"+(extraLabel?"<div class='vuelo-puerta'>"+extraLabel+"</div>":"")+"</div>"
-      +"<div style='min-width:0'><div class='vuelo-dest'>"+ciudad+"</div><div class='vuelo-hora'>"+horaStr+"</div></div>"
-      +"<div style='display:flex;flex-direction:column;align-items:flex-end;gap:3px'><div class='vuelo-estado "+(v.estadoClass||"e-scheduled")+"'>"+(v.estado||"Programado")+"</div><div class='vuelo-countdown'"+countdownAttr+">"+(esEnVueloSalida?"":"—")+"</div></div>";
+
+    // Etiqueta puerta/cinta/sala (tag pequeño)
+    var tag='';
+    if(esS&&v.puerta)tag='Puerta '+v.puerta;
+    if(!esS&&v.cinta)tag='Cinta '+v.cinta;
+    if(!esS&&!v.cinta&&v.sala)tag='Sala '+v.sala;
+
+    // Parking o Remoto: derivado de la puerta usando gateOperationalLabel
+    var gateLabel=esS?gateOperationalLabel(v.puerta):null;
+    var gateBadge='';
+    if(gateLabel){
+      gateBadge=gateLabel.cls==='remote'
+        ?'<span class="vcr-remoto-lbl">Remoto</span>'
+        :'<span class="vcr-park-lbl">'+gateLabel.text+'</span>';
+    }
+
+    var cancelado=v.estadoClass==='e-cancelled';
+    var estadoClass=v.estadoClass||'e-scheduled';
+    var horaEfectiva=v.horaReal||v.horaProg||'';
+    var esEnVuelo=esS&&estadoClass==='e-active';
+
+    var row=document.createElement('div');
+    row.className='vcr';
+    if(cortesS[idx])row.classList.add('vcr-corte-s');
+    if(cortesE[idx])row.classList.add('vcr-corte-e');
+    if(cancelado)row.style.opacity='.55';
+    row.setAttribute('data-hora',horaEfectiva);
+    row.setAttribute('data-live-mode',esS?'salidas':'llegadas');
+    row.setAttribute('data-estado-class',estadoClass);
+    row.setAttribute('data-es-manana',v.esManana?'1':'0');
+
+    // Columna centro: etiqueta parking o remoto (centrado absoluto a la altura de Puerta)
+    var midHtml='';
+    if(gateLabel){
+      midHtml=gateLabel.cls==='remote'
+        ?'<div class="vcr-mid"><span class="vcr-remoto-lbl">Remoto</span></div>'
+        :'<div class="vcr-mid"><span class="vcr-park-lbl">'+gateLabel.text+'</span></div>';
+    }
+
+    var cntAttr=esEnVuelo?'':' data-hora="'+(horaEfectiva||'')+'" data-es-manana="'+(v.esManana?'1':'0')+'"';
+
+    row.innerHTML=
+      '<div class="vcr-info">'+
+        '<div class="vcr-topline">'+
+          '<span class="vcr-num">'+num+'</span>'+
+          '<span class="vcr-dest">'+ciudad+'</span>'+
+        '</div>'+
+        '<div class="vcr-hora">'+horaHtml+'</div>'+
+        (tag?'<div class="vcr-tag"><span>'+tag+'</span></div>':'')+
+      '</div>'+
+      midHtml+
+      '<div class="vcr-right">'+
+        '<div class="vcr-estado '+estadoClass+'">'+(v.estado||'Programado')+'</div>'+
+        '<div class="vcr-cnt vuelo-countdown"'+cntAttr+'>'+(esEnVuelo?'':'&mdash;')+'</div>'+
+      '</div>';
+
     container.appendChild(row);
   });
-  // Update countdowns immediately after every render
-  if(typeof updateFlightCountdowns==='function')setTimeout(updateFlightCountdowns,0);
 }
+
 
 
 function updateFlightCountdowns(){
   var now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
   document.querySelectorAll('.vuelo-countdown').forEach(function(el){
-    var row=el.closest?el.closest('.vuelo-row'):null;
+    var row=el.closest?el.closest('.vuelo-row,.vcr'):null;
     var mode=row?row.getAttribute('data-live-mode'):'';
     var estado=row?row.getAttribute('data-estado-class'):'';
     var esManana=(el.getAttribute('data-es-manana')==='1')||(row&&row.getAttribute('data-es-manana')==='1');
     // En salidas, cuando el vuelo ya está "En vuelo", no se muestra ningún tiempo restante.
-    if(mode==='salidas'&&estado==='e-active'){el.textContent='';el.className='vuelo-countdown';return;}
+    if(mode==='salidas'&&estado==='e-active'){el.textContent='';el.className='vcr-cnt vuelo-countdown';return;}
     var h=el.getAttribute('data-hora');
     if(!h||h==='--:--'){el.textContent='';return;}
     var p=h.split(':'),flMin=(+p[0]||0)*60+(+p[1]||0);
@@ -2220,8 +2388,11 @@ function normalizarVueloAenaCliente(v,tipo){
 }
 function loadLive(){
   liveLoaded=true;
-  var container=document.getElementById("live-container");
-  container.innerHTML="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label'>Cargando vuelos...</div></div>";
+  var spinner="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label' style='font-size:11px'>Cargando...</div></div>";
+  var lleC=document.getElementById('live-container-lle');
+  var salC=document.getElementById('live-container-sal');
+  if(lleC)lleC.innerHTML=spinner;
+  if(salC)salC.innerHTML=spinner;
   var pad=function(n){return String(n).padStart(2,"0");};
   // Peticiones secuenciales para evitar bloqueo de AENA
   fetch(RAILWAY+"/vuelos?tipo=llegadas")
@@ -2246,7 +2417,10 @@ function loadLive(){
       liveData.lle=[];
       liveData.sal=[];
       liveLastServerEmpty=true;
-      container.innerHTML="<div class='error-box'>Error al cargar vuelos desde Railway/AENA. Pulsa ↻ para reintentar.</div>";
+      var lleC=document.getElementById('live-container-lle');
+      var salC=document.getElementById('live-container-sal');
+      if(lleC)lleC.innerHTML="<div class='error-box' style='font-size:11px;padding:14px'>Error al cargar vuelos.<br>Pulsa \u21bb para reintentar.</div>";
+      if(salC)salC.innerHTML='';
       liveLoaded=false;
       if(typeof window.renderOperativa==='function')setTimeout(window.renderOperativa,100);
     });
@@ -2256,6 +2430,7 @@ function loadLive(){
 document.getElementById("btn-live").addEventListener("click",function(){
   document.getElementById("live-overlay").classList.add("show");
   document.getElementById("live-panel").classList.add("show");
+  initLiveViewMode();
   if(!liveLoaded)loadLive();
   if(typeof logActividad==="function")logActividad("ver_vuelos");
 });
@@ -4116,6 +4291,7 @@ var _EXCLUSIONES_PLANTILLA_MANUAL={
   '2026-05-20':['ARTURO RICO'],
   '2026-05-26':['ARTURO RICO'],
   '2026-05-27':['ARTURO RICO'],
+  '2026-05-28':['ARTURO RICO'],
   '2026-05-29':['ARTURO RICO']
 };
 function _normPlantillaNombre(v){
@@ -5250,13 +5426,9 @@ window.renderOperativa=function(){
       .replace(/^GATE/,'');
   }
   function opEsPuertaJardinera(v){
-    var puertasJardinera=new Set([
-      'C50','C48','C46','C44','C42','C40','C38',
-      'B18','B20','B22',
-      'C20','C22','C24','C26','C28','C30','C32','C34'
-    ]);
-    var puerta=opNormPuerta(v&& (v.puerta||v.gate||v.embarque||v.puertaEmbarque||v.puertaSalida||''));
-    return puertasJardinera.has(puerta);
+    var rawPuerta=v&&(v.puerta||v.gate||v.embarque||v.puertaEmbarque||v.puertaSalida||'');
+    var lbl=typeof gateOperationalLabel==='function'?gateOperationalLabel(rawPuerta):null;
+    return lbl&&lbl.cls==='remote';
   }
   function opInMinuteRange(nowMinute,startMinute,endMinute){
     startMinute=((startMinute%1440)+1440)%1440;
@@ -5706,6 +5878,78 @@ document.addEventListener('click',function(e){
     window.opShowOnlyBar(bar);
   }
 },true);
+</script>
+
+<script>
+/* === VISTAS VUELOS: tabs (llegadas|salidas separados) vs split (juntos) === */
+var LIVE_VIEW_KEY='cta_live_view_v1';
+var LIVE_TAB_KEY='cta_live_tab_v1';
+var _liveView='tabs';   // 'tabs' = separados (default), 'split' = juntos
+var _liveTab='lle';
+
+function setLiveViewMode(mode){
+  _liveView=mode;
+  try{localStorage.setItem(LIVE_VIEW_KEY,mode);}catch(e){}
+  var split=document.getElementById('live-split');
+  var seg=document.getElementById('live-seg');
+  if(mode==='tabs'){
+    split.classList.add('mode-tabs');
+    seg.classList.add('visible');
+    // mostrar solo la pestaña activa
+    setLiveActiveTab(_liveTab);
+  }else{
+    split.classList.remove('mode-tabs');
+    seg.classList.remove('visible');
+    // ambas columnas visibles
+    document.getElementById('live-col-lle').classList.add('tab-visible');
+    document.getElementById('live-col-sal').classList.add('tab-visible');
+  }
+  document.getElementById('lv-tabs').classList.toggle('active', mode==='tabs');
+  document.getElementById('lv-split').classList.toggle('active', mode==='split');
+}
+
+function setLiveActiveTab(tab){
+  _liveTab=tab;
+  try{localStorage.setItem(LIVE_TAB_KEY,tab);}catch(e){}
+  ['lle','sal'].forEach(function(t){
+    var col=document.getElementById('live-col-'+t);
+    if(col)col.classList.toggle('tab-visible', t===tab);
+    var btn=document.getElementById('seg-'+t);
+    if(btn)btn.classList.toggle('active', t===tab);
+  });
+  syncSegCounts();
+}
+
+function syncSegCounts(){
+  ['lle','sal'].forEach(function(t){
+    var badge=document.getElementById('live-cnt-'+t);
+    var mini=document.getElementById('seg-cnt-'+t);
+    if(badge&&mini)mini.textContent=badge.textContent||'—';
+  });
+}
+
+function initLiveViewMode(){
+  var savedView='tabs';
+  var savedTab='lle';
+  try{savedView=localStorage.getItem(LIVE_VIEW_KEY)||'tabs';}catch(e){}
+  try{savedTab=localStorage.getItem(LIVE_TAB_KEY)||'lle';}catch(e){}
+  _liveTab=savedTab;
+  setLiveViewMode(savedView);
+}
+
+// Sincronizar contadores automáticamente cuando cambien los badges
+(function(){
+  var ready=setInterval(function(){
+    var el=document.getElementById('live-cnt-lle');
+    if(!el)return;
+    clearInterval(ready);
+    var obs=new MutationObserver(syncSegCounts);
+    ['live-cnt-lle','live-cnt-sal'].forEach(function(id){
+      var e=document.getElementById(id);
+      if(e)obs.observe(e,{childList:true,characterData:true,subtree:true});
+    });
+  },400);
+})();
 </script>
 
 </body>
