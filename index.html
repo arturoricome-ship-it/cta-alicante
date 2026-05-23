@@ -139,11 +139,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .vcr.vcr-corte-e{box-shadow:inset 0 2px 0 rgba(34,197,94,.5)}
 .vcr-info{min-width:0}
 .vcr-topline{display:flex;align-items:baseline;gap:6px;min-width:0}
+/* === VISTA SIMPLE (tabs, ancho completo) — fuentes grandes === */
 .vcr-num{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--gold);letter-spacing:.8px;flex-shrink:0;line-height:1}
 .vcr-dest{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1}
 .vcr-hora{font-size:12px;color:var(--gray);margin-top:3px}
 .vcr-tag{font-size:10px;color:var(--gray);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px}
-/* Badge Parking/Remoto: centrado horizontal, a la altura de la línea Puerta */
 .vcr-mid{position:absolute;left:50%;bottom:11px;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;pointer-events:none}
 .vcr-park-lbl{font-size:7px;font-weight:700;color:#8a93a8;letter-spacing:.3px;white-space:nowrap;text-transform:uppercase;background:rgba(138,147,168,.08);border:1px solid rgba(138,147,168,.16);border-radius:4px;padding:1px 4px}
 .vcr-remoto-lbl{font-size:7px;font-weight:700;color:#f0a070;background:rgba(240,160,100,.10);border:1px solid rgba(240,160,100,.28);border-radius:4px;padding:1px 4px;white-space:nowrap}
@@ -151,7 +151,16 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .vcr-estado{font-size:10px;font-weight:700;padding:3px 7px;border-radius:100px;white-space:nowrap;text-align:center}
 .vcr-cnt{font-size:13px;font-weight:700;color:var(--gold);text-align:right;min-height:14px;white-space:nowrap}
 .vcr-cnt.ct-soon{color:#f07070}.vcr-cnt.ct-now{color:#ffb432}
-/* Vista simple (tabs): badge un poco más grande */
+/* === VISTA DOBLE (split, mitad de ancho) — fuentes más pequeñas === */
+#live-split:not(.mode-tabs) .vcr{padding:7px 8px!important}
+#live-split:not(.mode-tabs) .vcr-num{font-size:12px!important}
+#live-split:not(.mode-tabs) .vcr-dest{font-size:11px!important}
+#live-split:not(.mode-tabs) .vcr-hora{font-size:9px!important;margin-top:2px!important}
+#live-split:not(.mode-tabs) .vcr-tag{font-size:7.5px!important;margin-top:1px!important}
+#live-split:not(.mode-tabs) .vcr-estado{font-size:7.5px!important;padding:2px 5px!important}
+#live-split:not(.mode-tabs) .vcr-cnt{font-size:10px!important}
+#live-split:not(.mode-tabs) .vcr-mid{bottom:8px!important}
+/* Badge más grande en vista simple */
 #live-split.mode-tabs .vcr-park-lbl{font-size:9px!important;padding:2px 7px!important;letter-spacing:.4px!important}
 #live-split.mode-tabs .vcr-remoto-lbl{font-size:9px!important;padding:2px 7px!important}
 /* Sin número en botones de pestaña */
