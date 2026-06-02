@@ -4294,14 +4294,17 @@ var _GRUPO_MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGO
 
 
 // Exclusiones manuales de plantilla por fecha.
-// Arturo Rico no aparece ni computa en estos días de mayo de 2026.
+// Arturo Rico no aparece ni computa en estos días de mayo y junio de 2026.
 var _EXCLUSIONES_PLANTILLA_MANUAL={
   '2026-05-14':['ARTURO RICO'],
   '2026-05-20':['ARTURO RICO'],
   '2026-05-26':['ARTURO RICO'],
   '2026-05-27':['ARTURO RICO'],
   '2026-05-28':['ARTURO RICO'],
-  '2026-05-29':['ARTURO RICO']
+  '2026-05-29':['ARTURO RICO'],
+  '2026-06-04':['ARTURO RICO'],
+  '2026-06-15':['ARTURO RICO'],
+  '2026-06-22':['ARTURO RICO']
 };
 function _normPlantillaNombre(v){
   return String(v||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
