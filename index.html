@@ -2147,17 +2147,19 @@ function getLiveCutoffsFromTurnoHoy(){
 function gateOperationalLabel(puerta){
   var raw=String(puerta||'').toUpperCase().trim();
   if(!raw)return null;
-  var m=raw.match(/([BC])\s*[- ]?\s*(\d{1,2})/);
+  var m=raw.match(/([BC])\s*[- ]?\s*(\d+)/);
   if(!m)return null;
-  var num=m[2];
-  var gate=m[1]+String(parseInt(num,10)).padStart(2,'0');
+  var gate=m[1]+String(parseInt(m[2],10)).padStart(2,'0');
   var remoteSet=new Set([
-    'C50','C48','C46','C44','C42','C40','C38',
-    'B18','B20','B22',
-    'C20','C22','C24','C26','C28','C30','C32','C34'
+    'B18','B19','B20','B22','B24','B26','B28','B30','B32','B34',
+    'C38','C40','C42','C44','C46','C48','C50'
   ]);
   if(remoteSet.has(gate))return {text:'Remoto',cls:'remote'};
-  return {text:'Parking '+String(parseInt(num,10)),cls:'parking'};
+  var parkingSet=new Set([
+    'C35','C36','C37','C39','C41','C43','C45','C47','C49'
+  ]);
+  if(parkingSet.has(gate))return {text:'Parking '+String(parseInt(m[2],10)),cls:'parking'};
+  return null;
 }
 
 function renderLive(){
@@ -3968,8 +3970,6 @@ function mcRenderSummary(ue){
       if(contTypes.indexOf(day.tipo)>=0) anualContMin+=eff;
     });
   });
-  var hasData=totalMin>0||perenMin>0;
-  sumEl.style.display=hasData?'block':'none';
   var names=_MC_NAMES;
   document.getElementById('mc-sum-label').textContent='Resumen — '+names[_mcMonth]+' '+_mcYear;
   // Show carryover only in January
@@ -3980,7 +3980,8 @@ function mcRenderSummary(ue){
   // Annual perentorias and pending festivos
   var anualPerenMin=0;
   var festivosGenerados=0,festivosUsados=0;
-  _MC_MONTHS.forEach(function(mk){
+  var _nowY=new Date().getFullYear(),_nowM=new Date().getMonth();
+  _MC_MONTHS.forEach(function(mk,mIdx){
     var md2=(ue&&ue[mk])||{};
     var diasComputablesFestivo=0;
     var festivosUsadosMes={};
@@ -3991,13 +3992,17 @@ function mcRenderSummary(ue){
         if(dy.perenTipo==='cp')anualPerenMin-=_mcDuration(dy.perenDur);
         else anualPerenMin+=_mcDuration(dy.perenDur);
       }
-      // Un día marcado como festivo cuenta para llegar a 24 días computables,
-      // pero solo descuenta 1 festivo pendiente por día, nunca 2.
       if(_mcFestivoCuentaDia(dy))diasComputablesFestivo++;
+      // Festivos usados: se cuentan en TODOS los meses (pasados y futuros)
       if(dy.tipo==='festivo'&&!festivosUsadosMes[dd]){festivosUsadosMes[dd]=true;festivosUsados++;}
     });
-    if(diasComputablesFestivo>=24)festivosGenerados+=2;
+    // Festivos generados: solo meses pasados y el actual (los futuros aun no estan ganados)
+    var esFuturo=(_mcYear>_nowY)||(_mcYear===_nowY&&mIdx>_nowM);
+    if(!esFuturo&&diasComputablesFestivo>=24)festivosGenerados+=2;
   });
+  // Mostrar resumen si hay cualquier dato (mes actual o acumulado anual)
+  var hasData=totalMin>0||perenMin>0||anualMin>0||anualContMin>0||festivosUsados>0||festivosGenerados>0;
+  sumEl.style.display=hasData?'block':'none';
   document.getElementById('mc-sum-total').textContent=totalMin>0?_mcFmtH(totalMin):'0h';
   document.getElementById('mc-sum-anual').textContent=anualMin>0?_mcFmtH(anualMin):'0h';
   document.getElementById('mc-sum-anual-cont').textContent=anualContMin>0?_mcFmtH(anualContMin):'0h';
