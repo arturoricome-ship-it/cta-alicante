@@ -2605,7 +2605,7 @@ window.addEventListener("load",function(){
       if(!s||!s.email) return;
       fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:s.email,nombre:s.nombre||s.email}),headers:{"Content-Type":"text/plain"}})
       .then(function(r){return r.json();})
-      .then(function(d){if(d.bloqueado){localStorage.removeItem("cta_session");location.reload();}else{if(typeof logActividad==="function")logActividad("login","sesion_guardada");}})
+      .then(function(d){if(d.bloqueado){localStorage.removeItem("cta_session");location.reload();}})
       .catch(function(){});
     }
     verificarAcceso();
