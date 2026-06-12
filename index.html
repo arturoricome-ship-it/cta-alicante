@@ -3183,7 +3183,7 @@ function tiDoExport(){
   a.href=url;
   var fecha=new Date().toISOString().slice(0,10);
   a.download='cta_backup_completo_'+fecha+'.json';
-  logActividad('exportar_backup_completo');
+  logActividad('exportar', 'backup completo');
   document.body.appendChild(a);a.click();
   setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},1000);
 }
@@ -3295,7 +3295,7 @@ function tiApplyBackup(){
   if(!restored){alert('No se pudo restaurar ningún dato del backup.');return;}
   closeTrypImport();
   setTimeout(function(){
-    logActividad('restaurar_backup_completo');
+    logActividad('restaurar_backup', 'backup completo');
     alert('✅ Backup completo restaurado: '+restored+' claves.'+(skipped.length?'\nNo restauradas: '+skipped.join(', '):''));
     if(typeof mcRender==='function')mcRender();
     if(typeof initTurnoWidget==='function')initTurnoWidget();
@@ -3306,15 +3306,15 @@ function tiApplyBackup(){
 
 
 // ─── Log de actividad → Sheets ────────────────────────────────────
-function logActividad(tipo){
+function logActividad(tipo, detalle){
   var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
   if(!sess||!sess.email){console.warn('logActividad: no session for',tipo);return;}
-  console.log('logActividad →',tipo,sess.email);
+  console.log('logActividad →',tipo,sess.email, detalle||'');
   var url=typeof SHEETS_URL!=='undefined'?SHEETS_URL:null;
   if(!url){console.warn('logActividad: no SHEETS_URL');return;}
   fetch(url,{
     method:'POST',
-    body:JSON.stringify({accion:'log_accion',email:sess.email,nombre:sess.nombre||'',tipo:tipo}),
+    body:JSON.stringify({accion:'log_accion',email:sess.email,nombre:sess.nombre||'',tipo:tipo,detalle:detalle||''}),
     headers:{'Content-Type':'text/plain'}
   }).then(function(r){return r.json();}).then(function(d){console.log('logActividad ok',tipo,d);})
   .catch(function(e){console.error('logActividad error',tipo,e);});
@@ -5969,6 +5969,105 @@ function initLiveViewMode(){
       if(e)obs.observe(e,{childList:true,characterData:true,subtree:true});
     });
   },400);
+})();
+</script>
+
+<script>
+/* ================================================================
+   CTA TRACKING v2
+   Registra en Sheets > Log todos los movimientos del usuario:
+   tabs visitadas, documentos abiertos, login, logout,
+   detalles operativos, búsquedas, etc.
+   ================================================================ */
+(function(){
+
+  // Mapa tab → tipo enviado al script
+  var TAB_TIPO = {
+    operativa:  'ver_operativa',
+    documentos: 'ver_documentos',
+    turnos:     'ver_turnos',
+    avisos:     'ver_avisos',
+    afiliate:   'ver_calendario',
+    grupos:     'ver_grupos',
+    dashboard:  'ver_dashboard'
+  };
+
+  // Throttle: evita dobles disparos del mismo evento en < ms
+  var _lastLog = {};
+  function throttledLog(tipo, detalle, ms) {
+    ms = ms || 1200;
+    var key = tipo + '|' + (detalle || '');
+    var now = Date.now();
+    if (_lastLog[key] && now - _lastLog[key] < ms) return;
+    _lastLog[key] = now;
+    if (typeof logActividad === 'function') logActividad(tipo, detalle || '');
+  }
+
+  // 1. Tabs de navegacion
+  var _origST = window.switchTab;
+  window.switchTab = function(name, tabEl, navEl) {
+    if (typeof _origST === 'function') _origST(name, tabEl, navEl);
+    // ver_calendario ya lo lanza el switchTab original, no duplicar
+    if (name !== 'afiliate') {
+      throttledLog(TAB_TIPO[name] || ('ver_' + name), '', 800);
+    }
+  };
+
+  // 2. Documentos Drive
+  var _origOF = window.openFile;
+  window.openFile = function(file) {
+    if (typeof _origOF === 'function') _origOF(file);
+    throttledLog('ver_documento', file.name || file.id || '', 500);
+  };
+
+  // 3. Login
+  var _origEntrar = window.entrar;
+  window.entrar = function(email, nombre) {
+    if (typeof _origEntrar === 'function') _origEntrar(email, nombre);
+    setTimeout(function() { throttledLog('login', '', 500); }, 400);
+  };
+
+  // 4. Logout (capture antes de que borre la sesion)
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.closest && e.target.closest('#btn-logout')) {
+      throttledLog('logout', '', 500);
+    }
+  }, true);
+
+  // 5. Dashboard nominas
+  document.addEventListener('click', function(e) {
+    if (!e.target || !e.target.closest) return;
+    var btn = e.target.closest("[onclick*='dashboard-nominas'],[href*='dashboard-nominas'],.dash-dl-btn");
+    if (btn) throttledLog('ver_dashboard_nominas', '', 800);
+  });
+
+  // 6. Details operativos (expand)
+  document.addEventListener('toggle', function(e) {
+    var el = e.target;
+    if (!el || !el.open) return;
+    if (el.classList && el.classList.contains('op-details')) {
+      throttledLog('detalles_operativos_dia', '', 2000);
+    }
+    if (el.id === 'op-history-details') {
+      throttledLog('historial_operativa_vuelos', '', 2000);
+    }
+  }, true);
+
+  // 7. Busqueda en documentos
+  var si = document.getElementById('search-input');
+  if (si) {
+    var _st2 = null;
+    si.addEventListener('input', function() {
+      clearTimeout(_st2);
+      var v = this.value.trim();
+      if (!v) return;
+      _st2 = setTimeout(function() {
+        throttledLog('busqueda_documentos', v, 3000);
+      }, 1500);
+    });
+  }
+
+  console.log('[CTA Tracking v2] OK');
 })();
 </script>
 
