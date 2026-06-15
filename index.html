@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V72_GATE_LABEL_2026-05-21 -->
+<!-- CTA_OPERATIVA_V72_EVENTOS_HL_ARTURO_LOCAL_2026-06-14 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -429,6 +429,29 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-time-row input{width:100%;background:#1f2d47;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#f0eee8;font-family:'Outfit',sans-serif;font-size:14px;padding:7px 8px;text-align:center}
 .mc-edit-save{width:100%;background:rgba(200,168,75,.2);border:1px solid rgba(200,168,75,.4);border-radius:12px;padding:13px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--gold);cursor:pointer;margin-bottom:8px}
 .mc-edit-cancel{width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--gray);cursor:pointer}
+/* === BUSCADOR CAMBIO TURNO === */
+#cambio-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100002;backdrop-filter:blur(4px)}
+#cambio-panel{position:fixed;bottom:0;left:0;right:0;background:#0f1828;border-radius:22px 22px 0 0;z-index:100003;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+#cambio-panel.open{transform:translateY(0)}
+.cambio-handle{width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:14px auto 0;flex-shrink:0}
+.cambio-header{padding:12px 16px 10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.07)}
+.cambio-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--gold)}
+.cambio-sub{font-size:11px;color:var(--gray);margin-top:2px}
+#cambio-body{overflow-y:auto;padding:12px 14px calc(24px + env(safe-area-inset-bottom));flex:1;min-height:0;-webkit-overflow-scrolling:touch}
+.cambio-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 13px;margin-bottom:8px}
+.cambio-card.valido{border-color:rgba(74,222,128,.3)}
+.cambio-card.invalido{opacity:.5}
+.cambio-card-nombre{font-size:13px;font-weight:800;color:var(--white);margin-bottom:6px}
+.cambio-card-row{display:flex;gap:6px;align-items:flex-start;margin-bottom:4px;font-size:11px}
+.cambio-card-lbl{color:var(--gray);min-width:60px;flex-shrink:0}
+.cambio-card-val{color:var(--white);font-weight:600}
+.cambio-card-val.yo{color:#60a5fa}
+.cambio-card-val.el{color:#4ade80}
+.cambio-error{font-size:10px;color:#f87171;margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.06)}
+.cambio-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(74,222,128,.15);color:#4ade80;margin-left:6px}
+.cambio-empty{text-align:center;padding:30px 16px;font-size:13px;color:var(--gray)}
+.cambio-seccion{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid rgba(200,168,75,.2)}
+#cambio-close-btn{width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--gray);cursor:pointer;margin-top:8px}
 
 /* ─── Monthly summary stats ──────────────────────────────── */
 .mc-stat{background:var(--card2);border-radius:10px;padding:10px 12px;border:1px solid var(--border)}
@@ -873,6 +896,46 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
   #op-free-list .op-free-between{font-size:12px;padding:9px 10px}
 }
 
+
+/* ═══ BUSCADOR EVENTO ════════════════════════════════════ */
+#ev-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200000;backdrop-filter:blur(4px)}
+#ev-panel{position:fixed;bottom:0;left:0;right:0;background:#0f1828;border-radius:22px 22px 0 0;z-index:200001;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+#ev-panel.open{transform:translateY(0)}
+.ev-handle{width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:14px auto 0;flex-shrink:0}
+.ev-header{padding:12px 16px 10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.07)}
+.ev-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--gold)}
+.ev-sub{font-size:11px;color:var(--gray);margin-top:2px}
+#ev-body{overflow-y:auto;padding:14px 14px calc(24px + env(safe-area-inset-bottom));flex:1;min-height:0;-webkit-overflow-scrolling:touch}
+.ev-field{margin-bottom:14px}
+.ev-field label{font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px}
+.ev-field input,.ev-field select{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;padding:10px 13px;outline:none}
+.ev-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ev-chip-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.ev-chip{background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:20px;padding:4px 10px;font-size:11px;color:#a78bfa;display:flex;align-items:center;gap:5px}
+.ev-chip button{background:none;border:none;color:#a78bfa;cursor:pointer;font-size:14px;padding:0;line-height:1}
+.ev-add-row{display:flex;gap:8px}
+.ev-add-row input{flex:1}
+.ev-add-row button{background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:12px;padding:10px 14px;color:#a78bfa;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;flex-shrink:0}
+.ev-btn-search{width:100%;background:rgba(200,168,75,.2);border:1px solid rgba(200,168,75,.4);border-radius:14px;padding:13px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--gold);cursor:pointer;margin-top:4px}
+.ev-seccion{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid rgba(200,168,75,.2)}
+.ev-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;margin-bottom:8px;position:relative;overflow:hidden}
+.ev-card.ev-top1{border-color:rgba(200,168,75,.5);background:rgba(200,168,75,.05)}
+.ev-card.ev-top2{border-color:rgba(96,165,250,.3)}
+.ev-bar{position:absolute;bottom:0;left:0;height:3px;background:linear-gradient(90deg,#4ade80,#60a5fa);border-radius:0 0 14px 14px}
+.ev-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ev-card-fecha{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--white)}
+.ev-card-num{font-size:20px;font-weight:800;color:#4ade80}
+.ev-card-num.gold{color:var(--gold)}
+.ev-card-row{font-size:11px;color:var(--gray);margin-bottom:4px}
+.ev-card-row span{color:var(--white);font-weight:600}
+.ev-names{font-size:10px;color:#4ade80;margin-top:6px;line-height:1.7}
+.ev-parciales{font-size:10px;color:#fbbf24;margin-top:4px;line-height:1.7}
+.ev-missing{font-size:10px;color:#f87171;margin-top:4px}
+.ev-empty{text-align:center;padding:30px 16px;font-size:13px;color:var(--gray)}
+.ev-mes-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.ev-mes-tabs::-webkit-scrollbar{display:none}
+.ev-mes-tab{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:6px 12px;font-size:12px;color:var(--gray);cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:'Outfit',sans-serif}
+.ev-mes-tab.active{background:rgba(200,168,75,.15);border-color:rgba(200,168,75,.4);color:var(--gold);font-weight:700}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -2514,6 +2577,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
     <button class="calc-small-btn" id="btn-mismo-turno" onclick="filtrarMismoTurno()">🎯 Mismo turno</button>
     <button class="calc-small-btn" id="btn-en-turno" onclick="filtrarEnTurno()">⚡ En turno</button>
     <button id="btn-sort-salida" onclick="toggleSortSalida()" title="Ordenar por próxima salida" style="background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:5px 9px;cursor:pointer;font-size:13px;line-height:1">⇅</button>
+    <button onclick="abrirBuscadorEvento()" style="background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:700;color:#a78bfa;font-family:'Outfit',sans-serif">🎉 Evento</button>
     <input type="file" id="grupo-file-input" accept=".xlsx" style="display:none" onchange="procesarGrupoXlsx(this.files[0])">
   </div>
   <div id="grupo-panel"></div>
@@ -2555,6 +2619,10 @@ function setWelcome(nombre){
   var el=document.getElementById("header-welcome");
   if(el)el.textContent="Hola, "+primerNombre(nombre)+" 👋";
   if(typeof initTurnoWidget==="function")initTurnoWidget();
+  if(typeof cargarCambiosTurnosCompartidos==="function"){
+    cargarCambiosTurnosCompartidos(new Date().getFullYear());
+    cargarCambiosTurnosCompartidos(new Date().getFullYear()+1);
+  }
 }
 
 function entrar(email,nombre){
@@ -4159,6 +4227,7 @@ function mcEditSave(){
     delete ue[month][day].hfunDur;
   }
   try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(er){alert('Error: '+er.message);}
+  if(typeof guardarCambioTurnoCompartido==='function')guardarCambioTurnoCompartido(year,month,day,ue[month][day]);
   mcEditClose();
   setTimeout(function(){mcRender();if(typeof initTurnoWidget==='function')initTurnoWidget();},290);
 }
@@ -4242,6 +4311,7 @@ document.addEventListener('DOMContentLoaded',function(){
 <div id="mc-edit-panel">
   <div class="mc-edit-handle"></div>
   <div class="mc-edit-title-bar" id="mc-edit-title">Editar día</div>
+  <button id="btn-buscar-cambio" onclick="abrirBuscadorCambio()" style="width:100%;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.4);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:#60a5fa;cursor:pointer;margin-bottom:10px;display:block">🔄 Buscar cambio de turno</button>
   <div class="mc-tipo-grid" id="mc-tipo-grid">
     <button class="mc-tipo-btn" data-tipo="trabajado" onclick="mcTipoSel(this)"><span class="t-ico">⚙️</span><span class="t-lbl">Trabajado</span></button>
     <button class="mc-tipo-btn" data-tipo="vacaciones" onclick="mcTipoSel(this)"><span class="t-ico">🏖️</span><span class="t-lbl">Vacaciones</span></button>
@@ -4287,8 +4357,29 @@ document.addEventListener('DOMContentLoaded',function(){
       <button onclick="mcResetPeren()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:var(--gray);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;white-space:nowrap;margin-top:18px">↺ Reset</button>
     </div>
   </div>
-  <button class="mc-edit-save" onclick="mcEditSave()">✅ Guardar</button>
+  <button class="mc-edit-save" onclick="mcEditSave()">✅ Guardar cambios</button>
   <button class="mc-edit-cancel" onclick="mcEditClose()">Cancelar</button>
+</div>
+
+<!-- PANEL BUSCADOR CAMBIO -->
+<div id="cambio-bg" onclick="cerrarBuscadorCambio()"></div>
+<div id="cambio-panel">
+  <div class="cambio-handle"></div>
+  <div class="cambio-header">
+    <div class="cambio-title">🔄 Buscar cambio de turno</div>
+    <div class="cambio-sub" id="cambio-sub-txt">Calculando opciones...</div>
+    <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+      <div style="flex:1;position:relative">
+        <input id="cambio-ia-input" type="text" placeholder="¿Qué buscas? Ej: tarde el lunes, salir antes de las 14h..." 
+          style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:var(--white);font-family:'Outfit',sans-serif;font-size:12px;padding:10px 40px 10px 12px;outline:none"
+          onkeydown="if(event.key==='Enter')filtrarConIA()">
+        <button onclick="filtrarConIA()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;padding:0;line-height:1" id="cambio-ia-btn">✨</button>
+      </div>
+      <button onclick="limpiarFiltroIA()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 10px;color:var(--gray);font-family:'Outfit',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">↺ Todo</button>
+    </div>
+    <div id="cambio-ia-estado" style="font-size:10px;color:var(--gold);margin-top:6px;min-height:14px"></div>
+  </div>
+  <div id="cambio-body"></div>
 </div>
 
 
@@ -4416,9 +4507,29 @@ function procesarGrupoXlsx(file){
         var diasMes={};
         Object.keys(dayColMap).forEach(function(d){
           var cell=String(row[dayColMap[d]]||'').trim();
-          if(cell&&cell!==''&&cell.toUpperCase()!=='DL'){
-            var parsed=parseTurnoGrupo(cell);
-            if(parsed)diasMes[parseInt(d)]=parsed;
+          if(cell===''){
+            // Celda vacía → sin publicar, no se guarda
+            return;
+          }
+          // Exclamación → baja, vacaciones o similar → cuenta como día libre
+          if(cell.indexOf('!')!==-1){
+            diasMes[parseInt(d)]={tipo:'libre',e1:'',s1:'',e2:'',s2:'',ausencia:true};
+            return;
+          }
+          var cellUp=cell.toUpperCase().replace(/[\s.]/g,'');
+          var esLibre=(cellUp==='DL'||cellUp==='LIBRE'||cellUp==='DIALIBRE'||cellUp==='DESCANSO'||cellUp==='DESCANSOSEMANA'||cellUp==='MA'||cellUp==='FM'||cellUp==='FY');
+          if(esLibre){
+            diasMes[parseInt(d)]={tipo:'libre',e1:'',s1:'',e2:'',s2:''};
+            return;
+          }
+          var parsed=parseTurnoGrupo(cell);
+          if(parsed){
+            // Si no tiene horas válidas, tratarlo como libre (vacaciones, baja, etc. cuentan como no-trabajo ese día)
+            if(!parsed.e1){
+              diasMes[parseInt(d)]={tipo:parsed.tipo||'libre',e1:'',s1:'',e2:'',s2:''};
+            } else {
+              diasMes[parseInt(d)]=parsed;
+            }
           }
         });
         empleados.push({nomina:nomina,nombre:nombre,categoria:categoria,dias:diasMes});
@@ -4610,6 +4721,247 @@ function normalizaCategoriaGrupo(cat){
   return cat||'General';
 }
 
+// Regla HL de Arturo: NO convierte a toda la plantilla en libre.
+// Si Arturo está marcado como HL/HLP en el calendario personal de ESTE dispositivo,
+// Arturo se trata como Libre para listas, operativa y buscador de eventos.
+// Aviso crítico: esto es local. Para que lo vean todos los teléfonos hace falta
+// una lista pública/hardcoded o una fuente compartida (Sheets/API).
+var _ARTURO_HL_PUBLICO={}; // Ejemplo si se quiere publicar en el index: {'2026-06-23':true}
+function _arturoHLPubFecha(dateObj){
+  if(!dateObj)return false;
+  var k=_fechaISOPlantilla(dateObj);
+  return !!(_ARTURO_HL_PUBLICO&&_ARTURO_HL_PUBLICO[k]);
+}
+function _esArturoPlantilla(nombre){
+  var n=_normPlantillaNombre(nombre);
+  return n==='ARTURO RICO'||n==='ARTURO RICO GARCIA'||n.indexOf('ARTURO RICO')>=0;
+}
+function _miCalendarioMarcaHL(dateObj){
+  if(!dateObj)return false;
+  var meses=(typeof _MC_MONTHS!=='undefined'&&_MC_MONTHS.length)?_MC_MONTHS:((typeof _GRUPO_MONTHS!=='undefined'&&_GRUPO_MONTHS.length)?_GRUPO_MONTHS:['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE']);
+  var raw=null;
+  try{raw=localStorage.getItem('cta_ed_'+dateObj.getFullYear());}catch(e){raw=null;}
+  var ue={};
+  try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
+  var mData=(ue&&ue[meses[dateObj.getMonth()]])||{};
+  var d=mData[dateObj.getDate()];
+  if(!d||!d.tipo)return false;
+  var tipo=String(d.tipo||'').toLowerCase();
+  return tipo==='hl'||tipo==='hlp';
+}
+function _arturoDebeTratarseLibre(nombre,dateObj){
+  return _esArturoPlantilla(nombre)&&(_miCalendarioMarcaHL(dateObj)||_arturoHLPubFecha(dateObj));
+}
+
+
+// ─── Cambios de turno compartidos vía Sheets ─────────────────────
+// Objetivo: si un empleado cambia SU calendario personal (HL, DL, turno, etc.),
+// ese cambio se guarda en Sheets y prevalece sobre la importación general para todos.
+var _CAMBIOS_TURNOS_COMPARTIDOS={};
+var _CAMBIOS_TURNOS_CARGANDO={};
+var _CAMBIOS_TURNOS_ULTIMA_CARGA={};
+
+function _ctaSession(){
+  try{return JSON.parse(localStorage.getItem('cta_session')||'{}')||{};}catch(e){return {};}
+}
+function _monthIndexFromKey(monthKey){
+  var idx=_GRUPO_MONTHS.indexOf(monthKey);
+  if(idx<0&&typeof _MC_MONTHS!=='undefined')idx=_MC_MONTHS.indexOf(monthKey);
+  return idx;
+}
+function _fechaISOFromParts(year,monthKey,day){
+  var idx=_monthIndexFromKey(monthKey);
+  if(idx<0)return String(year)+'-'+String(monthKey)+'-'+String(day).padStart(2,'0');
+  return String(year)+'-'+String(idx+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+}
+function _cacheCambioTurnoCompartido(c){
+  if(!c)return;
+  var fecha=String(c.fecha||'').trim();
+  if(!fecha)return;
+  var year=parseInt(c.year||fecha.slice(0,4),10)||new Date().getFullYear();
+  if(!_CAMBIOS_TURNOS_COMPARTIDOS[year])_CAMBIOS_TURNOS_COMPARTIDOS[year]={};
+  if(!_CAMBIOS_TURNOS_COMPARTIDOS[year][fecha])_CAMBIOS_TURNOS_COMPARTIDOS[year][fecha]={};
+  var keys=[];
+  if(c.nomina)keys.push('NOMINA:'+_normPlantillaNombre(c.nomina));
+  var empleadoNorm=c.empleado_norm||c.nombre_norm||_normPlantillaNombre(c.empleado||c.nombre||'');
+  if(empleadoNorm)keys.push('NOMBRE:'+empleadoNorm);
+  keys.forEach(function(k){_CAMBIOS_TURNOS_COMPARTIDOS[year][fecha][k]=c;});
+}
+function cargarCambiosTurnosCompartidos(year,force){
+  year=parseInt(year||new Date().getFullYear(),10);
+  if(!year||typeof SHEETS_URL==='undefined'||!SHEETS_URL)return Promise.resolve(null);
+  var now=Date.now();
+  if(!force&&_CAMBIOS_TURNOS_ULTIMA_CARGA[year]&&(now-_CAMBIOS_TURNOS_ULTIMA_CARGA[year]<60000))return Promise.resolve(_CAMBIOS_TURNOS_COMPARTIDOS[year]||{});
+  if(_CAMBIOS_TURNOS_CARGANDO[year])return _CAMBIOS_TURNOS_CARGANDO[year];
+  var sess=_ctaSession();
+  _CAMBIOS_TURNOS_CARGANDO[year]=fetch(SHEETS_URL,{
+    method:'POST',
+    body:JSON.stringify({accion:'get_cambios_turnos',year:year,email:sess.email||''}),
+    headers:{'Content-Type':'text/plain'},
+    cache:'no-store'
+  }).then(function(r){return r.json();}).then(function(data){
+    if(!data||data.ok===false)throw new Error((data&&data.error)||'No se pudieron cargar cambios compartidos');
+    _CAMBIOS_TURNOS_COMPARTIDOS[year]={};
+    (data.cambios||[]).forEach(_cacheCambioTurnoCompartido);
+    _CAMBIOS_TURNOS_ULTIMA_CARGA[year]=Date.now();
+    setTimeout(function(){
+      try{if(typeof renderCompanerosDia==='function'&&document.getElementById('grupo-panel')&&document.getElementById('grupo-panel').classList.contains('open'))renderCompanerosDia(window._grupoOffsetDias||0,false);}catch(e){}
+      try{if(typeof opActualizarDashboard==='function')opActualizarDashboard();}catch(e){}
+      try{if(typeof renderDashboardOperativa==='function')renderDashboardOperativa();}catch(e){}
+    },50);
+    return _CAMBIOS_TURNOS_COMPARTIDOS[year];
+  }).catch(function(err){
+    console.warn('Cambios compartidos no disponibles:',err&&err.message?err.message:err);
+    return null;
+  }).finally(function(){delete _CAMBIOS_TURNOS_CARGANDO[year];});
+  return _CAMBIOS_TURNOS_CARGANDO[year];
+}
+function _getCambioCompartidoEmpleado(emp,dateObj){
+  if(!emp||!dateObj)return null;
+  var year=dateObj.getFullYear();
+  var fecha=_fechaISOPlantilla(dateObj);
+  var byFecha=(_CAMBIOS_TURNOS_COMPARTIDOS[year]||{})[fecha];
+  if(!byFecha)return null;
+  var keys=[];
+  if(emp.nomina)keys.push('NOMINA:'+_normPlantillaNombre(emp.nomina));
+  if(emp.nombre)keys.push('NOMBRE:'+_normPlantillaNombre(emp.nombre));
+  for(var i=0;i<keys.length;i++){if(byFecha[keys[i]])return byFecha[keys[i]];}
+  // Fallback flexible por nombre, por si el nombre viene abreviado desde la importación.
+  var n=_normPlantillaNombre(emp.nombre||'');
+  if(n){
+    var ks=Object.keys(byFecha);
+    for(var j=0;j<ks.length;j++){
+      if(ks[j].indexOf('NOMBRE:')!==0)continue;
+      var nn=ks[j].slice(7);
+      if(n===nn||n.indexOf(nn)>=0||nn.indexOf(n)>=0)return byFecha[ks[j]];
+    }
+  }
+  return null;
+}
+function _tipoCambioEsLibre(tipo){
+  tipo=String(tipo||'').toLowerCase();
+  return ['hl','hlp','libre','dl','descanso','festivo','vacaciones','baja','perentorias','h6','hfun','rm','bp','nh','cp'].indexOf(tipo)>=0;
+}
+function _cambioToTurno(c){
+  if(!c)return null;
+  var tipo=String(c.tipo||'').toLowerCase();
+  if(_tipoCambioEsLibre(tipo)||(!c.e1&&!c.s1)){
+    return{tipo:'libre',e1:'',s1:'',e2:'',s2:'',cambioCompartido:true,etiquetaCambio:String(c.tipo||'Libre').toUpperCase(),actualizadoPor:c.actualizado_por||c.email||''};
+  }
+  return{tipo:(tipo==='curso'?'curso':'trabajado'),e1:c.e1||'',s1:c.s1||'',e2:c.e2||'',s2:c.s2||'',total:c.total||0,cambioCompartido:true,etiquetaCambio:String(c.tipo||'TRABAJA').toUpperCase(),actualizadoPor:c.actualizado_por||c.email||''};
+}
+function _turnoGrupoConCambioCompartido(emp,dateObj,turnoOriginal){
+  var c=_getCambioCompartidoEmpleado(emp,dateObj);
+  if(!c)return turnoOriginal;
+  return _cambioToTurno(c);
+}
+function _turnoMatchKey(t){
+  if(!t)return '';
+  var e1=String(t.e1||'').trim(),s1=String(t.s1||'').trim(),e2=String(t.e2||'').trim(),s2=String(t.s2||'').trim();
+  var tipo=String(t.tipo||'').toLowerCase();
+  if(e1||s1||e2||s2)return [e1,s1,e2,s2].join('|');
+  if(_tipoCambioEsLibre(tipo)||tipo==='libre')return 'LIBRE';
+  return '';
+}
+function _getMiEmpleadoGrupoActual(year,monthKey,day){
+  var cached=null;
+  try{cached=JSON.parse(localStorage.getItem('cta_mi_empleado')||'null');}catch(e){cached=null;}
+  var nominaMap={};
+  try{nominaMap=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')||{};}catch(e){nominaMap={};}
+  if(cached&&cached.nomina&&nominaMap[cached.nomina])return {nomina:cached.nomina,nombre:nominaMap[cached.nomina].nombre||cached.nombre||'',categoria:nominaMap[cached.nomina].categoria||cached.categoria||''};
+
+  var personal={};
+  try{personal=JSON.parse(localStorage.getItem('cta_ed_'+year)||'{}')||{};}catch(e){personal={};}
+  var best=null,bestScore=0;
+
+  for(var nk in nominaMap){
+    if(!nominaMap.hasOwnProperty(nk))continue;
+    var emp=nominaMap[nk];
+    var score=0,comparables=0;
+    for(var mk in personal){
+      if(!personal.hasOwnProperty(mk))continue;
+      var misDias=personal[mk]||{};
+      var empDias=(emp.meses&&emp.meses[mk])||{};
+      for(var d in misDias){
+        if(!misDias.hasOwnProperty(d))continue;
+        var mi=misDias[d], el=empDias[d];
+        var kMi=_turnoMatchKey(mi), kEl=_turnoMatchKey(el);
+        if(!kMi)continue;
+        comparables++;
+        if(kMi&&kEl&&kMi===kEl){
+          score += (kMi==='LIBRE'?0.4:3);
+        }
+      }
+    }
+    if(score>bestScore){bestScore=score;best=emp;}
+  }
+
+  if(best&&bestScore>=6){
+    var res={nomina:best.nomina||'',nombre:best.nombre||'',categoria:best.categoria||''};
+    try{localStorage.setItem('cta_mi_empleado',JSON.stringify(res));}catch(e){}
+    return res;
+  }
+
+  var sess=_ctaSession();
+  var sn=_normPlantillaNombre(sess.nombre||'');
+  if(sn){
+    for(var nk2 in nominaMap){
+      if(!nominaMap.hasOwnProperty(nk2))continue;
+      var emp2=nominaMap[nk2];
+      var en=_normPlantillaNombre(emp2.nombre||'');
+      if(en&&(en===sn||en.indexOf(sn)>=0||sn.indexOf(en)>=0)){
+        var res2={nomina:emp2.nomina||'',nombre:emp2.nombre||'',categoria:emp2.categoria||''};
+        try{localStorage.setItem('cta_mi_empleado',JSON.stringify(res2));}catch(e){}
+        return res2;
+      }
+    }
+  }
+  return null;
+}
+function guardarCambioTurnoCompartido(year,monthKey,day,dayObj){
+  var sess=_ctaSession();
+  if(!sess||!sess.email||typeof SHEETS_URL==='undefined'||!SHEETS_URL)return Promise.resolve(null);
+  var fecha=_fechaISOFromParts(year,monthKey,day);
+  var payload={
+    accion:'guardar_cambio_turno',
+    email:sess.email,
+    nombre:sess.nombre||'',
+    fecha:fecha,
+    year:year,
+    month:monthKey,
+    day:day,
+    tipo:(dayObj&&dayObj.tipo)||'libre',
+    e1:(dayObj&&dayObj.e1)||'',
+    s1:(dayObj&&dayObj.s1)||'',
+    e2:(dayObj&&dayObj.e2)||'',
+    s2:(dayObj&&dayObj.s2)||'',
+    total:(dayObj&&dayObj.total)||0
+  };
+  var miEmp=_getMiEmpleadoGrupoActual(year,monthKey,day);
+  if(miEmp){
+    payload.empleado=miEmp.nombre||'';
+    payload.empleado_norm=_normPlantillaNombre(miEmp.nombre||'');
+    payload.nomina=miEmp.nomina||'';
+  }else{
+    payload.empleado=sess.nombre||'';
+    payload.empleado_norm=_normPlantillaNombre(sess.nombre||'');
+    payload.nomina='';
+  }
+  return fetch(SHEETS_URL,{
+    method:'POST',
+    body:JSON.stringify(payload),
+    headers:{'Content-Type':'text/plain'}
+  }).then(function(r){return r.json();}).then(function(data){
+    if(!data||data.ok===false)throw new Error((data&&data.error)||'No se pudo guardar el cambio compartido');
+    if(data.cambio)_cacheCambioTurnoCompartido(data.cambio);
+    else cargarCambiosTurnosCompartidos(year,true);
+    return data;
+  }).catch(function(err){
+    console.warn('Cambio guardado solo en este dispositivo. No se sincronizó con Sheets:',err&&err.message?err.message:err);
+    return null;
+  });
+}
+
 function renderCompanerosDia(offsetDias,toggleIfOpen){
   var panel=document.getElementById('grupo-panel');
   if(toggleIfOpen&&panel.classList.contains('open')){panel.classList.remove('open');return;}
@@ -4669,9 +5021,12 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   // Build list: coincidencias o toda la plantilla
   var coinciden=[];
   empleados.forEach(function(emp){
+    // Si Arturo tiene HL/HLP en el calendario personal local o en lista pública, no debe salir como operativo.
+    if(_arturoDebeTratarseLibre(emp.nombre||emp.nomina,target))return;
     // Today's shift
     var turno=emp.dias[day];
-    if(turno){
+    turno=_turnoGrupoConCambioCompartido(emp,target,turno);
+    if(turno&&turno.e1&&turno.tipo!=='libre'){
       var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
       var solapa=turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2);
@@ -4699,6 +5054,8 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     // Yesterday's overnight shift crossing into today
     if(esDiaActual&&day>1){
       var turnoAyer=emp.dias[day-1];
+      var fechaAyer=new Date(target.getFullYear(),target.getMonth(),target.getDate()-1);
+      turnoAyer=_turnoGrupoConCambioCompartido(emp,fechaAyer,turnoAyer);
       if(turnoAyer&&turnoAyer.e1&&turnoAyer.s1){
         var yE1=toMinG(turnoAyer.e1),yS1=toMinG(turnoAyer.s1);
         // Crosses midnight: s1 < e1 (e.g. 22:00→07:00 → 420<1320)
@@ -5003,8 +5360,9 @@ window.renderOperativa=function(){
   Object.keys(gmap).forEach(function(nom){
     var emp=gmap[nom],dias=(emp.meses&&emp.meses[mK])||null;
     if(_estaExcluidoPlantilla((emp&&emp.nombre)||nom,_fechaISOPlantilla(now)))return;
+    if(_arturoDebeTratarseLibre((emp&&emp.nombre)||nom,now))return;
     if(!dias)return;
-    var t=dias[todayNum];if(!t||!t.e1)return;
+    var t=dias[todayNum];t=_turnoGrupoConCambioCompartido(emp,now,t);if(!t||!t.e1)return;
     var excl=!!(t.noVieneInterrogacion||t.disponibilidadNoConfirmada);if(excl)return;
     var gE1=toM(t.e1),gS1=toM(t.s1),gE2=t.e2?toM(t.e2):null,gS2=t.s2?toM(t.s2):null;
     trabajanHoy.push({nombre:nom,e1:gE1,s1:gS1,e2:gE2,s2:gS2});
@@ -5022,8 +5380,8 @@ window.renderOperativa=function(){
   function opTrabajadoresFecha(dateObj){
     var mk=MESES[dateObj.getMonth()],dn=dateObj.getDate(),out=[];
     Object.keys(gmap).forEach(function(nom){
-      var emp=gmap[nom],dias=(emp.meses&&emp.meses[mk])||null;if(_estaExcluidoPlantilla((emp&&emp.nombre)||nom,_fechaISOPlantilla(dateObj)))return;if(!dias)return;
-      var t=dias[dn];if(!t||!t.e1)return;
+      var emp=gmap[nom],dias=(emp.meses&&emp.meses[mk])||null;if(_estaExcluidoPlantilla((emp&&emp.nombre)||nom,_fechaISOPlantilla(dateObj)))return;if(_arturoDebeTratarseLibre((emp&&emp.nombre)||nom,dateObj))return;if(!dias)return;
+      var t=dias[dn];t=_turnoGrupoConCambioCompartido(emp,dateObj,t);if(!t||!t.e1)return;
       var excl=!!(t.noVieneInterrogacion||t.disponibilidadNoConfirmada);if(excl)return;
       out.push({nombre:nom,e1:toM(t.e1),s1:toM(t.s1),e2:t.e2?toM(t.e2):null,s2:t.s2?toM(t.s2):null});
     });
@@ -6070,6 +6428,1327 @@ function initLiveViewMode(){
   console.log('[CTA Tracking v2] OK');
 })();
 </script>
+
+<script>
+// ============================================================
+// BUSCADOR DE CAMBIO DE TURNO
+// ============================================================
+
+var _cambioDay=null, _cambioMonth=null, _cambioYear=null;
+var _todosResultados=[];
+var _todosParciales=[];
+var _filtroIA=null;
+
+function abrirBuscadorCambio(){
+  _cambioDay=_mcEditDay;
+  _cambioMonth=_mcEditMonth;
+  _cambioYear=_mcEditYear;
+  if(_cambioDay===null||_cambioDay===undefined){alert('Error: no hay día seleccionado');return;}
+  // Cerrar panel edición
+  var ep=document.getElementById('mc-edit-panel');
+  var eb=document.getElementById('mc-edit-bg');
+  if(ep)ep.classList.remove('open');
+  if(eb)setTimeout(function(){eb.style.display='none';},280);
+  // Abrir panel cambio
+  setTimeout(function(){
+    var bg=document.getElementById('cambio-bg');
+    var panel=document.getElementById('cambio-panel');
+    if(!bg||!panel){alert('Error: panel cambio no encontrado');return;}
+    bg.style.display='block';
+    setTimeout(function(){panel.classList.add('open');},10);
+    calcularCambios();
+  },320);
+}
+
+function cerrarBuscadorCambio(){
+  document.getElementById('cambio-panel').classList.remove('open');
+  setTimeout(function(){document.getElementById('cambio-bg').style.display='none';},280);
+}
+
+function _toMin(t){if(!t)return null;var p=String(t).split(':');return +p[0]*60+ +p[1];}
+function _fmtMin(m){if(m===null||m===undefined)return'--';var h=Math.floor(((m%1440)+1440)%1440/60),mm=((m%1440)+1440)%1440%60;return(h<10?'0':'')+h+':'+(mm<10?'0':'')+mm;}
+function _durMin(e,s){if(e===null||s===null)return 0;return s<e?s+1440-e:s-e;}
+
+// Detectar tipo contrato y rol desde categoria del grupo
+function _parseCategoria(cat){
+  cat=String(cat||'').toUpperCase();
+  var tipo='GENERAL', rol='OPERARIO';
+  if(/\bFIJOS?\b/.test(cat)&&!/FTP|FDS|DISCONTINU/.test(cat))tipo='FIJO';
+  else if(/FTP/.test(cat))tipo='FTP';
+  else if(/FDS?|DISCONTINU/.test(cat))tipo='FD';
+  else if(/EVENTUAL/.test(cat))tipo='EVENTUAL';
+  if(/SUPERVIS/.test(cat))rol='SUPERVISOR';
+  else if(/OPERARI/.test(cat)||/OPER/.test(cat))rol='OPERARIO';
+  return{tipo:tipo,rol:rol};
+}
+
+// Compatibilidad de contratos
+function _sonCompatibles(cat1,cat2){
+  var a=_parseCategoria(cat1), b=_parseCategoria(cat2);
+  if(a.rol!==b.rol)return false;
+  if(a.tipo==='FIJO'&&b.tipo!=='FIJO')return false;
+  if(b.tipo==='FIJO'&&a.tipo!=='FIJO')return false;
+  return true;
+}
+
+// Validar un turno resultante cumple las reglas
+function _validarTurno(e1,s1,e2,s2){
+  var errores=[];
+  if(e1===null||s1===null)return{ok:true,errores:[]}; // día libre → ok
+
+  var dur1=_durMin(e1,s1);
+  var dur2=(e2!==null&&s2!==null)?_durMin(e2,s2):0;
+  var totalMin=dur1+dur2;
+
+  // Máx 9h
+  if(totalMin>540)errores.push('Turno supera 9h ('+Math.floor(totalMin/60)+'h '+totalMin%60+'m)');
+
+  // Si es partido
+  if(e2!==null&&s2!==null){
+    var descanso=_durMin(s1,e2);
+    // Descanso entre 1h y 5h
+    if(descanso<60)errores.push('Descanso partido menor de 1h ('+Math.floor(descanso/60)+'h '+descanso%60+'m)');
+    if(descanso>300)errores.push('Descanso partido mayor de 5h ('+Math.floor(descanso/60)+'h '+descanso%60+'m)');
+    // Sin horas entre 00:00 y 05:00
+    function _cruzaProhibido(ei,si){
+      // Tramo prohibido: 0..300 min (00:00-05:00)
+      var segStart=ei, segEnd=si<ei?si+1440:si;
+      // Prohibido: 0-300 y 1440-1740
+      var zonas=[[0,300],[1440,1740]];
+      for(var z=0;z<zonas.length;z++){
+        var zs=zonas[z][0],ze=zonas[z][1];
+        if(segStart<ze&&segEnd>zs)return true;
+      }
+      return false;
+    }
+    if(_cruzaProhibido(e1,s1)||_cruzaProhibido(e2,s2)){
+      errores.push('Turno partido con horas entre 00:00 y 05:00');
+    }
+  }
+
+  return{ok:errores.length===0,errores:errores};
+}
+
+// Calcular horas L-V de una semana para un empleado con un turno sustituido
+function _horasLVSemana(empDias, monthKey, dia, e1nuevo, s1nuevo, e2nuevo, s2nuevo){
+  var fecha=new Date(_cambioYear, _GRUPO_MONTHS.indexOf(monthKey), dia);
+  // Buscar el lunes de esa semana
+  var dow=(fecha.getDay()+6)%7; // 0=Lun
+  var lunes=new Date(fecha.getTime()-dow*86400000);
+
+  var total=0;
+  for(var i=0;i<7;i++){ // Lun a Dom
+    var f=new Date(lunes.getTime()+i*86400000);
+    var d=f.getDate();
+    var mk=_GRUPO_MONTHS[f.getMonth()];
+    if(mk!==monthKey)continue; // mes distinto, ignorar (simplificación)
+    var turno;
+    if(d===dia){
+      // Usar el turno nuevo
+      var e1=e1nuevo,s1=s1nuevo,e2=e2nuevo,s2=s2nuevo;
+      if(e1!==null&&s1!==null)total+=_durMin(e1,s1);
+      if(e2!==null&&s2!==null)total+=_durMin(e2,s2);
+    } else {
+      turno=empDias[d];
+      if(turno&&turno.e1&&turno.s1){
+        total+=_durMin(_toMin(turno.e1),_toMin(turno.s1));
+        if(turno.e2&&turno.s2)total+=_durMin(_toMin(turno.e2),_toMin(turno.s2));
+      }
+    }
+  }
+  return total; // en minutos
+}
+
+// Comprueba el descanso de 10h entre el turno nuevo de un dia y los dias adyacentes.
+function _validarDescanso10h(empDias, monthKey, dia, e1n, s1n, e2n, s2n, etiqueta){
+  var errores=[];
+  var DESC_MIN=600; // 10h
+  if(e1n===null)return errores; // ese dia libra
+  var miEntrada=e1n;
+  var miSalida=(e2n!==null&&s2n!==null)?s2n:s1n;
+  if(miSalida<miEntrada)miSalida+=1440; // turno nocturno: salida al dia siguiente
+  function turnoDe(d){
+    var t=empDias[d];
+    if(!t||!t.e1)return null;
+    var e1=_toMin(t.e1), s1=_toMin(t.s1);
+    var e2=t.e2?_toMin(t.e2):null, s2=t.s2?_toMin(t.s2):null;
+    var sal=(e2!==null&&s2!==null)?s2:s1;
+    if(sal<e1)sal+=1440;
+    return {entrada:e1, salida:sal};
+  }
+  var ant=turnoDe(dia-1);
+  if(ant){
+    var descAntes=(1440-ant.salida)+miEntrada;
+    if(descAntes<DESC_MIN)errores.push((etiqueta||'')+'Menos de 10h con el dia anterior ('+(descAntes/60).toFixed(1)+'h)');
+  }
+  var sig=turnoDe(dia+1);
+  if(sig){
+    var descDespues=(1440-miSalida)+sig.entrada;
+    if(descDespues<DESC_MIN)errores.push((etiqueta||'')+'Menos de 10h con el dia siguiente ('+(descDespues/60).toFixed(1)+'h)');
+  }
+  return errores;
+}
+
+// Valida que empDias tenga al menos 1 dia libre en la semana del dia dado (con turno nuevo en ese dia)
+// Si hay dias sin publicar (sin datos) en la semana, se asume q podrian ser libres → no falla
+function _validarLibreSemana(empDias, monthKey, dia, e1n, etiqueta){
+  var idx=_GRUPO_MONTHS.indexOf(monthKey);
+  var fecha=new Date(_cambioYear,idx,dia);
+  var dow=(fecha.getDay()+6)%7;
+  var lunes=new Date(fecha.getTime()-dow*86400000);
+  var diasPublicados=0, libres=0;
+  for(var i=0;i<7;i++){
+    var f=new Date(lunes.getTime()+i*86400000);
+    var d=f.getDate();
+    var mk=_GRUPO_MONTHS[f.getMonth()];
+    if(mk!==monthKey)continue; // dia de otro mes = sin publicar
+    var trabaja;
+    if(d===dia){
+      trabaja=(e1n!==null);
+      diasPublicados++;
+    } else {
+      var t=empDias[d];
+      if(t===undefined||t===null){continue;} // sin publicar, podria ser libre
+      diasPublicados++;
+      trabaja=!!(t&&t.e1);
+    }
+    if(!trabaja)libres++;
+  }
+  // Solo falla si todos los dias publicados son trabajados (ninguno libre)
+  // Si hay dias sin publicar, podrian ser el dia libre
+  if(diasPublicados===7&&libres===0)return[(etiqueta||'')+'Sin dia libre esa semana'];
+  return[];
+}
+
+// Valida descanso semanal de 36h: entre fin del ultimo dia trabajado y inicio del siguiente bloque
+function _validarDescansoSemanal(empDias, monthKey, dia, e1n, s1n, e2n, s2n, etiqueta){
+  var errores=[];
+  var DESC_SEM=2160; // 36h en minutos
+  var idx=_GRUPO_MONTHS.indexOf(monthKey);
+  var maxDia=new Date(_cambioYear,idx+1,0).getDate();
+
+  function entradaDe(d){
+    var t=d===dia?{e1:e1n!==null?_fmtMin(e1n):null}:(empDias[d]||null);
+    return t&&t.e1?_toMin(t.e1):null;
+  }
+  function salidaDe(d){
+    if(d===dia){
+      if(e1n===null)return null;
+      return (e2n!==null&&s2n!==null)?s2n:s1n;
+    }
+    var t=empDias[d]||null;
+    if(!t||!t.e1)return null;
+    var s=t.e2&&t.s2?_toMin(t.s2):_toMin(t.s1);
+    return s;
+  }
+  function trabajaEn(d){return entradaDe(d)!==null;}
+
+  // Buscar bloques de trabajo separados por al menos 1 libre
+  // Para cada transicion: ultimo_trabajo → libres → primer_trabajo
+  for(var d=1;d<=maxDia;d++){
+    if(!trabajaEn(d))continue;
+    // Buscar el siguiente dia de trabajo tras un gap de libres
+    var salD=salidaDe(d);
+    // Avanzar hasta encontrar gap (libre) y luego siguiente trabajo
+    var d2=d+1;
+    var tieneLibre=false;
+    while(d2<=maxDia&&!trabajaEn(d2)){tieneLibre=true;d2++;}
+    if(d2>maxDia||!tieneLibre)continue;
+    var entD2=entradaDe(d2);
+    if(salD===null||entD2===null)continue;
+    // Calcular horas entre salida de d y entrada de d2
+    var difDias=d2-d;
+    var descTotal=difDias*1440-salD+entD2;
+    if(descTotal<DESC_SEM){
+      errores.push((etiqueta||'')+'Descanso semanal <36h entre dia '+d+' y dia '+d2+' ('+(descTotal/60).toFixed(1)+'h)');
+    }
+  }
+  return errores;
+}
+
+
+// Empleados sin ningún turno real de trabajo en el mes = baja larga/excedencia.
+// Pueden aparecer como libres en eventos, pero NO deben ofrecerse para cambios de turno.
+function _esTurnoTrabajoRealCambio(t){
+  if(!t)return false;
+  var tipo=String(t.tipo||'').toLowerCase();
+  if(tipo==='libre'||_tipoCambioEsLibre(tipo))return false;
+  return !!(t.e1&&t.s1);
+}
+function _empleadoTieneTurnosRealesMesCambio(emp, monthKey, year){
+  if(!emp||!emp.meses)return false;
+  var idx=_GRUPO_MONTHS.indexOf(monthKey);
+  if(idx<0)return false;
+  var dias=emp.meses[monthKey]||{};
+  var maxDia=new Date(year,idx+1,0).getDate();
+  for(var d=1;d<=maxDia;d++){
+    var t=dias[d]||null;
+    // Aplicar cambios compartidos antes de decidir. Si un cambio compartido lo deja como HL/DL,
+    // no cuenta como turno real; si lo convierte a trabajado, sí cuenta.
+    t=_turnoGrupoConCambioCompartido(emp,new Date(year,idx,d),t);
+    if(_esTurnoTrabajoRealCambio(t))return true;
+  }
+  return false;
+}
+
+function calcularCambios(){
+  var body=document.getElementById('cambio-body');
+  var subTxt=document.getElementById('cambio-sub-txt');
+  body.innerHTML='<div class="cambio-empty">⏳ Calculando...</div>';
+
+  var day=_cambioDay, monthKey=_MC_MONTHS[_cambioMonth], year=_cambioYear;
+  // Hoy para filtrar días pasados
+  var _hoy=new Date(); _hoy.setHours(0,0,0,0);
+  function _esPasado(d, mk, y){
+    var idx=_GRUPO_MONTHS.indexOf(mk);
+    if(idx<0)return false;
+    var f=new Date(y,idx,d); f.setHours(0,0,0,0);
+    return f<_hoy;
+  }
+
+  // Mi turno ese día
+  var myRaw;try{myRaw=JSON.parse(localStorage.getItem('cta_ed_'+year)||'{}')}catch(e){myRaw={};}
+  var myDayObj=(myRaw[monthKey]||{})[day]||null;
+  var myE1=myDayObj&&myDayObj.e1?_toMin(myDayObj.e1):null;
+  var myS1=myDayObj&&myDayObj.s1?_toMin(myDayObj.s1):null;
+  var myE2=myDayObj&&myDayObj.e2?_toMin(myDayObj.e2):null;
+  var myS2=myDayObj&&myDayObj.s2?_toMin(myDayObj.s2):null;
+  var esLibre=(myE1===null);
+
+  // Mi categoría
+  var nominaMap;try{nominaMap=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){nominaMap={};}
+
+  // Buscar mi propio empleado en el mapa (por nombre, comparando con sessión)
+  var myCat='FTP-Operarios'; // fallback
+  var myNombre='';
+  var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
+  // Intentar identificar al usuario por su turno del día (coincidencia exacta en el mapa del grupo)
+  // o por nombre de sesión parcial
+  for(var nk in nominaMap){
+    if(!nominaMap.hasOwnProperty(nk))continue;
+    var emp=nominaMap[nk];
+    var meses=emp.meses||{};
+    var empDias=meses[monthKey]||{};
+    var empT=empDias[day];
+    if(empT&&empT.e1===myDayObj.e1&&empT.s1===myDayObj.s1){
+      myCat=emp.categoria||myCat;
+      myNombre=emp.nombre||'';
+      break;
+    }
+  }
+
+  var dname=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][(new Date(year,_cambioMonth,day).getDay()+6)%7];
+  var titleDia=dname+' '+day+' '+_MC_NAMES[_cambioMonth];
+
+  // Obtener todos los empleados del grupo con sus meses
+  var empleados=[];
+  for(var nk2 in nominaMap){
+    if(!nominaMap.hasOwnProperty(nk2))continue;
+    var e2=nominaMap[nk2];
+    if(e2.meses)empleados.push(e2);
+  }
+
+  if(!empleados.length){
+    body.innerHTML='<div class="cambio-empty">📋 Importa el Excel del grupo primero</div>';
+    subTxt.textContent='Sin datos del grupo';
+    return;
+  }
+
+  // Para cada compañero, buscar en todo el mes pares de días válidos
+  var resultados=[];
+
+  empleados.forEach(function(comp){
+    if(comp.nombre===myNombre&&myNombre)return; // saltar si soy yo
+    var compDias=comp.meses&&comp.meses[monthKey]?comp.meses[monthKey]:{};
+    if(!_sonCompatibles(myCat,comp.categoria||''))return;
+    if(!_empleadoTieneTurnosRealesMesCambio(comp,monthKey,year))return; // baja/excedencia: no ofrecer para cambios
+
+    // El compañero ese día
+    var compTurnoMiDia=compDias[day]||null;
+    compTurnoMiDia=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compTurnoMiDia);
+    // Día libre: turno con tipo libre o e1 vacío
+    if(compTurnoMiDia&&(!compTurnoMiDia.e1||compTurnoMiDia.tipo==='libre'))compTurnoMiDia=null;
+    var compE1=compTurnoMiDia?_toMin(compTurnoMiDia.e1):null;
+    var compS1=compTurnoMiDia?_toMin(compTurnoMiDia.s1):null;
+    var compE2=compTurnoMiDia&&compTurnoMiDia.e2?_toMin(compTurnoMiDia.e2):null;
+    var compS2=compTurnoMiDia&&compTurnoMiDia.s2?_toMin(compTurnoMiDia.s2):null;
+    var compLibreMiDia=(compE1===null);
+
+    // CASO A: Ambos tienen turno ese día → intercambio directo
+    if(!esLibre&&!compLibreMiDia&&!_esPasado(day,monthKey,year)){
+      var errA=[];
+      errA=errA.concat(_validarTurno(compE1,compS1,compE2,compS2).errores);
+      errA=errA.concat(_validarTurno(myE1,myS1,myE2,myS2).errores);
+      var myCatA=_parseCategoria(myCat),ccA=_parseCategoria(comp.categoria||'');
+      var limA=myCatA.tipo==='FIJO'?3000:2160;var hA=_horasLVSemana(myRaw[monthKey]||{},monthKey,day,compE1,compS1,compE2,compS2);if(hA>limA)errA.push('Yo supero '+(myCatA.tipo==='FIJO'?'50':'36')+'h semana ('+(hA/60).toFixed(1)+'h)');
+      var limAc=ccA.tipo==='FIJO'?3000:2160;var hAc=_horasLVSemana(compDias,monthKey,day,myE1,myS1,myE2,myS2);if(hAc>limAc)errA.push(comp.nombre.split(' ')[0]+' supera '+(ccA.tipo==='FIJO'?'50':'36')+'h semana ('+(hAc/60).toFixed(1)+'h)');
+      // Descanso 10h: yo hago turno del comp ese dia; comp hace el mio
+      errA=errA.concat(_validarDescanso10h(myRaw[monthKey]||{},monthKey,day,compE1,compS1,compE2,compS2,''));
+      errA=errA.concat(_validarDescanso10h(compDias,monthKey,day,myE1,myS1,myE2,myS2,comp.nombre.split(' ')[0]+': '));
+      // Libre semana y descanso semanal
+      errA=errA.concat(_validarLibreSemana(myRaw[monthKey]||{},monthKey,day,compE1,''));
+      errA=errA.concat(_validarLibreSemana(compDias,monthKey,day,myE1,comp.nombre.split(' ')[0]+': '));
+      errA=errA.concat(_validarDescansoSemanal(myRaw[monthKey]||{},monthKey,day,compE1,compS1,compE2,compS2,''));
+      errA=errA.concat(_validarDescansoSemanal(compDias,monthKey,day,myE1,myS1,myE2,myS2,comp.nombre.split(' ')[0]+': '));
+      resultados.push({
+        nombre:comp.nombre,cat:comp.categoria||'',tipo:'mismo_dia',
+        labelDia:titleDia,
+        turnoYo:_fmtTurno(myE1,myS1,myE2,myS2),
+        turnoComp:_fmtTurno(compE1,compS1,compE2,compS2),
+        ok:errA.length===0,errores:errA
+      });
+    }
+
+    // CASO B: Yo tengo turno, comp libra ese día
+    // Comp trabaja MI turno. A cambio yo trabajo un día futuro del comp.
+    if(!esLibre&&compLibreMiDia&&!_esPasado(day,monthKey,year)){
+      var errBbase=_validarTurno(myE1,myS1,myE2,myS2).errores.slice();
+      var ccB=_parseCategoria(comp.categoria||'');
+      var limBc=ccB.tipo==='FIJO'?3000:2160;var hBc=_horasLVSemana(compDias,monthKey,day,myE1,myS1,myE2,myS2);if(hBc>limBc)errBbase.push(comp.nombre.split(' ')[0]+' supera '+(ccB.tipo==='FIJO'?'50':'36')+'h semana ('+(hBc/60).toFixed(1)+'h)');
+      // Descanso 10h del comp al hacer MI turno el dia senalado
+      errBbase=errBbase.concat(_validarDescanso10h(compDias,monthKey,day,myE1,myS1,myE2,myS2,comp.nombre.split(' ')[0]+': '));
+      errBbase=errBbase.concat(_validarLibreSemana(compDias,monthKey,day,myE1,comp.nombre.split(' ')[0]+': '));
+      errBbase=errBbase.concat(_validarDescansoSemanal(compDias,monthKey,day,myE1,myS1,myE2,myS2,comp.nombre.split(' ')[0]+': '));
+      for(var d2=1;d2<=31;d2++){
+        if(d2===day||_esPasado(d2,monthKey,year))continue;
+        var myT2=(myRaw[monthKey]||{})[d2];
+        // Yo debo librar ese día: sin turno, o turno tipo libre, o e1 vacío
+        var yoTrabajoD2=!!(myT2&&myT2.e1&&myT2.tipo!=='libre');
+        if(yoTrabajoD2)continue;
+        var cT2=compDias[d2];
+        cT2=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,d2),cT2);
+        // Comp debe trabajar ese día
+        if(!cT2||!cT2.e1||cT2.tipo==='libre')continue;
+        var cE1=_toMin(cT2.e1),cS1=_toMin(cT2.s1),cE2=cT2.e2?_toMin(cT2.e2):null,cS2=cT2.s2?_toMin(cT2.s2):null;
+        var errB=errBbase.concat(_validarTurno(cE1,cS1,cE2,cS2).errores);
+        var myCatB=_parseCategoria(myCat);
+        var limBy=myCatB.tipo==='FIJO'?3000:2160;var hBy=_horasLVSemana(myRaw[monthKey]||{},monthKey,d2,cE1,cS1,cE2,cS2);if(hBy>limBy)errB.push('Yo supero '+(myCatB.tipo==='FIJO'?'50':'36')+'h semana ('+(hBy/60).toFixed(1)+'h)');
+        // Descanso 10h: yo trabajo el turno del comp en d2
+        errB=errB.concat(_validarDescanso10h(myRaw[monthKey]||{},monthKey,d2,cE1,cS1,cE2,cS2,''));
+        errB=errB.concat(_validarLibreSemana(myRaw[monthKey]||{},monthKey,d2,cE1,''));
+        errB=errB.concat(_validarDescansoSemanal(myRaw[monthKey]||{},monthKey,d2,cE1,cS1,cE2,cS2,''));
+        var dn2=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][(new Date(year,_cambioMonth,d2).getDay()+6)%7];
+        resultados.push({
+          nombre:comp.nombre,cat:comp.categoria||'',tipo:'yo_libro',
+          labelDia:titleDia,labelComp:dn2+' '+d2+' '+_MC_NAMES[_cambioMonth],
+          turnoYo:_fmtTurno(myE1,myS1,myE2,myS2),   // comp hace esto el día señalado
+          turnoComp:_fmtTurno(cE1,cS1,cE2,cS2),      // yo hago esto en d2
+          ok:errB.length===0,errores:errB
+        });
+      }
+
+      // CESIÓN TOTAL sin contrapartida: comp libra ese día, coge mi turno entero, yo libro
+      var errCesion=_validarTurno(myE1,myS1,myE2,myS2).errores.slice();
+      var ccCes=_parseCategoria(comp.categoria||'');
+      var limCes=ccCes.tipo==='FIJO'?3000:2160;
+      var hCes=_horasLVSemana(compDias,monthKey,day,myE1,myS1,myE2,myS2);
+      if(hCes>limCes)errCesion.push(comp.nombre.split(' ')[0]+' supera '+(ccCes.tipo==='FIJO'?'50':'36')+'h semana ('+(hCes/60).toFixed(1)+'h)');
+      errCesion=errCesion.concat(_validarDescanso10h(compDias,monthKey,day,myE1,myS1,myE2,myS2,comp.nombre.split(' ')[0]+': '));
+      errCesion=errCesion.concat(_validarLibreSemana(compDias,monthKey,day,myE1,comp.nombre.split(' ')[0]+': '));
+      errCesion=errCesion.concat(_validarDescansoSemanal(compDias,monthKey,day,myE1,myS1,myE2,myS2,comp.nombre.split(' ')[0]+': '));
+      resultados.push({
+        nombre:comp.nombre,cat:comp.categoria||'',tipo:'cesion_total',
+        labelDia:titleDia,
+        turnoYo:_fmtTurno(myE1,myS1,myE2,myS2),  // lo que cede (mi turno entero)
+        ok:errCesion.length===0,errores:errCesion
+      });
+    }
+
+    // CASO C: Yo libro ese día, comp trabaja
+    // Yo trabajo turno del comp. A cambio comp trabaja mi turno un día futuro.
+    if(esLibre&&!compLibreMiDia&&!_esPasado(day,monthKey,year)){
+      var errCbase=_validarTurno(compE1,compS1,compE2,compS2).errores.slice();
+      var myCatC=_parseCategoria(myCat);
+      var limCy=myCatC.tipo==='FIJO'?3000:2160;var hCy=_horasLVSemana(myRaw[monthKey]||{},monthKey,day,compE1,compS1,compE2,compS2);if(hCy>limCy)errCbase.push('Yo supero '+(myCatC.tipo==='FIJO'?'50':'36')+'h semana ('+(hCy/60).toFixed(1)+'h)');
+      // Descanso 10h: yo trabajo el turno del comp el dia senalado
+      errCbase=errCbase.concat(_validarDescanso10h(myRaw[monthKey]||{},monthKey,day,compE1,compS1,compE2,compS2,''));
+      errCbase=errCbase.concat(_validarLibreSemana(myRaw[monthKey]||{},monthKey,day,compE1,''));
+      errCbase=errCbase.concat(_validarDescansoSemanal(myRaw[monthKey]||{},monthKey,day,compE1,compS1,compE2,compS2,''));
+      for(var d3=1;d3<=31;d3++){
+        if(d3===day||_esPasado(d3,monthKey,year))continue;
+        var myT3=(myRaw[monthKey]||{})[d3];
+        // Yo debo trabajar ese día
+        if(!myT3||!myT3.e1||myT3.tipo==='libre')continue;
+        var cT3=compDias[d3];
+        cT3=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,d3),cT3);
+        // Comp debe librar ese día: sin turno, tipo libre o e1 vacío
+        var compTrabajaD3=!!(cT3&&cT3.e1&&cT3.tipo!=='libre');
+        if(compTrabajaD3)continue;
+        var mE1=_toMin(myT3.e1),mS1=_toMin(myT3.s1),mE2=myT3.e2?_toMin(myT3.e2):null,mS2=myT3.s2?_toMin(myT3.s2):null;
+        var errC=errCbase.concat(_validarTurno(mE1,mS1,mE2,mS2).errores);
+        var ccC=_parseCategoria(comp.categoria||'');
+        var limCc=ccC.tipo==='FIJO'?3000:2160;var hCc=_horasLVSemana(compDias,monthKey,d3,mE1,mS1,mE2,mS2);if(hCc>limCc)errC.push(comp.nombre.split(' ')[0]+' supera '+(ccC.tipo==='FIJO'?'50':'36')+'h semana ('+(hCc/60).toFixed(1)+'h)');
+        // Descanso 10h: el comp trabaja mi turno en d3
+        errC=errC.concat(_validarDescanso10h(compDias,monthKey,d3,mE1,mS1,mE2,mS2,comp.nombre.split(' ')[0]+': '));
+        errC=errC.concat(_validarLibreSemana(compDias,monthKey,d3,mE1,comp.nombre.split(' ')[0]+': '));
+        errC=errC.concat(_validarDescansoSemanal(compDias,monthKey,d3,mE1,mS1,mE2,mS2,comp.nombre.split(' ')[0]+': '));
+        var dn3=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][(new Date(year,_cambioMonth,d3).getDay()+6)%7];
+        resultados.push({
+          nombre:comp.nombre,cat:comp.categoria||'',tipo:'comp_libro',
+          labelDia:titleDia,labelComp:dn3+' '+d3+' '+_MC_NAMES[_cambioMonth],
+          turnoYo:_fmtTurno(compE1,compS1,compE2,compS2),   // yo trabajo el día señalado
+          turnoComp:_fmtTurno(mE1,mS1,mE2,mS2),             // comp trabaja en d3
+          ok:errC.length===0,errores:errC
+        });
+      }
+    }
+  });
+
+  // CAMBIOS PARCIALES: solo cuando hay turnos partidos implicados
+  var parciales=[];
+  empleados.forEach(function(comp){
+    if(myNombre&&comp.nombre===myNombre)return;
+    if(!_sonCompatibles(myCat,comp.categoria||''))return;
+    if(!_empleadoTieneTurnosRealesMesCambio(comp,monthKey,year))return; // baja/excedencia: no ofrecer para cambios
+    var compDias=(comp.meses&&comp.meses[monthKey])||{};
+    var compT=compDias[day]||null;
+    compT=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compT);
+    if(compT&&(!compT.e1||compT.tipo==='libre'))compT=null;
+    var compE1=compT?_toMin(compT.e1):null;
+    var compS1=compT?_toMin(compT.s1):null;
+    var compE2=compT&&compT.e2?_toMin(compT.e2):null;
+    var compS2=compT&&compT.s2?_toMin(compT.s2):null;
+    if(_esPasado(day,monthKey,year))return;
+
+    // Helper: validar turno resultante completo y devolver errores
+    function validarResultante(e1r,s1r,e2r,s2r,empDiasR,etiq){
+      var errs=_validarTurno(e1r,s1r,e2r,s2r).errores.slice();
+      errs=errs.concat(_validarDescanso10h(empDiasR,monthKey,day,e1r,s1r,e2r,s2r,etiq));
+      return errs;
+    }
+
+    // Ordenar dos partes para que e1<e2 (no solapadas)
+    function ordenarPartes(a1,b1,a2,b2){
+      if(a1===null||a2===null)return{e1:a1,s1:b1,e2:a2,s2:b2};
+      if(a1<=a2)return{e1:a1,s1:b1,e2:a2,s2:b2};
+      return{e1:a2,s1:b2,e2:a1,s2:b1};
+    }
+
+    // Solo cuando MI turno es partido o el del comp es partido
+    var yoPartido=(myE2!==null&&myS2!==null);
+    var compPartido=(compE2!==null&&compS2!==null);
+    if(!yoPartido&&!compPartido)return; // ninguno es partido, no hay cambio parcial
+
+    var partesMias=[];
+    if(yoPartido){
+      partesMias.push({e1:myE1,s1:myS1,label:'parte 1 ('+_fmtMin(myE1)+'→'+_fmtMin(myS1)+')'});
+      partesMias.push({e1:myE2,s1:myS2,label:'parte 2 ('+_fmtMin(myE2)+'→'+_fmtMin(myS2)+')'});
+    } else if(myE1!==null){
+      partesMias.push({e1:myE1,s1:myS1,label:'turno ('+_fmtMin(myE1)+'→'+_fmtMin(myS1)+')'});
+    }
+
+    var partesComp=[];
+    if(compPartido){
+      partesComp.push({e1:compE1,s1:compS1,label:'parte 1 ('+_fmtMin(compE1)+'→'+_fmtMin(compS1)+')'});
+      partesComp.push({e1:compE2,s1:compS2,label:'parte 2 ('+_fmtMin(compE2)+'→'+_fmtMin(compS2)+')'});
+    } else if(compE1!==null){
+      partesComp.push({e1:compE1,s1:compS1,label:'turno ('+_fmtMin(compE1)+'→'+_fmtMin(compS1)+')'});
+    }
+
+    // Generar todas las combinaciones de intercambio parcial
+    partesMias.forEach(function(pMia){
+      partesComp.forEach(function(pComp){
+        // Yo cedo pMia al comp, yo me quedo con el resto de mi turno + pComp
+        // Comp cede pComp a mi, comp se queda con el resto de su turno + pMia
+
+        // Mi turno resultante: mis partes que NO cedo + pComp
+        var misPartes=partesMias.filter(function(p){return p!==pMia;});
+        var miRestoE1=misPartes.length>0?misPartes[0].e1:null;
+        var miRestoS1=misPartes.length>0?misPartes[0].s1:null;
+        // Combinar miResto con pComp
+        var miRes;
+        if(miRestoE1===null){
+          // Solo tengo pComp
+          miRes={e1:pComp.e1,s1:pComp.s1,e2:null,s2:null};
+        } else {
+          // Tengo miResto + pComp → ordenar como partido
+          var ord=ordenarPartes(miRestoE1,miRestoS1,pComp.e1,pComp.s1);
+          miRes={e1:ord.e1,s1:ord.s1,e2:ord.e2,s2:ord.s2};
+        }
+
+        // Turno resultante del comp: partes del comp que NO cede + pMia
+        var compPartes=partesComp.filter(function(p){return p!==pComp;});
+        var compRestoE1=compPartes.length>0?compPartes[0].e1:null;
+        var compRestoS1=compPartes.length>0?compPartes[0].s1:null;
+        var compRes;
+        if(compRestoE1===null){
+          compRes={e1:pMia.e1,s1:pMia.s1,e2:null,s2:null};
+        } else {
+          var ord2=ordenarPartes(compRestoE1,compRestoS1,pMia.e1,pMia.s1);
+          compRes={e1:ord2.e1,s1:ord2.s1,e2:ord2.e2,s2:ord2.s2};
+        }
+
+        // Saltar si las partes cedidas son idénticas (intercambio sin sentido)
+        if(pMia.e1===pComp.e1&&pMia.s1===pComp.s1)return;
+        // Validar ambos turnos resultantes
+        var errP=[];
+        errP=errP.concat(validarResultante(miRes.e1,miRes.s1,miRes.e2,miRes.s2,myRaw[monthKey]||{},''));
+        errP=errP.concat(validarResultante(compRes.e1,compRes.s1,compRes.e2,compRes.s2,compDias,comp.nombre.split(' ')[0]+': '));
+        // 36h semanales
+        var myCatP2=_parseCategoria(myCat),ccP=_parseCategoria(comp.categoria||'');
+        var limP=myCatP2.tipo==='FIJO'?3000:2160;var hP=_horasLVSemana(myRaw[monthKey]||{},monthKey,day,miRes.e1,miRes.s1,miRes.e2,miRes.s2);if(hP>limP)errP.push('Yo supero '+(myCatP2.tipo==='FIJO'?'50':'36')+'h semana ('+(hP/60).toFixed(1)+'h)');
+        var limPc=ccP.tipo==='FIJO'?3000:2160;var hPc=_horasLVSemana(compDias,monthKey,day,compRes.e1,compRes.s1,compRes.e2,compRes.s2);if(hPc>limPc)errP.push(comp.nombre.split(' ')[0]+' supera '+(ccP.tipo==='FIJO'?'50':'36')+'h semana ('+(hPc/60).toFixed(1)+'h)');
+
+        errP=errP.concat(_validarLibreSemana(myRaw[monthKey]||{},monthKey,day,miRes.e1,''));
+        errP=errP.concat(_validarLibreSemana(compDias,monthKey,day,compRes.e1,comp.nombre.split(' ')[0]+': '));
+        errP=errP.concat(_validarDescansoSemanal(myRaw[monthKey]||{},monthKey,day,miRes.e1,miRes.s1,miRes.e2,miRes.s2,''));
+        errP=errP.concat(_validarDescansoSemanal(compDias,monthKey,day,compRes.e1,compRes.s1,compRes.e2,compRes.s2,comp.nombre.split(' ')[0]+': '));
+        parciales.push({
+          nombre:comp.nombre,cat:comp.categoria||'',tipo:'parcial',
+          labelDia:titleDia,
+          pMiaLabel:pMia.label,       // la parte que yo cedo
+          pCompLabel:pComp.label,     // la parte que el comp cede
+          turnoYoRes:_fmtTurno(miRes.e1,miRes.s1,miRes.e2,miRes.s2),   // mi turno resultante
+          turnoCompRes:_fmtTurno(compRes.e1,compRes.s1,compRes.e2,compRes.s2), // turno comp resultante
+          ok:errP.length===0,errores:errP
+        });
+      });
+    });
+  });
+
+  // CESIÓN PARCIAL sin contrapartida: yo turno partido, comp libra ese día
+  // Le cedo UNA parte de mi turno, él la trabaja, yo me quedo con el resto
+  empleados.forEach(function(comp){
+    if(myNombre&&comp.nombre===myNombre)return;
+    if(!_sonCompatibles(myCat,comp.categoria||''))return;
+    if(!_empleadoTieneTurnosRealesMesCambio(comp,monthKey,year))return; // baja/excedencia: no ofrecer para cambios
+    if(esLibre||_esPasado(day,monthKey,year))return;
+    var compDias2=(comp.meses&&comp.meses[monthKey])||{};
+    var compT2c=compDias2[day]||null;
+    compT2c=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compT2c);
+    var compLibre2=!compT2c||!compT2c.e1||compT2c.tipo==='libre';
+    if(!compLibre2)return; // solo si el comp libra ese día
+    if(myE2===null||myS2===null)return; // solo si mi turno es partido
+
+    var ccCP=_parseCategoria(comp.categoria||'');
+    var partesCesibles=[
+      {e1:myE1,s1:myS1,resto:{e1:myE2,s1:myS2},label:'parte 1 ('+_fmtMin(myE1)+'→'+_fmtMin(myS1)+')'},
+      {e1:myE2,s1:myS2,resto:{e1:myE1,s1:myS1},label:'parte 2 ('+_fmtMin(myE2)+'→'+_fmtMin(myS2)+')'}
+    ];
+    partesCesibles.forEach(function(pc){
+      // Comp trabaja la parte cedida (turno simple)
+      var errCP=_validarTurno(pc.e1,pc.s1,null,null).errores.slice();
+      var limCP=ccCP.tipo==='FIJO'?3000:2160;
+      var hCP=_horasLVSemana(compDias2,monthKey,day,pc.e1,pc.s1,null,null);
+      if(hCP>limCP)errCP.push(comp.nombre.split(' ')[0]+' supera '+(ccCP.tipo==='FIJO'?'50':'36')+'h semana ('+(hCP/60).toFixed(1)+'h)');
+      errCP=errCP.concat(_validarDescanso10h(compDias2,monthKey,day,pc.e1,pc.s1,null,null,comp.nombre.split(' ')[0]+': '));
+      errCP=errCP.concat(_validarLibreSemana(compDias2,monthKey,day,pc.e1,comp.nombre.split(' ')[0]+': '));
+      errCP=errCP.concat(_validarDescansoSemanal(compDias2,monthKey,day,pc.e1,pc.s1,null,null,comp.nombre.split(' ')[0]+': '));
+      // Yo me quedo con el resto (turno simple)
+      errCP=errCP.concat(_validarTurno(pc.resto.e1,pc.resto.s1,null,null).errores);
+      parciales.push({
+        nombre:comp.nombre,cat:comp.categoria||'',tipo:'cesion_parcial',
+        labelDia:titleDia,
+        pMiaLabel:pc.label,
+        turnoYoRes:_fmtTurno(pc.resto.e1,pc.resto.s1,null,null), // lo que me quedo
+        turnoCompRes:_fmtTurno(pc.e1,pc.s1,null,null),           // lo que trabaja el comp
+        ok:errCP.length===0,errores:errCP
+      });
+    });
+  });
+
+  parciales.sort(function(a,b){if(a.ok&&!b.ok)return -1;if(!a.ok&&b.ok)return 1;return a.nombre.localeCompare(b.nombre);});
+
+  // Ordenar: válidos primero, luego por nombre
+  resultados.sort(function(a,b){
+    if(a.ok&&!b.ok)return -1;
+    if(!a.ok&&b.ok)return 1;
+    return a.nombre.localeCompare(b.nombre);
+  });
+
+  _todosResultados=resultados;
+  _todosParciales=parciales;
+  _filtroIA=null;
+  document.getElementById('cambio-ia-input').value='';
+  document.getElementById('cambio-ia-estado').textContent='';
+  renderResultadosCambio(resultados, titleDia);
+}
+
+function renderResultadosCambio(resultados, titleDia){
+  var body=document.getElementById('cambio-body');
+  var subTxt=document.getElementById('cambio-sub-txt');
+  if(!titleDia){
+    var day=_cambioDay,monthKey=_MC_MONTHS[_cambioMonth];
+    var dname=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][(new Date(_cambioYear,_cambioMonth,day).getDay()+6)%7];
+    titleDia=dname+' '+day+' '+_MC_NAMES[_cambioMonth];
+  }
+  var validos=resultados.filter(function(r){return r.ok;});
+  var invalidos=resultados.filter(function(r){return!r.ok;});
+
+  subTxt.textContent=validos.length+' opciones válidas · '+titleDia+(_filtroIA?' · Filtro activo':'');
+
+  if(!resultados.length){
+    body.innerHTML='<div class="cambio-empty">😕 No hay opciones'+((_filtroIA)?' con ese criterio':' en este mes')+'<br><small style="font-size:10px">'+(_filtroIA?'Prueba con otra búsqueda':'Comprueba que tienes el Excel del grupo importado')+'</small></div><button onclick="cerrarBuscadorCambio()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;font-family:Outfit,sans-serif;font-size:13px;color:var(--gray);cursor:pointer;margin-top:8px">Cerrar</button>';
+    return;
+  }
+
+  // Juntar viables (completos + parciales) y no viables por separado
+  var parcialesV=(!_filtroIA&&_todosParciales)?_todosParciales.filter(function(r){return r.ok;}):[];
+  var parcialesI=(!_filtroIA&&_todosParciales)?_todosParciales.filter(function(r){return!r.ok;}):[];
+  var totalViables=validos.length+parcialesV.length;
+  var totalInvalidos=invalidos.length+parcialesI.length;
+
+  var html='';
+  if(totalViables){
+    html+='<div class="cambio-seccion">✅ Opciones viables ('+totalViables+')</div>';
+    if(validos.length){
+      html+='<div style="font-size:10px;color:var(--gray);margin:6px 0 4px;text-transform:uppercase;letter-spacing:.5px">Cambio completo</div>';
+      validos.forEach(function(r){html+=_renderCambioCard(r,true);});
+    }
+    if(parcialesV.length){
+      html+='<div style="font-size:10px;color:#a78bfa;margin:10px 0 4px;text-transform:uppercase;letter-spacing:.5px">🔀 Cambio parcial</div>';
+      parcialesV.forEach(function(r){html+=_renderCambioCard(r,true);});
+    }
+  }
+  if(totalInvalidos){
+    html+='<div class="cambio-seccion" style="margin-top:18px;color:var(--gray)">⚠️ No viables ('+totalInvalidos+')</div>';
+    invalidos.forEach(function(r){html+=_renderCambioCard(r,false);});
+    parcialesI.forEach(function(r){html+=_renderCambioCard(r,false);});
+  }
+  html+='<button onclick="cerrarBuscadorCambio()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;font-family:Outfit,sans-serif;font-size:13px;color:var(--gray);cursor:pointer;margin-top:8px">Cerrar</button>';
+  body.innerHTML=html;
+}
+
+
+// Interpreta la consulta localmente sin IA
+// myS1ref: hora de salida actual del usuario (en minutos) para contextualizar "antes/despues"
+function _interpretarLocal(texto, myS1ref, myE1ref){
+  var t=String(texto||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  var f={turnoTipo:null,diaSemana:null,diaNumero:null,entradaDespuesDe:null,entradaAntesDe:null,salidaDespuesDe:null,salidaAntesDe:null,nombre:null,soloLibrar:false};
+  if(/\bmanana\b|\bmananas\b/.test(t))f.turnoTipo='manana';
+  else if(/\btarde\b|\btardes\b/.test(t))f.turnoTipo='tarde';
+  else if(/\bnoche\b|\bnoches\b|\bnocturno\b/.test(t))f.turnoTipo='noche';
+  // Librar: filtrar solo opciones donde yo libra el dia senalado
+  if(/\blibrar\b|\blibre\b|\bno\s+trabajar\b/.test(t))f.soloLibrar=true;
+  var dias={lunes:'lunes',martes:'martes',miercoles:'miercoles',jueves:'jueves',viernes:'viernes',sabado:'sabado',domingo:'domingo'};
+  for(var k in dias){if(t.indexOf(k)>=0){f.diaSemana=dias[k];break;}}
+  var mDia=t.match(/\bdia\s+(\d{1,2})\b|\bel\s+(\d{1,2})\b/);
+  if(mDia)f.diaNumero=parseInt(mDia[1]||mDia[2]);
+  // "salir antes" sin hora = antes de mi salida actual
+  var mSalAntes=t.match(/salir?\s+antes\s+(?:de\s+las?\s+)?(\d{1,2})(?::(\d{2}))?/);
+  if(mSalAntes){
+    f.salidaAntesDe=(mSalAntes[1].length<2?'0':'')+mSalAntes[1]+':'+(mSalAntes[2]||'00');
+  } else if(/salir?\s+antes/.test(t)&&myS1ref!==null){
+    f.salidaAntesDe=_fmtMin(myS1ref); // antes de mi salida actual
+  }
+  // "salir despues" sin hora = despues de mi salida actual
+  var mSalDespues=t.match(/salir?\s+despues\s+(?:de\s+las?\s+)?(\d{1,2})(?::(\d{2}))?/);
+  if(mSalDespues){
+    f.salidaDespuesDe=(mSalDespues[1].length<2?'0':'')+mSalDespues[1]+':'+(mSalDespues[2]||'00');
+  } else if(/salir?\s+despues/.test(t)&&myS1ref!==null){
+    f.salidaDespuesDe=_fmtMin(myS1ref);
+  }
+  var mEntDespues=t.match(/entrar?\s+(?:mas\s+tarde|despues)\s+(?:de\s+las?\s+)?(\d{1,2})(?::(\d{2}))?/);
+  if(mEntDespues){
+    f.entradaDespuesDe=(mEntDespues[1].length<2?'0':'')+mEntDespues[1]+':'+(mEntDespues[2]||'00');
+  } else if(/entrar?\s+(?:mas\s+tarde|despues)/.test(t)&&myE1ref!==null){
+    f.entradaDespuesDe=_fmtMin(myE1ref);
+  }
+  var mEntAntes=t.match(/entrar?\s+(?:mas\s+temprano|antes)\s+(?:de\s+las?\s+)?(\d{1,2})(?::(\d{2}))?/);
+  if(mEntAntes){
+    f.entradaAntesDe=(mEntAntes[1].length<2?'0':'')+mEntAntes[1]+':'+(mEntAntes[2]||'00');
+  } else if(/entrar?\s+(?:mas\s+temprano|antes)/.test(t)&&myE1ref!==null){
+    f.entradaAntesDe=_fmtMin(myE1ref);
+  }
+  return f;
+}
+
+// Aplica un objeto filtro a _todosResultados y renderiza
+function _aplicarFiltro(filtro,texto,estado){
+  _filtroIA=filtro;
+  function turnoMioDe(r){
+    // El turno que YO hare en el intercambio
+    if(r.tipo==='mismo_dia')return r.turnoComp;    // intercambio mismo dia: yo hago el turno del comp
+    if(r.tipo==='comp_libro')return r.turnoYo;      // yo trabajo el turno del comp el dia senalado
+    if(r.tipo==='yo_libro')return r.turnoComp;      // yo trabajo el turno del comp en el dia futuro
+    if(r.tipo==='cesion_total')return 'Libre';      // yo libro, no trabajo
+    if(r.tipo==='cesion_parcial')return r.turnoYoRes; // me quedo con parte
+    if(r.tipo==='parcial')return r.turnoYoRes;
+    return r.turnoYo;
+  }
+  function yoLibraElDia(r){return r.tipo==='yo_libro'||r.tipo==='cesion_total';} // tipos donde yo libra el dia señalado completo
+  function diaRelevante(r){return r.tipo==='yo_libro'?r.labelComp:r.labelDia;}
+  function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+  var filtrados=_todosResultados.filter(function(r){
+    if(!r.ok)return false;
+    // Filtro soloLibrar: solo opciones donde yo libra el dia senalado
+    if(filtro.soloLibrar){
+      if(!yoLibraElDia(r))return false;
+      // Si libro, solo aplico filtros de nombre/dia (no de horario, porque no trabajo)
+      if(filtro.nombre&&norm(r.nombre).indexOf(norm(filtro.nombre))<0)return false;
+      return true;
+    }
+    if(filtro.nombre&&norm(r.nombre).indexOf(norm(filtro.nombre))<0)return false;
+    var lbl=diaRelevante(r);
+    var numMatch=lbl.match(/\b(\d{1,2})\b/);
+    var diaNum=numMatch?parseInt(numMatch[1]):null;
+    if(filtro.diaNumero&&diaNum!==filtro.diaNumero)return false;
+    if(filtro.diaSemana){
+      var nd=norm(lbl).slice(0,3);
+      var mapa={lun:'lunes',mar:'martes',mie:'miercoles',jue:'jueves',vie:'viernes',sab:'sabado',dom:'domingo'};
+      if(mapa[nd]!==norm(filtro.diaSemana))return false;
+    }
+    var tt2=turnoMioDe(r);
+    if(!tt2||tt2==='Libre')return false;
+    // Parsear turno completo: primera entrada y ÚLTIMA salida (no solo la primera parte)
+    var tramos=tt2.split(' / ');
+    var primerTramo=tramos[0].split('\u2192');
+    var ultimoTramo=tramos[tramos.length-1].split('\u2192');
+    var tE1=_toMin(primerTramo[0]);          // primera entrada
+    var tS1=_toMin(ultimoTramo[1]);          // última salida (fin del turno completo)
+    var tSprimera=_toMin(primerTramo[1]);    // salida de la primera parte (para tipo mañana)
+    if(filtro.turnoTipo){
+      var tt=norm(filtro.turnoTipo);
+      if(tE1===null)return false;
+      // Mañana: entra antes de 12:00 y termina (salida final) antes/igual 15:00
+      if(tt==='manana'&&(tE1>=720||tS1>900))return false;
+      // Tarde: el turno termina por la tarde (salida final entre 15:00 y 22:00) o entra después de mediodía
+      if(tt==='tarde'&&!((tS1>=900&&tS1<=1320)||(tE1>=720&&tE1<1320)))return false;
+      // Noche: entra muy temprano (madrugada) o el turno cruza/termina de noche
+      if(tt==='noche'&&!(tE1<300||tS1>1320||tS1<tE1))return false;
+    }
+    if(filtro.entradaDespuesDe&&tE1!==null&&tE1<_toMin(filtro.entradaDespuesDe))return false;
+    if(filtro.entradaAntesDe&&tE1!==null&&tE1>=_toMin(filtro.entradaAntesDe))return false;
+    if(filtro.salidaDespuesDe&&tS1!==null&&tS1<_toMin(filtro.salidaDespuesDe))return false;
+    if(filtro.salidaAntesDe&&tS1!==null&&tS1>=_toMin(filtro.salidaAntesDe))return false;
+    return true;
+  });
+  // Si filtro librar, añadir también las cesiones parciales donde acabo con menos turno? No: librar = libro entero.
+  if(estado)estado.textContent='\u2705 '+filtrados.length+' resultados para "'+texto+'"';
+  renderResultadosCambio(filtrados);
+}
+
+async function filtrarConIA(){
+  var input=document.getElementById('cambio-ia-input');
+  var estado=document.getElementById('cambio-ia-estado');
+  var texto=input?input.value.trim():'';
+  if(!texto){limpiarFiltroIA();return;}
+  if(!_todosResultados.length){if(estado)estado.textContent='Primero hay que calcular las opciones';return;}
+
+  if(estado)estado.textContent='\u2728 Interpretando...';
+
+  var prompt=[
+    'Eres un filtro de turnos de trabajo. El usuario quiere encontrar un cambio de turno.',
+    'Definiciones: MANANA=entrada antes de 12:00 y salida antes de 15:00. TARDE=salida hasta las 20:00. NOCHE=resto hasta las 03:00.',
+    'Devuelve SOLO un objeto JSON, sin texto adicional ni markdown, con estas propiedades:',
+    'turnoTipo (manana|tarde|noche|null), diaSemana (lunes|martes|miercoles|jueves|viernes|sabado|domingo|null), diaNumero (numero o null), entradaDespuesDe (HH:MM o null), entradaAntesDe (HH:MM o null), salidaDespuesDe (HH:MM o null), salidaAntesDe (HH:MM o null), nombre (texto parcial o null).',
+    'Consulta del usuario: "'+texto+'"'
+  ].join(' ');
+
+  try{
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:prompt}]})
+    });
+    if(!resp.ok)throw new Error('API '+resp.status);
+    var data=await resp.json();
+    var raw=(data.content&&data.content[0]&&data.content[0].text)||'{}';
+    raw=raw.replace(/```json|```/g,'').trim();
+    var filtro=JSON.parse(raw);
+    // Añadir soloLibrar si la IA no lo devuelve pero el texto lo implica
+    if(!filtro.soloLibrar){var tl=texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');filtro.soloLibrar=/\blibrar\b|\blibre\b|\bno\s+trabajar\b/.test(tl);}
+    _aplicarFiltro(filtro,texto,estado);
+  }catch(err){
+    // Si la API falla, usar interprete local con contexto de mi turno actual
+    console.warn('IA no disponible, usando interprete local:',err);
+    var myDayObj2=(function(){try{var r=JSON.parse(localStorage.getItem('cta_ed_'+_cambioYear)||'{}');return(r[_MC_MONTHS[_cambioMonth]]||{})[_cambioDay]||null;}catch(e){return null;}})();
+    var myS1ref2=myDayObj2&&myDayObj2.s1?_toMin(myDayObj2.s1):null;
+    var myE1ref2=myDayObj2&&myDayObj2.e1?_toMin(myDayObj2.e1):null;
+    var filtroLocal=_interpretarLocal(texto,myS1ref2,myE1ref2);
+    _aplicarFiltro(filtroLocal,texto,estado);
+  }
+}
+function limpiarFiltroIA(){
+  _filtroIA=null;
+  document.getElementById('cambio-ia-input').value='';
+  document.getElementById('cambio-ia-estado').textContent='';
+  renderResultadosCambio(_todosResultados);
+}
+
+function _fmtTurno(e1,s1,e2,s2){
+  if(e1===null)return'Libre';
+  var s=_fmtMin(e1)+'→'+_fmtMin(s1);
+  if(e2!==null&&s2!==null)s+=' / '+_fmtMin(e2)+'→'+_fmtMin(s2);
+  return s;
+}
+
+function _renderCambioCard(r,ok){
+  var nom=r.nombre.split(' ')[0];
+  var html='<div class="cambio-card '+(ok?'valido':'invalido')+'">';
+  html+='<div class="cambio-card-nombre">'+r.nombre+'<span style="font-size:9px;color:var(--gray);font-weight:400;margin-left:6px">'+r.cat+'</span></div>';
+  if(r.tipo==='mismo_dia'){
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+r.labelDia+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú harías:</span><span class="cambio-card-val el">'+r.turnoComp+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' haría:</span><span class="cambio-card-val yo">'+r.turnoYo+'</span></div>';
+  } else if(r.tipo==='yo_libro'){
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú libras:</span><span class="cambio-card-val el">'+r.labelDia+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' trabaja:</span><span class="cambio-card-val yo">'+r.labelDia+' · '+r.turnoYo+'</span></div>';
+    html+='<div style="border-top:1px solid rgba(255,255,255,.06);margin:6px 0"></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">A cambio:</span><span class="cambio-card-val el">Tú trabajas '+r.labelComp+' · '+r.turnoComp+'</span></div>';
+  } else if(r.tipo==='comp_libro'){
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú trabajas:</span><span class="cambio-card-val el">'+r.labelDia+' · '+r.turnoYo+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' libra:</span><span class="cambio-card-val yo">'+r.labelDia+'</span></div>';
+    html+='<div style="border-top:1px solid rgba(255,255,255,.06);margin:6px 0"></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">A cambio:</span><span class="cambio-card-val el">'+nom+' trabaja '+r.labelComp+' · '+r.turnoComp+'</span></div>';
+  } else if(r.tipo==='parcial'){
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+r.labelDia+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú cedes:</span><span class="cambio-card-val yo">'+r.pMiaLabel+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' cede:</span><span class="cambio-card-val yo">'+r.pCompLabel+'</span></div>';
+    html+='<div style="border-top:1px solid rgba(255,255,255,.06);margin:6px 0"></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú quedas:</span><span class="cambio-card-val el">'+r.turnoYoRes+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' queda:</span><span class="cambio-card-val el">'+r.turnoCompRes+'</span></div>';
+  } else if(r.tipo==='cesion_total'){
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+r.labelDia+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú libras:</span><span class="cambio-card-val el">'+r.labelDia+' (cedes el turno)</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' trabaja:</span><span class="cambio-card-val yo">'+r.turnoYo+'</span></div>';
+    html+='<div style="font-size:9px;color:var(--gray);margin-top:4px">Cesión sin contrapartida</div>';
+  } else if(r.tipo==='cesion_parcial'){
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+r.labelDia+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú cedes:</span><span class="cambio-card-val el">'+r.pMiaLabel+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' trabaja:</span><span class="cambio-card-val yo">'+r.turnoCompRes+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú quedas:</span><span class="cambio-card-val el">'+r.turnoYoRes+'</span></div>';
+    html+='<div style="font-size:9px;color:var(--gray);margin-top:4px">Cesión sin contrapartida</div>';
+  }
+  if(!ok&&r.errores&&r.errores.length)html+='<div class="cambio-error">'+r.errores.join('<br>')+'</div>';
+  html+='</div>';
+  return html;
+}
+
+
+// ============================================================
+// BUSCADOR DE EVENTO
+// ============================================================
+var _evMesSel=new Date().getMonth();
+var _evImprescindibles=[];
+var _evAño=new Date().getFullYear();
+
+function abrirBuscadorEvento(){
+  _evMesSel=new Date().getMonth();
+  _evAño=new Date().getFullYear();
+  evRenderMesTabs();
+  document.getElementById('ev-bg').style.display='block';
+  setTimeout(function(){document.getElementById('ev-panel').classList.add('open');},10);
+}
+function cerrarEvento(){
+  document.getElementById('ev-panel').classList.remove('open');
+  setTimeout(function(){document.getElementById('ev-bg').style.display='none';},280);
+}
+
+function evRenderMesTabs(){
+  var tabs=document.getElementById('ev-mes-tabs');
+  if(!tabs)return;
+  var meses=_MC_NAMES;
+  var html='';
+  for(var i=0;i<12;i++){
+    html+='<button class="ev-mes-tab'+(i===_evMesSel?' active':'')+'" onclick="evSelMes('+i+')">'+meses[i]+'</button>';
+  }
+  tabs.innerHTML=html;
+}
+function evSelMes(m){_evMesSel=m;evRenderMesTabs();}
+
+function evAddNombre(){
+  var inp=document.getElementById('ev-nombre-input');
+  var n=(inp?inp.value.trim():'');
+  if(!n)return;
+  if(_evImprescindibles.indexOf(n)<0)_evImprescindibles.push(n);
+  if(inp)inp.value='';
+  evRenderChips();
+}
+function evRemoveNombre(n){
+  _evImprescindibles=_evImprescindibles.filter(function(x){return x!==n;});
+  evRenderChips();
+}
+function evRenderChips(){
+  var wrap=document.getElementById('ev-chips');
+  if(!wrap)return;
+  wrap.innerHTML=_evImprescindibles.map(function(n){
+    return '<div class="ev-chip">'+n+'<button onclick="evRemoveNombre(\''+n.replace(/'/g,"\\'")+'\')">\u00d7</button></div>';
+  }).join('');
+}
+
+function _evToMin(t){if(!t)return null;var p=String(t).split(':');return +p[0]*60+ +p[1];}
+function _evFmtMin(m){if(m===null||m===undefined)return'--';m=((m%1440)+1440)%1440;return(Math.floor(m/60)<10?'0':'')+Math.floor(m/60)+':'+(m%60<10?'0':'')+m%60;}
+
+var _EV_TIPOS_NO_OPERATIVA=['libre','vacaciones','festivo','hl','hlp','baja','rm','curso','perentorias','hfun','nh','bp','h6'];
+function _evNormTxt(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+function _evHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function _evEsImprescindible(nombre, imp){
+  var n=_evNormTxt(nombre),i=_evNormTxt(imp);
+  return !!i&&n.indexOf(i)>=0;
+}
+function _evTurnoLabel(turno){
+  if(!turno)return'';
+  if(turno.ausencia||turno.disponibilidadNoConfirmada)return'!';
+  if(turno.tipo&&String(turno.tipo).toLowerCase()!=='trabajado'&&String(turno.tipo).toLowerCase()!=='libre')return String(turno.tipo).toUpperCase();
+  if(!turno.e1)return'Libre';
+  return turno.e1+'–'+turno.s1+(turno.e2&&turno.s2?' / '+turno.e2+'–'+turno.s2:'');
+}
+function _evTurnoDisponibleCompleto(turno){
+  if(!turno)return false;
+  var tipo=String(turno.tipo||'').toLowerCase();
+  // Ausencia o !: no cuenta como trabajo operativo para este buscador de eventos.
+  if(turno.ausencia||turno.disponibilidadNoConfirmada)return true;
+  // Libre/festivo/vacaciones/etc. ya vienen guardados sin e1 o con tipo no operativo.
+  if(!turno.e1)return true;
+  return _EV_TIPOS_NO_OPERATIVA.indexOf(tipo)>=0;
+}
+function _evMesSinTurnosDeTrabajo(diasMes){
+  // Caso real CTA: empleados de excedencia/baja larga pueden tener casi todo el mes vacío
+  // y algunos días guardados como DL/libre. Eso no debe tratarse como "sin publicar".
+  var keys=Object.keys(diasMes||{});
+  for(var i=0;i<keys.length;i++){
+    var t=diasMes[keys[i]];
+    if(!t)continue;
+    var tipo=String(t.tipo||'').toLowerCase();
+    if(t.ausencia||t.disponibilidadNoConfirmada)continue;
+    if(!t.e1)continue;
+    if(_EV_TIPOS_NO_OPERATIVA.indexOf(tipo)>=0)continue;
+    return false; // hay al menos un turno real de trabajo en el mes
+  }
+  return true;
+}
+function _evCalcularAsistencia(turno, evDesde, evHasta){
+  if(evHasta<=evDesde)evHasta+=1440; // permite eventos que cruzan medianoche
+  var evDur=evHasta-evDesde;
+  if(!turno||!turno.e1)return{puede:true,parcial:false,desde:evDesde,horasAsiste:evDur,huecos:[[evDesde,evHasta]],motivo:'Libre'};
+  var partes=[[_evToMin(turno.e1),_evToMin(turno.s1)]];
+  if(turno.e2&&turno.s2)partes.push([_evToMin(turno.e2),_evToMin(turno.s2)]);
+
+  // Normalizar tramos nocturnos y recortar al rango del evento.
+  var ocupados=[];
+  partes.forEach(function(p){
+    var e=p[0],s=p[1];
+    if(e===null||s===null)return;
+    if(s<=e)s+=1440;
+    var ss=Math.max(e,evDesde),se=Math.min(s,evHasta);
+    if(se>ss)ocupados.push([ss,se]);
+  });
+
+  if(ocupados.length===0)return{puede:true,parcial:false,desde:evDesde,horasAsiste:evDur,huecos:[[evDesde,evHasta]],motivo:'No coincide con el evento'};
+
+  // Unir solapes y calcular huecos libres dentro del evento.
+  ocupados.sort(function(a,b){return a[0]-b[0];});
+  var unidos=[];
+  ocupados.forEach(function(o){
+    if(!unidos.length||o[0]>unidos[unidos.length-1][1])unidos.push(o.slice());
+    else unidos[unidos.length-1][1]=Math.max(unidos[unidos.length-1][1],o[1]);
+  });
+  var huecos=[];
+  var cursor=evDesde;
+  unidos.forEach(function(o){
+    if(o[0]>cursor)huecos.push([cursor,o[0]]);
+    cursor=Math.max(cursor,o[1]);
+  });
+  if(cursor<evHasta)huecos.push([cursor,evHasta]);
+
+  var minutosLibres=huecos.reduce(function(acc,h){return acc+(h[1]-h[0]);},0);
+  if(minutosLibres<=0)return{puede:false,parcial:false,desde:null,horasAsiste:0,huecos:[],motivo:'Trabaja durante todo el evento'};
+  if(minutosLibres>=evDur)return{puede:true,parcial:false,desde:evDesde,horasAsiste:evDur,huecos:huecos,motivo:'No coincide con el evento'};
+
+  return{puede:true,parcial:true,desde:huecos[0][0],horasAsiste:minutosLibres,huecos:huecos,motivo:'Puede parcialmente'};
+}
+function _evClasificarEmpleadoEvento(emp, mes, dia, hDesde, hHasta, mesPublicadoGlobal){
+  var mesesEmp=(emp&&emp.meses)||{};
+  var tieneMesEmp=Object.prototype.hasOwnProperty.call(mesesEmp,mes);
+  var diasMes=tieneMesEmp?(mesesEmp[mes]||{}):{};
+  var turno=diasMes[dia];
+  var fechaEvento=new Date(_evAño,_GRUPO_MONTHS.indexOf(mes),dia);
+  var cambioCompartido=_getCambioCompartidoEmpleado(emp,fechaEvento);
+  if(cambioCompartido)turno=_cambioToTurno(cambioCompartido);
+  var nombre=emp.nombre;
+  var diasGuardados=Object.keys(diasMes).length;
+  var mesVacioEmpleado=tieneMesEmp&&diasGuardados===0;
+  var mesSinTrabajoEmpleado=tieneMesEmp&&_evMesSinTurnosDeTrabajo(diasMes);
+  var tieneMesPublicado=diasGuardados>0;
+
+  // Regla CTA: si el empleado no tiene ningún turno real de trabajo en el mes,
+  // aunque tenga algunos DL/libres guardados, se interpreta como excedencia/baja larga
+  // y sí puede venir al evento. Una celda vacía aislada de alguien con turnos reales NO cuenta.
+  if(!cambioCompartido&&(turno===undefined||turno===null)){
+    if(mesPublicadoGlobal&&(mesVacioEmpleado||mesSinTrabajoEmpleado)){
+      return{nombre:nombre,estado:'completo',parcial:false,desde:hDesde,huecos:[[hDesde,(hHasta<=hDesde?hHasta+1440:hHasta)]],turno:'Mes sin turnos',motivo:'Excedencia/baja larga'};
+    }
+    return{nombre:nombre,estado:'sinDatos',parcial:false,desde:null,huecos:[],turno:'',motivo:tieneMesPublicado?'Sin turno publicado':'Mes no importado'};
+  }
+
+  if(_evTurnoDisponibleCompleto(turno)){
+    var motivo=(turno.ausencia||turno.disponibilidadNoConfirmada)?'! / disponibilidad no operativa':'Libre / no operativo';
+    return{nombre:nombre,estado:'completo',parcial:false,desde:hDesde,huecos:[[hDesde,(hHasta<=hDesde?hHasta+1440:hHasta)]],turno:_evTurnoLabel(turno),motivo:motivo};
+  }
+
+  var asist=_evCalcularAsistencia(turno,hDesde,hHasta);
+  if(!asist.puede){
+    return{nombre:nombre,estado:'ocupado',parcial:false,desde:null,huecos:[],turno:_evTurnoLabel(turno),motivo:asist.motivo||'No puede'};
+  }
+  if(asist.parcial){
+    return{nombre:nombre,estado:'parcial',parcial:true,desde:asist.desde,huecos:asist.huecos,turno:_evTurnoLabel(turno),motivo:'Puede parcialmente'};
+  }
+  return{nombre:nombre,estado:'completo',parcial:false,desde:hDesde,huecos:asist.huecos,turno:_evTurnoLabel(turno),motivo:asist.motivo||'Todo el evento'};
+}
+function _evEstadoImprescindibles(clasificados){
+  var faltan=[],sinDatos=[],parciales=[];
+  _evImprescindibles.forEach(function(imp){
+    var matches=clasificados.filter(function(x){return _evEsImprescindible(x.nombre,imp);});
+    if(!matches.length){faltan.push(imp+' (no encontrado)');return;}
+    var puede=matches.some(function(x){return x.estado==='completo'||x.estado==='parcial';});
+    if(puede){
+      matches.filter(function(x){return x.estado==='parcial';}).forEach(function(x){if(parciales.indexOf(x.nombre)<0)parciales.push(x.nombre);});
+      return;
+    }
+    var sd=matches.filter(function(x){return x.estado==='sinDatos';});
+    if(sd.length){sd.forEach(function(x){if(sinDatos.indexOf(x.nombre)<0)sinDatos.push(x.nombre);});return;}
+    matches.forEach(function(x){if(faltan.indexOf(x.nombre)<0)faltan.push(x.nombre);});
+  });
+  return{ok:faltan.length===0&&sinDatos.length===0,faltan:faltan,sinDatos:sinDatos,parciales:parciales};
+}
+
+function evBuscar(){
+  var dDesde=parseInt(document.getElementById('ev-dia-desde').value)||1;
+  var dHasta=parseInt(document.getElementById('ev-dia-hasta').value)||31;
+  var hDesde=_evToMin(document.getElementById('ev-hora-desde').value)||840;
+  var hHasta=_evToMin(document.getElementById('ev-hora-hasta').value)||1200;
+  var nombreEvento=(document.getElementById('ev-nombre-evento').value||'').trim()||'Evento';
+  if(typeof cargarCambiosTurnosCompartidos==='function')cargarCambiosTurnosCompartidos(_evAño);
+  var mes=_MC_MONTHS[_evMesSel];
+
+  var nominaMap;try{nominaMap=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}');}catch(e){nominaMap={};}
+  var empleados=Object.values(nominaMap).filter(function(e){return e.nombre&&e.meses;});
+
+  if(!empleados.length){
+    evMostrarResultados(null,'No hay datos del grupo. Importa el Excel primero.',nombreEvento,hDesde,hHasta);
+    return;
+  }
+
+  var maxDia=new Date(_evAño,_evMesSel+1,0).getDate();
+  dHasta=Math.min(dHasta,maxDia);
+  var hoy=new Date();hoy.setHours(0,0,0,0);
+  var dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var resultados=[];
+
+  for(var dia=dDesde;dia<=dHasta;dia++){
+    var fecha=new Date(_evAño,_evMesSel,dia);
+    if(fecha<hoy)continue;
+    var libres=[],ocupados=[],sinDatos=[],clasificados=[];
+
+    var mesPublicadoGlobal=empleados.some(function(emp){
+      var mm=(emp&&emp.meses)||{};
+      var dm=mm[mes]||{};
+      return Object.keys(dm).length>0;
+    });
+
+    empleados.forEach(function(emp){
+      var c=_evClasificarEmpleadoEvento(emp,mes,dia,hDesde,hHasta,mesPublicadoGlobal);
+      clasificados.push(c);
+      if(c.estado==='completo'||c.estado==='parcial'){
+        libres.push(c);
+      } else if(c.estado==='sinDatos'){
+        sinDatos.push(c.nombre);
+      } else {
+        ocupados.push(c.nombre);
+      }
+    });
+
+    var impStatus=_evEstadoImprescindibles(clasificados);
+    // Contador: solo quienes pueden TODO el evento completo, no parciales ni sin datos.
+    var libresCompletos=libres.filter(function(x){return x.estado==='completo'&&!x.parcial;}).length;
+    resultados.push({
+      dia:dia,
+      label:dias[fecha.getDay()]+' '+dia+' '+_MC_NAMES[_evMesSel],
+      libres:libres,
+      libresCompletos:libresCompletos,
+      ocupados:ocupados,
+      sinDatos:sinDatos,
+      total:empleados.length,
+      impOk:impStatus.ok,
+      impFaltan:impStatus.faltan,
+      impSinDatos:impStatus.sinDatos,
+      impParciales:impStatus.parciales
+    });
+  }
+
+  resultados.sort(function(a,b){
+    // Prioridad 1: imprescindibles que sí pueden venir o al menos no están sin datos.
+    if(a.impOk&&!b.impOk)return-1;
+    if(!a.impOk&&b.impOk)return 1;
+    // Prioridad 2: más gente que puede TODO el evento.
+    if(b.libresCompletos!==a.libresCompletos)return b.libresCompletos-a.libresCompletos;
+    // Prioridad 3: más gente en total incluyendo parciales.
+    return b.libres.length-a.libres.length;
+  });
+
+  evMostrarResultados(resultados,null,nombreEvento,hDesde,hHasta);
+}
+
+var _evResultados=[];
+var _evHDesde=0,_evHHasta=0;
+function evMostrarResultados(resultados,error,nombreEvento,hDesde,hHasta){
+  document.getElementById('ev-form').style.display='none';
+  var sec=document.getElementById('ev-results');
+  sec.style.display='block';
+  if(error){sec.innerHTML='<div class="ev-empty">😕 '+_evHtml(error)+'</div>'+_evBtnVolver();return;}
+  if(!resultados||!resultados.length){sec.innerHTML='<div class="ev-empty">😕 No hay días disponibles en ese rango</div>'+_evBtnVolver();return;}
+
+  _evResultados=resultados;_evHDesde=hDesde;_evHHasta=hHasta;
+  var horaStr=_evFmtMin(hDesde)+' – '+_evFmtMin(hHasta);
+  var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+  html+='<div><div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;color:var(--gold)">'+_evHtml(nombreEvento)+'</div>';
+  html+='<div style="font-size:11px;color:var(--gray)">'+horaStr+' · '+resultados[0].total+' compañeros</div></div>';
+  html+='<button onclick="_evVolverForm()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;padding:7px 11px;color:var(--gray);font-size:12px;cursor:pointer">← Editar</button>';
+  html+='</div>';
+  html+='<div class="ev-seccion">📅 Mejores días</div>';
+
+  resultados.slice(0,15).forEach(function(r,i){
+    var libresCompletos=r.libres.filter(function(x){return x.estado==='completo'&&!x.parcial;});
+    var parcialesArr=r.libres.filter(function(x){return x.estado==='parcial'||x.parcial;});
+    var pct=Math.round(libresCompletos.length/r.total*100);
+    var cls='ev-card'+(i===0?' ev-top1':i<=1?' ev-top2':'');
+    html+='<div class="'+cls+'">';
+    html+='<div class="ev-card-top"><div>';
+    html+='<div class="ev-card-fecha">'+_evHtml(r.label)+'</div>';
+    if(_evImprescindibles.length){
+      if((r.impFaltan||[]).length)html+='<div style="font-size:10px;color:#f87171;margin-top:2px">⚠️ No puede: '+_evHtml(r.impFaltan.join(', '))+'</div>';
+      if((r.impSinDatos||[]).length)html+='<div style="font-size:10px;color:#fbbf24;margin-top:2px">❔ Imprescindible sin datos: '+_evHtml(r.impSinDatos.join(', '))+'</div>';
+      if(r.impOk)html+='<div style="font-size:10px;color:#4ade80;margin-top:2px">✅ Todos los imprescindibles pueden venir</div>';
+    }
+    html+='</div><div class="ev-card-num'+(i===0?' gold':'')+'">'+libresCompletos.length+'/'+r.total+'</div></div>';
+    html+='<div class="ev-card-row">Todo el evento: <span>'+libresCompletos.length+' personas</span></div>';
+    if(parcialesArr.length)html+='<div class="ev-card-row">Asistencia parcial: <span style="color:#fbbf24">'+parcialesArr.length+' personas</span></div>';
+    if(r.sinDatos.length)html+='<div class="ev-card-row">Sin publicar: <span style="color:var(--gray)">'+r.sinDatos.length+' (no cuentan como disponibles)</span></div>';
+    html+='<button onclick="_evToggleDetalle('+r.dia+')" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;color:var(--gold);font-family:Outfit,sans-serif;font-size:11px;font-weight:600;cursor:pointer;margin-top:8px">👥 Ver lista completa</button>';
+    html+='<div id="ev-detalle-'+r.dia+'" style="display:none;margin-top:8px"></div>';
+    html+='<div class="ev-bar" style="width:'+pct+'%"></div>';
+    html+='</div>';
+  });
+
+  if(resultados.length>15)html+='<div style="font-size:11px;color:var(--gray);text-align:center;padding:8px">... y '+(resultados.length-15)+' días más</div>';
+  html+=_evBtnVolver();
+  sec.innerHTML=html;
+}
+
+function _evDetalleCompletoTag(x){
+  if(!x)return '';
+  var motivo=String(x.motivo||'');
+  var turno=String(x.turno||'');
+  if(motivo.indexOf('disponibilidad no operativa')>=0||turno==='!')return 'No operativa';
+  if(motivo==='Libre / no operativo'||motivo==='Libre'||turno==='Libre')return 'Libre';
+  if(motivo==='Excedencia/baja larga'&&(turno==='Mes vacío'||turno==='Mes sin turnos'))return 'Excedencia/baja larga';
+  return motivo+(turno?' · '+turno:'');
+}
+
+function _evToggleDetalle(dia){
+  var det=document.getElementById('ev-detalle-'+dia);
+  if(!det)return;
+  if(det.style.display==='block'){det.style.display='none';return;}
+  var r=_evResultados.filter(function(x){return x.dia===dia;})[0];
+  if(!r)return;
+  var libresCompletos=r.libres.filter(function(x){return x.estado==='completo'&&!x.parcial;}).sort(function(a,b){return a.nombre.localeCompare(b.nombre);});
+  var parcialesArr=r.libres.filter(function(x){return x.estado==='parcial'||x.parcial;}).sort(function(a,b){return (a.desde||0)-(b.desde||0)||a.nombre.localeCompare(b.nombre);});
+  var ocupadosArr=(r.ocupados||[]).slice().sort();
+  var sinDatosArr=(r.sinDatos||[]).slice().sort();
+
+  var h='';
+  if((r.impFaltan||[]).length||((r.impSinDatos||[]).length)){
+    h+='<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:10px;padding:8px;margin:6px 0 8px">';
+    if((r.impFaltan||[]).length)h+='<div style="font-size:11px;color:#f87171;font-weight:700">⚠️ Imprescindible que no puede: '+_evHtml(r.impFaltan.join(', '))+'</div>';
+    if((r.impSinDatos||[]).length)h+='<div style="font-size:11px;color:#fbbf24;font-weight:700;margin-top:3px">❔ Imprescindible sin turno publicado: '+_evHtml(r.impSinDatos.join(', '))+'</div>';
+    h+='</div>';
+  }
+
+  if(libresCompletos.length){
+    h+='<div style="font-size:10px;font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px">✅ Todo el evento ('+libresCompletos.length+')</div>';
+    libresCompletos.forEach(function(x){
+      var detalle=_evDetalleCompletoTag(x);
+      var tag=detalle?'<span style="color:var(--gray);font-size:10px;text-align:right">'+_evHtml(detalle)+'</span>':'';
+      h+='<div style="font-size:11px;color:var(--white);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between;gap:8px"><span>'+_evHtml(x.nombre)+'</span>'+tag+'</div>';
+    });
+  }
+  if(parcialesArr.length){
+    h+='<div style="font-size:10px;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px">🕐 Asistencia parcial ('+parcialesArr.length+')</div>';
+    parcialesArr.forEach(function(x){
+      var horarioStr='';
+      if(x.huecos&&x.huecos.length){
+        horarioStr=x.huecos.map(function(hh){return _evFmtMin(hh[0])+'–'+_evFmtMin(hh[1]);}).join(', ');
+      } else {
+        horarioStr='desde '+_evFmtMin(x.desde);
+      }
+      h+='<div style="font-size:11px;color:var(--white);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between;gap:8px"><span>'+_evHtml(x.nombre)+'</span><span style="color:#fbbf24;text-align:right;white-space:nowrap">'+_evHtml(horarioStr)+'</span></div>';
+    });
+  }
+  if(sinDatosArr.length){
+    h+='<div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px">❔ Sin publicar / no cuentan ('+sinDatosArr.length+')</div>';
+    sinDatosArr.forEach(function(n){h+='<div style="font-size:11px;color:var(--gray);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+_evHtml(n)+'</div>';});
+  }
+  if(ocupadosArr.length){
+    h+='<div style="font-size:10px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px">❌ No pueden ('+ocupadosArr.length+')</div>';
+    ocupadosArr.forEach(function(n){h+='<div style="font-size:11px;color:#f87171;opacity:.7;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+_evHtml(n)+'</div>';});
+  }
+  det.innerHTML=h;
+  det.style.display='block';
+}
+
+function _evBtnVolver(){return '<button onclick="_evVolverForm()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;font-family:\'Outfit\',sans-serif;font-size:13px;color:var(--gray);cursor:pointer;margin-top:8px">← Nueva búsqueda</button>';}
+function _evVolverForm(){
+  document.getElementById('ev-form').style.display='block';
+  document.getElementById('ev-results').style.display='none';
+  document.getElementById('ev-results').innerHTML='';
+}
+
+</script>
+
+
+<!-- PANEL BUSCADOR EVENTO -->
+<div id="ev-bg" onclick="cerrarEvento()"></div>
+<div id="ev-panel">
+  <div class="ev-handle"></div>
+  <div class="ev-header">
+    <div class="ev-title">🎉 Buscar día para evento</div>
+    <div class="ev-sub" id="ev-sub">Encuentra el día con más compañeros disponibles</div>
+  </div>
+  <div id="ev-body">
+    <div id="ev-form">
+      <div class="ev-field" style="margin-top:6px">
+        <label>Mes</label>
+        <div class="ev-mes-tabs" id="ev-mes-tabs"></div>
+      </div>
+      <div class="ev-field">
+        <label>Rango de días</label>
+        <div class="ev-row2">
+          <div><label style="font-size:10px;color:var(--gray);display:block;margin-bottom:4px">Desde</label><input type="number" id="ev-dia-desde" min="1" max="31" value="1"></div>
+          <div><label style="font-size:10px;color:var(--gray);display:block;margin-bottom:4px">Hasta</label><input type="number" id="ev-dia-hasta" min="1" max="31" value="31"></div>
+        </div>
+      </div>
+      <div class="ev-field">
+        <label>Hora del evento</label>
+        <div class="ev-row2">
+          <div><label style="font-size:10px;color:var(--gray);display:block;margin-bottom:4px">Desde</label><input type="time" id="ev-hora-desde" value="14:00"></div>
+          <div><label style="font-size:10px;color:var(--gray);display:block;margin-bottom:4px">Hasta</label><input type="time" id="ev-hora-hasta" value="20:00"></div>
+        </div>
+      </div>
+      <div class="ev-field">
+        <label>Imprescindibles</label>
+        <div class="ev-add-row">
+          <input type="text" id="ev-nombre-input" placeholder="Nombre del compañero..." onkeydown="if(event.key==='Enter')evAddNombre()">
+          <button onclick="evAddNombre()">+ Añadir</button>
+        </div>
+        <div class="ev-chip-wrap" id="ev-chips"></div>
+      </div>
+      <div class="ev-field">
+        <label>Nombre del evento (opcional)</label>
+        <input type="text" id="ev-nombre-evento" placeholder="Barbacoa, fiesta, cena...">
+      </div>
+      <button class="ev-btn-search" onclick="evBuscar()">🔍 Buscar mejor día</button>
+      <button onclick="cerrarEvento()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--gray);cursor:pointer;margin-top:8px">Cancelar</button>
+    </div>
+    <div id="ev-results" style="display:none"></div>
+  </div>
+</div>
 
 </body>
 </html>
