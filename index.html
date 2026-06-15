@@ -7468,12 +7468,17 @@ function _evClasificarEmpleadoEvento(emp, mes, dia, hDesde, hHasta, mesPublicado
   var mesSinTrabajoEmpleado=tieneMesEmp&&_evMesSinTurnosDeTrabajo(diasMes);
   var tieneMesPublicado=diasGuardados>0;
 
-  // Regla CTA: si el empleado no tiene ningún turno real de trabajo en el mes,
-  // aunque tenga algunos DL/libres guardados, se interpreta como excedencia/baja larga
-  // y sí puede venir al evento. Una celda vacía aislada de alguien con turnos reales NO cuenta.
+  // Regla CTA para EVENTOS:
+  // En la importación del cuadrante, muchos días de libranza pueden venir como celda vacía.
+  // Para el buscador de eventos, una celda vacía dentro de un mes ya importado debe contar
+  // como Libre y disponible para todo el evento. Si además el empleado no tiene turnos reales
+  // en todo el mes, se mantiene la etiqueta de excedencia/baja larga.
   if(!cambioCompartido&&(turno===undefined||turno===null)){
-    if(mesPublicadoGlobal&&(mesVacioEmpleado||mesSinTrabajoEmpleado)){
-      return{nombre:nombre,estado:'completo',parcial:false,desde:hDesde,huecos:[[hDesde,(hHasta<=hDesde?hHasta+1440:hHasta)]],turno:'Mes sin turnos',motivo:'Excedencia/baja larga'};
+    if(mesPublicadoGlobal&&tieneMesEmp){
+      if(mesVacioEmpleado||mesSinTrabajoEmpleado){
+        return{nombre:nombre,estado:'completo',parcial:false,desde:hDesde,huecos:[[hDesde,(hHasta<=hDesde?hHasta+1440:hHasta)]],turno:'Mes sin turnos',motivo:'Excedencia/baja larga'};
+      }
+      return{nombre:nombre,estado:'completo',parcial:false,desde:hDesde,huecos:[[hDesde,(hHasta<=hDesde?hHasta+1440:hHasta)]],turno:'Libre',motivo:'Libre'};
     }
     return{nombre:nombre,estado:'sinDatos',parcial:false,desde:null,huecos:[],turno:'',motivo:tieneMesPublicado?'Sin turno publicado':'Mes no importado'};
   }
