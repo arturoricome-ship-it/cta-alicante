@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V13_CAMBIOS_FD_NO_IMPORTADOS_2026-06-17 -->
+<!-- CTA_OPERATIVA_V72_EVENTOS_HL_ARTURO_LOCAL_2026-06-14 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -7157,8 +7157,13 @@ function renderResultadosCambio(resultados, titleDia){
   }
   if(totalInvalidos){
     if(noImportados.length){
-      html+='<div class="cambio-seccion" style="margin-top:18px;color:var(--gray)">📋 No importados ('+noImportados.length+')</div>';
+      html+='<details style="margin-top:18px">';
+      html+='<summary class="cambio-seccion" style="color:var(--gray);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px">';
+      html+='<span>📋 No importados ('+noImportados.length+')</span><span style="font-size:10px;color:var(--gray);font-weight:600">Ver</span>';
+      html+='</summary>';
+      html+='<div style="margin-top:8px">';
       noImportados.forEach(function(r){html+=_renderCambioCard(r,false);});
+      html+='</div></details>';
     }
     if(invalidos.length||parcialesI.length){
       html+='<div class="cambio-seccion" style="margin-top:18px;color:var(--gray)">⚠️ No viables ('+(invalidos.length+parcialesI.length)+')</div>';
