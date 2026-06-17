@@ -7463,6 +7463,15 @@ function _evEsImprescindible(nombre, imp){
   var n=_evNormTxt(nombre),i=_evNormTxt(imp);
   return !!i&&n.indexOf(i)>=0;
 }
+function _evEsEmpleadoFD(emp){
+  // FD/FDS se importan semana a semana. Si no hay dato ese día, no debe parecer baja/excedencia.
+  try{
+    if(typeof _esEmpleadoFDCambio==='function')return _esEmpleadoFDCambio(emp);
+    if(typeof _parseCategoria==='function')return _parseCategoria(emp&&emp.categoria||'').tipo==='FD';
+  }catch(e){}
+  var cat=String((emp&&emp.categoria)||'');
+  return /\bFDS?\b|FIJOS?\s+DISCONTINUOS?|DISCONTINU/i.test(cat);
+}
 function _evTurnoLabel(turno){
   if(!turno)return'';
   if(turno.ausencia||turno.disponibilidadNoConfirmada)return'!';
@@ -7554,6 +7563,11 @@ function _evClasificarEmpleadoEvento(emp, mes, dia, hDesde, hHasta, mesPublicado
   // como Libre y disponible para todo el evento. Si además el empleado no tiene turnos reales
   // en todo el mes, se mantiene la etiqueta de excedencia/baja larga.
   if(!cambioCompartido&&(turno===undefined||turno===null)){
+    // FD/FDS: se importan por semanas. Si ese día no existe en la importación,
+    // no se debe etiquetar como baja/excedencia ni contar como disponible.
+    if(_evEsEmpleadoFD(emp)){
+      return{nombre:nombre,estado:'noImportado',parcial:false,desde:null,huecos:[],turno:'',motivo:'No importado'};
+    }
     if(mesPublicadoGlobal&&tieneMesEmp){
       if(mesVacioEmpleado||mesSinTrabajoEmpleado){
         return{nombre:nombre,estado:'completo',parcial:false,desde:hDesde,huecos:[[hDesde,(hHasta<=hDesde?hHasta+1440:hHasta)]],turno:'Mes sin turnos',motivo:'Excedencia/baja larga'};
@@ -7587,7 +7601,7 @@ function _evEstadoImprescindibles(clasificados){
       matches.filter(function(x){return x.estado==='parcial';}).forEach(function(x){if(parciales.indexOf(x.nombre)<0)parciales.push(x.nombre);});
       return;
     }
-    var sd=matches.filter(function(x){return x.estado==='sinDatos';});
+    var sd=matches.filter(function(x){return x.estado==='sinDatos'||x.estado==='noImportado';});
     if(sd.length){sd.forEach(function(x){if(sinDatos.indexOf(x.nombre)<0)sinDatos.push(x.nombre);});return;}
     matches.forEach(function(x){if(faltan.indexOf(x.nombre)<0)faltan.push(x.nombre);});
   });
@@ -7620,7 +7634,7 @@ function evBuscar(){
   for(var dia=dDesde;dia<=dHasta;dia++){
     var fecha=new Date(_evAño,_evMesSel,dia);
     if(fecha<hoy)continue;
-    var libres=[],ocupados=[],sinDatos=[],clasificados=[];
+    var libres=[],ocupados=[],sinDatos=[],noImportados=[],clasificados=[];
 
     var mesPublicadoGlobal=empleados.some(function(emp){
       var mm=(emp&&emp.meses)||{};
@@ -7633,6 +7647,8 @@ function evBuscar(){
       clasificados.push(c);
       if(c.estado==='completo'||c.estado==='parcial'){
         libres.push(c);
+      } else if(c.estado==='noImportado'){
+        noImportados.push(c.nombre);
       } else if(c.estado==='sinDatos'){
         sinDatos.push(c.nombre);
       } else {
@@ -7650,6 +7666,7 @@ function evBuscar(){
       libresCompletos:libresCompletos,
       ocupados:ocupados,
       sinDatos:sinDatos,
+      noImportados:noImportados,
       total:empleados.length,
       impOk:impStatus.ok,
       impFaltan:impStatus.faltan,
@@ -7705,6 +7722,7 @@ function evMostrarResultados(resultados,error,nombreEvento,hDesde,hHasta){
     html+='</div><div class="ev-card-num'+(i===0?' gold':'')+'">'+libresCompletos.length+'/'+r.total+'</div></div>';
     html+='<div class="ev-card-row">Todo el evento: <span>'+libresCompletos.length+' personas</span></div>';
     if(parcialesArr.length)html+='<div class="ev-card-row">Asistencia parcial: <span style="color:#fbbf24">'+parcialesArr.length+' personas</span></div>';
+    if((r.noImportados||[]).length)html+='<div class="ev-card-row">No importados: <span style="color:#fbbf24">'+r.noImportados.length+' (no cuentan)</span></div>';
     if(r.sinDatos.length)html+='<div class="ev-card-row">Sin publicar: <span style="color:var(--gray)">'+r.sinDatos.length+' (no cuentan como disponibles)</span></div>';
     html+='<button onclick="_evToggleDetalle('+r.dia+')" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;color:var(--gold);font-family:Outfit,sans-serif;font-size:11px;font-weight:600;cursor:pointer;margin-top:8px">👥 Ver lista completa</button>';
     html+='<div id="ev-detalle-'+r.dia+'" style="display:none;margin-top:8px"></div>';
@@ -7737,6 +7755,7 @@ function _evToggleDetalle(dia){
   var parcialesArr=r.libres.filter(function(x){return x.estado==='parcial'||x.parcial;}).sort(function(a,b){return (a.desde||0)-(b.desde||0)||a.nombre.localeCompare(b.nombre);});
   var ocupadosArr=(r.ocupados||[]).slice().sort();
   var sinDatosArr=(r.sinDatos||[]).slice().sort();
+  var noImportadosArr=(r.noImportados||[]).slice().sort();
 
   var h='';
   if((r.impFaltan||[]).length||((r.impSinDatos||[]).length)){
@@ -7765,6 +7784,10 @@ function _evToggleDetalle(dia){
       }
       h+='<div style="font-size:11px;color:var(--white);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between;gap:8px"><span>'+_evHtml(x.nombre)+'</span><span style="color:#fbbf24;text-align:right;white-space:nowrap">'+_evHtml(horarioStr)+'</span></div>';
     });
+  }
+  if(noImportadosArr.length){
+    h+='<div style="font-size:10px;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px">📋 No importados FD ('+noImportadosArr.length+')</div>';
+    noImportadosArr.forEach(function(n){h+='<div style="font-size:11px;color:#fbbf24;opacity:.9;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between;gap:8px"><span>'+_evHtml(n)+'</span><span style="font-size:10px;color:var(--gray);text-align:right">No importado</span></div>';});
   }
   if(sinDatosArr.length){
     h+='<div style="font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px">❔ Sin publicar / no cuentan ('+sinDatosArr.length+')</div>';
