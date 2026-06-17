@@ -5147,9 +5147,11 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   html+='</div>';
 
   function renderGrupoPersona(c, extraStyle){
-    // Distintivo de noche: solo para noches reales largas (22/23 → 05/06/07)
-    // y siempre cuando el turno se refleja en el día en que termina.
-    var _esNocheMadrugada=!!(c.nocheReal||c.nocheDiaFin);
+    // Distintivo de noche:
+    // - La persona se muestra tanto el día que empieza como el día que termina.
+    // - El distintivo 🌙 solo se marca cuando el turno se está reflejando en el día que termina de madrugada.
+    //   Así evitamos duplicados confusos tipo misma persona marcada dos veces el mismo día.
+    var _esNocheMadrugada=!!c.nocheDiaFin;
     var _dot=_esNocheMadrugada?'#fb923c':'#60a5fa';
     var _nameExtra=_esNocheMadrugada?' 🌙':'';
     var _nameColor=_esNocheMadrugada?'color:#fb923c;':'';
@@ -5275,6 +5277,9 @@ function buildHorarioHtml(c){
     var salId='exit_'+c.nombre.replace(/\s/g,'_')+'_'+(i===0?'s1':'s2');
     html+=(i>0?' / ':'')+entH+'→<span id="'+salId+'" class="hora-exit" data-exit="'+salH+'">'+salH+'</span>';
   });
+  if(c&&c.nocheDiaFin){
+    html='<span style="font-size:9px;color:#fb923c;opacity:.9;margin-right:5px;white-space:nowrap">viene de ayer</span>'+html;
+  }
   return html||c.horario;
 }
 
