@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V72_EVENTOS_HL_ARTURO_LOCAL_2026-06-14 -->
+<!-- CTA_OPERATIVA_V13_CAMBIOS_FD_NO_IMPORTADOS_2026-06-17 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -2619,10 +2619,7 @@ function setWelcome(nombre){
   var el=document.getElementById("header-welcome");
   if(el)el.textContent="Hola, "+primerNombre(nombre)+" 👋";
   if(typeof initTurnoWidget==="function")initTurnoWidget();
-  if(typeof cargarCambiosTurnosCompartidos==="function"){
-    cargarCambiosTurnosCompartidos(new Date().getFullYear());
-    cargarCambiosTurnosCompartidos(new Date().getFullYear()+1);
-  }
+  if(typeof iniciarSyncCambiosTurnos==="function")iniciarSyncCambiosTurnos(true);
 }
 
 function entrar(email,nombre){
@@ -4816,6 +4813,19 @@ function cargarCambiosTurnosCompartidos(year,force){
   }).finally(function(){delete _CAMBIOS_TURNOS_CARGANDO[year];});
   return _CAMBIOS_TURNOS_CARGANDO[year];
 }
+function iniciarSyncCambiosTurnos(force){
+  if(typeof cargarCambiosTurnosCompartidos!=="function")return;
+  function run(f){
+    var y=new Date().getFullYear();
+    cargarCambiosTurnosCompartidos(y,!!f);
+    cargarCambiosTurnosCompartidos(y+1,!!f);
+  }
+  run(force);
+  if(!window._ctaCambiosTurnosSyncTimer){
+    window._ctaCambiosTurnosSyncTimer=setInterval(function(){run(true);},60000);
+  }
+}
+
 function _getCambioCompartidoEmpleado(emp,dateObj){
   if(!emp||!dateObj)return null;
   var year=dateObj.getFullYear();
@@ -6437,6 +6447,7 @@ function initLiveViewMode(){
 var _cambioDay=null, _cambioMonth=null, _cambioYear=null;
 var _todosResultados=[];
 var _todosParciales=[];
+var _todosNoImportados=[];
 var _filtroIA=null;
 
 function abrirBuscadorCambio(){
@@ -6691,6 +6702,36 @@ function _empleadoTieneTurnosRealesMesCambio(emp, monthKey, year){
   return false;
 }
 
+
+// FD/FDS: al importarse semana a semana, una celda inexistente no debe interpretarse como libranza.
+// Si un FD no tiene el día importado, no se ofrece como opción de cambio y se muestra como "No importado".
+function _esEmpleadoFDCambio(emp){
+  return _parseCategoria(emp&&emp.categoria||'').tipo==='FD';
+}
+function _diaImportadoCambio(emp, monthKey, year, dia){
+  if(!_esEmpleadoFDCambio(emp))return true;
+  var idx=_GRUPO_MONTHS.indexOf(monthKey);
+  if(idx<0)return false;
+  var dias=(emp&&emp.meses&&emp.meses[monthKey])||{};
+  if(Object.prototype.hasOwnProperty.call(dias,String(dia))||Object.prototype.hasOwnProperty.call(dias,dia))return true;
+  // Si hay cambio compartido para ese día, sí hay dato válido aunque no estuviera en la importación.
+  if(typeof _getCambioCompartidoEmpleado==='function'){
+    var c=_getCambioCompartidoEmpleado(emp,new Date(year,idx,dia));
+    if(c)return true;
+  }
+  return false;
+}
+function _crearNoImportadoCambio(comp,labelDia){
+  return{
+    nombre:comp.nombre,
+    cat:comp.categoria||'',
+    tipo:'no_importado',
+    labelDia:labelDia,
+    ok:false,
+    errores:['No importado']
+  };
+}
+
 function calcularCambios(){
   var body=document.getElementById('cambio-body');
   var subTxt=document.getElementById('cambio-sub-txt');
@@ -6756,12 +6797,21 @@ function calcularCambios(){
 
   // Para cada compañero, buscar en todo el mes pares de días válidos
   var resultados=[];
+  var noImportados=[];
+  var noImportadosSeen={};
+  function marcarNoImportado(comp){
+    var k=String(comp.nomina||comp.nombre||'');
+    if(noImportadosSeen[k])return;
+    noImportadosSeen[k]=true;
+    noImportados.push(_crearNoImportadoCambio(comp,titleDia));
+  }
 
   empleados.forEach(function(comp){
     if(comp.nombre===myNombre&&myNombre)return; // saltar si soy yo
     var compDias=comp.meses&&comp.meses[monthKey]?comp.meses[monthKey]:{};
     if(!_sonCompatibles(myCat,comp.categoria||''))return;
     if(!_empleadoTieneTurnosRealesMesCambio(comp,monthKey,year))return; // baja/excedencia: no ofrecer para cambios
+    if(!_diaImportadoCambio(comp,monthKey,year,day)){marcarNoImportado(comp);return;}
 
     // El compañero ese día
     var compTurnoMiDia=compDias[day]||null;
@@ -6869,6 +6919,7 @@ function calcularCambios(){
         var myT3=(myRaw[monthKey]||{})[d3];
         // Yo debo trabajar ese día
         if(!myT3||!myT3.e1||myT3.tipo==='libre')continue;
+        if(!_diaImportadoCambio(comp,monthKey,year,d3))continue;
         var cT3=compDias[d3];
         cT3=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,d3),cT3);
         // Comp debe librar ese día: sin turno, tipo libre o e1 vacío
@@ -6900,6 +6951,7 @@ function calcularCambios(){
     if(myNombre&&comp.nombre===myNombre)return;
     if(!_sonCompatibles(myCat,comp.categoria||''))return;
     if(!_empleadoTieneTurnosRealesMesCambio(comp,monthKey,year))return; // baja/excedencia: no ofrecer para cambios
+    if(!_diaImportadoCambio(comp,monthKey,year,day)){marcarNoImportado(comp);return;}
     var compDias=(comp.meses&&comp.meses[monthKey])||{};
     var compT=compDias[day]||null;
     compT=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compT);
@@ -7012,6 +7064,7 @@ function calcularCambios(){
     if(myNombre&&comp.nombre===myNombre)return;
     if(!_sonCompatibles(myCat,comp.categoria||''))return;
     if(!_empleadoTieneTurnosRealesMesCambio(comp,monthKey,year))return; // baja/excedencia: no ofrecer para cambios
+    if(!_diaImportadoCambio(comp,monthKey,year,day)){marcarNoImportado(comp);return;}
     if(esLibre||_esPasado(day,monthKey,year))return;
     var compDias2=(comp.meses&&comp.meses[monthKey])||{};
     var compT2c=compDias2[day]||null;
@@ -7058,6 +7111,7 @@ function calcularCambios(){
 
   _todosResultados=resultados;
   _todosParciales=parciales;
+  _todosNoImportados=noImportados;
   _filtroIA=null;
   document.getElementById('cambio-ia-input').value='';
   document.getElementById('cambio-ia-estado').textContent='';
@@ -7085,8 +7139,9 @@ function renderResultadosCambio(resultados, titleDia){
   // Juntar viables (completos + parciales) y no viables por separado
   var parcialesV=(!_filtroIA&&_todosParciales)?_todosParciales.filter(function(r){return r.ok;}):[];
   var parcialesI=(!_filtroIA&&_todosParciales)?_todosParciales.filter(function(r){return!r.ok;}):[];
+  var noImportados=(!_filtroIA&&_todosNoImportados)?_todosNoImportados:[];
   var totalViables=validos.length+parcialesV.length;
-  var totalInvalidos=invalidos.length+parcialesI.length;
+  var totalInvalidos=invalidos.length+parcialesI.length+noImportados.length;
 
   var html='';
   if(totalViables){
@@ -7101,9 +7156,15 @@ function renderResultadosCambio(resultados, titleDia){
     }
   }
   if(totalInvalidos){
-    html+='<div class="cambio-seccion" style="margin-top:18px;color:var(--gray)">⚠️ No viables ('+totalInvalidos+')</div>';
-    invalidos.forEach(function(r){html+=_renderCambioCard(r,false);});
-    parcialesI.forEach(function(r){html+=_renderCambioCard(r,false);});
+    if(noImportados.length){
+      html+='<div class="cambio-seccion" style="margin-top:18px;color:var(--gray)">📋 No importados ('+noImportados.length+')</div>';
+      noImportados.forEach(function(r){html+=_renderCambioCard(r,false);});
+    }
+    if(invalidos.length||parcialesI.length){
+      html+='<div class="cambio-seccion" style="margin-top:18px;color:var(--gray)">⚠️ No viables ('+(invalidos.length+parcialesI.length)+')</div>';
+      invalidos.forEach(function(r){html+=_renderCambioCard(r,false);});
+      parcialesI.forEach(function(r){html+=_renderCambioCard(r,false);});
+    }
   }
   html+='<button onclick="cerrarBuscadorCambio()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;font-family:Outfit,sans-serif;font-size:13px;color:var(--gray);cursor:pointer;margin-top:8px">Cerrar</button>';
   body.innerHTML=html;
@@ -7277,7 +7338,11 @@ function _renderCambioCard(r,ok){
   var nom=r.nombre.split(' ')[0];
   var html='<div class="cambio-card '+(ok?'valido':'invalido')+'">';
   html+='<div class="cambio-card-nombre">'+r.nombre+'<span style="font-size:9px;color:var(--gray);font-weight:400;margin-left:6px">'+r.cat+'</span></div>';
-  if(r.tipo==='mismo_dia'){
+  if(r.tipo==='no_importado'){
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+r.labelDia+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Estado:</span><span class="cambio-card-val" style="color:#fbbf24">No importado</span></div>';
+    html+='<div style="font-size:9px;color:var(--gray);margin-top:4px">No se ofrece como opción porque ese día aún no está publicado/importado para FD.</div>';
+  } else if(r.tipo==='mismo_dia'){
     html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+r.labelDia+'</span></div>';
     html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú harías:</span><span class="cambio-card-val el">'+r.turnoComp+'</span></div>';
     html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' haría:</span><span class="cambio-card-val yo">'+r.turnoYo+'</span></div>';
