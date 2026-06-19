@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- CTA_OPERATIVA_V72_EVENTOS_HL_ARTURO_LOCAL_2026-06-14 -->
+<!-- CTA_OPERATIVA_V73_CAMBIO_TURNO_SIMULADO_2026-06-19 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -6602,6 +6602,177 @@ function _horasLVSemana(empDias, monthKey, dia, e1nuevo, s1nuevo, e2nuevo, s2nue
   return total; // en minutos
 }
 
+
+// Helpers para simular cambios reales de turno en 2 días.
+// Antes se validaba sustituyendo un único día; en intercambios con contrapartida
+// eso podía sumar el turno recibido sin descontar el turno cedido.
+function _clonarTurnoCambio(t){
+  if(!t)return t;
+  var c={};
+  for(var k in t){if(Object.prototype.hasOwnProperty.call(t,k))c[k]=t[k];}
+  return c;
+}
+function _clonarDiasCambio(empDias){
+  var out={};
+  empDias=empDias||{};
+  for(var k in empDias){if(Object.prototype.hasOwnProperty.call(empDias,k))out[k]=_clonarTurnoCambio(empDias[k]);}
+  return out;
+}
+function _turnoMinToObjCambio(e1,s1,e2,s2){
+  if(e1===null||e1===undefined||s1===null||s1===undefined){
+    return{tipo:'libre',e1:'',s1:'',e2:'',s2:'',simuladoCambio:true};
+  }
+  return{
+    tipo:'trabajado',
+    e1:_fmtMin(e1),s1:_fmtMin(s1),
+    e2:(e2!==null&&e2!==undefined)?_fmtMin(e2):'',
+    s2:(s2!==null&&s2!==undefined)?_fmtMin(s2):'',
+    simuladoCambio:true
+  };
+}
+function _aplicarTurnoSimCambio(dias,dia,e1,s1,e2,s2){
+  dias[dia]=_turnoMinToObjCambio(e1,s1,e2,s2);
+  return dias;
+}
+function _trabajaTurnoCambio(t){
+  if(!t)return false;
+  var tipo=String(t.tipo||'').toLowerCase();
+  if(tipo==='libre'||(typeof _tipoCambioEsLibre==='function'&&_tipoCambioEsLibre(tipo)))return false;
+  return !!(t.e1&&t.s1);
+}
+function _turnoMinutosCambio(t){
+  if(!_trabajaTurnoCambio(t))return{e1:null,s1:null,e2:null,s2:null};
+  return{
+    e1:_toMin(t.e1),
+    s1:_toMin(t.s1),
+    e2:t.e2?_toMin(t.e2):null,
+    s2:t.s2?_toMin(t.s2):null
+  };
+}
+function _horasLVSemanaDiasCambio(empDias,monthKey,diaRef){
+  var fecha=new Date(_cambioYear,_GRUPO_MONTHS.indexOf(monthKey),diaRef);
+  var dow=(fecha.getDay()+6)%7;
+  var lunes=new Date(fecha.getTime()-dow*86400000);
+  var total=0;
+  for(var i=0;i<7;i++){
+    var f=new Date(lunes.getTime()+i*86400000);
+    var d=f.getDate();
+    var mk=_GRUPO_MONTHS[f.getMonth()];
+    if(mk!==monthKey)continue;
+    var m=_turnoMinutosCambio(empDias[d]);
+    if(m.e1!==null&&m.s1!==null)total+=_durMin(m.e1,m.s1);
+    if(m.e2!==null&&m.s2!==null)total+=_durMin(m.e2,m.s2);
+  }
+  return total;
+}
+function _validarDescanso10hDiasCambio(empDias,monthKey,dia,etiqueta){
+  var errores=[];
+  var DESC_MIN=600;
+  var m=_turnoMinutosCambio(empDias[dia]);
+  if(m.e1===null)return errores;
+  var miEntrada=m.e1;
+  var miSalida=(m.e2!==null&&m.s2!==null)?m.s2:m.s1;
+  if(miSalida<miEntrada)miSalida+=1440;
+  function turnoDe(d){
+    var x=_turnoMinutosCambio(empDias[d]);
+    if(x.e1===null)return null;
+    var sal=(x.e2!==null&&x.s2!==null)?x.s2:x.s1;
+    if(sal<x.e1)sal+=1440;
+    return{entrada:x.e1,salida:sal};
+  }
+  var ant=turnoDe(dia-1);
+  if(ant){
+    var descAntes=(1440-ant.salida)+miEntrada;
+    if(descAntes<DESC_MIN)errores.push((etiqueta||'')+'Menos de 10h con el dia anterior ('+(descAntes/60).toFixed(1)+'h)');
+  }
+  var sig=turnoDe(dia+1);
+  if(sig){
+    var descDespues=(1440-miSalida)+sig.entrada;
+    if(descDespues<DESC_MIN)errores.push((etiqueta||'')+'Menos de 10h con el dia siguiente ('+(descDespues/60).toFixed(1)+'h)');
+  }
+  return errores;
+}
+function _validarLibreSemanaDiasCambio(empDias,monthKey,dia,etiqueta){
+  var idx=_GRUPO_MONTHS.indexOf(monthKey);
+  var fecha=new Date(_cambioYear,idx,dia);
+  var dow=(fecha.getDay()+6)%7;
+  var lunes=new Date(fecha.getTime()-dow*86400000);
+  var diasPublicados=0,libres=0;
+  for(var i=0;i<7;i++){
+    var f=new Date(lunes.getTime()+i*86400000);
+    var d=f.getDate();
+    var mk=_GRUPO_MONTHS[f.getMonth()];
+    if(mk!==monthKey)continue;
+    var t=empDias[d];
+    if(t===undefined||t===null)continue;
+    diasPublicados++;
+    if(!_trabajaTurnoCambio(t))libres++;
+  }
+  if(diasPublicados===7&&libres===0)return[(etiqueta||'')+'Sin dia libre esa semana'];
+  return[];
+}
+function _validarDescansoSemanalDiasCambio(empDias,monthKey,etiqueta){
+  var errores=[];
+  var DESC_SEM=2160;
+  var idx=_GRUPO_MONTHS.indexOf(monthKey);
+  var maxDia=new Date(_cambioYear,idx+1,0).getDate();
+  function entradaDe(d){var m=_turnoMinutosCambio(empDias[d]);return m.e1;}
+  function salidaDe(d){
+    var m=_turnoMinutosCambio(empDias[d]);
+    if(m.e1===null)return null;
+    return(m.e2!==null&&m.s2!==null)?m.s2:m.s1;
+  }
+  function trabajaEn(d){return entradaDe(d)!==null;}
+  for(var d=1;d<=maxDia;d++){
+    if(!trabajaEn(d))continue;
+    var salD=salidaDe(d);
+    var d2=d+1;
+    var tieneLibre=false;
+    while(d2<=maxDia&&!trabajaEn(d2)){tieneLibre=true;d2++;}
+    if(d2>maxDia||!tieneLibre)continue;
+    var entD2=entradaDe(d2);
+    if(salD===null||entD2===null)continue;
+    var descTotal=(d2-d)*1440-salD+entD2;
+    if(descTotal<DESC_SEM){
+      errores.push((etiqueta||'')+'Descanso semanal <36h entre dia '+d+' y dia '+d2+' ('+(descTotal/60).toFixed(1)+'h)');
+    }
+  }
+  return errores;
+}
+function _weekKeyCambio(monthKey,dia){
+  var fecha=new Date(_cambioYear,_GRUPO_MONTHS.indexOf(monthKey),dia);
+  var dow=(fecha.getDay()+6)%7;
+  var lunes=new Date(fecha.getTime()-dow*86400000);
+  return lunes.getFullYear()+'-'+lunes.getMonth()+'-'+lunes.getDate();
+}
+function _validarCalendarioSimCambio(empDias,monthKey,diasRef,categoria,nombreCorto){
+  var errores=[];
+  var nombre=nombreCorto||'Yo';
+  var etiqueta=nombre==='Yo'?'':nombre+': ';
+  var pc=_parseCategoria(categoria||'');
+  var lim=pc.tipo==='FIJO'?3000:2160;
+  var labelLim=pc.tipo==='FIJO'?'50':'36';
+  var diasUnicos={},semanas={};
+  (diasRef||[]).forEach(function(d){if(d!==null&&d!==undefined)diasUnicos[d]=true;});
+  Object.keys(diasUnicos).forEach(function(k){
+    var d=parseInt(k,10);
+    var m=_turnoMinutosCambio(empDias[d]);
+    errores=errores.concat(_validarTurno(m.e1,m.s1,m.e2,m.s2).errores);
+    errores=errores.concat(_validarDescanso10hDiasCambio(empDias,monthKey,d,etiqueta));
+    errores=errores.concat(_validarLibreSemanaDiasCambio(empDias,monthKey,d,etiqueta));
+    semanas[_weekKeyCambio(monthKey,d)]=d;
+  });
+  Object.keys(semanas).forEach(function(k){
+    var d=semanas[k];
+    var h=_horasLVSemanaDiasCambio(empDias,monthKey,d);
+    if(h>lim){
+      errores.push((nombre==='Yo'?'Yo supero ':nombre+' supera ')+labelLim+'h semana ('+(h/60).toFixed(1)+'h)');
+    }
+  });
+  errores=errores.concat(_validarDescansoSemanalDiasCambio(empDias,monthKey,etiqueta));
+  return errores;
+}
+
 // Comprueba el descanso de 10h entre el turno nuevo de un dia y los dias adyacentes.
 function _validarDescanso10h(empDias, monthKey, dia, e1n, s1n, e2n, s2n, etiqueta){
   var errores=[];
@@ -6884,14 +7055,12 @@ function calcularCambios(){
     // CASO B: Yo tengo turno, comp libra ese día
     // Comp trabaja MI turno. A cambio yo trabajo un día futuro del comp.
     if(!esLibre&&compLibreMiDia&&!_esPasado(day,monthKey,year)){
-      var errBbase=_validarTurno(myE1,myS1,myE2,myS2).errores.slice();
+      var myCatB=_parseCategoria(myCat);
       var ccB=_parseCategoria(comp.categoria||'');
-      var limBc=ccB.tipo==='FIJO'?3000:2160;var hBc=_horasLVSemana(compDias,monthKey,day,myE1,myS1,myE2,myS2);if(hBc>limBc)errBbase.push(comp.nombre.split(' ')[0]+' supera '+(ccB.tipo==='FIJO'?'50':'36')+'h semana ('+(hBc/60).toFixed(1)+'h)');
-      // Descanso 10h del comp al hacer MI turno el dia senalado
-      errBbase=errBbase.concat(_validarDescanso10h(compDias,monthKey,day,myE1,myS1,myE2,myS2,comp.nombre.split(' ')[0]+': '));
-      errBbase=errBbase.concat(_validarLibreSemana(compDias,monthKey,day,myE1,comp.nombre.split(' ')[0]+': '));
-      errBbase=errBbase.concat(_validarDescansoSemanal(compDias,monthKey,day,myE1,myS1,myE2,myS2,comp.nombre.split(' ')[0]+': '));
-      for(var d2=1;d2<=31;d2++){
+      var nombreCortoB=comp.nombre.split(' ')[0];
+      var maxDiaCambioB=new Date(year,_cambioMonth+1,0).getDate();
+
+      for(var d2=1;d2<=maxDiaCambioB;d2++){
         if(d2===day||_esPasado(d2,monthKey,year))continue;
         var myT2=(myRaw[monthKey]||{})[d2];
         // Yo debo librar ese día: sin turno, o turno tipo libre, o e1 vacío
@@ -6902,13 +7071,23 @@ function calcularCambios(){
         // Comp debe trabajar ese día
         if(!cT2||!cT2.e1||cT2.tipo==='libre')continue;
         var cE1=_toMin(cT2.e1),cS1=_toMin(cT2.s1),cE2=cT2.e2?_toMin(cT2.e2):null,cS2=cT2.s2?_toMin(cT2.s2):null;
-        var errB=errBbase.concat(_validarTurno(cE1,cS1,cE2,cS2).errores);
-        var myCatB=_parseCategoria(myCat);
-        var limBy=myCatB.tipo==='FIJO'?3000:2160;var hBy=_horasLVSemana(myRaw[monthKey]||{},monthKey,d2,cE1,cS1,cE2,cS2);if(hBy>limBy)errB.push('Yo supero '+(myCatB.tipo==='FIJO'?'50':'36')+'h semana ('+(hBy/60).toFixed(1)+'h)');
-        // Descanso 10h: yo trabajo el turno del comp en d2
-        errB=errB.concat(_validarDescanso10h(myRaw[monthKey]||{},monthKey,d2,cE1,cS1,cE2,cS2,''));
-        errB=errB.concat(_validarLibreSemana(myRaw[monthKey]||{},monthKey,d2,cE1,''));
-        errB=errB.concat(_validarDescansoSemanal(myRaw[monthKey]||{},monthKey,d2,cE1,cS1,cE2,cS2,''));
+
+        // Simulación real del intercambio:
+        // - Yo cedo mi turno del día seleccionado y libro ese día.
+        // - El compañero trabaja mi turno ese día.
+        // - Yo trabajo el turno del compañero en d2.
+        // - El compañero libra en d2 porque ese turno me lo cede.
+        var mySimB=_clonarDiasCambio(myRaw[monthKey]||{});
+        var compSimB=_clonarDiasCambio(compDias);
+        _aplicarTurnoSimCambio(mySimB,day,null,null,null,null);
+        _aplicarTurnoSimCambio(mySimB,d2,cE1,cS1,cE2,cS2);
+        _aplicarTurnoSimCambio(compSimB,day,myE1,myS1,myE2,myS2);
+        _aplicarTurnoSimCambio(compSimB,d2,null,null,null,null);
+
+        var errB=[];
+        errB=errB.concat(_validarCalendarioSimCambio(mySimB,monthKey,[day,d2],myCat,'Yo'));
+        errB=errB.concat(_validarCalendarioSimCambio(compSimB,monthKey,[day,d2],comp.categoria||'',nombreCortoB));
+
         var dn2=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][(new Date(year,_cambioMonth,d2).getDay()+6)%7];
         resultados.push({
           nombre:comp.nombre,cat:comp.categoria||'',tipo:'yo_libro',
@@ -6920,14 +7099,13 @@ function calcularCambios(){
       }
 
       // CESIÓN TOTAL sin contrapartida: comp libra ese día, coge mi turno entero, yo libro
-      var errCesion=_validarTurno(myE1,myS1,myE2,myS2).errores.slice();
-      var ccCes=_parseCategoria(comp.categoria||'');
-      var limCes=ccCes.tipo==='FIJO'?3000:2160;
-      var hCes=_horasLVSemana(compDias,monthKey,day,myE1,myS1,myE2,myS2);
-      if(hCes>limCes)errCesion.push(comp.nombre.split(' ')[0]+' supera '+(ccCes.tipo==='FIJO'?'50':'36')+'h semana ('+(hCes/60).toFixed(1)+'h)');
-      errCesion=errCesion.concat(_validarDescanso10h(compDias,monthKey,day,myE1,myS1,myE2,myS2,comp.nombre.split(' ')[0]+': '));
-      errCesion=errCesion.concat(_validarLibreSemana(compDias,monthKey,day,myE1,comp.nombre.split(' ')[0]+': '));
-      errCesion=errCesion.concat(_validarDescansoSemanal(compDias,monthKey,day,myE1,myS1,myE2,myS2,comp.nombre.split(' ')[0]+': '));
+      var mySimCes=_clonarDiasCambio(myRaw[monthKey]||{});
+      var compSimCes=_clonarDiasCambio(compDias);
+      _aplicarTurnoSimCambio(mySimCes,day,null,null,null,null);
+      _aplicarTurnoSimCambio(compSimCes,day,myE1,myS1,myE2,myS2);
+      var errCesion=[];
+      errCesion=errCesion.concat(_validarCalendarioSimCambio(mySimCes,monthKey,[day],myCat,'Yo'));
+      errCesion=errCesion.concat(_validarCalendarioSimCambio(compSimCes,monthKey,[day],comp.categoria||'',nombreCortoB));
       resultados.push({
         nombre:comp.nombre,cat:comp.categoria||'',tipo:'cesion_total',
         labelDia:titleDia,
@@ -6939,14 +7117,12 @@ function calcularCambios(){
     // CASO C: Yo libro ese día, comp trabaja
     // Yo trabajo turno del comp. A cambio comp trabaja mi turno un día futuro.
     if(esLibre&&!compLibreMiDia&&!_esPasado(day,monthKey,year)){
-      var errCbase=_validarTurno(compE1,compS1,compE2,compS2).errores.slice();
       var myCatC=_parseCategoria(myCat);
-      var limCy=myCatC.tipo==='FIJO'?3000:2160;var hCy=_horasLVSemana(myRaw[monthKey]||{},monthKey,day,compE1,compS1,compE2,compS2);if(hCy>limCy)errCbase.push('Yo supero '+(myCatC.tipo==='FIJO'?'50':'36')+'h semana ('+(hCy/60).toFixed(1)+'h)');
-      // Descanso 10h: yo trabajo el turno del comp el dia senalado
-      errCbase=errCbase.concat(_validarDescanso10h(myRaw[monthKey]||{},monthKey,day,compE1,compS1,compE2,compS2,''));
-      errCbase=errCbase.concat(_validarLibreSemana(myRaw[monthKey]||{},monthKey,day,compE1,''));
-      errCbase=errCbase.concat(_validarDescansoSemanal(myRaw[monthKey]||{},monthKey,day,compE1,compS1,compE2,compS2,''));
-      for(var d3=1;d3<=31;d3++){
+      var ccC=_parseCategoria(comp.categoria||'');
+      var nombreCortoC=comp.nombre.split(' ')[0];
+      var maxDiaCambioC=new Date(year,_cambioMonth+1,0).getDate();
+
+      for(var d3=1;d3<=maxDiaCambioC;d3++){
         if(d3===day||_esPasado(d3,monthKey,year))continue;
         var myT3=(myRaw[monthKey]||{})[d3];
         // Yo debo trabajar ese día
@@ -6958,13 +7134,23 @@ function calcularCambios(){
         var compTrabajaD3=!!(cT3&&cT3.e1&&cT3.tipo!=='libre');
         if(compTrabajaD3)continue;
         var mE1=_toMin(myT3.e1),mS1=_toMin(myT3.s1),mE2=myT3.e2?_toMin(myT3.e2):null,mS2=myT3.s2?_toMin(myT3.s2):null;
-        var errC=errCbase.concat(_validarTurno(mE1,mS1,mE2,mS2).errores);
-        var ccC=_parseCategoria(comp.categoria||'');
-        var limCc=ccC.tipo==='FIJO'?3000:2160;var hCc=_horasLVSemana(compDias,monthKey,d3,mE1,mS1,mE2,mS2);if(hCc>limCc)errC.push(comp.nombre.split(' ')[0]+' supera '+(ccC.tipo==='FIJO'?'50':'36')+'h semana ('+(hCc/60).toFixed(1)+'h)');
-        // Descanso 10h: el comp trabaja mi turno en d3
-        errC=errC.concat(_validarDescanso10h(compDias,monthKey,d3,mE1,mS1,mE2,mS2,comp.nombre.split(' ')[0]+': '));
-        errC=errC.concat(_validarLibreSemana(compDias,monthKey,d3,mE1,comp.nombre.split(' ')[0]+': '));
-        errC=errC.concat(_validarDescansoSemanal(compDias,monthKey,d3,mE1,mS1,mE2,mS2,comp.nombre.split(' ')[0]+': '));
+
+        // Simulación real del intercambio:
+        // - Yo trabajo el turno del compañero el día seleccionado.
+        // - El compañero libra el día seleccionado porque yo le cubro.
+        // - El compañero trabaja mi turno en d3.
+        // - Yo libro en d3 porque ese turno se lo cedo.
+        var mySimC=_clonarDiasCambio(myRaw[monthKey]||{});
+        var compSimC=_clonarDiasCambio(compDias);
+        _aplicarTurnoSimCambio(mySimC,day,compE1,compS1,compE2,compS2);
+        _aplicarTurnoSimCambio(mySimC,d3,null,null,null,null);
+        _aplicarTurnoSimCambio(compSimC,day,null,null,null,null);
+        _aplicarTurnoSimCambio(compSimC,d3,mE1,mS1,mE2,mS2);
+
+        var errC=[];
+        errC=errC.concat(_validarCalendarioSimCambio(mySimC,monthKey,[day,d3],myCat,'Yo'));
+        errC=errC.concat(_validarCalendarioSimCambio(compSimC,monthKey,[day,d3],comp.categoria||'',nombreCortoC));
+
         var dn3=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][(new Date(year,_cambioMonth,d3).getDay()+6)%7];
         resultados.push({
           nombre:comp.nombre,cat:comp.categoria||'',tipo:'comp_libro',
