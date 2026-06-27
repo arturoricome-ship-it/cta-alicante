@@ -3717,6 +3717,7 @@ function tiParseCell(raw,isGreyCell){
   return{tipo:tipo,e1:times[0],s1:'',e2:'',s2:'',perenMode:perenMode};
 }
 function tiParseSheet(sheet,filename){
+  _guardarMiNombreRealTryp(tiCellVal(sheet,1,0));
   var result={},stats=[];
   for(var row=3;row<=14;row++){
     var monthRaw=tiCellVal(sheet,row,0);
@@ -4458,6 +4459,46 @@ function _esNombreBasuraGrupo(nombre){
 }
 function _normNombreGrupo(nombre){
   return String(nombre||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+// El título del Tryp personal viene como "Nombre Apellido1 Apellido2 Calendario 2026".
+// Se extrae el nombre (quitando " Calendario <año>") y se guarda asociado al email de
+// la sesión actual: es el nombre oficial exacto, más fiable que el nombre de Google.
+function _guardarMiNombreRealTryp(tituloRaw){
+  var t=String(tituloRaw||'').trim();
+  if(!t)return;
+  var nombre=t.replace(/\s+calendario\s+\d{4}\s*$/i,'').trim();
+  if(!nombre||_esNombreBasuraGrupo(nombre))return;
+  var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
+  var email=(sess&&sess.email)||'';
+  try{localStorage.setItem('cta_mi_nombre_tryp',JSON.stringify({email:email,nombre:nombre}));}catch(e){}
+}
+// Identifica qué entrada del roster del grupo corresponde al usuario actual.
+// Prioridad: 1) nombre real extraído del Tryp personal (exacto, mismo formato oficial
+// que el roster) si fue guardado para este mismo email de sesión; 2) si no hay, el
+// nombre de la sesión de Google como respaldo (puede diferir en orden/apellidos).
+// Solo asigna una identidad si hay UN ÚNICO candidato sin ambigüedad: si dos personas
+// del roster podrían coincidir, prefiere no identificar a nadie antes que arriesgarse
+// a identificar a la persona equivocada.
+function _identificarMiEmpleadoGrupo(nominaMap,sess){
+  var nombreParaBuscar='';
+  var tryp=null;try{tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){}
+  if(tryp&&tryp.nombre&&tryp.email&&sess&&sess.email&&tryp.email===sess.email){
+    nombreParaBuscar=tryp.nombre;
+  } else if(sess&&sess.nombre){
+    nombreParaBuscar=sess.nombre;
+  }
+  if(!nombreParaBuscar)return null;
+  var sessWords=_normNombreGrupo(nombreParaBuscar).split(' ').filter(Boolean);
+  if(!sessWords.length)return null;
+  var candidatos=[];
+  Object.keys(nominaMap).forEach(function(k){
+    var emp=nominaMap[k];
+    var empWords=_normNombreGrupo(emp&&emp.nombre||'').split(' ').filter(Boolean);
+    if(!empWords.length)return;
+    var todasPresentes=empWords.every(function(w){return sessWords.indexOf(w)>=0;});
+    if(todasPresentes)candidatos.push(k);
+  });
+  return candidatos.length===1?candidatos[0]:null;
 }
 function _totalDiasEmpGrupo(emp){
   var t=0;var meses=(emp&&emp.meses)||{};
@@ -7143,22 +7184,29 @@ function calcularCambios(){
   // Mi categoría
   var nominaMap;try{nominaMap=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){nominaMap={};}
 
-  // Buscar mi propio empleado en el mapa (por nombre, comparando con sessión)
+  // Buscar mi propio empleado en el mapa: PRIMERO por nombre de sesión (fiable),
+  // y solo si no hay match claro, caer en la antigua heurística por coincidencia de
+  // horario (no fiable: si otra persona tiene el mismo turno ese día, identificaba
+  // mal quién era "yo", mostrando categorías ajenas o a mí mismo como opción de cambio).
   var myCat='FTP-Operarios'; // fallback
   var myNombre='';
   var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
-  // Intentar identificar al usuario por su turno del día (coincidencia exacta en el mapa del grupo)
-  // o por nombre de sesión parcial
-  for(var nk in nominaMap){
-    if(!nominaMap.hasOwnProperty(nk))continue;
-    var emp=nominaMap[nk];
-    var meses=emp.meses||{};
-    var empDias=meses[monthKey]||{};
-    var empT=empDias[day];
-    if(empT&&empT.e1===myDayObj.e1&&empT.s1===myDayObj.s1){
-      myCat=emp.categoria||myCat;
-      myNombre=emp.nombre||'';
-      break;
+  var miKey=_identificarMiEmpleadoGrupo(nominaMap,sess);
+  if(miKey){
+    myCat=nominaMap[miKey].categoria||myCat;
+    myNombre=nominaMap[miKey].nombre||'';
+  } else {
+    for(var nk in nominaMap){
+      if(!nominaMap.hasOwnProperty(nk))continue;
+      var emp=nominaMap[nk];
+      var meses=emp.meses||{};
+      var empDias=meses[monthKey]||{};
+      var empT=empDias[day];
+      if(empT&&myDayObj&&empT.e1===myDayObj.e1&&empT.s1===myDayObj.s1){
+        myCat=emp.categoria||myCat;
+        myNombre=emp.nombre||'';
+        break;
+      }
     }
   }
 
@@ -7170,7 +7218,7 @@ function calcularCambios(){
   for(var nk2 in nominaMap){
     if(!nominaMap.hasOwnProperty(nk2))continue;
     var e2=nominaMap[nk2];
-    if(e2.meses)empleados.push(e2);
+    if(e2.meses){e2._key=nk2;empleados.push(e2);}
   }
 
   if(!empleados.length){
@@ -7191,7 +7239,7 @@ function calcularCambios(){
   }
 
   empleados.forEach(function(comp){
-    if(comp.nombre===myNombre&&myNombre)return; // saltar si soy yo
+    if(miKey?comp._key===miKey:(comp.nombre===myNombre&&myNombre))return; // saltar si soy yo
     var compDias=comp.meses&&comp.meses[monthKey]?comp.meses[monthKey]:{};
     if(!_cambioEsCompatible(myCat,comp.categoria||''))return;
     if(!_empleadoTieneTurnosRealesMesCambio(comp,monthKey,year))return; // baja/excedencia: no ofrecer para cambios
@@ -7347,7 +7395,7 @@ function calcularCambios(){
   // CAMBIOS PARCIALES: solo cuando hay turnos partidos implicados
   var parciales=[];
   empleados.forEach(function(comp){
-    if(myNombre&&comp.nombre===myNombre)return;
+    if(miKey?comp._key===miKey:(myNombre&&comp.nombre===myNombre))return;
     if(!_cambioEsCompatible(myCat,comp.categoria||''))return;
     if(!_empleadoTieneTurnosRealesMesCambio(comp,monthKey,year))return; // baja/excedencia: no ofrecer para cambios
     if(!_diaImportadoCambio(comp,monthKey,year,day)){marcarNoImportado(comp);return;}
@@ -7460,7 +7508,7 @@ function calcularCambios(){
   // CESIÓN PARCIAL sin contrapartida: yo turno partido, comp libra ese día
   // Le cedo UNA parte de mi turno, él la trabaja, yo me quedo con el resto
   empleados.forEach(function(comp){
-    if(myNombre&&comp.nombre===myNombre)return;
+    if(miKey?comp._key===miKey:(myNombre&&comp.nombre===myNombre))return;
     if(!_cambioEsCompatible(myCat,comp.categoria||''))return;
     if(!_empleadoTieneTurnosRealesMesCambio(comp,monthKey,year))return; // baja/excedencia: no ofrecer para cambios
     if(!_diaImportadoCambio(comp,monthKey,year,day)){marcarNoImportado(comp);return;}
