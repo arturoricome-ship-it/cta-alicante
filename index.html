@@ -4849,11 +4849,12 @@ function procesarGrupoXlsx(file){
       if(btn)btn.classList.add('has-data');
       var hint=document.getElementById('grupo-import-hint');
       var txt=document.getElementById('grupo-import-txt');
+      var etiqueta=(formato==='MULTI')?(gruposDetectados.length+' grupos'):gruposDetectados[0];
       if(hint&&txt){
         hint.style.display='block';txt.style.color='#4ade80';txt.style.fontSize='11px';
-        var etiqueta=(formato==='MULTI')?(gruposDetectados.length+' grupos'):gruposDetectados[0];
         txt.textContent='✅ '+etiqueta+': +'+added+' nuevos, '+updated+' actualizados · '+total+' total';
       }
+      if(typeof logActividad==='function')logActividad('importar_companeros',etiqueta+': +'+added+' nuevos, '+updated+' actualizados');
     }catch(err){alert('Error al leer el Excel del grupo: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
@@ -5733,8 +5734,7 @@ function _renderJornadaSinImportarTryp(card){
       '<div>⏱️ Horas mensuales</div>'+
       '<div>🔢 Horas contador</div>'+
       '<div>⚙️ Tus turnos cada día</div>'+
-      '<div>🧮 Total de horas</div>'+
-      '<div>🤝 Control de HL</div>'+
+      '<div>📊 Total de horas</div>'+
     '</div>';
 }
 
