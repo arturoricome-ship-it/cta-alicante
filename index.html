@@ -400,6 +400,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-day.vacaciones{background:rgba(34,197,94,.14);color:#4ade80}
 .mc-day.festivo{background:rgba(251,191,36,.14);color:#fbbf24}
 .mc-day.hl,.mc-day.hlp{background:rgba(168,85,247,.14);color:#c084fc}
+.mc-day.hl-parcial{background:linear-gradient(135deg,rgba(59,130,246,.22) 0%,rgba(59,130,246,.22) 49%,rgba(168,85,247,.32) 51%,rgba(168,85,247,.32) 100%)!important;color:#e9e4f5!important}
 .mc-day.baja{background:rgba(239,68,68,.1);color:#f87171}
 .mc-day.perentorias{background:rgba(251,146,60,.12);color:#fb923c}
 .mc-day.h6,.mc-day.hfun{background:rgba(99,102,241,.12);color:#818cf8}
@@ -3842,7 +3843,9 @@ function mcRender(){
     // cls now computed per-cell below (hasPeren check)
     var hasPeren=dayObj&&dayObj.perenDur&&dayObj.perenDur!=='0:00';
     var hasHfun=dayObj&&dayObj.hfunDur&&dayObj.hfunDur!=='0:00';
+    var hasHLParcial=!!(dayObj&&dayObj.hlParcial&&dayObj.hlParcial.ini&&dayObj.hlParcial.fin);
     var dispCls='mc-day '+(hasPeren?'perentorias':(tipo||'libre'));
+    if(hasHLParcial)dispCls+=' hl-parcial';
     if(hasHfun)dispCls+=' hfun-mark';
     if(isThisMonth&&d===today.getDate())dispCls+=' hoy';
     var timeLines='';
@@ -3852,6 +3855,7 @@ function mcRender(){
     }
     if(hasPeren)timeLines+='<div class="mc-day-time" style="color:#fb923c">'+(dayObj.perenTipo==='cp'?'-':'+')+dayObj.perenDur+'</div>';
     if(hasHfun)timeLines+='<div class="mc-day-time" style="color:#818cf8">+'+dayObj.hfunDur+'</div>';
+    if(hasHLParcial)timeLines+='<div class="mc-day-time" style="color:#c084fc">HL '+dayObj.hlParcial.ini+'-'+dayObj.hlParcial.fin+'</div>';
     html+='<div class="'+dispCls+'" onclick="mcEditDay('+d+',event)">'+
       '<div class="mc-day-num">'+d+'</div>'+
       timeLines+
@@ -5705,6 +5709,35 @@ function g(id){return document.getElementById(id);}
 function toM(t){if(!t)return null;var p=t.split(":");return +p[0]*60+(+p[1]||0);}
 function fmtT(m){if(!m&&m!==0)return"";var h=Math.floor(m/60),mn=m%60;return h>0?h+"h"+(mn?" "+mn+"m":""):mn+"m";}
 
+// Cuando el usuario nunca ha importado su Tryp personal, "Mi jornada" muestra
+// instrucciones de cómo hacerlo en vez del placeholder de "Descanso" (que antes
+// salía igual tanto si hoy era descanso real como si no había datos en absoluto).
+function _renderJornadaSinImportarTryp(card){
+  var grid=card.parentElement;
+  var calCard=grid?grid.querySelector(".op-cal-card"):null;
+  if(calCard)calCard.style.display="none";
+  card.style.gridColumn="1 / -1";
+  card.innerHTML=
+    '<div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:8px">📥 Importa tu calendario del Tryp</div>'+
+    '<div style="font-size:10.5px;color:var(--gray);line-height:1.55;margin-bottom:12px">'+
+      '1. Entra en la intranet y descarga el Excel de tu calendario del Tryp.<br>'+
+      '2. Vuelve aquí y pulsa <b style="color:#e9e4f5">Importar TRYP</b>.'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:14px">'+
+      '<a href="https://tryp.southeu.com/tryp/website/horarios/calendario" target="_blank" onclick="event.stopPropagation()" style="flex:1;text-align:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 6px;color:var(--gray);font-size:11px;font-weight:700;text-decoration:none">🌐 Ir al Tryp</a>'+
+      '<button type="button" onclick="event.stopPropagation();openTrypImport()" style="flex:1;background:rgba(200,168,75,.18);border:1px solid rgba(200,168,75,.45);border-radius:10px;padding:9px 6px;color:var(--gold);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer">📤 Importar TRYP</button>'+
+    '</div>'+
+    '<div style="font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Con esto tendrás</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:10.5px;color:var(--gray)">'+
+      '<div>📅 Calendario completo</div>'+
+      '<div>⏱️ Horas mensuales</div>'+
+      '<div>🔢 Horas contador</div>'+
+      '<div>⚙️ Tus turnos cada día</div>'+
+      '<div>🧮 Total de horas</div>'+
+      '<div>🤝 Control de HL</div>'+
+    '</div>';
+}
+
 window.opSetDetalleDia=function(dia){
   try{localStorage.setItem('op_detalle_dia',dia==='manana'?'manana':'hoy');}catch(e){}
   if(typeof window.renderOperativa==='function')window.renderOperativa();
@@ -6439,6 +6472,21 @@ window.renderOperativa=function(){
 
   if(!card)return;
   ["state-working","state-pausa","state-rest","state-next"].forEach(function(c){card.classList.remove(c);});
+
+  // Si el usuario nunca ha importado su Tryp personal (ningún mes con datos en
+  // absoluto, no solo que hoy sea descanso), se muestran instrucciones de
+  // importación en vez del placeholder de "Descanso".
+  // Si en un render anterior se ocultó la tarjeta de calendario por falta de datos,
+  // se restaura aquí en cuanto vuelva a haber datos (sin necesitar recargar la página).
+  var hayDatosTryp=Object.keys(ue).some(function(mk){var m=ue[mk];return m&&typeof m==='object'&&Object.keys(m).length>0;});
+  if(hayDatosTryp){
+    card.style.gridColumn="";
+    var calCardRestore=card.parentElement?card.parentElement.querySelector(".op-cal-card"):null;
+    if(calCardRestore)calCardRestore.style.display="";
+  } else {
+    _renderJornadaSinImportarTryp(card);
+    return;
+  }
 
   var _isFreeDay=false;
   // Libre, Festivo, HL/HLP y Vacaciones se pintan como descanso en Mi jornada.
@@ -8163,6 +8211,13 @@ function _evClasificarEmpleadoEvento(emp, mes, dia, hDesde, hHasta, mesPublicado
   var fechaEvento=new Date(_evAño,_GRUPO_MONTHS.indexOf(mes),dia);
   var cambioCompartido=_getCambioCompartidoEmpleado(emp,fechaEvento);
   if(cambioCompartido)turno=_cambioToTurno(cambioCompartido);
+  // Si es Arturo y su calendario personal (este dispositivo) marca HL ese día, se ajusta:
+  // día completo → sin turno; parcial → se descuenta solo ese tramo. Igual que en
+  // Vista compañeros, esto faltaba aquí y por eso Buscar Evento seguía mostrando el
+  // turno entero aunque hubiera HL parcial marcado.
+  if(_esArturoPlantilla(emp.nombre||emp.nomina)){
+    turno=_arturoHLPubFecha(fechaEvento)?null:_ajustarTurnoConHLPersonal(turno,_miCalendarioDiaArturo(fechaEvento));
+  }
   var nombre=emp.nombre;
   var diasGuardados=Object.keys(diasMes).length;
   var mesVacioEmpleado=tieneMesEmp&&diasGuardados===0;
