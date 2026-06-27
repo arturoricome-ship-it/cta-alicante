@@ -4454,6 +4454,47 @@ function _esNombreBasuraGrupo(nombre){
   var up=n.toUpperCase().replace(/[\s.]/g,'');
   return _DIAS_CODIGO_BASURA.indexOf(up)>=0;
 }
+function _normNombreGrupo(nombre){
+  return String(nombre||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+function _totalDiasEmpGrupo(emp){
+  var t=0;var meses=(emp&&emp.meses)||{};
+  Object.keys(meses).forEach(function(mk){t+=Object.keys(meses[mk]||{}).length;});
+  return t;
+}
+// Fusiona automáticamente, sin avisos ni botón, entradas que son la misma persona
+// bajo distinta clave de nómina (p.ej. nómina real de una importación de categoría
+// suelta vs el ID sintético de un Excel "todos los grupos"). Se ejecuta solo en cada
+// import, conservando de cada mes los datos más completos entre las entradas fusionadas.
+function _fusionarDuplicadosGrupoSilencioso(map){
+  var porNombre={};
+  Object.keys(map).forEach(function(k){
+    var nk=_normNombreGrupo(map[k].nombre);
+    if(!porNombre[nk])porNombre[nk]=[];
+    porNombre[nk].push(k);
+  });
+  Object.keys(porNombre).forEach(function(nk){
+    var keys=porNombre[nk];
+    if(keys.length<2)return;
+    keys.sort(function(a,b){return _totalDiasEmpGrupo(map[b])-_totalDiasEmpGrupo(map[a]);});
+    var base=map[keys[0]];
+    var meses=base.meses||{};
+    for(var i=1;i<keys.length;i++){
+      var otro=map[keys[i]];
+      Object.keys(otro.meses||{}).forEach(function(mk){
+        var diasOtro=otro.meses[mk]||{};
+        var diasBase=meses[mk]||{};
+        if(!meses[mk]||Object.keys(diasOtro).length>Object.keys(diasBase).length){
+          meses[mk]=diasOtro;
+        }
+      });
+      delete map[keys[i]];
+    }
+    base.meses=meses;
+    map[keys[0]]=base;
+  });
+  return map;
+}
 
 function abrirTodaPlantilla(){
   var panel=document.getElementById('calc-panel');
@@ -4634,19 +4675,28 @@ function procesarGrupoXlsx(file){
       var nominaMap={};
       var _rawMap=localStorage.getItem(_GRUPO_KEY+'_map');
       try{nominaMap=JSON.parse(_rawMap||'{}')}catch(ex){}
+      _fusionarDuplicadosGrupoSilencioso(nominaMap);
+      var _porNombreExistente={};
+      Object.keys(nominaMap).forEach(function(k){_porNombreExistente[_normNombreGrupo(nominaMap[k].nombre)]=k;});
       var added=0,updated=0;
       empleados.forEach(function(emp){
-        if(nominaMap[emp.nomina]){updated++;}else{added++;}
+        var key=emp.nomina;
+        if(!nominaMap[key]){
+          var nk=_normNombreGrupo(emp.nombre);
+          if(_porNombreExistente[nk])key=_porNombreExistente[nk]; // misma persona ya registrada con otra clave
+        }
+        if(nominaMap[key]){updated++;}else{added++;}
         // Store month data under the detected month key
-        var prev=nominaMap[emp.nomina]||{};
+        var prev=nominaMap[key]||{};
         var meses=prev.meses||{};
         meses[monthKey]=emp.dias;
-        nominaMap[emp.nomina]={
-          nomina:emp.nomina,
+        nominaMap[key]={
+          nomina:key,
           nombre:emp.nombre,
           categoria:emp.categoria,
           meses:meses
         };
+        _porNombreExistente[_normNombreGrupo(emp.nombre)]=key;
       });
       try{localStorage.setItem(_GRUPO_KEY+'_map',JSON.stringify(nominaMap));}catch(ex){alert('Error guardando: '+ex.message);}
 
