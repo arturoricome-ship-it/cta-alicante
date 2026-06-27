@@ -4557,11 +4557,22 @@ function importarGrupo(){
 
 // Extrae el turno/tipo de una celda de día del Excel de grupo (DL, !, horas, etc.)
 // Devuelve null si el día no está publicado (no se guarda).
+// Códigos de ausencia que en el Excel de grupo vienen anotados entre paréntesis
+// (segundo formato, alternativo al de "!"), p.ej. "06:00 13:00 (V) (B0)": el turno con
+// horas que trae la celda quedó anulado por la baja/excedencia/vacaciones, así que no
+// cuenta como turno de trabajo real aunque haya horas escritas.
+var _CODIGOS_AUSENCIA_GRUPO=['B0','EXC','V','MA'];
 function _parseCeldaDiaGrupo(cellRaw){
   var cell=String(cellRaw||'').trim();
   if(cell==='')return null; // Celda vacía → sin publicar, no se guarda
   // Exclamación → baja, vacaciones o similar → cuenta como día libre
   if(cell.indexOf('!')!==-1){
+    return {tipo:'libre',e1:'',s1:'',e2:'',s2:'',ausencia:true};
+  }
+  // Formato alternativo: código de ausencia entre paréntesis, con o sin horas reales
+  // acompañándolo. El código manda: si está presente, es ausencia aunque haya horas.
+  var notasCelda=(cell.match(/\(([^)]+)\)/g)||[]).map(function(n){return n.replace(/[()]/g,'').toUpperCase().trim();});
+  if(notasCelda.some(function(n){return _CODIGOS_AUSENCIA_GRUPO.indexOf(n)>=0;})){
     return {tipo:'libre',e1:'',s1:'',e2:'',s2:'',ausencia:true};
   }
   var cellUp=cell.toUpperCase().replace(/[\s.]/g,'');
