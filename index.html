@@ -2656,8 +2656,18 @@ function handleCredentialResponse(response){
   if(!payload){status.textContent="Error. Inténtalo de nuevo.";return;}
   var email=payload.email;
   var nombre=payload.name||email;
+  // Para el Log de Sheets (solo eso): si ya hay una identidad real del Tryp guardada en
+  // este dispositivo para este mismo email, se manda esa en vez del nombre de Google.
+  // "nombre" (el que queda guardado como sesión y se usa en el resto de la app) no se toca.
+  var nombreParaLog=nombre;
+  try{
+    var trypLogin=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');
+    if(trypLogin&&trypLogin.email&&trypLogin.nombre&&trypLogin.email===email){
+      nombreParaLog=trypLogin.nombre+(trypLogin.nomina?' ('+trypLogin.nomina+')':'');
+    }
+  }catch(e){}
 
-  fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:email,nombre:nombre}),headers:{"Content-Type":"text/plain"}})
+  fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({email:email,nombre:nombreParaLog}),headers:{"Content-Type":"text/plain"}})
   .then(function(r){return r.json();})
   .then(function(data){
     if(data.bloqueado){
@@ -3393,12 +3403,22 @@ function tiApplyBackup(){
 function logActividad(tipo, detalle){
   var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
   if(!sess||!sess.email){console.warn('logActividad: no session for',tipo);return;}
+  // Si ya se ha importado el Tryp personal, se manda nombre+nómina reales en vez del
+  // nombre de Google (que puede no coincidir con el oficial). Hasta que se importe,
+  // se sigue mandando el nombre de Google como hasta ahora.
+  var nombreLog=sess.nombre||'';
+  try{
+    var tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');
+    if(tryp&&tryp.email&&tryp.nombre&&tryp.email===sess.email){
+      nombreLog=tryp.nombre+(tryp.nomina?' ('+tryp.nomina+')':'');
+    }
+  }catch(e){}
   console.log('logActividad →',tipo,sess.email, detalle||'');
   var url=typeof SHEETS_URL!=='undefined'?SHEETS_URL:null;
   if(!url){console.warn('logActividad: no SHEETS_URL');return;}
   fetch(url,{
     method:'POST',
-    body:JSON.stringify({accion:'log_accion',email:sess.email,nombre:sess.nombre||'',tipo:tipo,detalle:detalle||''}),
+    body:JSON.stringify({accion:'log_accion',email:sess.email,nombre:nombreLog,tipo:tipo,detalle:detalle||''}),
     headers:{'Content-Type':'text/plain'}
   }).then(function(r){return r.json();}).then(function(d){console.log('logActividad ok',tipo,d);})
   .catch(function(e){console.error('logActividad error',tipo,e);});
@@ -3709,6 +3729,12 @@ function tiHandleFile(file){
       var data=new Uint8Array(ev.target.result);
       var wb=XLSX.read(data,{type:'array',cellText:true,cellStyles:true});
       var sheet=wb.Sheets['Calendario empleado']||wb.Sheets[wb.SheetNames[0]];
+      var leyenda=_leerLeyendaTryp(wb);
+      if(leyenda&&leyenda.nombreCompleto){
+        _guardarMiIdentidadTryp(leyenda.nombreCompleto,leyenda.nomina);
+      } else {
+        _guardarMiIdentidadTryp(_extraerNombreDeTituloTryp(tiCellVal(sheet,1,0)),'');
+      }
       tiParseSheet(sheet,file.name);
     }catch(err){alert('Error al leer el archivo: '+err.message);}
   };
@@ -3796,7 +3822,6 @@ function tiParseCell(raw,isGreyCell){
   return{tipo:tipo,e1:times[0],s1:'',e2:'',s2:'',perenMode:perenMode};
 }
 function tiParseSheet(sheet,filename){
-  _guardarMiNombreRealTryp(tiCellVal(sheet,1,0));
   var result={},stats=[];
   for(var row=3;row<=14;row++){
     var monthRaw=tiCellVal(sheet,row,0);
@@ -4628,17 +4653,40 @@ function _esNombreBasuraGrupo(nombre){
 function _normNombreGrupo(nombre){
   return String(nombre||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
 }
-// El título del Tryp personal viene como "Nombre Apellido1 Apellido2 Calendario 2026".
-// Se extrae el nombre (quitando " Calendario <año>") y se guarda asociado al email de
-// la sesión actual: es el nombre oficial exacto, más fiable que el nombre de Google.
-function _guardarMiNombreRealTryp(tituloRaw){
-  var t=String(tituloRaw||'').trim();
-  if(!t)return;
-  var nombre=t.replace(/\s+calendario\s+\d{4}\s*$/i,'').trim();
-  if(!nombre||_esNombreBasuraGrupo(nombre))return;
+// Identidad real del Tryp personal: nombre + nómina, asociados al email de la sesión
+// actual. Más fiable que el nombre de Google (que puede no coincidir con el oficial),
+// y se usa también para sustituirlo en el Log de Sheets una vez se ha importado.
+function _guardarMiIdentidadTryp(nombre,nomina){
+  var n=String(nombre||'').trim();
+  if(!n||_esNombreBasuraGrupo(n))return;
   var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
   var email=(sess&&sess.email)||'';
-  try{localStorage.setItem('cta_mi_nombre_tryp',JSON.stringify({email:email,nombre:nombre}));}catch(e){}
+  try{localStorage.setItem('cta_mi_nombre_tryp',JSON.stringify({email:email,nombre:n,nomina:String(nomina||'').trim()}));}catch(e){}
+}
+// Respaldo si no se encuentra la hoja "Leyenda": el título del Tryp personal viene como
+// "Nombre Apellido1 Apellido2 Calendario 2026"; se le quita " Calendario <año>".
+function _extraerNombreDeTituloTryp(tituloRaw){
+  var t=String(tituloRaw||'').trim();
+  if(!t)return '';
+  return t.replace(/\s+calendario\s+\d{4}\s*$/i,'').trim();
+}
+// Lee la hoja "Leyenda" del Tryp personal (si existe), con filas "Nómina"/"Nombre
+// Completo" en limpio — más fiable que parsear el título de la hoja de calendario.
+function _leerLeyendaTryp(wb){
+  var sheet=wb&&wb.Sheets&&wb.Sheets['Leyenda'];
+  if(!sheet)return null;
+  var nomina='',nombreCompleto='';
+  for(var r=0;r<20;r++){
+    var k=tiCellVal(sheet,r,0);
+    if(!k)continue;
+    var kUp=k.toUpperCase();
+    if(kUp.indexOf('NOMINA')>=0||kUp.indexOf('NÓMINA')>=0){
+      var v=tiCellVal(sheet,r,1);if(v)nomina=v;
+    } else if(kUp.indexOf('NOMBRE COMPLETO')>=0){
+      var v2=tiCellVal(sheet,r,1);if(v2)nombreCompleto=v2;
+    }
+  }
+  return (nomina||nombreCompleto)?{nomina:nomina,nombreCompleto:nombreCompleto}:null;
 }
 // Identifica qué entrada del roster del grupo corresponde al usuario actual.
 // Prioridad: 1) nombre real extraído del Tryp personal (exacto, mismo formato oficial
