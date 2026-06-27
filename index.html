@@ -2578,7 +2578,6 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   <div class="calc-sub">Importa el Excel del grupo y consulta quién coincide contigo</div>
   <div class="calc-btn-row">
     <button class="calc-small-btn" id="btn-import-grupo" onclick="importarGrupo()">📥 Importar</button>
-    <button class="calc-small-btn" id="btn-limpiar-grupo" onclick="limpiarGrupoCorrupcion()" title="Eliminar entradas corruptas y fusionar duplicados">🧹 Limpiar</button>
     <button class="calc-small-btn" id="btn-mismo-turno" onclick="filtrarMismoTurno()">🎯 Mismo turno</button>
     <button class="calc-small-btn" id="btn-en-turno" onclick="filtrarEnTurno()">⚡ En turno</button>
     <button id="btn-sort-salida" onclick="toggleSortSalida()" title="Ordenar por próxima salida" style="background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:5px 9px;cursor:pointer;font-size:13px;line-height:1">⇅</button>
@@ -4455,61 +4454,6 @@ function _esNombreBasuraGrupo(nombre){
   var up=n.toUpperCase().replace(/[\s.]/g,'');
   return _DIAS_CODIGO_BASURA.indexOf(up)>=0;
 }
-function _normNombreGrupo(nombre){
-  return String(nombre||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
-}
-function _totalDiasEmpGrupo(emp){
-  var t=0;var meses=(emp&&emp.meses)||{};
-  Object.keys(meses).forEach(function(mk){t+=Object.keys(meses[mk]||{}).length;});
-  return t;
-}
-
-// Limpia entradas corruptas (turnos/códigos colados como nombre, p.ej. de una
-// importación con el parser antiguo sobre un Excel de formato nuevo) y fusiona
-// empleados duplicados que comparten el mismo nombre normalizado pero distinta
-// clave de nómina, conservando los datos más completos de cada mes.
-function limpiarGrupoCorrupcion(){
-  var raw=localStorage.getItem(_GRUPO_KEY+'_map');
-  var map;try{map=JSON.parse(raw||'{}');}catch(ex){map={};}
-
-  var eliminadosBasura=0,fusionados=0;
-  var porNombre={};
-  Object.keys(map).forEach(function(k){
-    var emp=map[k];
-    if(_esNombreBasuraGrupo(emp&&emp.nombre)){delete map[k];eliminadosBasura++;return;}
-    var key=_normNombreGrupo(emp.nombre);
-    if(!porNombre[key])porNombre[key]=[];
-    porNombre[key].push(k);
-  });
-
-  Object.keys(porNombre).forEach(function(key){
-    var keys=porNombre[key];
-    if(keys.length<2)return;
-    keys.sort(function(a,b){return _totalDiasEmpGrupo(map[b])-_totalDiasEmpGrupo(map[a]);});
-    var base=map[keys[0]];
-    var meses=base.meses||{};
-    for(var i=1;i<keys.length;i++){
-      var otro=map[keys[i]];
-      Object.keys(otro.meses||{}).forEach(function(mk){
-        var diasOtro=otro.meses[mk]||{};
-        var diasBase=meses[mk]||{};
-        if(!meses[mk]||Object.keys(diasOtro).length>Object.keys(diasBase).length){
-          meses[mk]=diasOtro;
-        }
-      });
-      delete map[keys[i]];
-      fusionados++;
-    }
-    base.meses=meses;
-    map[keys[0]]=base;
-  });
-
-  try{localStorage.setItem(_GRUPO_KEY+'_map',JSON.stringify(map));}catch(ex){alert('Error guardando: '+ex.message);return;}
-  var total=0;for(var _k in map){if(map.hasOwnProperty(_k))total++;}
-  alert('Limpieza completada.\n\nEntradas basura eliminadas: '+eliminadosBasura+'\nDuplicados fusionados: '+fusionados+'\nTotal empleados ahora: '+total);
-  var gp=document.getElementById('grupo-panel');
-  if(gp&&gp.classList.contains('open')&&typeof verCompanerosHoy==='function')verCompanerosHoy(true);
-}
 
 function abrirTodaPlantilla(){
   var panel=document.getElementById('calc-panel');
@@ -4872,6 +4816,9 @@ function formateaFechaGrupo(baseDate,offsetDias){
 function normalizaCategoriaGrupo(cat){
   cat=String(cat||'General').trim();
   if(/\bFDS?\b|FIJOS?\s+DISCONTINUOS?/i.test(cat))return 'FD';
+  if(/AGENTES?\s*JEFE/i.test(cat))return 'Agentes Jefe';
+  if(/SUPERVIS/i.test(cat))return 'Supervisores';
+  if(/OPERARI/i.test(cat))return 'Operarios';
   return cat||'General';
 }
 
@@ -6683,16 +6630,12 @@ function _parseCategoria(cat){
   return{tipo:tipo,rol:rol};
 }
 
-// Compatibilidad de contratos. FIJO y FD son categorías aisladas: solo cambian
-// entre sí mismas (un FD nunca con un FTP/Eventual aunque coincida el rol).
+// Compatibilidad de cambios de turno: solo importa el rol. Operarios cambian con
+// operarios (sean Fijos, FTP o FD), Supervisores con Supervisores (Fijos, FTP o FD),
+// y Agentes Jefe solo entre Agentes Jefe. El tipo de contrato no restringe el cambio.
 function _sonCompatibles(cat1,cat2){
   var a=_parseCategoria(cat1), b=_parseCategoria(cat2);
-  if(a.rol!==b.rol)return false;
-  var aislados=['FIJO','FD'];
-  if(aislados.indexOf(a.tipo)>=0||aislados.indexOf(b.tipo)>=0){
-    if(a.tipo!==b.tipo)return false;
-  }
-  return true;
+  return a.rol===b.rol;
 }
 
 // Validar un turno resultante cumple las reglas
