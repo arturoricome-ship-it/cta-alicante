@@ -4459,6 +4459,63 @@ function importarGrupo(){
   document.getElementById('grupo-file-input').click();
 }
 
+// Extrae el turno/tipo de una celda de día del Excel de grupo (DL, !, horas, etc.)
+// Devuelve null si el día no está publicado (no se guarda).
+function _parseCeldaDiaGrupo(cellRaw){
+  var cell=String(cellRaw||'').trim();
+  if(cell==='')return null; // Celda vacía → sin publicar, no se guarda
+  // Exclamación → baja, vacaciones o similar → cuenta como día libre
+  if(cell.indexOf('!')!==-1){
+    return {tipo:'libre',e1:'',s1:'',e2:'',s2:'',ausencia:true};
+  }
+  var cellUp=cell.toUpperCase().replace(/[\s.]/g,'');
+  var esLibre=(cellUp==='DL'||cellUp==='LIBRE'||cellUp==='DIALIBRE'||cellUp==='DESCANSO'||cellUp==='DESCANSOSEMANA'||cellUp==='MA'||cellUp==='FM'||cellUp==='FY');
+  if(esLibre){
+    return {tipo:'libre',e1:'',s1:'',e2:'',s2:''};
+  }
+  var parsed=parseTurnoGrupo(cell);
+  if(parsed){
+    // Si no tiene horas válidas, tratarlo como libre (vacaciones, baja, etc. cuentan como no-trabajo ese día)
+    if(!parsed.e1)return {tipo:parsed.tipo||'libre',e1:'',s1:'',e2:'',s2:''};
+    return parsed;
+  }
+  return null;
+}
+
+// Construye la categoría normalizada "CONTRATO ROL" a partir del texto de una fila
+// separadora de grupo del Excel "todos los grupos", p.ej. "09 UAR-Ftp-Supervisores" → "FTP SUPERVISOR"
+function _categoriaDesdeTextoGrupo(texto){
+  var t=String(texto||'').toUpperCase();
+  var contrato='FIJO';
+  if(/FTP/.test(t))contrato='FTP';
+  else if(/\bFDS?\b|DISCONTINU/.test(t))contrato='FD';
+  else if(/EVENTUAL/.test(t))contrato='EVENTUAL';
+  var rol='OPERARIO';
+  if(/AGENTES?\s*JEFE/.test(t))rol='AGENTE JEFE';
+  else if(/SUPERVIS/.test(t))rol='SUPERVISOR';
+  return contrato+' '+rol;
+}
+
+// Genera un identificador estable para empleados sin columna de Nómina (formato
+// "todos los grupos"), a partir de su nombre normalizado.
+function _nominaSinteticaDesdeNombre(nombreFull){
+  return 'NOM_'+String(nombreFull||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+}
+
+// Detecta el mes del calendario a partir del nombre de hoja o las primeras filas
+function _detectarMesGrupo(rows,sheetName){
+  var monthNames={enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11};
+  var detected=new Date().getMonth();
+  var texto=String(sheetName||'').toLowerCase();
+  for(var rr=0;rr<3&&rr<rows.length;rr++){
+    for(var cc=0;cc<3&&rows[rr]&&cc<rows[rr].length;cc++){
+      texto+=' '+String(rows[rr][cc]||'').toLowerCase();
+    }
+  }
+  Object.keys(monthNames).forEach(function(k){if(texto.indexOf(k)>=0)detected=monthNames[k];});
+  return detected;
+}
+
 function procesarGrupoXlsx(file){
   if(!file)return;
   if(typeof XLSX==='undefined'){alert('Error: librería XLSX no cargada.');return;}
@@ -4469,88 +4526,100 @@ function procesarGrupoXlsx(file){
       var ws=wb.Sheets[wb.SheetNames[0]];
       var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
 
-      // Row 3 (index 3) = headers: Nómina, Empleado, V1, S2, D3...
-      var headerRow=rows[3]||[];
+      // Localizar la fila de cabecera buscando la celda "Empleado". Su columna nos dice
+      // el formato: si "Empleado" está en la columna 0 → Excel "todos los grupos" (sin
+      // Nómina); si está en la columna 1 → Excel de una sola categoría (con Nómina antes).
+      var hIdx=3,empCol=1,encontrada=false;
+      for(var hr=0;hr<Math.min(8,rows.length)&&!encontrada;hr++){
+        var hrow=rows[hr]||[];
+        for(var hc=0;hc<Math.min(4,hrow.length);hc++){
+          if(String(hrow[hc]||'').trim().toLowerCase()==='empleado'){hIdx=hr;empCol=hc;encontrada=true;break;}
+        }
+      }
+      var nominaCol=empCol>0?empCol-1:null;
+      var formato=(nominaCol===null)?'MULTI':'SINGLE';
+
       // Build day→col map from headers like "V1","S2","D3","L4"...
+      var headerRow=rows[hIdx]||[];
       var dayColMap={};
-      for(var c=2;c<headerRow.length;c++){
+      for(var c=empCol+1;c<headerRow.length;c++){
         var h=String(headerRow[c]).trim();
         var dayNum=parseInt(h.replace(/^[A-Za-z]+/,''));
         if(dayNum>=1&&dayNum<=31)dayColMap[dayNum]=c;
       }
 
-      // Detect category from row 2 (e.g. "06 UAR- FTP-Operarios 01 may...")
-      var row2=String(rows[1]&&rows[1][0]||'');
-      var categoria='General';
-      // Extract word before date pattern "01 may - 31 may 2026"
-      var row2clean=row2.replace(/\d{1,2}\s*(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)[\s\S]*/i,'').trim();
-      // Get last meaningful token after last dash
-      var dashParts=row2clean.split('-');
-      var lastToken=dashParts[dashParts.length-1].trim();
-      if(lastToken.length>2&&lastToken.length<50&&!/^\d+$/.test(lastToken)){
-        categoria=lastToken;
-      }
-      // FD/FDS detection: filename, row2, cleaned header or detected category.
-      // Keeps fixed-discontinuous workers separated at the end instead of mixing them as General.
-      var _fdSource=[file&&file.name||'',row2,row2clean,categoria,lastToken].join(' ');
-      var isFD=/\bFDS?\b|FIJOS?\s+DISCONTINUOS?/i.test(_fdSource);
-      if(isFD)categoria='FD';
-
-      // Detect month from row 3 or sheet name
-      var sheetName=wb.SheetNames[0];
-      var monthNames={enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11};
-      var detectedMonth=new Date().getMonth();
-      var row3=String(rows[2]&&rows[2][2]||'').toLowerCase();
-      Object.keys(monthNames).forEach(function(k){if(row3.indexOf(k)>=0||sheetName.toLowerCase().indexOf(k)>=0)detectedMonth=monthNames[k];});
-      var monthKey=_GRUPO_MONTHS[detectedMonth];
-
-      // Parse each employee
+      var monthKey=_GRUPO_MONTHS[_detectarMesGrupo(rows,wb.SheetNames[0])];
       var empleados=[];
-      for(var r=4;r<rows.length;r++){
-        var row=rows[r];
-        if(!row[0]||!row[1])continue;
-        var nomina=String(row[0]).trim();
-        var nombreFull=String(row[1]).trim();
-        // Skip footer rows
-        if(nomina.toLowerCase().indexOf('calendario')>=0||nomina.toLowerCase().indexOf('fecha')>=0)continue;
-        // Name: "Apellido Apellido, Nombre" → "Nombre Apellido1"
-        var nombre=formatNombre(nombreFull);
-        var diasMes={};
-        Object.keys(dayColMap).forEach(function(d){
-          var cell=String(row[dayColMap[d]]||'').trim();
-          if(cell===''){
-            // Celda vacía → sin publicar, no se guarda
-            return;
-          }
-          // Exclamación → baja, vacaciones o similar → cuenta como día libre
-          if(cell.indexOf('!')!==-1){
-            diasMes[parseInt(d)]={tipo:'libre',e1:'',s1:'',e2:'',s2:'',ausencia:true};
-            return;
-          }
-          var cellUp=cell.toUpperCase().replace(/[\s.]/g,'');
-          var esLibre=(cellUp==='DL'||cellUp==='LIBRE'||cellUp==='DIALIBRE'||cellUp==='DESCANSO'||cellUp==='DESCANSOSEMANA'||cellUp==='MA'||cellUp==='FM'||cellUp==='FY');
-          if(esLibre){
-            diasMes[parseInt(d)]={tipo:'libre',e1:'',s1:'',e2:'',s2:''};
-            return;
-          }
-          var parsed=parseTurnoGrupo(cell);
-          if(parsed){
-            // Si no tiene horas válidas, tratarlo como libre (vacaciones, baja, etc. cuentan como no-trabajo ese día)
-            if(!parsed.e1){
-              diasMes[parseInt(d)]={tipo:parsed.tipo||'libre',e1:'',s1:'',e2:'',s2:''};
-            } else {
-              diasMes[parseInt(d)]=parsed;
+      var gruposDetectados=[];
+
+      if(formato==='SINGLE'){
+        // ── Excel de una sola categoría (con columna Nómina, categoría en la fila 2) ──
+        var row2=String(rows[1]&&rows[1][0]||'');
+        var categoria='General';
+        var row2clean=row2.replace(/\d{1,2}\s*(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)[\s\S]*/i,'').trim();
+        var dashParts=row2clean.split('-');
+        var lastToken=dashParts[dashParts.length-1].trim();
+        if(lastToken.length>2&&lastToken.length<50&&!/^\d+$/.test(lastToken)){
+          categoria=lastToken;
+        }
+        // FD/FDS detection: filename, row2, cleaned header or detected category.
+        var _fdSource=[file&&file.name||'',row2,row2clean,categoria,lastToken].join(' ');
+        var isFD=/\bFDS?\b|FIJOS?\s+DISCONTINUOS?/i.test(_fdSource);
+        if(isFD)categoria='FD';
+
+        for(var r=hIdx+1;r<rows.length;r++){
+          var row=rows[r];
+          if(!row[nominaCol]||!row[empCol])continue;
+          var nomina=String(row[nominaCol]).trim();
+          var nombreFull=String(row[empCol]).trim();
+          if(nomina.toLowerCase().indexOf('calendario')>=0||nomina.toLowerCase().indexOf('fecha')>=0)continue;
+          var nombre=formatNombre(nombreFull);
+          var diasMes={};
+          Object.keys(dayColMap).forEach(function(d){
+            var t=_parseCeldaDiaGrupo(row[dayColMap[d]]);
+            if(t)diasMes[parseInt(d)]=t;
+          });
+          empleados.push({nomina:nomina,nombre:nombre,categoria:categoria,dias:diasMes});
+        }
+        gruposDetectados.push(categoria);
+      } else {
+        // ── Excel "todos los grupos" (varias categorías en la misma hoja, separadas por
+        //    filas tipo "09 UAR-Ftp-Supervisores" que solo tienen texto en la columna A) ──
+        var currentCategoria='FIJO OPERARIO';
+        for(var r2=hIdx+1;r2<rows.length;r2++){
+          var rowM=rows[r2];
+          var cellA=String((rowM&&rowM[empCol])||'').trim();
+          if(cellA==='')continue;
+
+          // Los nombres de empleado siempre vienen como "Apellido(s), Nombre" (con coma).
+          // Lo que no lleva coma es cabecera de grupo (empieza por 2 dígitos) o un
+          // título/pie de página (p.ej. "ALC RAMPA", "Calendario: Publicado") → se descarta.
+          // Importante: un empleado sin ningún día publicado ese mes sigue llevando coma,
+          // así que no se pierde (a diferencia de filtrar por "fila sin datos de turno").
+          if(cellA.indexOf(',')<0){
+            if(/^\d{1,2}\s/.test(cellA)){
+              currentCategoria=_categoriaDesdeTextoGrupo(cellA);
+              if(gruposDetectados.indexOf(currentCategoria)<0)gruposDetectados.push(currentCategoria);
             }
+            continue;
           }
-        });
-        empleados.push({nomina:nomina,nombre:nombre,categoria:categoria,dias:diasMes});
+
+          var nombreFull2=cellA;
+          var nomina2=_nominaSinteticaDesdeNombre(nombreFull2);
+          var nombre2=formatNombre(nombreFull2);
+          var diasMes2={};
+          Object.keys(dayColMap).forEach(function(d){
+            var t=_parseCeldaDiaGrupo(rowM[dayColMap[d]]);
+            if(t)diasMes2[parseInt(d)]=t;
+          });
+          empleados.push({nomina:nomina2,nombre:nombre2,categoria:currentCategoria,dias:diasMes2});
+        }
       }
 
       // Merge: flat map by nomina — month-independent, category-aware
       var nominaMap={};
       var _rawMap=localStorage.getItem(_GRUPO_KEY+'_map');
       try{nominaMap=JSON.parse(_rawMap||'{}')}catch(ex){}
-      var _beforeCount=0;for(var _bk in nominaMap){if(nominaMap.hasOwnProperty(_bk))_beforeCount++;}
       var added=0,updated=0;
       empleados.forEach(function(emp){
         if(nominaMap[emp.nomina]){updated++;}else{added++;}
@@ -4572,7 +4641,11 @@ function procesarGrupoXlsx(file){
       if(btn)btn.classList.add('has-data');
       var hint=document.getElementById('grupo-import-hint');
       var txt=document.getElementById('grupo-import-txt');
-      if(hint&&txt){hint.style.display='block';txt.style.color='#4ade80';txt.style.fontSize='11px';txt.textContent='✅ '+categoria+': +'+added+' nuevos, '+updated+' actualizados · '+total+' total';}
+      if(hint&&txt){
+        hint.style.display='block';txt.style.color='#4ade80';txt.style.fontSize='11px';
+        var etiqueta=(formato==='MULTI')?(gruposDetectados.length+' grupos'):gruposDetectados[0];
+        txt.textContent='✅ '+etiqueta+': +'+added+' nuevos, '+updated+' actualizados · '+total+' total';
+      }
     }catch(err){alert('Error al leer el Excel del grupo: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
@@ -6534,17 +6607,21 @@ function _parseCategoria(cat){
   else if(/FTP/.test(cat))tipo='FTP';
   else if(/FDS?|DISCONTINU/.test(cat))tipo='FD';
   else if(/EVENTUAL/.test(cat))tipo='EVENTUAL';
-  if(/SUPERVIS/.test(cat))rol='SUPERVISOR';
+  if(/AGENTES?\s*JEFE/.test(cat))rol='AGENTE_JEFE';
+  else if(/SUPERVIS/.test(cat))rol='SUPERVISOR';
   else if(/OPERARI/.test(cat)||/OPER/.test(cat))rol='OPERARIO';
   return{tipo:tipo,rol:rol};
 }
 
-// Compatibilidad de contratos
+// Compatibilidad de contratos. FIJO y FD son categorías aisladas: solo cambian
+// entre sí mismas (un FD nunca con un FTP/Eventual aunque coincida el rol).
 function _sonCompatibles(cat1,cat2){
   var a=_parseCategoria(cat1), b=_parseCategoria(cat2);
   if(a.rol!==b.rol)return false;
-  if(a.tipo==='FIJO'&&b.tipo!=='FIJO')return false;
-  if(b.tipo==='FIJO'&&a.tipo!=='FIJO')return false;
+  var aislados=['FIJO','FD'];
+  if(aislados.indexOf(a.tipo)>=0||aislados.indexOf(b.tipo)>=0){
+    if(a.tipo!==b.tipo)return false;
+  }
   return true;
 }
 
