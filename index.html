@@ -4030,6 +4030,7 @@ function mcRenderSummary(ue){
     }
     if(totalTypes.indexOf(day.tipo)>=0) totalMin+=eff;
     if(day.tipo==='hl') hlMin+=eff;
+    else if(day.hlParcial) hlMin+=_mcMin(day.hlParcial.ini,day.hlParcial.fin);
   });
 
   _MC_MONTHS.forEach(function(mk){
@@ -4042,6 +4043,7 @@ function mcRenderSummary(ue){
       if(totalTypes.indexOf(day.tipo)>=0) anualMin+=eff;
       if(contTypes.indexOf(day.tipo)>=0) anualContMin+=eff;
       if(day.tipo==='hl') hlAnualMin+=eff;
+      else if(day.hlParcial) hlAnualMin+=_mcMin(day.hlParcial.ini,day.hlParcial.fin);
     });
   });
   var names=_MC_NAMES;
@@ -4109,6 +4111,21 @@ function mcRenderSummary(ue){
 
 // ─── Day edit modal ──────────────────────────────────────────────
 var _mcEditDay=null,_mcEditMonth=null,_mcEditYear=null;
+var _mcHLModo='completo'; // 'completo' | 'parcial' — modo activo del sub-selector HL
+function mcHLModoSel(modo){
+  _mcHLModo=modo;
+  var bC=document.getElementById('mc-hl-modo-completo'),bP=document.getElementById('mc-hl-modo-parcial');
+  var times=document.getElementById('mc-hl-parcial-times');
+  if(modo==='parcial'){
+    bP.style.background='rgba(192,132,252,.18)';bP.style.borderColor='rgba(192,132,252,.45)';bP.style.color='#c084fc';
+    bC.style.background='rgba(255,255,255,.06)';bC.style.borderColor='rgba(255,255,255,.12)';bC.style.color='var(--gray)';
+    if(times)times.style.display='block';
+  } else {
+    bC.style.background='rgba(192,132,252,.18)';bC.style.borderColor='rgba(192,132,252,.45)';bC.style.color='#c084fc';
+    bP.style.background='rgba(255,255,255,.06)';bP.style.borderColor='rgba(255,255,255,.12)';bP.style.color='var(--gray)';
+    if(times)times.style.display='none';
+  }
+}
 var _MC_TIPOS=[
   {v:'trabajado',l:'Trabajado',ico:'⚙️',c:'#60a5fa'},
   {v:'hl',l:'H. Libre',ico:'🤝',c:'#c084fc'},
@@ -4135,7 +4152,7 @@ function mcEditDay(day,e){
   var title=dname+' '+day+' '+_MC_NAMES[_mcMonth];
   document.getElementById('mc-edit-title').textContent=title;
   // Mark current tipo — if day has perenDur, select perentorias btn
-  var displayTipo=(dayObj.perenDur&&dayObj.perenDur!=='0:00')?(dayObj.perenTipo||'perentorias'):(dayObj.hfunDur&&dayObj.hfunDur!=='0:00')?'hfun':dayObj.tipo;
+  var displayTipo=(dayObj.perenDur&&dayObj.perenDur!=='0:00')?(dayObj.perenTipo||'perentorias'):(dayObj.hfunDur&&dayObj.hfunDur!=='0:00')?'hfun':(dayObj.hlParcial?'hl':dayObj.tipo);
   document.querySelectorAll('.mc-tipo-btn').forEach(function(b){
     b.classList.toggle('sel',b.dataset.tipo===displayTipo);
   });
@@ -4149,20 +4166,28 @@ function mcEditDay(day,e){
   if(ptEl)ptEl.value=dayObj.perenDur||'';
   var hfEl=document.getElementById('mc-hfun-total');
   if(hfEl)hfEl.value=dayObj.hfunDur||'0:30';
+  // HL: modo completo/parcial + horas del tramo si lo hay
+  mcHLModoSel(dayObj.hlParcial?'parcial':'completo');
+  var hlIniEl=document.getElementById('mc-hl-ini'),hlFinEl=document.getElementById('mc-hl-fin');
+  if(hlIniEl)hlIniEl.value=(dayObj.hlParcial&&dayObj.hlParcial.ini)||'';
+  if(hlFinEl)hlFinEl.value=(dayObj.hlParcial&&dayObj.hlParcial.fin)||'';
   // Auto-show correct section
   var showTimesEl=document.getElementById('mc-edit-times');
   var showPerenEl=document.getElementById('mc-edit-peren');
   var showHfunEl=document.getElementById('mc-edit-hfun');
+  var showHlEl=document.getElementById('mc-edit-hl');
   if(displayTipo==='perentorias'||displayTipo==='cp'){
-    showTimesEl.style.display='none';showPerenEl.style.display='block';if(showHfunEl)showHfunEl.style.display='none';
+    showTimesEl.style.display='none';showPerenEl.style.display='block';if(showHfunEl)showHfunEl.style.display='none';if(showHlEl)showHlEl.style.display='none';
     var pl=document.getElementById('mc-peren-label');
     if(pl)pl.textContent=displayTipo==='cp'?'Horas compensadas (banco)':'Horas de perentorias realizadas';
   } else if(displayTipo==='hfun'){
-    showTimesEl.style.display='none';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='block';
+    showTimesEl.style.display='none';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='block';if(showHlEl)showHlEl.style.display='none';
   } else if(displayTipo==='trabajado'||displayTipo==='curso'){
-    showTimesEl.style.display='block';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='none';
+    showTimesEl.style.display='block';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='none';if(showHlEl)showHlEl.style.display='none';
+  } else if(displayTipo==='hl'){
+    showTimesEl.style.display='none';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='none';if(showHlEl)showHlEl.style.display='block';
   } else {
-    showTimesEl.style.display='none';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='none';
+    showTimesEl.style.display='none';showPerenEl.style.display='none';if(showHfunEl)showHfunEl.style.display='none';if(showHlEl)showHlEl.style.display='none';
   }
   document.getElementById('mc-edit-bg').style.display='block';
   setTimeout(function(){document.getElementById('mc-edit-panel').classList.add('open');},10);
@@ -4196,6 +4221,7 @@ function mcEditSave(){
     });
     // If day was libre, mark as trabajado so shift shows
     if(!ue[month][day].tipo||ue[month][day].tipo==='libre')ue[month][day].tipo='trabajado';
+    delete ue[month][day].hlParcial;
   } else if(tipoVal==='hfun'){
     // Overlay: H. Función NO sustituye el turno del día.
     // Mantiene tipo, horarios y total existentes; solo añade la línea morada +hh:mm.
@@ -4211,6 +4237,41 @@ function mcEditSave(){
       total:existingDay.total||0,
       hfunDur:hfunTxt
     });
+    delete ue[month][day].hlParcial;
+  } else if(tipoVal==='hl'){
+    if(_mcHLModo==='parcial'){
+      // HL parcial: overlay sobre el turno existente, igual que Perentorias/H.Función.
+      // NO sustituye tipo/horas: el turno sigue siendo el real, solo se anota el tramo HL.
+      var hlIni=document.getElementById('mc-hl-ini').value.trim();
+      var hlFin=document.getElementById('mc-hl-fin').value.trim();
+      if(!hlIni||!hlFin){alert('Indica las horas Desde/Hasta del tramo HL.');return;}
+      var baseTipoHL=existingDay.tipo;
+      if(!baseTipoHL||baseTipoHL==='libre'||baseTipoHL==='hl'||baseTipoHL==='hlp')baseTipoHL='trabajado';
+      ue[month][day]=Object.assign({},existingDay,{
+        tipo:baseTipoHL,
+        e1:existingDay.e1||'',
+        s1:existingDay.s1||'',
+        e2:existingDay.e2||'',
+        s2:existingDay.s2||'',
+        total:existingDay.total||0,
+        hlParcial:{ini:hlIni,fin:hlFin}
+      });
+    } else {
+      // HL día completo: igual que siempre, mantiene horarios guardados pero el tipo
+      // pasa a 'hl' (se trata como no disponible/no trabajado en todos los sitios).
+      ue[month][day]=Object.assign({},existingDay,{
+        tipo:'hl',
+        e1:existingDay.e1||'',
+        s1:existingDay.s1||'',
+        e2:existingDay.e2||'',
+        s2:existingDay.s2||'',
+        total:existingDay.total||0
+      });
+      delete ue[month][day].hlParcial;
+    }
+    delete ue[month][day].perenDur;
+    delete ue[month][day].perenTipo;
+    delete ue[month][day].hfunDur;
   } else {
     if(tipoVal==='trabajado'||tipoVal==='curso'){
       // Trabajado/Curso sí permiten editar y guardar horarios manualmente.
@@ -4238,6 +4299,7 @@ function mcEditSave(){
     delete ue[month][day].perenDur;
     delete ue[month][day].perenTipo;
     delete ue[month][day].hfunDur;
+    delete ue[month][day].hlParcial;
   }
   try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(er){alert('Error: '+er.message);}
   if(typeof guardarCambioTurnoCompartido==='function')guardarCambioTurnoCompartido(year,month,day,ue[month][day]);
@@ -4260,26 +4322,37 @@ function mcTipoSel(btn){
   var showTimes=document.getElementById('mc-edit-times');
   var showPeren=document.getElementById('mc-edit-peren');
   var showHfun=document.getElementById('mc-edit-hfun');
+  var showHl=document.getElementById('mc-edit-hl');
   if(v==='trabajado'||v==='curso'){
     showTimes.style.display='block';
     showPeren.style.display='none';
     if(showHfun)showHfun.style.display='none';
+    if(showHl)showHl.style.display='none';
   } else if(v==='perentorias'||v==='cp'){
     showTimes.style.display='none';
     showPeren.style.display='block';
     if(showHfun)showHfun.style.display='none';
+    if(showHl)showHl.style.display='none';
     var perenLbl=document.getElementById('mc-peren-label');
     if(perenLbl)perenLbl.textContent=v==='cp'?'Horas compensadas (banco)':'Horas de perentorias realizadas';
   } else if(v==='hfun'){
     showTimes.style.display='none';
     showPeren.style.display='none';
     if(showHfun)showHfun.style.display='block';
+    if(showHl)showHl.style.display='none';
     var hf=document.getElementById('mc-hfun-total');
     if(hf&&!hf.value.trim())hf.value='0:30';
+  } else if(v==='hl'){
+    showTimes.style.display='none';
+    showPeren.style.display='none';
+    if(showHfun)showHfun.style.display='none';
+    if(showHl)showHl.style.display='block';
+    mcHLModoSel('completo'); // por defecto, al elegir HL desde cero, día completo
   } else {
     showTimes.style.display='none';
     showPeren.style.display='none';
     if(showHfun)showHfun.style.display='none';
+    if(showHl)showHl.style.display='none';
   }
 }
 
@@ -4337,6 +4410,19 @@ document.addEventListener('DOMContentLoaded',function(){
     <button class="mc-tipo-btn" data-tipo="libre" onclick="mcTipoSel(this)"><span class="t-ico">🌙</span><span class="t-lbl">Libre</span></button>
     <button class="mc-tipo-btn" data-tipo="curso" onclick="mcTipoSel(this)"><span class="t-ico">📚</span><span class="t-lbl">Curso</span></button>
     <button class="mc-tipo-btn" data-tipo="hl" onclick="mcTipoSel(this)"><span class="t-ico">🤝</span><span class="t-lbl">HL</span></button>
+  </div>
+  <div class="mc-edit-hl" id="mc-edit-hl" style="display:none;margin-bottom:12px">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button type="button" id="mc-hl-modo-completo" onclick="mcHLModoSel('completo')" style="flex:1;background:rgba(192,132,252,.18);border:1px solid rgba(192,132,252,.45);border-radius:10px;padding:9px;color:#c084fc;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer">Día completo</button>
+      <button type="button" id="mc-hl-modo-parcial" onclick="mcHLModoSel('parcial')" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px;color:var(--gray);font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer">Horas concretas</button>
+    </div>
+    <div id="mc-hl-parcial-times" style="display:none">
+      <div style="font-size:11px;color:var(--gray);margin-bottom:8px">Tramo de tu turno que es HL — el resto sigue contando como trabajado</div>
+      <div class="mc-time-row">
+        <div><label>Desde</label><input type="time" id="mc-hl-ini"></div>
+        <div><label>Hasta</label><input type="time" id="mc-hl-fin"></div>
+      </div>
+    </div>
   </div>
   <div class="mc-edit-times" id="mc-edit-times">
     <div class="mc-time-row">
@@ -4941,21 +5027,75 @@ function _esArturoPlantilla(nombre){
   var n=_normPlantillaNombre(nombre);
   return n==='ARTURO RICO'||n==='ARTURO RICO GARCIA'||n.indexOf('ARTURO RICO')>=0;
 }
-function _miCalendarioMarcaHL(dateObj){
-  if(!dateObj)return false;
+// Devuelve el día del calendario PERSONAL de Arturo (este dispositivo) para una fecha,
+// o null si no hay datos. Usado tanto para el chequeo HL como para leer el hlParcial.
+function _miCalendarioDiaArturo(dateObj){
+  if(!dateObj)return null;
   var meses=(typeof _MC_MONTHS!=='undefined'&&_MC_MONTHS.length)?_MC_MONTHS:((typeof _GRUPO_MONTHS!=='undefined'&&_GRUPO_MONTHS.length)?_GRUPO_MONTHS:['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE']);
   var raw=null;
   try{raw=localStorage.getItem('cta_ed_'+dateObj.getFullYear());}catch(e){raw=null;}
   var ue={};
   try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
   var mData=(ue&&ue[meses[dateObj.getMonth()]])||{};
-  var d=mData[dateObj.getDate()];
+  return mData[dateObj.getDate()]||null;
+}
+function _miCalendarioMarcaHL(dateObj){
+  var d=_miCalendarioDiaArturo(dateObj);
   if(!d||!d.tipo)return false;
   var tipo=String(d.tipo||'').toLowerCase();
-  return tipo==='hl'||tipo==='hlp';
+  // HL parcial NO cuenta como "todo el día libre": ese caso se trata aparte,
+  // recortando solo el tramo correspondiente (ver _ajustarTurnoConHLPersonal).
+  return (tipo==='hl'||tipo==='hlp')&&!d.hlParcial;
 }
 function _arturoDebeTratarseLibre(nombre,dateObj){
   return _esArturoPlantilla(nombre)&&(_miCalendarioMarcaHL(dateObj)||_arturoHLPubFecha(dateObj));
+}
+
+function _minToHHMM(min){
+  min=((min%1440)+1440)%1440;
+  var h=Math.floor(min/60),m=Math.round(min%60);
+  return (h<10?'0':'')+h+':'+(m<10?'0':'')+m;
+}
+// Resta un tramo horario (rango.ini → rango.fin) de un turno con hasta 2 segmentos
+// (e1-s1, e2-s2). Si el tramo cubre un segmento entero, lo anula. Si solo lo toca por
+// un extremo, recorta ese extremo. Si cae en medio (lo partiría en 3 tramos, que el
+// modelo no soporta), se queda con el trozo más largo como aproximación razonable.
+function _restarRangoDeTurno(turno,rango){
+  if(!turno||!rango||!rango.ini||!rango.fin)return turno;
+  var rIni=_toMin(rango.ini),rFin=_toMin(rango.fin);
+  if(rIni===null||rFin===null)return turno;
+  var effRFin=rFin<=rIni?rFin+1440:rFin;
+  function recorta(e,s){
+    if(!e||!s)return {e:e||'',s:s||''};
+    var em=_toMin(e),sm=_toMin(s);
+    var effS=sm<=em?sm+1440:sm;
+    if(rIni>=effS||effRFin<=em)return {e:e,s:s}; // sin solape
+    if(rIni<=em&&effRFin>=effS)return {e:'',s:''}; // HL cubre todo el segmento
+    if(rIni<=em)return {e:_minToHHMM(effRFin),s:s}; // HL pega al inicio: recorta el inicio
+    if(effRFin>=effS)return {e:e,s:_minToHHMM(rIni)}; // HL pega al final: recorta el final
+    // HL en medio del segmento: nos quedamos con el trozo más largo
+    var antes=rIni-em, despues=effS-effRFin;
+    return antes>=despues?{e:e,s:_minToHHMM(rIni)}:{e:_minToHHMM(effRFin),s:s};
+  }
+  var seg1=recorta(turno.e1,turno.s1);
+  var seg2=recorta(turno.e2,turno.s2);
+  // Si el primer segmento quedó vacío pero el segundo sobrevive, lo subimos a la posición 1
+  if((!seg1.e||!seg1.s)&&seg2.e&&seg2.s){
+    return Object.assign({},turno,{e1:seg2.e,s1:seg2.s,e2:'',s2:''});
+  }
+  return Object.assign({},turno,{e1:seg1.e,s1:seg1.s,e2:seg2.e,s2:seg2.s});
+}
+// Ajusta `turno` según la marca de HL del calendario PERSONAL de quien lo tiene asignado
+// (`diaPersonalHL`, el día de cta_ed_<año> de esa persona):
+// - Sin marca HL → turno sin tocar.
+// - HL día completo (tipo hl/hlp sin hlParcial) → null (sin turno ese día).
+// - HL parcial (hlParcial:{ini,fin}) → se descuenta solo ese tramo, el resto queda igual.
+function _ajustarTurnoConHLPersonal(turno,diaPersonalHL){
+  if(!diaPersonalHL||!diaPersonalHL.tipo)return turno;
+  var tipo=String(diaPersonalHL.tipo).toLowerCase();
+  if((tipo==='hl'||tipo==='hlp')&&!diaPersonalHL.hlParcial)return null;
+  if(diaPersonalHL.hlParcial)return _restarRangoDeTurno(turno,diaPersonalHL.hlParcial);
+  return turno;
 }
 
 
@@ -5066,7 +5206,10 @@ function _cambioToTurno(c){
   if(_tipoCambioEsLibre(tipo)||(!c.e1&&!c.s1)){
     return{tipo:'libre',e1:'',s1:'',e2:'',s2:'',cambioCompartido:true,etiquetaCambio:String(c.tipo||'Libre').toUpperCase(),actualizadoPor:c.actualizado_por||c.email||''};
   }
-  return{tipo:(tipo==='curso'?'curso':'trabajado'),e1:c.e1||'',s1:c.s1||'',e2:c.e2||'',s2:c.s2||'',total:c.total||0,cambioCompartido:true,etiquetaCambio:String(c.tipo||'TRABAJA').toUpperCase(),actualizadoPor:c.actualizado_por||c.email||''};
+  var turno={tipo:(tipo==='curso'?'curso':'trabajado'),e1:c.e1||'',s1:c.s1||'',e2:c.e2||'',s2:c.s2||'',total:c.total||0,cambioCompartido:true,etiquetaCambio:String(c.tipo||'TRABAJA').toUpperCase(),actualizadoPor:c.actualizado_por||c.email||''};
+  // HL parcial recibido de Sheets: recorta solo ese tramo, igual que en el propio dispositivo.
+  if(c.hlIni&&c.hlFin)turno=Object.assign({},_restarRangoDeTurno(turno,{ini:c.hlIni,fin:c.hlFin}),{cambioCompartido:true,etiquetaCambio:turno.etiquetaCambio,actualizadoPor:turno.actualizadoPor});
+  return turno;
 }
 function _turnoGrupoConCambioCompartido(emp,dateObj,turnoOriginal){
   var c=_getCambioCompartidoEmpleado(emp,dateObj);
@@ -5140,6 +5283,7 @@ function guardarCambioTurnoCompartido(year,monthKey,day,dayObj){
   var sess=_ctaSession();
   if(!sess||!sess.email||typeof SHEETS_URL==='undefined'||!SHEETS_URL)return Promise.resolve(null);
   var fecha=_fechaISOFromParts(year,monthKey,day);
+  var hlParcial=(dayObj&&dayObj.hlParcial&&dayObj.hlParcial.ini&&dayObj.hlParcial.fin)?dayObj.hlParcial:null;
   var payload={
     accion:'guardar_cambio_turno',
     email:sess.email,
@@ -5153,7 +5297,14 @@ function guardarCambioTurnoCompartido(year,monthKey,day,dayObj){
     s1:(dayObj&&dayObj.s1)||'',
     e2:(dayObj&&dayObj.e2)||'',
     s2:(dayObj&&dayObj.s2)||'',
-    total:(dayObj&&dayObj.total)||0
+    total:(dayObj&&dayObj.total)||0,
+    // HL parcial: solo este tramo del turno es HL, el resto sigue siendo trabajo real.
+    // IMPORTANTE: el Apps Script de Sheets tiene que guardar y devolver hlIni/hlFin
+    // (columnas nuevas) para que esto llegue a otros dispositivos — si el script no las
+    // contempla, las ignorará silenciosamente y el cambio compartido llegará como turno
+    // completo sin recortar.
+    hlIni:hlParcial?hlParcial.ini:'',
+    hlFin:hlParcial?hlParcial.fin:''
   };
   var miEmp=_getMiEmpleadoGrupoActual(year,monthKey,day);
   if(miEmp){
@@ -5249,11 +5400,14 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   // Build list: coincidencias o toda la plantilla
   var coinciden=[];
   empleados.forEach(function(emp){
-    // Si Arturo tiene HL/HLP en el calendario personal local o en lista pública, no debe salir como operativo.
-    if(_arturoDebeTratarseLibre(emp.nombre||emp.nomina,target))return;
     // Today's shift
     var turno=emp.dias[day];
     turno=_turnoGrupoConCambioCompartido(emp,target,turno);
+    // Si es Arturo y su calendario personal marca HL ese día, se ajusta su turno:
+    // día completo → sin turno; parcial → se descuenta solo ese tramo.
+    if(_esArturoPlantilla(emp.nombre||emp.nomina)){
+      turno=_arturoHLPubFecha(target)?null:_ajustarTurnoConHLPersonal(turno,_miCalendarioDiaArturo(target));
+    }
     if(turno&&turno.e1&&turno.tipo!=='libre'){
       var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
@@ -5610,9 +5764,12 @@ window.renderOperativa=function(){
   Object.keys(gmap).forEach(function(nom){
     var emp=gmap[nom],dias=(emp.meses&&emp.meses[mK])||null;
     if(_estaExcluidoPlantilla((emp&&emp.nombre)||nom,_fechaISOPlantilla(now)))return;
-    if(_arturoDebeTratarseLibre((emp&&emp.nombre)||nom,now))return;
     if(!dias)return;
-    var t=dias[todayNum];t=_turnoGrupoConCambioCompartido(emp,now,t);if(!t||!t.e1)return;
+    var t=dias[todayNum];t=_turnoGrupoConCambioCompartido(emp,now,t);
+    if(_esArturoPlantilla((emp&&emp.nombre)||nom)){
+      t=_arturoHLPubFecha(now)?null:_ajustarTurnoConHLPersonal(t,_miCalendarioDiaArturo(now));
+    }
+    if(!t||!t.e1)return;
     var excl=!!(t.noVieneInterrogacion||t.disponibilidadNoConfirmada);if(excl)return;
     var gE1=toM(t.e1),gS1=toM(t.s1),gE2=t.e2?toM(t.e2):null,gS2=t.s2?toM(t.s2):null;
     trabajanHoy.push({nombre:nom,e1:gE1,s1:gS1,e2:gE2,s2:gS2});
@@ -5630,8 +5787,12 @@ window.renderOperativa=function(){
   function opTrabajadoresFecha(dateObj){
     var mk=MESES[dateObj.getMonth()],dn=dateObj.getDate(),out=[];
     Object.keys(gmap).forEach(function(nom){
-      var emp=gmap[nom],dias=(emp.meses&&emp.meses[mk])||null;if(_estaExcluidoPlantilla((emp&&emp.nombre)||nom,_fechaISOPlantilla(dateObj)))return;if(_arturoDebeTratarseLibre((emp&&emp.nombre)||nom,dateObj))return;if(!dias)return;
-      var t=dias[dn];t=_turnoGrupoConCambioCompartido(emp,dateObj,t);if(!t||!t.e1)return;
+      var emp=gmap[nom],dias=(emp.meses&&emp.meses[mk])||null;if(_estaExcluidoPlantilla((emp&&emp.nombre)||nom,_fechaISOPlantilla(dateObj)))return;if(!dias)return;
+      var t=dias[dn];t=_turnoGrupoConCambioCompartido(emp,dateObj,t);
+      if(_esArturoPlantilla((emp&&emp.nombre)||nom)){
+        t=_arturoHLPubFecha(dateObj)?null:_ajustarTurnoConHLPersonal(t,_miCalendarioDiaArturo(dateObj));
+      }
+      if(!t||!t.e1)return;
       var excl=!!(t.noVieneInterrogacion||t.disponibilidadNoConfirmada);if(excl)return;
       out.push({nombre:nom,e1:toM(t.e1),s1:toM(t.s1),e2:t.e2?toM(t.e2):null,s2:t.s2?toM(t.s2):null});
     });
@@ -7185,7 +7346,10 @@ function calcularCambios(){
 
   // Mi turno ese día
   var myRaw;try{myRaw=JSON.parse(localStorage.getItem('cta_ed_'+year)||'{}')}catch(e){myRaw={};}
-  var myDayObj=(myRaw[monthKey]||{})[day]||null;
+  var myDayObjOriginal=(myRaw[monthKey]||{})[day]||null;
+  // Si ese día tengo HL, ajusto mi disponibilidad: día completo → sin turno;
+  // parcial → se descuenta solo el tramo marcado, el resto sigue contando como trabajo.
+  var myDayObj=_ajustarTurnoConHLPersonal(myDayObjOriginal,myDayObjOriginal);
   var myE1=myDayObj&&myDayObj.e1?_toMin(myDayObj.e1):null;
   var myS1=myDayObj&&myDayObj.s1?_toMin(myDayObj.s1):null;
   var myE2=myDayObj&&myDayObj.e2?_toMin(myDayObj.e2):null;
