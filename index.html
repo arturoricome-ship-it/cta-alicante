@@ -4446,11 +4446,12 @@ function resetGrupo(){
 
 // Códigos de día que nunca son un nombre real, por si se han colado como "nombre"
 // debido a una importación corrupta (columnas desalineadas).
-var _DIAS_CODIGO_BASURA=['DL','LIBRE','DIALIBRE','DESCANSO','DESCANSOSEMANA','MA','FM','FY'];
+var _DIAS_CODIGO_BASURA=['DL','LIBRE','DIALIBRE','DESCANSO','DESCANSOSEMANA','MA','FM','FY','EXC'];
 function _esNombreBasuraGrupo(nombre){
   var n=String(nombre||'').trim();
   if(!n)return true;
   if(/\d/.test(n))return true; // un nombre real de persona nunca lleva dígitos
+  if(/[()]/.test(n))return true; // un nombre real no lleva paréntesis (p.ej. "(EXC)")
   var up=n.toUpperCase().replace(/[\s.]/g,'');
   return _DIAS_CODIGO_BASURA.indexOf(up)>=0;
 }
@@ -4641,6 +4642,7 @@ function procesarGrupoXlsx(file){
           var nombreFull=String(row[empCol]).trim();
           if(nomina.toLowerCase().indexOf('calendario')>=0||nomina.toLowerCase().indexOf('fecha')>=0)continue;
           var nombre=formatNombre(nombreFull);
+          if(_esNombreBasuraGrupo(nombre))continue; // p.ej. "(EXC)" colado como nombre, no es una persona
           var diasMes={};
           Object.keys(dayColMap).forEach(function(d){
             var t=_parseCeldaDiaGrupo(row[dayColMap[d]]);
@@ -4674,6 +4676,7 @@ function procesarGrupoXlsx(file){
           var nombreFull2=cellA;
           var nomina2=_nominaSinteticaDesdeNombre(nombreFull2);
           var nombre2=formatNombre(nombreFull2);
+          if(_esNombreBasuraGrupo(nombre2))continue; // p.ej. "(EXC)" colado como nombre, no es una persona
           var diasMes2={};
           Object.keys(dayColMap).forEach(function(d){
             var t=_parseCeldaDiaGrupo(rowM[dayColMap[d]]);
@@ -7928,16 +7931,25 @@ function _evClasificarEmpleadoEvento(emp, mes, dia, hDesde, hHasta, mesPublicado
   // Para el buscador de eventos, una celda vacía dentro de un mes ya importado debe contar
   // como Libre y disponible para todo el evento. Si además el empleado no tiene turnos reales
   // en todo el mes, se mantiene la etiqueta de excedencia/baja larga.
+
+  // FD/FDS: se importan por semanas. Si ese día no existe en la importación,
+  // no se debe etiquetar como baja/excedencia ni contar como disponible.
+  if(!cambioCompartido&&(turno===undefined||turno===null)&&_evEsEmpleadoFD(emp)){
+    return{nombre:nombre,estado:'noImportado',parcial:false,desde:null,huecos:[],turno:'',motivo:'No importado'};
+  }
+
+  // Excedencia/baja larga: si en TODO el mes no hay ni un solo turno real de trabajo,
+  // se etiqueta así para cualquier día del mes, tenga o no ese día concreto un valor de
+  // "Libre"/"DL" explícito en la importación. Esos "Libre" sueltos en un mes totalmente
+  // inactivo son el valor por defecto de alguien de baja, no una libranza real dentro de
+  // una rotación activa (antes solo se miraba esto cuando el día venía sin publicar, y un
+  // "Libre" explícito ese día concreto se mostraba como libranza normal por error).
+  if(!cambioCompartido&&!_evEsEmpleadoFD(emp)&&mesPublicadoGlobal&&tieneMesEmp&&(mesVacioEmpleado||mesSinTrabajoEmpleado)){
+    return{nombre:nombre,estado:'completo',parcial:false,desde:hDesde,huecos:[[hDesde,(hHasta<=hDesde?hHasta+1440:hHasta)]],turno:'Mes sin turnos',motivo:'Excedencia/baja larga'};
+  }
+
   if(!cambioCompartido&&(turno===undefined||turno===null)){
-    // FD/FDS: se importan por semanas. Si ese día no existe en la importación,
-    // no se debe etiquetar como baja/excedencia ni contar como disponible.
-    if(_evEsEmpleadoFD(emp)){
-      return{nombre:nombre,estado:'noImportado',parcial:false,desde:null,huecos:[],turno:'',motivo:'No importado'};
-    }
     if(mesPublicadoGlobal&&tieneMesEmp){
-      if(mesVacioEmpleado||mesSinTrabajoEmpleado){
-        return{nombre:nombre,estado:'completo',parcial:false,desde:hDesde,huecos:[[hDesde,(hHasta<=hDesde?hHasta+1440:hHasta)]],turno:'Mes sin turnos',motivo:'Excedencia/baja larga'};
-      }
       return{nombre:nombre,estado:'completo',parcial:false,desde:hDesde,huecos:[[hDesde,(hHasta<=hDesde?hHasta+1440:hHasta)]],turno:'Libre',motivo:'Libre'};
     }
     return{nombre:nombre,estado:'sinDatos',parcial:false,desde:null,huecos:[],turno:'',motivo:tieneMesPublicado?'Sin turno publicado':'Mes no importado'};
