@@ -3424,63 +3424,6 @@ function logActividad(tipo, detalle){
   .catch(function(e){console.error('logActividad error',tipo,e);});
 }
 
-// ═══════════════════════════════════════════════════════════════
-// REGISTRO AUTOMÁTICO DE CADA BOTÓN/ENLACE QUE SE TOCA EN LA APP
-// ═══════════════════════════════════════════════════════════════
-// En vez de añadir logActividad(...) a mano en cada botón (fácil dejarse alguno y
-// fácil de desincronizar con botones nuevos), se escucha CUALQUIER clic en un botón,
-// enlace o elemento clicable de toda la app, en fase de captura (para no perderse
-// ninguno aunque el propio botón llame a event.stopPropagation()).
-//
-// El "tipo" que se manda al Log se deduce del nombre de la función que llama el
-// onclick (p.ej. onclick="abrirBuscadorCambio()" → tipo "abrirBuscadorCambio"). Si el
-// botón no tiene onclick con función (algunos se crean por JS con addEventListener,
-// p.ej. los del navegador de Drive o las filas de Publicados), cae al id, luego a la
-// clase CSS, y como último recurso a "click" genérico — nunca se descarta en silencio.
-// Si el botón ya tiene su propio logActividad(...) explícito (los que ya estaban
-// antes: import_excel, ver_calendario, etc.) no se duplica aquí.
-function _inferirTipoClick(oc,el){
-  var ignorar=['stopPropagation','preventDefault','logActividad'];
-  var calls=(oc||'').match(/[A-Za-z_$][A-Za-z0-9_$.]*\s*\(/g)||[];
-  for(var i=calls.length-1;i>=0;i--){
-    var name=calls[i].replace(/\(\s*$/,'').trim();
-    var shortName=name.split('.').pop();
-    if(ignorar.indexOf(shortName)>=0)continue;
-    return shortName;
-  }
-  if(el&&el.id)return el.id;
-  if(el&&el.className){
-    var cls=String(el.className).trim().split(/\s+/)[0];
-    if(cls)return 'click:'+cls;
-  }
-  return 'click';
-}
-// Busca el elemento clicable más cercano subiendo desde el punto exacto del toque:
-// <button>/<a> reales, cualquier cosa con onclick, role="button", o simplemente con
-// cursor:pointer (el patrón que usan las tarjetas/filas creadas dinámicamente sin
-// onclick ni id, como las del navegador de Drive o las filas de "Publicados").
-function _buscarElementoClicable(target){
-  var el=target,depth=0;
-  while(el&&el.nodeType===1&&depth<8){
-    if(el.tagName==='BUTTON'||el.tagName==='A')return el;
-    if(el.hasAttribute&&el.hasAttribute('onclick'))return el;
-    if(el.getAttribute&&el.getAttribute('role')==='button')return el;
-    try{if(getComputedStyle(el).cursor==='pointer')return el;}catch(ex){}
-    el=el.parentElement;depth++;
-  }
-  return null;
-}
-document.addEventListener('click',function(e){
-  var el=e.target&&e.target.nodeType===1?_buscarElementoClicable(e.target):null;
-  if(!el)return;
-  var oc=el.getAttribute('onclick')||'';
-  if(oc.indexOf('logActividad')>=0)return; // ya se registra explícitamente él mismo
-  var tipo=_inferirTipoClick(oc,el);
-  if(!tipo)return;
-  var texto=(el.textContent||'').replace(/\s+/g,' ').trim().slice(0,60);
-  var detalle=(texto?texto+' · ':'')+(el.id?'#'+el.id:'');
-  if(typeof logActividad==='function')logActividad(tipo,detalle);
-},true);
 
 // ═══════════════════════════════════════════════════════════════
 // TRYP IMPORT
@@ -8727,6 +8670,75 @@ function _evVolverForm(){
     <div id="ev-results" style="display:none"></div>
   </div>
 </div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// REGISTRO AUTOMÁTICO DE CADA BOTÓN/ENLACE QUE SE TOCA EN LA APP
+// ═══════════════════════════════════════════════════════════════
+// Aislado en su propio <script> al final del documento a propósito: si algún script
+// anterior de la página lanza un error en algún momento, NO impide que este se cargue
+// (cada <script> es su propio bloque de ejecución independiente).
+//
+// En vez de añadir logActividad(...) a mano en cada botón (fácil dejarse alguno y
+// fácil de desincronizar con botones nuevos), se escucha CUALQUIER clic en un botón,
+// enlace o elemento clicable de toda la app, en fase de captura (para no perderse
+// ninguno aunque el propio botón llame a event.stopPropagation()).
+//
+// El "tipo" que se manda al Log se deduce del nombre de la función que llama el
+// onclick (p.ej. onclick="abrirBuscadorCambio()" → tipo "abrirBuscadorCambio"). Si el
+// botón no tiene onclick con función (algunos se crean por JS con addEventListener,
+// p.ej. los del navegador de Drive o las filas de Publicados), cae al id, luego a la
+// clase CSS, y como último recurso a "click" genérico — nunca se descarta en silencio.
+// Si el botón ya tiene su propio logActividad(...) explícito (los que ya estaban
+// antes: import_excel, ver_calendario, etc.) no se duplica aquí.
+try{
+  function _inferirTipoClick(oc,el){
+    var ignorar=['stopPropagation','preventDefault','logActividad'];
+    var calls=(oc||'').match(/[A-Za-z_$][A-Za-z0-9_$.]*\s*\(/g)||[];
+    for(var i=calls.length-1;i>=0;i--){
+      var name=calls[i].replace(/\(\s*$/,'').trim();
+      var shortName=name.split('.').pop();
+      if(ignorar.indexOf(shortName)>=0)continue;
+      return shortName;
+    }
+    if(el&&el.id)return el.id;
+    if(el&&el.className){
+      var cls=String(el.className).trim().split(/\s+/)[0];
+      if(cls)return 'click:'+cls;
+    }
+    return 'click';
+  }
+  // Busca el elemento clicable más cercano subiendo desde el punto exacto del toque:
+  // <button>/<a> reales, cualquier cosa con onclick, role="button", o simplemente con
+  // cursor:pointer (el patrón que usan tarjetas/filas creadas dinámicamente sin
+  // onclick ni id, como las del navegador de Drive o las filas de "Publicados").
+  function _buscarElementoClicable(target){
+    var el=target,depth=0;
+    while(el&&el.nodeType===1&&depth<8){
+      if(el.tagName==='BUTTON'||el.tagName==='A')return el;
+      if(el.hasAttribute&&el.hasAttribute('onclick'))return el;
+      if(el.getAttribute&&el.getAttribute('role')==='button')return el;
+      try{if(getComputedStyle(el).cursor==='pointer')return el;}catch(ex){}
+      el=el.parentElement;depth++;
+    }
+    return null;
+  }
+  document.addEventListener('click',function(e){
+    try{
+      var el=e.target&&e.target.nodeType===1?_buscarElementoClicable(e.target):null;
+      if(!el)return;
+      var oc=el.getAttribute('onclick')||'';
+      if(oc.indexOf('logActividad')>=0)return; // ya se registra explícitamente él mismo
+      var tipo=_inferirTipoClick(oc,el);
+      if(!tipo)return;
+      var texto=(el.textContent||'').replace(/\s+/g,' ').trim().slice(0,60);
+      var detalle=(texto?texto+' · ':'')+(el.id?'#'+el.id:'');
+      if(typeof logActividad==='function')logActividad(tipo,detalle);
+    }catch(errInner){console.error('[CTA click-tracker] error en clic:',errInner);}
+  },true);
+  console.log('[CTA] click-tracker activo');
+}catch(errOuter){console.error('[CTA click-tracker] no se pudo activar:',errOuter);}
+</script>
 
 </body>
 </html>
