@@ -1057,13 +1057,13 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
     </div>
     <p class="op-sec">📊 Resumen operativo del día</p>
     <!-- RESUMEN OPERATIVO -->
-    <div class="op-comp-card" style="flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden;cursor:pointer" onclick="if(typeof verCompanerosHoy==='function'){var p=document.getElementById('calc-panel');var o=document.getElementById('calc-overlay');if(p){p.classList.add('show');if(o)o.classList.add('show');setTimeout(function(){verCompanerosHoy();},80);}}">
+    <div class="op-comp-card" style="flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden;cursor:pointer" onclick="abrirCompanerosPorDia()">
       <!-- Sub-tabs a todo ancho, pegados al borde superior -->
       <div style="display:flex;gap:0">
         <button id="op-tab-dist" onclick="event.stopPropagation();opResTab('dist')" style="flex:1;background:rgba(200,168,75,.15);border:none;border-right:1px solid var(--border);border-bottom:2px solid var(--gold);color:var(--gold);font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;padding:9px 4px;cursor:pointer;letter-spacing:.3px">Distribución</button>
         <button id="op-tab-pico" onclick="event.stopPropagation();opResTab('pico')" style="flex:1;background:none;border:none;border-right:1px solid var(--border);border-bottom:2px solid transparent;color:var(--gray);font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;padding:9px 4px;cursor:pointer;letter-spacing:.3px">Picos</button>
         <button id="op-tab-now" onclick="event.stopPropagation();opResTab('now')" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--gray);font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;padding:9px 4px;cursor:pointer;letter-spacing:.3px">Ahora</button>
-        <div id="op-ver-btn" style="flex-shrink:0;background:none;border:none;border-left:1px solid var(--border);border-bottom:2px solid transparent;color:#60a5fa;font-size:10px;font-weight:800;padding:9px 14px;letter-spacing:.5px;cursor:pointer;display:flex;align-items:center" onclick="event.stopPropagation();if(typeof verCompanerosHoy==='function'){var p=document.getElementById('calc-panel');var o=document.getElementById('calc-overlay');if(p){p.classList.add('show');if(o)o.classList.add('show');setTimeout(function(){verCompanerosHoy();},80);}}">VER</div>
+        <div id="op-ver-btn" style="flex-shrink:0;background:none;border:none;border-left:1px solid var(--border);border-bottom:2px solid transparent;color:#60a5fa;font-size:10px;font-weight:800;padding:9px 14px;letter-spacing:.5px;cursor:pointer;display:flex;align-items:center" onclick="event.stopPropagation();abrirCompanerosPorDia()">VER</div>
       </div>
       <!-- Content panels -->
       <div id="op-res-dist" style="padding:12px 14px">
@@ -1077,6 +1077,19 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
     <details class="op-details">
       <summary><span class="op-summary-title">📊 Detalles operativos del día</span><button type="button" class="op-info-btn" aria-label="Información sobre los datos operativos" onclick="opShowDataInfo(event)">?</button></summary>
       <div class="op-details-body">
+        <div id="op-grupo-import-banner" style="display:none;grid-column:1/-1;background:linear-gradient(160deg,rgba(200,168,75,.08),rgba(200,168,75,.02));border:1px solid rgba(200,168,75,.3);border-radius:16px;padding:14px">
+          <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:6px">📥 Importa el calendario de tu grupo de trabajo</div>
+          <div style="font-size:10.5px;color:var(--gray);line-height:1.55;margin-bottom:10px">Sin esto no se pueden calcular los datos de esta pantalla (presión operativa, compañeros trabajando, personas por avión, etc.). El resto seguirá mostrando lo que pueda con los vuelos.</div>
+          <div style="font-size:10.5px;color:var(--gray);line-height:1.55;margin-bottom:12px">
+            1. Entra en <b style="color:#e9e4f5">Accesos directos → Grupo de trabajo</b> y descarga el Excel de tu equipo.<br>
+            2. Aquí en la app: <b style="color:#e9e4f5">Resumen operativo del día → Compañeros por día → Importar</b>.<br>
+            Puedes importar tantos grupos/Excels como quieras — se suman entre sí, no se sustituyen.
+          </div>
+          <div style="display:flex;gap:8px">
+            <a href="https://tryp.southeu.com/tryp/website/gruposTrabajo/calendario/7557" target="_blank" onclick="event.stopPropagation()" style="flex:1;text-align:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 6px;color:var(--gray);font-size:11px;font-weight:700;text-decoration:none">🌐 Ir al grupo de trabajo</a>
+            <button type="button" onclick="event.stopPropagation();abrirCompanerosPorDia()" style="flex:1;background:rgba(200,168,75,.18);border:1px solid rgba(200,168,75,.45);border-radius:10px;padding:9px 6px;color:var(--gold);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer">📥 Ir a Compañeros por día</button>
+          </div>
+        </div>
         <div class="op-dashboard">
           <div class="op-pressure-card">
             <div class="op-card-head">
@@ -3118,7 +3131,7 @@ function initGoogle(){
         ✅ Importar turnos
       </button>
     </div>
-    <button onclick="exportarICS()" style="width:100%;background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.25);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--gold);cursor:pointer;margin-bottom:8px">
+    <button onclick="abrirSelectorMesesICS()" style="width:100%;background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.25);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--gold);cursor:pointer;margin-bottom:8px">
       📅 Exportar calendario (.ics) con alarmas
     </button>
     <button onclick="tiResetData()" style="width:100%;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;color:#f87171;cursor:pointer;margin-bottom:6px">
@@ -3437,7 +3450,69 @@ setTimeout(positionImportPanel,300);
 // ═══════════════════════════════════════════════════════════════
 // EXPORTAR .ICS — turnos del mes con alarma 70min antes
 // ═══════════════════════════════════════════════════════════════
-function exportarICS(){
+function abrirSelectorMesesICS(){
+  var now=new Date();
+  var year=now.getFullYear();
+  var MESES=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+  var MESES_ES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+  var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(e){}
+  if(!raw){alert('No tienes turnos importados.');return;}
+  var ue;try{ue=JSON.parse(raw);}catch(e){alert('Error leyendo turnos.');return;}
+
+  var mesesConDatos=[];
+  MESES.forEach(function(mk,idx){
+    var mData=ue[mk];
+    if(mData&&Object.keys(mData).some(function(d){return mData[d]&&mData[d].e1;}))mesesConDatos.push(idx);
+  });
+  if(!mesesConDatos.length){alert('No hay turnos trabajados en el calendario.');return;}
+  var ultimoMes=mesesConDatos[mesesConDatos.length-1];
+
+  var overlay=document.createElement('div');
+  overlay.id='ics-meses-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  function cerrar(){if(document.body.contains(overlay))document.body.removeChild(overlay);}
+  overlay.onclick=function(e){if(e.target===overlay)cerrar();};
+
+  var panel=document.createElement('div');
+  panel.style.cssText='background:#182135;border:1px solid rgba(200,168,75,.3);border-radius:16px;padding:18px;max-width:340px;width:100%;max-height:80vh;overflow-y:auto';
+  panel.onclick=function(e){e.stopPropagation();};
+
+  var html='<div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:4px">📅 Exportar calendario (.ics)</div>'
+    +'<div style="font-size:11px;color:var(--gray);margin-bottom:12px">Elige qué meses quieres incluir</div>'
+    +'<div style="display:flex;gap:6px;margin-bottom:10px">'
+    +'<button type="button" id="ics-sel-todos" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px;color:var(--gray);font-family:\'Outfit\',sans-serif;font-size:10.5px;font-weight:700;cursor:pointer">Todos</button>'
+    +'<button type="button" id="ics-sel-ultimo" style="flex:1;background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.4);border-radius:8px;padding:7px;color:var(--gold);font-family:\'Outfit\',sans-serif;font-size:10.5px;font-weight:700;cursor:pointer">Solo el último</button>'
+    +'</div>'
+    +'<div id="ics-meses-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:14px">';
+  mesesConDatos.forEach(function(idx){
+    html+='<label style="display:flex;align-items:center;gap:8px;padding:7px 9px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px;color:var(--white);cursor:pointer">'
+      +'<input type="checkbox" class="ics-mes-chk" value="'+idx+'" checked style="width:15px;height:15px;flex-shrink:0">'
+      +MESES_ES[idx]+'</label>';
+  });
+  html+='</div><div style="display:flex;gap:8px">'
+    +'<button type="button" id="ics-cancelar" style="flex:1;background:rgba(255,255,255,.06);border:none;border-radius:10px;padding:10px;color:var(--gray);font-family:\'Outfit\',sans-serif;font-size:12px;font-weight:700;cursor:pointer">Cancelar</button>'
+    +'<button type="button" id="ics-generar" style="flex:2;background:#2563eb;border:none;border-radius:10px;padding:10px;color:#fff;font-family:\'Outfit\',sans-serif;font-size:12px;font-weight:700;cursor:pointer">✅ Generar .ics</button>'
+    +'</div>';
+  panel.innerHTML=html;
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+
+  document.getElementById('ics-cancelar').onclick=cerrar;
+  document.getElementById('ics-sel-todos').onclick=function(){
+    Array.prototype.forEach.call(document.querySelectorAll('.ics-mes-chk'),function(c){c.checked=true;});
+  };
+  document.getElementById('ics-sel-ultimo').onclick=function(){
+    Array.prototype.forEach.call(document.querySelectorAll('.ics-mes-chk'),function(c){c.checked=(+c.value===ultimoMes);});
+  };
+  document.getElementById('ics-generar').onclick=function(){
+    var seleccionados=Array.prototype.filter.call(document.querySelectorAll('.ics-mes-chk'),function(c){return c.checked;}).map(function(c){return +c.value;});
+    if(!seleccionados.length){alert('Selecciona al menos un mes.');return;}
+    cerrar();
+    exportarICS(seleccionados);
+  };
+}
+function exportarICS(mesesIdx){
   var now=new Date();
   var year=now.getFullYear();
   var MESES=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
@@ -3473,6 +3548,7 @@ function exportarICS(){
   var eventCount=0;
 
   MESES.forEach(function(mesKey, mIdx){
+    if(mesesIdx&&mesesIdx.indexOf(mIdx)<0)return;
     var mData=ue[mesKey];
     if(!mData)return;
     var daysInMonth=new Date(year,mIdx+1,0).getDate();
@@ -3548,7 +3624,9 @@ function exportarICS(){
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a');
   a.href=url;
-  a.download='turnos-'+year+'.ics';
+  var MESES_NUM2=["01","02","03","04","05","06","07","08","09","10","11","12"];
+  var sufijoMeses=(mesesIdx&&mesesIdx.length&&mesesIdx.length<12)?('-'+mesesIdx.map(function(i){return MESES_NUM2[i];}).join('_')):'';
+  a.download='turnos-'+year+sufijoMeses+'.ics';
   document.body.appendChild(a);
   a.click();
   setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
@@ -4640,6 +4718,15 @@ function abrirTodaPlantilla(){
     var gp=document.getElementById('grupo-panel');
     if(gp){gp.classList.add('open');verCompanerosHoy(true);}
   },50);
+}
+function abrirCompanerosPorDia(){
+  if(typeof verCompanerosHoy!=='function')return;
+  var p=document.getElementById('calc-panel');
+  var o=document.getElementById('calc-overlay');
+  if(!p)return;
+  p.classList.add('show');
+  if(o)o.classList.add('show');
+  setTimeout(function(){verCompanerosHoy();},80);
 }
 function importarGrupo(){
   document.getElementById('grupo-file-input').click();
@@ -5790,6 +5877,8 @@ window.renderOperativa=function(){
   var card=g("op-turno-card");
   // ─ Resumen Operativo ─────────────────────────────────────
   var gmap={};try{gmap=JSON.parse(localStorage.getItem("cta_grupo_2026_map")||"{}");}catch(e){}
+  var grupoBanner=g("op-grupo-import-banner");
+  if(grupoBanner)grupoBanner.style.display=Object.keys(gmap).length===0?"block":"none";
   var todayNum=now.getDate();
   var trabajanHoy=[],compN=0;
   var mE1o=d&&d.e1?toM(d.e1):null,mS1o=d&&d.s1?toM(d.s1):null;
@@ -6637,8 +6726,6 @@ window.renderOperativa=function(){
     if(g("op-tc-rem"))g("op-tc-rem").textContent="Empieza en "+fmtT(e1-nowMin);
     if(g("op-tc-bar"))g("op-tc-bar").style.width="0%";
   }
-
-
 
 };
 
