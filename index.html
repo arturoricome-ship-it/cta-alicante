@@ -552,16 +552,19 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-body{display:flex;align-items:flex-start;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
 .grupo-tl-names{flex:0 0 96px;border-right:1px solid var(--border)}
 .grupo-tl-names .grupo-tl-spacer{height:28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:3}
-.grupo-tl-name{height:40px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid rgba(255,255,255,.05);font-size:11px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grupo-tl-name{height:40px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;padding:0 8px;border-bottom:1px solid rgba(255,255,255,.05);overflow:hidden}
+.grupo-tl-name .nm{font-size:11px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.grupo-tl-name .sch{font-size:8px;font-weight:500;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .grupo-tl-name.is-active{background:rgba(110,231,183,.12);color:#a7f3d0}
+.grupo-tl-name.is-active .sch{color:#a7f3d0;opacity:.75}
 .grupo-tl-scroll{flex:1;overflow-x:auto}
 .grupo-tl-grid{position:relative;width:max-content}
 .grupo-tl-header{display:flex;height:28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:2}
 .grupo-tl-header .grupo-tl-hr{width:64px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:9.5px;color:var(--gray);font-weight:600;border-right:1px solid rgba(255,255,255,.05)}
 .grupo-tl-row{height:40px;position:relative;border-bottom:1px solid rgba(255,255,255,.05);background-image:repeating-linear-gradient(to right, transparent 0, transparent 31px, rgba(255,255,255,.04) 31px, rgba(255,255,255,.04) 32px),repeating-linear-gradient(to right, transparent 0, transparent 63px, rgba(255,255,255,.09) 63px, rgba(255,255,255,.09) 64px)}
 .grupo-tl-row.is-active{background-color:rgba(110,231,183,.04)}
-.grupo-tl-bar{position:absolute;top:5px;bottom:5px;border-radius:5px;display:flex;align-items:center;justify-content:flex-start;font-size:9px;font-weight:700;clip-path:inset(0 round 5px);padding:0;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.32);color:var(--white);text-shadow:0 1px 2px rgba(0,0,0,.4)}
-.grupo-tl-bar>.lbl{position:sticky;left:4px;right:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.grupo-tl-bar{position:absolute;top:5px;bottom:5px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;clip-path:inset(0 round 5px);padding:0;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.32);color:var(--white);text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.grupo-tl-bar>.lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .grupo-tl-bar.is-past{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.07);color:var(--gray);opacity:.75}
 .grupo-tl-bar.is-active{background:rgba(110,231,183,.22);border-color:rgba(110,231,183,.55);color:#a7f3d0;box-shadow:0 0 8px rgba(110,231,183,.25)}
 .grupo-tl-bar.is-night{background:rgba(251,146,60,.18);border-color:rgba(251,146,60,.45);color:#fdba74}
@@ -577,8 +580,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-vuelos-label .chev{font-size:8px;opacity:.8;transition:transform .15s ease;display:inline-block}
 .grupo-tl-vuelos-label.collapsed .chev{transform:rotate(-90deg)}
 .grupo-tl-vuelos-row{position:relative;border-bottom:2px solid rgba(255,255,255,.08);background:rgba(96,165,250,.04)}
-.grupo-tl-vuelo-bar{position:absolute;border-radius:4px;background:rgba(96,165,250,.24);border:1px solid rgba(96,165,250,.6);color:#bfdbfe;font-size:9.5px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;justify-content:flex-start;clip-path:inset(0 round 4px);padding:0}
-.grupo-tl-vuelo-bar>.lbl{position:sticky;left:3px;right:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.grupo-tl-vuelo-bar{position:absolute;border-radius:4px;background:rgba(96,165,250,.24);border:1px solid rgba(96,165,250,.6);color:#bfdbfe;font-size:9.5px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;justify-content:center;clip-path:inset(0 round 4px);padding:0}
+.grupo-tl-vuelo-bar>.lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .grupo-tl-vuelo-bar.is-now{background:rgba(96,165,250,.4);border-color:#60a5fa;box-shadow:0 0 8px rgba(96,165,250,.45);color:#eff6ff}
 .grupo-tl-vuelo-bar.is-past{opacity:.5}
 
@@ -6089,17 +6092,18 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
     var myE1=toMinG(data.myDay.e1),myS1=toMinG(data.myDay.s1);
     var myE2=data.myDay.e2?toMinG(data.myDay.e2):null,myS2=data.myDay.s2?toMinG(data.myDay.s2):null;
     var segsYo=_tlSegmentos({e1:myE1,s1:myS1,e2:myE2,s2:myS2,nocheDiaFin:false});
-    namesHtml+='<div class="grupo-tl-name" style="color:var(--gold)">Tú</div>';
+    var miHorario=data.myDay.e1+'→'+data.myDay.s1+(data.myDay.e2&&data.myDay.s2?' / '+data.myDay.e2+'→'+data.myDay.s2:'');
+    namesHtml+='<div class="grupo-tl-name" style="color:var(--gold)"><span class="nm">Tú</span><span class="sch">'+miHorario+'</span></div>';
     rowsHtml+=_tlFilaHtml(segsYo,'is-you',false,nowMin); // siempre en dorado, sin resaltado "activo"
   } else {
-    namesHtml+='<div class="grupo-tl-name" style="color:var(--gray)">Tú · Libre</div>';
+    namesHtml+='<div class="grupo-tl-name" style="color:var(--gray)"><span class="nm">Tú</span><span class="sch">Libre</span></div>';
     rowsHtml+='<div class="grupo-tl-row"></div>';
   }
 
   coinciden.forEach(function(c){
     var segs=_tlSegmentos(c);
     var activaFila=esDiaActual&&segs.some(function(seg){return _tlEstadoSegmento(seg,nowMin,true)==='active';});
-    namesHtml+='<div class="grupo-tl-name'+(activaFila?' is-active':'')+'">'+c.nombre+(c.nocheDiaFin||c.nocheReal?' 🌙':'')+'</div>';
+    namesHtml+='<div class="grupo-tl-name'+(activaFila?' is-active':'')+'"><span class="nm">'+c.nombre+(c.nocheDiaFin||c.nocheReal?' 🌙':'')+'</span><span class="sch">'+c.horario+'</span></div>';
     rowsHtml+=_tlFilaHtml(segs,c.nocheReal?'is-night':'',esDiaActual,nowMin);
   });
 
