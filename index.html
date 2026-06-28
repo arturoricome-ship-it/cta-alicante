@@ -585,6 +585,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-vuelo-bar>.lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .grupo-tl-vuelo-bar.is-now{background:rgba(96,165,250,.4);border-color:#60a5fa;box-shadow:0 0 8px rgba(96,165,250,.45);color:#eff6ff}
 .grupo-tl-vuelo-bar.is-past{opacity:.5}
+.grupo-tl-vuelo-bar.es-salida{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.6);color:#fecaca}
+.grupo-tl-vuelo-bar.es-salida.is-now{background:rgba(239,68,68,.42);border-color:#ef4444;box-shadow:0 0 8px rgba(239,68,68,.5);color:#fee2e2}
 
 /* Descanso (hueco >= umbral entre vuelos/bloques solapados) — en dorado, dentro de la propia fila de llegadas */
 .descanso-seg{position:absolute;top:50%;height:16px;transform:translateY(-50%);z-index:2}
@@ -5967,6 +5969,8 @@ var DURACION_LLEGADA_TL=45; // minutos que dura cada bloque de llegada
 var UMBRAL_DESCANSO_MIN=29; // a partir de cuántos minutos sin vuelos se marca como "descanso"
 var PISTA_LLEGADA_H=22; // alto de cada pista, en px
 var TL_GRID_W_VUELOS=32*48; // = CELL*48 usado en renderCompanerosTimeline
+var VENTANA_SOLO_SALIDAS_INICIO=270; // 04:30 — desde aquí se buscan salidas "sin llegada" (avión durmió en ALC)
+var VENTANA_SOLO_SALIDAS_FIN=480;    // 08:00 — hasta aquí
 
 function _tlFmtDur(mins){
   var h=Math.floor(mins/60),m=mins%60;
@@ -5995,7 +5999,7 @@ function _tlCalcularDescansos(llegadas,umbralMin){
 }
 
 // Aviso emergente al tocar un vuelo, posicionado justo donde se ha pulsado.
-function mostrarToastVuelo(ev,numero,origen,start,end){
+function mostrarToastVuelo(ev,numero,cod,start,end,tipo){
   if(ev&&ev.stopPropagation)ev.stopPropagation();
   var t=document.getElementById('tlToastVuelo');
   if(!t){
@@ -6004,7 +6008,8 @@ function mostrarToastVuelo(ev,numero,origen,start,end){
     t.className='tl-toast-vuelo';
     document.body.appendChild(t);
   }
-  t.innerHTML='✈️ <b>'+numero+'</b> · '+origen+'<br>'+_tlFmtMin(start)+' → '+_tlFmtMin(end===1440?0:end);
+  var emoji=tipo==='salida'?'🛫':'✈️';
+  t.innerHTML=emoji+' <b>'+numero+'</b> · '+cod+'<br>'+_tlFmtMin(start)+' → '+_tlFmtMin(end===1440?0:end);
   t.style.left=ev.clientX+'px';
   t.style.top=(ev.clientY-12)+'px';
   t.style.transform='translate(-50%,-100%)';
@@ -6073,7 +6078,27 @@ function _tlLlegadasDelDia(offsetDias){
     .map(function(v){
       var start=hToMin(v.horaReal||v.horaProg||'');
       if(start===null)return null;
-      return{numero:v.numero||'',origen:_tlOrigenCorto(v.origen),start:start,end:start+DURACION_LLEGADA_TL};
+      return{numero:v.numero||'',cod:_tlOrigenCorto(v.origen),start:start,end:start+DURACION_LLEGADA_TL,tipo:'llegada'};
+    })
+    .filter(Boolean)
+    .sort(function(a,b){return a.start-b.start;});
+}
+
+// De madrugada (04:30-08:00 por defecto) los primeros vuelos del día suelen
+// ser aviones que pasaron la noche en ALC: no hay llegada que mostrar, solo
+// salida. Para que esa franja no se vea vacía, se muestran esas salidas en
+// rojo, con un bloque que arranca 45 min antes de la hora de salida (real
+// si la hay, programada si no) y termina justo en la hora de salida.
+function _tlSalidasTempranasDelDia(offsetDias){
+  if(typeof liveData==='undefined'||!liveData||!liveData.sal)return[];
+  var quiereManana=offsetDias===1;
+  return liveData.sal
+    .filter(function(v){return(!!v.esManana===quiereManana)&&v.estadoClass!=='e-cancelled';})
+    .map(function(v){
+      var dep=hToMin(v.horaReal||v.horaProg||'');
+      if(dep===null)return null;
+      if(dep<VENTANA_SOLO_SALIDAS_INICIO||dep>VENTANA_SOLO_SALIDAS_FIN)return null;
+      return{numero:v.numero||'',cod:_tlOrigenCorto(v.destino),start:dep-DURACION_LLEGADA_TL,end:dep,tipo:'salida'};
     })
     .filter(Boolean)
     .sort(function(a,b){return a.start-b.start;});
@@ -6140,10 +6165,13 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
 
   // Carril de llegadas — datos reales para HOY, y para MAÑANA en cuanto el
   // backend de Railway empiece a incluir esos vuelos con esManana=true
-  // (no hay ninguna hora fija comprobada aquí, sea cuando sea aparecerán)
+  // (no hay ninguna hora fija comprobada aquí, sea cuando sea aparecerán).
+  // De madrugada se añaden también las salidas "sin llegada" (avión que
+  // durmió en ALC) en rojo — ver _tlSalidasTempranasDelDia.
   var llegadasConPista=[];
   if(offsetDias===0||offsetDias===1){
-    llegadasConPista=_tlAsignarPistasVuelos(_tlLlegadasDelDia(offsetDias));
+    var combinado=_tlLlegadasDelDia(offsetDias).concat(_tlSalidasTempranasDelDia(offsetDias));
+    llegadasConPista=_tlAsignarPistasVuelos(combinado);
     if(!liveLoaded&&typeof loadLive==='function')loadLive(); // dispara la carga si aún no se había abierto el panel Live
   }
   window._tlLlegadasConPistaActual=llegadasConPista;
@@ -6151,12 +6179,13 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   var vuelosRowHtml='<div class="grupo-tl-vuelos-row" id="grupoTlVuelosRow" style="width:'+GRID_W+'px">';
   if(window._tlMostrarLlegadas){
     llegadasConPista.forEach(function(v){
+      var esSalida=v.tipo==='salida';
       var activo=esDiaActual&&nowMin>=v.start&&nowMin<v.end;
       var pasado=esDiaActual&&nowMin>=v.end;
-      var cls='grupo-tl-vuelo-bar'+(activo?' is-now':'')+(pasado?' is-past':'');
+      var cls='grupo-tl-vuelo-bar'+(esSalida?' es-salida':'')+(activo?' is-now':'')+(pasado?' is-past':'');
       var leftPct=(v.start/1440*100),widthPct=((v.end-v.start)/1440*100);
       var top=(v.pista*PISTA_LLEGADA_H+2);
-      vuelosRowHtml+='<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%;top:'+top+'px;height:'+(PISTA_LLEGADA_H-4)+'px" title="'+(v.numero+' '+v.origen+' · '+_tlFmtMin(v.start)+'–'+_tlFmtMin(v.end===1440?0:v.end))+'" onclick="mostrarToastVuelo(event,\''+v.numero+'\',\''+v.origen+'\','+v.start+','+v.end+')"><span class="lbl">'+v.origen+'</span></div>';
+      vuelosRowHtml+='<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%;top:'+top+'px;height:'+(PISTA_LLEGADA_H-4)+'px" title="'+((esSalida?'Salida ':'Llegada ')+v.numero+' · '+v.cod+' · '+_tlFmtMin(v.start)+'–'+_tlFmtMin(v.end===1440?0:v.end))+'" onclick="mostrarToastVuelo(event,\''+v.numero+'\',\''+v.cod+'\','+v.start+','+v.end+',\''+v.tipo+'\')"><span class="lbl">'+v.cod+'</span></div>';
     });
     // descansos (huecos largos entre vuelos / bloques solapados) — en dorado, dentro de la propia fila
     _tlCalcularDescansos(llegadasConPista,UMBRAL_DESCANSO_MIN).forEach(function(d){
