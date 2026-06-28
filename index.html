@@ -5959,11 +5959,32 @@ function toggleLlegadasTimeline(){
   refrescarCompanerosPanel(window._grupoOffsetDias||0,false);
 }
 
+// Mapa inverso (ciudad → código) construido a partir de CIUDADES, que ya
+// usa tu panel Live. v.origen llega como nombre de ciudad (no código), p.ej.
+// "Ámsterdam", "Argel", "Bilbao"... Solo "Londres" es ambiguo (LHR/LGW/STN);
+// se prioriza LGW porque es la ruta real que opera Vueling desde ALC.
+var _CIUDADES_PREF={'Londres':'LGW'};
+var _CIUDADES_INVERSO=(function(){
+  var map={};
+  Object.keys(CIUDADES).forEach(function(code){
+    var nombre=CIUDADES[code];
+    if(!(nombre in map)||_CIUDADES_PREF[nombre]===code)map[nombre]=code;
+  });
+  return map;
+})();
+
 function _tlOrigenCorto(origenStr){
   origenStr=String(origenStr||'').trim();
   if(!origenStr)return'---';
+  // 1) Coincidencia exacta por nombre de ciudad — es el formato real que llega
+  if(_CIUDADES_INVERSO[origenStr])return _CIUDADES_INVERSO[origenStr];
+  // 2) Por si vinera con guion tipo "Ciudad-COD" o "COD-Ciudad"
   var partes=origenStr.split('-').map(function(s){return s.trim();});
-  for(var i=0;i<partes.length;i++){if(/^[A-Z]{3}$/.test(partes[i]))return partes[i];}
+  for(var i=0;i<partes.length;i++){
+    if(/^[A-Z]{3}$/.test(partes[i]))return partes[i];
+    if(_CIUDADES_INVERSO[partes[i]])return _CIUDADES_INVERSO[partes[i]];
+  }
+  // 3) Último recurso: primeras letras del nombre, para ciudades nuevas que no estén en CIUDADES
   return partes[0].substring(0,4).toUpperCase();
 }
 
