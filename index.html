@@ -571,6 +571,15 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-now{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;z-index:4;box-shadow:0 0 5px #ef4444}
 .grupo-tl-now-lbl{position:absolute;top:-18px;transform:translateX(-50%);background:#ef4444;color:#1a0505;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;white-space:nowrap;z-index:5}
 
+/* ─── Carril de llegadas (✈️) dentro de la vista por horas ─────────── */
+.grupo-tl-vuelos-label{display:flex;align-items:center;gap:5px;padding:0 8px;font-size:9.5px;color:#93c5fd;font-weight:700;letter-spacing:.3px;border-bottom:2px solid rgba(255,255,255,.08);background:rgba(96,165,250,.06);cursor:pointer;user-select:none}
+.grupo-tl-vuelos-label .chev{font-size:8px;opacity:.8;transition:transform .15s ease;display:inline-block}
+.grupo-tl-vuelos-label.collapsed .chev{transform:rotate(-90deg)}
+.grupo-tl-vuelos-row{position:relative;border-bottom:2px solid rgba(255,255,255,.08);background:rgba(96,165,250,.04)}
+.grupo-tl-vuelo-bar{position:absolute;border-radius:4px;background:rgba(96,165,250,.24);border:1px solid rgba(96,165,250,.6);color:#bfdbfe;font-size:9.5px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;padding:0 2px}
+.grupo-tl-vuelo-bar.is-now{background:rgba(96,165,250,.4);border-color:#60a5fa;box-shadow:0 0 8px rgba(96,165,250,.45);color:#eff6ff}
+.grupo-tl-vuelo-bar.is-past{opacity:.5}
+
 /* ═══ OPERATIVA ════ */
 #bottom-turno{display:none!important}
 #calc-btn{display:none!important}
@@ -2531,6 +2540,7 @@ function loadLive(){
       var hNow=new Date();
       document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
       renderLive();
+      if(window._grupoVistaHoras)refrescarCompanerosPanel(window._grupoOffsetDias||0,false);
       if(typeof window.renderOperativa==='function'){
         setTimeout(window.renderOperativa,50);
         setTimeout(window.renderOperativa,500);
@@ -5924,6 +5934,90 @@ function _tlFilaHtml(segs,extraClass,esDiaActual,nowMin){
   return '<div class="grupo-tl-row'+(activa?' is-active':'')+'">'+barsHtml+'</div>';
 }
 
+// ─── Carril de llegadas (✈️) dentro de la vista por horas ──────────────
+// Reutiliza liveData.lle (el mismo array que ya rellena el panel "Live
+// vuelos"), así que no se vuelve a pedir nada a AENA aparte. Solo se
+// muestra para el día de HOY: liveData solo cubre hoy + un adelanto de
+// mañana a partir de las 20:00, así que en otros días el carril queda
+// vacío (colapsado a una pista mínima).
+var DURACION_LLEGADA_TL=40; // minutos que dura cada bloque de llegada
+var PISTA_LLEGADA_H=22; // alto de cada pista, en px
+var TL_GRID_W_VUELOS=32*48; // = CELL*48 usado en renderCompanerosTimeline
+
+function _tlPrefLlegadasLeer(){
+  try{var v=localStorage.getItem('cta_mostrar_llegadas');return v===null?true:v==='1';}
+  catch(e){return true;}
+}
+function _tlPrefLlegadasGuardar(val){
+  try{localStorage.setItem('cta_mostrar_llegadas',val?'1':'0');}catch(e){}
+}
+window._tlMostrarLlegadas=_tlPrefLlegadasLeer();
+
+function toggleLlegadasTimeline(){
+  window._tlMostrarLlegadas=!window._tlMostrarLlegadas;
+  _tlPrefLlegadasGuardar(window._tlMostrarLlegadas);
+  refrescarCompanerosPanel(window._grupoOffsetDias||0,false);
+}
+
+function _tlOrigenCorto(origenStr){
+  origenStr=String(origenStr||'').trim();
+  if(!origenStr)return'---';
+  var partes=origenStr.split('-').map(function(s){return s.trim();});
+  for(var i=0;i<partes.length;i++){if(/^[A-Z]{3}$/.test(partes[i]))return partes[i];}
+  return partes[0].substring(0,4).toUpperCase();
+}
+
+function _tlLlegadasDeHoy(){
+  if(typeof liveData==='undefined'||!liveData||!liveData.lle)return[];
+  return liveData.lle
+    .filter(function(v){return !v.esManana&&v.estadoClass!=='e-cancelled';})
+    .map(function(v){
+      var start=hToMin(v.horaReal||v.horaProg||'');
+      if(start===null)return null;
+      return{numero:v.numero||'',origen:_tlOrigenCorto(v.origen),start:start,end:start+DURACION_LLEGADA_TL};
+    })
+    .filter(Boolean)
+    .sort(function(a,b){return a.start-b.start;});
+}
+
+// Reparte cada llegada en la primera pista libre (igual idea que un
+// calendario apilando eventos solapados). La pista de cada vuelo es FIJA
+// para todo el día; lo que cambia con el scroll es solo el alto visible.
+function _tlAsignarPistasVuelos(llegadas){
+  var finPorPista=[];
+  llegadas.forEach(function(it){
+    var colocado=false;
+    for(var i=0;i<finPorPista.length;i++){
+      if(it.start>=finPorPista[i]){finPorPista[i]=it.end;it.pista=i;colocado=true;break;}
+    }
+    if(!colocado){it.pista=finPorPista.length;finPorPista.push(it.end);}
+  });
+  return llegadas;
+}
+
+// Ajusta el ALTO del carril según cuántas pistas hacen falta para los
+// vuelos que se solapan con la ventana visible AHORA MISMO al hacer scroll
+// horizontal (no según el total del día).
+function actualizarAlturaVuelosCompaneros(){
+  var row=document.getElementById('grupoTlVuelosRow');
+  var label=document.getElementById('grupoTlVuelosLabel');
+  if(!row||!label)return;
+  if(!window._tlMostrarLlegadas){row.style.height='18px';label.style.height='18px';return;}
+  var lista=window._tlLlegadasConPistaActual||[];
+  if(!lista.length){row.style.height=PISTA_LLEGADA_H+'px';label.style.height=PISTA_LLEGADA_H+'px';return;}
+  var sc=document.getElementById('grupo-tl-scroll');
+  if(!sc)return;
+  var visStart=(sc.scrollLeft/TL_GRID_W_VUELOS)*1440;
+  var visEnd=((sc.scrollLeft+sc.clientWidth)/TL_GRID_W_VUELOS)*1440;
+  var maxPista=0;
+  lista.forEach(function(v){
+    if(v.start<visEnd&&v.end>visStart&&v.pista>maxPista)maxPista=v.pista;
+  });
+  var alto=(maxPista+1)*PISTA_LLEGADA_H;
+  row.style.height=alto+'px';
+  label.style.height=alto+'px';
+}
+
 function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   var wrap=document.getElementById('grupo-timeline');
   var listPanel=document.getElementById('grupo-panel');
@@ -5945,7 +6039,28 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   var headerHtml='';
   for(var h=0;h<24;h++){headerHtml+='<div class="grupo-tl-hr">'+(h<10?'0':'')+h+'</div>';}
 
-  var namesHtml='<div class="grupo-tl-spacer"></div>';
+  // Carril de llegadas — solo tiene datos reales para el día de HOY
+  var llegadasConPista=[];
+  if(esDiaActual){
+    llegadasConPista=_tlAsignarPistasVuelos(_tlLlegadasDeHoy());
+    if(!liveLoaded&&typeof loadLive==='function')loadLive(); // dispara la carga si aún no se había abierto el panel Live
+  }
+  window._tlLlegadasConPistaActual=llegadasConPista;
+  var vuelosLabelHtml='<div class="grupo-tl-vuelos-label'+(window._tlMostrarLlegadas?'':' collapsed')+'" id="grupoTlVuelosLabel" onclick="toggleLlegadasTimeline()"><span class="chev">▾</span> ✈️ Llegadas</div>';
+  var vuelosRowHtml='<div class="grupo-tl-vuelos-row" id="grupoTlVuelosRow" style="width:'+GRID_W+'px">';
+  if(window._tlMostrarLlegadas){
+    llegadasConPista.forEach(function(v){
+      var activo=esDiaActual&&nowMin>=v.start&&nowMin<v.end;
+      var pasado=esDiaActual&&nowMin>=v.end;
+      var cls='grupo-tl-vuelo-bar'+(activo?' is-now':'')+(pasado?' is-past':'');
+      var leftPct=(v.start/1440*100),widthPct=((v.end-v.start)/1440*100);
+      var top=(v.pista*PISTA_LLEGADA_H+2);
+      vuelosRowHtml+='<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%;top:'+top+'px;height:'+(PISTA_LLEGADA_H-4)+'px" title="'+(v.numero+' '+v.origen+' · '+_tlFmtMin(v.start)+'–'+_tlFmtMin(v.end===1440?0:v.end))+'">'+v.origen+'</div>';
+    });
+  }
+  vuelosRowHtml+='</div>';
+
+  var namesHtml='<div class="grupo-tl-spacer"></div>'+vuelosLabelHtml;
   var rowsHtml='';
   if(data.myDay&&data.myDay.e1){
     var myE1=toMinG(data.myDay.e1),myS1=toMinG(data.myDay.s1);
@@ -5979,6 +6094,7 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
       +'<div class="grupo-tl-scroll" id="grupo-tl-scroll">'
         +'<div class="grupo-tl-grid" style="width:'+GRID_W+'px">'
           +'<div class="grupo-tl-header" style="width:'+GRID_W+'px">'+headerHtml+'</div>'
+          +vuelosRowHtml
           +'<div style="width:'+GRID_W+'px">'+rowsHtml+'</div>'
           +nowLineHtml
         +'</div>'
@@ -5993,6 +6109,8 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
     if(!sc)return;
     var targetMin=esDiaActual?nowMin:360;
     sc.scrollLeft=Math.max(0,(targetMin/1440)*GRID_W-sc.clientWidth/2);
+    sc.addEventListener('scroll',actualizarAlturaVuelosCompaneros);
+    actualizarAlturaVuelosCompaneros();
   },0);
 }
 
