@@ -5955,10 +5955,14 @@ function _tlFilaHtml(segs,extraClass,esDiaActual,nowMin){
 
 // ─── Carril de llegadas (✈️) dentro de la vista por horas ──────────────
 // Reutiliza liveData.lle (el mismo array que ya rellena el panel "Live
-// vuelos"), así que no se vuelve a pedir nada a AENA aparte. Solo se
-// muestra para el día de HOY: liveData solo cubre hoy + un adelanto de
-// mañana a partir de las 20:00, así que en otros días el carril queda
-// vacío (colapsado a una pista mínima).
+// vuelos"), así que no se vuelve a pedir nada a AENA aparte. Se muestra
+// para HOY (offsetDias=0, vuelos con esManana=false) y para MAÑANA
+// (offsetDias=1, vuelos con esManana=true). No hay ningún umbral de hora
+// fijo aquí en el frontend: si liveData.lle ya trae vuelos marcados como
+// esManana (eso lo decide el backend de Railway, sea a la hora que sea),
+// aparecen automáticamente en el carril de "Día siguiente". Para el resto
+// de días (pasado mañana en adelante) el carril queda vacío porque no hay
+// datos de AENA tan lejos.
 var DURACION_LLEGADA_TL=45; // minutos que dura cada bloque de llegada
 var UMBRAL_DESCANSO_MIN=29; // a partir de cuántos minutos sin vuelos se marca como "descanso"
 var PISTA_LLEGADA_H=22; // alto de cada pista, en px
@@ -6061,10 +6065,11 @@ function _tlOrigenCorto(origenStr){
   return partes[0].substring(0,4).toUpperCase();
 }
 
-function _tlLlegadasDeHoy(){
+function _tlLlegadasDelDia(offsetDias){
   if(typeof liveData==='undefined'||!liveData||!liveData.lle)return[];
+  var quiereManana=offsetDias===1; // mañana solo tiene datos si el backend ya los incluye con esManana=true (no hay umbral de hora fijo aquí)
   return liveData.lle
-    .filter(function(v){return !v.esManana&&v.estadoClass!=='e-cancelled';})
+    .filter(function(v){return(!!v.esManana===quiereManana)&&v.estadoClass!=='e-cancelled';})
     .map(function(v){
       var start=hToMin(v.horaReal||v.horaProg||'');
       if(start===null)return null;
@@ -6133,10 +6138,12 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   var headerHtml='';
   for(var h=0;h<24;h++){headerHtml+='<div class="grupo-tl-hr">'+(h<10?'0':'')+h+'</div>';}
 
-  // Carril de llegadas — solo tiene datos reales para el día de HOY
+  // Carril de llegadas — datos reales para HOY, y para MAÑANA en cuanto el
+  // backend de Railway empiece a incluir esos vuelos con esManana=true
+  // (no hay ninguna hora fija comprobada aquí, sea cuando sea aparecerán)
   var llegadasConPista=[];
-  if(esDiaActual){
-    llegadasConPista=_tlAsignarPistasVuelos(_tlLlegadasDeHoy());
+  if(offsetDias===0||offsetDias===1){
+    llegadasConPista=_tlAsignarPistasVuelos(_tlLlegadasDelDia(offsetDias));
     if(!liveLoaded&&typeof loadLive==='function')loadLive(); // dispara la carga si aún no se había abierto el panel Live
   }
   window._tlLlegadasConPistaActual=llegadasConPista;
