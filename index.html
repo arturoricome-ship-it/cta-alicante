@@ -580,10 +580,24 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-vuelos-label .chev{font-size:8px;opacity:.8;transition:transform .15s ease;display:inline-block}
 .grupo-tl-vuelos-label.collapsed .chev{transform:rotate(-90deg)}
 .grupo-tl-vuelos-row{position:relative;border-bottom:2px solid rgba(255,255,255,.08);background:rgba(96,165,250,.04)}
-.grupo-tl-vuelo-bar{position:absolute;border-radius:4px;background:rgba(96,165,250,.24);border:1px solid rgba(96,165,250,.6);color:#bfdbfe;font-size:9.5px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;justify-content:center;clip-path:inset(0 round 4px);padding:0}
+.grupo-tl-vuelo-bar{position:absolute;border-radius:4px;background:rgba(96,165,250,.24);border:1px solid rgba(96,165,250,.6);color:#bfdbfe;font-size:9.5px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;justify-content:center;clip-path:inset(0 round 4px);padding:0;cursor:pointer}
+.grupo-tl-vuelo-bar:active{transform:scale(.95)}
 .grupo-tl-vuelo-bar>.lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .grupo-tl-vuelo-bar.is-now{background:rgba(96,165,250,.4);border-color:#60a5fa;box-shadow:0 0 8px rgba(96,165,250,.45);color:#eff6ff}
 .grupo-tl-vuelo-bar.is-past{opacity:.5}
+
+/* Descanso (hueco >= umbral entre vuelos/bloques solapados) — en dorado, dentro de la propia fila de llegadas */
+.descanso-seg{position:absolute;top:50%;height:16px;transform:translateY(-50%);z-index:2}
+.descanso-linea{position:absolute;left:7px;right:7px;top:50%;border-top:1px dashed rgba(232,201,106,.6);transform:translateY(-50%)}
+.descanso-flecha{position:absolute;top:50%;transform:translateY(-50%);color:rgba(232,201,106,.8);font-size:10px;font-weight:900}
+.descanso-flecha.izq{left:0}
+.descanso-flecha.der{right:0}
+.descanso-lbl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#241d0f;border:1px solid rgba(232,201,106,.5);padding:1px 6px;border-radius:8px;font-size:8px;color:var(--gold-light);font-weight:700;white-space:nowrap;z-index:1}
+
+/* Aviso emergente al tocar un vuelo, posicionado donde se pulsa */
+.tl-toast-vuelo{position:fixed;background:#15233a;border:1px solid rgba(96,165,250,.5);color:#dbeafe;padding:8px 14px;border-radius:10px;font-size:12.5px;font-weight:600;line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:9999;text-align:center;white-space:nowrap;font-family:'Outfit',sans-serif}
+.tl-toast-vuelo b{color:#93c5fd}
+.tl-toast-vuelo.show{opacity:1}
 
 /* ═══ OPERATIVA ════ */
 #bottom-turno{display:none!important}
@@ -5945,9 +5959,63 @@ function _tlFilaHtml(segs,extraClass,esDiaActual,nowMin){
 // muestra para el día de HOY: liveData solo cubre hoy + un adelanto de
 // mañana a partir de las 20:00, así que en otros días el carril queda
 // vacío (colapsado a una pista mínima).
-var DURACION_LLEGADA_TL=40; // minutos que dura cada bloque de llegada
+var DURACION_LLEGADA_TL=45; // minutos que dura cada bloque de llegada
+var UMBRAL_DESCANSO_MIN=29; // a partir de cuántos minutos sin vuelos se marca como "descanso"
 var PISTA_LLEGADA_H=22; // alto de cada pista, en px
 var TL_GRID_W_VUELOS=32*48; // = CELL*48 usado en renderCompanerosTimeline
+
+function _tlFmtDur(mins){
+  var h=Math.floor(mins/60),m=mins%60;
+  if(h===0)return m+'min';
+  if(m===0)return h+'h';
+  return h+'h '+m+'min';
+}
+
+// Fusiona llegadas solapadas/contiguas en "bloques ocupados" y devuelve los
+// huecos entre bloques que sean >= UMBRAL_DESCANSO_MIN. Así un grupo de
+// vuelos solapados cuenta como un solo bloque, no como huecos sueltos.
+function _tlCalcularDescansos(llegadas,umbralMin){
+  var ordenadas=llegadas.slice().sort(function(a,b){return a.start-b.start;});
+  var bloques=[];
+  ordenadas.forEach(function(it){
+    var ultimo=bloques[bloques.length-1];
+    if(ultimo&&it.start<=ultimo.end)ultimo.end=Math.max(ultimo.end,it.end);
+    else bloques.push({start:it.start,end:it.end});
+  });
+  var descansos=[];
+  for(var i=0;i<bloques.length-1;i++){
+    var gap=bloques[i+1].start-bloques[i].end;
+    if(gap>=umbralMin)descansos.push({start:bloques[i].end,end:bloques[i+1].start,dur:gap});
+  }
+  return descansos;
+}
+
+// Aviso emergente al tocar un vuelo, posicionado justo donde se ha pulsado.
+function mostrarToastVuelo(ev,numero,origen,start,end){
+  if(ev&&ev.stopPropagation)ev.stopPropagation();
+  var t=document.getElementById('tlToastVuelo');
+  if(!t){
+    t=document.createElement('div');
+    t.id='tlToastVuelo';
+    t.className='tl-toast-vuelo';
+    document.body.appendChild(t);
+  }
+  t.innerHTML='✈️ <b>'+numero+'</b> · '+origen+'<br>'+_tlFmtMin(start)+' → '+_tlFmtMin(end===1440?0:end);
+  t.style.left=ev.clientX+'px';
+  t.style.top=(ev.clientY-12)+'px';
+  t.style.transform='translate(-50%,-100%)';
+  t.classList.add('show');
+  requestAnimationFrame(function(){
+    var r=t.getBoundingClientRect();
+    var margen=8,dx=0,dy=0;
+    if(r.left<margen)dx=margen-r.left;
+    if(r.right>window.innerWidth-margen)dx=window.innerWidth-margen-r.right;
+    if(r.top<margen)dy=margen-r.top;
+    t.style.transform='translate(calc(-50% + '+dx+'px), calc(-100% + '+dy+'px))';
+  });
+  clearTimeout(t._timer);
+  t._timer=setTimeout(function(){t.classList.remove('show');},3000);
+}
 
 function _tlPrefLlegadasLeer(){
   try{var v=localStorage.getItem('cta_mostrar_llegadas');return v===null?true:v==='1';}
@@ -6081,7 +6149,12 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
       var cls='grupo-tl-vuelo-bar'+(activo?' is-now':'')+(pasado?' is-past':'');
       var leftPct=(v.start/1440*100),widthPct=((v.end-v.start)/1440*100);
       var top=(v.pista*PISTA_LLEGADA_H+2);
-      vuelosRowHtml+='<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%;top:'+top+'px;height:'+(PISTA_LLEGADA_H-4)+'px" title="'+(v.numero+' '+v.origen+' · '+_tlFmtMin(v.start)+'–'+_tlFmtMin(v.end===1440?0:v.end))+'"><span class="lbl">'+v.origen+'</span></div>';
+      vuelosRowHtml+='<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%;top:'+top+'px;height:'+(PISTA_LLEGADA_H-4)+'px" title="'+(v.numero+' '+v.origen+' · '+_tlFmtMin(v.start)+'–'+_tlFmtMin(v.end===1440?0:v.end))+'" onclick="mostrarToastVuelo(event,\''+v.numero+'\',\''+v.origen+'\','+v.start+','+v.end+')"><span class="lbl">'+v.origen+'</span></div>';
+    });
+    // descansos (huecos largos entre vuelos / bloques solapados) — en dorado, dentro de la propia fila
+    _tlCalcularDescansos(llegadasConPista,UMBRAL_DESCANSO_MIN).forEach(function(d){
+      var dLeftPct=(d.start/1440*100),dWidthPct=((d.end-d.start)/1440*100);
+      vuelosRowHtml+='<div class="descanso-seg" style="left:'+dLeftPct+'%;width:'+dWidthPct+'%"><div class="descanso-linea"></div><span class="descanso-flecha izq">‹</span><span class="descanso-flecha der">›</span><span class="descanso-lbl">'+_tlFmtDur(d.dur)+'</span></div>';
     });
   }
   vuelosRowHtml+='</div>';
