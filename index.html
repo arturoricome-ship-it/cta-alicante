@@ -541,6 +541,36 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #grupo-panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
 #grupo-panel .grupo-item:last-child{margin-bottom:12px}
 
+/* ─── Vista por horas (línea de tiempo) ─────────────────── */
+#btn-vista-horas.active{background:linear-gradient(135deg,#0f3d33,#10261f);border-color:#34d399;color:#6ee7b7}
+#grupo-timeline{display:none;margin-top:10px;border-top:1px solid rgba(255,255,255,.07);padding-top:10px;max-height:min(72vh,560px);overflow-y:auto;overflow-x:hidden;padding-right:2px;padding-bottom:20px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent}
+#grupo-timeline.open{display:block;padding-top:0}
+#grupo-timeline::-webkit-scrollbar{width:3px}
+#grupo-timeline::-webkit-scrollbar-track{background:transparent}
+#grupo-timeline::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+.grupo-tl-hint{font-size:9.5px;color:var(--gray);text-align:center;margin:0 0 8px}
+.grupo-tl-body{display:flex;align-items:flex-start;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
+.grupo-tl-names{flex:0 0 96px;border-right:1px solid var(--border)}
+.grupo-tl-names .grupo-tl-spacer{height:28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:3}
+.grupo-tl-name{height:40px;display:flex;align-items:center;padding:0 8px;border-bottom:1px solid rgba(255,255,255,.05);font-size:11px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grupo-tl-name.is-active{background:rgba(110,231,183,.12);color:#a7f3d0}
+.grupo-tl-scroll{flex:1;overflow-x:auto}
+.grupo-tl-grid{position:relative;width:max-content}
+.grupo-tl-header{display:flex;height:28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:2}
+.grupo-tl-header .grupo-tl-hr{width:64px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:9.5px;color:var(--gray);font-weight:600;border-right:1px solid rgba(255,255,255,.05)}
+.grupo-tl-row{height:40px;position:relative;border-bottom:1px solid rgba(255,255,255,.05);background-image:repeating-linear-gradient(to right, transparent 0, transparent 31px, rgba(255,255,255,.04) 31px, rgba(255,255,255,.04) 32px),repeating-linear-gradient(to right, transparent 0, transparent 63px, rgba(255,255,255,.09) 63px, rgba(255,255,255,.09) 64px)}
+.grupo-tl-row.is-active{background-color:rgba(110,231,183,.04)}
+.grupo-tl-bar{position:absolute;top:5px;bottom:5px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);color:var(--white)}
+.grupo-tl-bar.is-past{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.07);color:var(--gray);opacity:.75}
+.grupo-tl-bar.is-active{background:rgba(110,231,183,.22);border-color:rgba(110,231,183,.55);color:#a7f3d0;box-shadow:0 0 8px rgba(110,231,183,.25)}
+.grupo-tl-bar.is-night{background:rgba(251,146,60,.18);border-color:rgba(251,146,60,.45);color:#fdba74}
+.grupo-tl-bar.is-night.is-active{background:rgba(251,146,60,.28);border-color:rgba(251,146,60,.6);color:#fed7aa;box-shadow:0 0 8px rgba(251,146,60,.3)}
+.grupo-tl-bar.is-you{background:rgba(200,168,75,.2);border-color:rgba(200,168,75,.5);color:var(--gold)}
+.grupo-tl-bar.fade-left::before{content:'‹';position:absolute;left:1px;opacity:.55;font-size:11px;font-weight:900}
+.grupo-tl-bar.fade-right::after{content:'›';position:absolute;right:1px;opacity:.55;font-size:11px;font-weight:900}
+.grupo-tl-now{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;z-index:4;box-shadow:0 0 5px #ef4444}
+.grupo-tl-now-lbl{position:absolute;top:-18px;transform:translateX(-50%);background:#ef4444;color:#1a0505;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;white-space:nowrap;z-index:5}
+
 /* ═══ OPERATIVA ════ */
 #bottom-turno{display:none!important}
 #calc-btn{display:none!important}
@@ -2597,9 +2627,11 @@ document.getElementById("btn-logout").addEventListener("click",function(){
     <button class="calc-small-btn" id="btn-en-turno" onclick="filtrarEnTurno()">⚡ En turno</button>
     <button id="btn-sort-salida" onclick="toggleSortSalida()" title="Ordenar por próxima salida" style="background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:5px 9px;cursor:pointer;font-size:13px;line-height:1">⇅</button>
     <button onclick="abrirBuscadorEvento()" style="background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:700;color:#a78bfa;font-family:'Outfit',sans-serif">🎉 Evento</button>
+    <button id="btn-vista-horas" class="calc-small-btn" onclick="toggleVistaHoras()">🕐 Vista por horas</button>
     <input type="file" id="grupo-file-input" accept=".xlsx" style="display:none" onchange="procesarGrupoXlsx(this.files[0])">
   </div>
   <div id="grupo-panel"></div>
+  <div id="grupo-timeline"></div>
   <div class="grupo-import-wrap" id="grupo-import-hint" style="display:none">
     <span id="grupo-import-txt"></span>
   </div>
@@ -5122,13 +5154,15 @@ function verCompanerosHoy(){
   // Always render, never toggle — reset open state first
   var gp=document.getElementById('grupo-panel');
   if(gp)gp.classList.remove('open');
-  return renderCompanerosDia(window._grupoOffsetDias,false);
+  var tl=document.getElementById('grupo-timeline');
+  if(tl)tl.classList.remove('open');
+  return refrescarCompanerosPanel(window._grupoOffsetDias,false);
 }
 
 function moverCompanerosDia(delta){
   if(typeof window._grupoOffsetDias!=='number')window._grupoOffsetDias=0;
   window._grupoOffsetDias+=delta;
-  renderCompanerosDia(window._grupoOffsetDias,false);
+  refrescarCompanerosPanel(window._grupoOffsetDias,false);
 }
 
 function toggleTodaPlantilla(){
@@ -5136,7 +5170,7 @@ function toggleTodaPlantilla(){
   if(b)b.classList.toggle('active',!window._grupoMostrarTodaPlantilla);
   window._grupoMostrarTodaPlantilla=!window._grupoMostrarTodaPlantilla;
   if(typeof window._grupoOffsetDias!=='number')window._grupoOffsetDias=0;
-  renderCompanerosDia(window._grupoOffsetDias,false);
+  refrescarCompanerosPanel(window._grupoOffsetDias,false);
 }
 
 function formateaFechaGrupo(baseDate,offsetDias){
@@ -5292,7 +5326,11 @@ function cargarCambiosTurnosCompartidos(year,force){
     (data.cambios||[]).forEach(_cacheCambioTurnoCompartido);
     _CAMBIOS_TURNOS_ULTIMA_CARGA[year]=Date.now();
     setTimeout(function(){
-      try{if(typeof renderCompanerosDia==='function'&&document.getElementById('grupo-panel')&&document.getElementById('grupo-panel').classList.contains('open'))renderCompanerosDia(window._grupoOffsetDias||0,false);}catch(e){}
+      try{
+        var _gp=document.getElementById('grupo-panel'),_tl=document.getElementById('grupo-timeline');
+        var _abierto=(_gp&&_gp.classList.contains('open'))||(_tl&&_tl.classList.contains('open'));
+        if(typeof refrescarCompanerosPanel==='function'&&_abierto)refrescarCompanerosPanel(window._grupoOffsetDias||0,false);
+      }catch(e){}
       try{if(typeof opActualizarDashboard==='function')opActualizarDashboard();}catch(e){}
       try{if(typeof renderDashboardOperativa==='function')renderDashboardOperativa();}catch(e){}
     },50);
@@ -5475,6 +5513,8 @@ function guardarCambioTurnoCompartido(year,monthKey,day,dayObj){
 
 function renderCompanerosDia(offsetDias,toggleIfOpen){
   var panel=document.getElementById('grupo-panel');
+  var tlPanel=document.getElementById('grupo-timeline');
+  if(tlPanel)tlPanel.classList.remove('open');
   if(toggleIfOpen&&panel.classList.contains('open')){panel.classList.remove('open');return;}
   var modoToda=!!window._grupoMostrarTodaPlantilla;
   var modoMismoTurno=!!_mismoTurnoMode;
@@ -5715,6 +5755,264 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   setTimeout(checkExitBlinks,100);
 }
 
+// ─── Vista por horas (línea de tiempo) ──────────────────────────────
+// _buildCompanerosTimelineData duplica a propósito la lógica de
+// emparejamiento de renderCompanerosDia (en vez de refactorizarla) para
+// no tocar la función de la vista de lista, que ya está en producción.
+// Si se cambia una regla de turnos/HL/cambios compartidos ahí, replicar
+// el cambio aquí también.
+window._grupoVistaHoras=window._grupoVistaHoras||false;
+
+function _buildCompanerosTimelineData(offsetDias){
+  var modoToda=!!window._grupoMostrarTodaPlantilla;
+  var modoMismoTurno=!!_mismoTurnoMode;
+  var modoEnTurno=!!_enTurnoMode;
+  var ahoraReal=new Date();
+  var nowMinReal=ahoraReal.getHours()*60+ahoraReal.getMinutes();
+
+  var now=new Date();
+  var target=new Date(now.getTime());
+  target.setDate(target.getDate()+offsetDias);
+  var monthKey=_GRUPO_MONTHS[target.getMonth()];
+  var day=target.getDate();
+
+  var nominaMapHoy={};
+  try{nominaMapHoy=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){}
+  var empleados=[];
+  for(var _nk in nominaMapHoy){
+    if(nominaMapHoy.hasOwnProperty(_nk)){
+      var _emp=nominaMapHoy[_nk];
+      var _dias=(_emp.meses&&_emp.meses[monthKey])||null;
+      if(_dias)empleados.push({nomina:_emp.nomina,nombre:_emp.nombre,categoria:_emp.categoria,dias:_dias,meses:_emp.meses||{}});
+    }
+  }
+  var fechaISOGrupo=_fechaISOPlantilla(target);
+  empleados=empleados.filter(function(emp){
+    return !_estaExcluidoPlantilla(emp.nombre||emp.nomina,fechaISOGrupo);
+  });
+
+  if(!empleados.length) return {error:'no-excel'};
+
+  var myData={};
+  try{myData=JSON.parse(localStorage.getItem('cta_ed_'+target.getFullYear())||'{}')}catch(e){}
+  var myDay=(myData[monthKey]||{})[day];
+  var myE1=myDay&&myDay.e1?toMinG(myDay.e1):null;
+  var myS1=myDay&&myDay.s1?toMinG(myDay.s1):null;
+  var myE2=myDay&&myDay.e2?toMinG(myDay.e2):null;
+  var myS2=myDay&&myDay.s2?toMinG(myDay.s2):null;
+  if((!myDay||!myDay.e1)&&!modoToda) return {error:'no-turno'};
+
+  var ahoraMin=now.getHours()*60+now.getMinutes();
+  var esDiaActual=offsetDias===0;
+
+  function _esTramoNocheReal(e,s){
+    if(e===null||s===null||typeof e==='undefined'||typeof s==='undefined')return false;
+    return (s<e && e>=22*60 && e<24*60 && s>=5*60 && s<8*60);
+  }
+  function _turnoTieneNocheReal(e1,s1,e2,s2){
+    return _esTramoNocheReal(e1,s1)||_esTramoNocheReal(e2,s2);
+  }
+
+  var coinciden=[];
+  empleados.forEach(function(emp){
+    var turno=emp.dias[day];
+    turno=_turnoGrupoConCambioCompartido(emp,target,turno);
+    if(_esArturoPlantilla(emp.nombre||emp.nomina)){
+      turno=_arturoHLPubFecha(target)?null:_ajustarTurnoConHLPersonal(turno,_miCalendarioDiaArturo(target));
+    }
+    if(turno&&turno.e1&&turno.tipo!=='libre'){
+      var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
+      var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
+      var solapa=turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2);
+      var mismoTurno=modoMismoTurno?(Math.abs(grE1-(myE1||0))<=30):true;
+      var _t1ok=minutoEnTramo(nowMinReal,grE1,grS1);
+      if(esDiaActual&&grE1!==null&&grS1!==null&&grS1<grE1)_t1ok=(nowMinReal>=grE1);
+      var _t2ok=minutoEnTramo(nowMinReal,grE2,grS2);
+      if(esDiaActual&&grE2!==null&&grS2!==null&&grS2<grE2)_t2ok=(nowMinReal>=grE2);
+      var trabAhora=!modoEnTurno||(_t1ok||_t2ok);
+      var _esExcl=!!(turno&&(turno.noVieneInterrogacion||turno.disponibilidadNoConfirmada));
+      if((modoToda||solapa)&&mismoTurno&&trabAhora&&(!_esExcl||window._showExcl)){
+        var horario=turno.e1+'→'+turno.s1+(turno.e2&&turno.s2?' / '+turno.e2+'→'+turno.s2:'');
+        var enT1=minutoEnTramo(ahoraMin,grE1,grS1),enT2=minutoEnTramo(ahoraMin,grE2,grS2);
+        if(esDiaActual&&grE1!==null&&grS1!==null&&grS1<grE1)enT1=(ahoraMin>=grE1);
+        if(esDiaActual&&grE2!==null&&grS2!==null&&grS2<grE2)enT2=(ahoraMin>=grE2);
+        var opAhora=esDiaActual&&(enT1||enT2)&&!turno.disponibilidadNoConfirmada&&!turno.noVieneInterrogacion;
+        var _nocheReal=_turnoTieneNocheReal(grE1,grS1,grE2,grS2);
+        var _futOvn=_nocheReal&&nowMinReal<grE1;
+        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,e2:grE2,s2:grS2,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false,futuraNoche:_futOvn,nocheReal:_nocheReal,nocheDiaFin:false});
+      }
+    }
+    var fechaAyer=new Date(target.getFullYear(),target.getMonth(),target.getDate()-1);
+    var monthKeyAyer=_GRUPO_MONTHS[fechaAyer.getMonth()];
+    var dayAyer=fechaAyer.getDate();
+    var diasAyer=(emp.meses&&emp.meses[monthKeyAyer])||emp.dias||{};
+    var turnoAyer=diasAyer[dayAyer];
+    turnoAyer=_turnoGrupoConCambioCompartido(emp,fechaAyer,turnoAyer);
+    if(turnoAyer&&turnoAyer.e1&&turnoAyer.s1){
+      var yE1=toMinG(turnoAyer.e1),yS1=toMinG(turnoAyer.s1);
+      var yE2=turnoAyer.e2?toMinG(turnoAyer.e2):null,yS2=turnoAyer.s2?toMinG(turnoAyer.s2):null;
+      var _nocheAyer=_turnoTieneNocheReal(yE1,yS1,yE2,yS2);
+      if(_nocheAyer){
+        var _trabOvn=true;
+        if(modoEnTurno){
+          var dentro1=_esTramoNocheReal(yE1,yS1)&&minutoEnTramo(nowMinReal,0,yS1);
+          var dentro2=_esTramoNocheReal(yE2,yS2)&&minutoEnTramo(nowMinReal,0,yS2);
+          _trabOvn=!!(dentro1||dentro2);
+        }
+        if(_trabOvn&&(modoToda||turnosSeSuperponen(myE1,myS1,myE2,myS2,0,Math.max(yS1||0,yS2||0)+1,null,null))){
+          var alreadyIn=coinciden.some(function(c){return c.nombre===emp.nombre&&c.nocheDiaFin;});
+          if(!alreadyIn){
+            var hAyer=turnoAyer.e1+'→'+turnoAyer.s1+(turnoAyer.e2&&turnoAyer.s2?' / '+turnoAyer.e2+'→'+turnoAyer.s2:'');
+            coinciden.push({nombre:emp.nombre,horario:hAyer,e1:0,s1:Math.max(yS1||0,yS2||0),e2:null,s2:null,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:(esDiaActual&&nowMinReal<Math.max(yS1||0,yS2||0)),overnight:true,futuraNoche:false,nocheReal:true,nocheDiaFin:true});
+          }
+        }
+      }
+    }
+  });
+
+  if(!coinciden.length) return {error:'no-match',modoToda:modoToda};
+
+  return {error:null,modoToda:modoToda,esDiaActual:esDiaActual,myDay:myDay,coinciden:coinciden};
+}
+
+function _tlFmtMin(m){
+  m=((m%1440)+1440)%1440;
+  var h=Math.floor(m/60),mm=m%60;
+  return (h<10?'0':'')+h+':'+(mm<10?'0':'')+mm;
+}
+
+// Recorta cada tramo [inicio,fin] del turno a la rejilla del día mostrado.
+// flag 'fromYesterday' = el tramo viene de un turno de noche de ayer (e=0 ya recortado).
+// flag 'continuesTomorrow' = el tramo sigue después de medianoche (fin<inicio en los datos crudos).
+function _tlSegmentos(c){
+  var segs=[];
+  function add(e,s,esFinDeNoche){
+    if(e===null||typeof e==='undefined'||s===null||typeof s==='undefined')return;
+    if(esFinDeNoche){segs.push([0,s,'fromYesterday']);return;}
+    if(s<e){segs.push([e,1440,'continuesTomorrow']);return;}
+    segs.push([e,s,null]);
+  }
+  add(c.e1,c.s1,!!c.nocheDiaFin);
+  add(c.e2,c.s2,false);
+  return segs;
+}
+
+function _tlEstadoSegmento(seg,nowMin,esDiaActual){
+  if(!esDiaActual)return 'future';
+  var start=seg[0],end=seg[1],flag=seg[2];
+  if(flag==='fromYesterday')return nowMin<end?'active':'past';
+  if(flag==='continuesTomorrow')return nowMin>=start?'active':'future';
+  if(nowMin>=start&&nowMin<end)return 'active';
+  if(nowMin<start)return 'future';
+  return 'past';
+}
+
+function _tlFilaHtml(segs,extraClass,esDiaActual,nowMin){
+  var activa=segs.some(function(seg){return _tlEstadoSegmento(seg,nowMin,esDiaActual)==='active';});
+  var barsHtml=segs.map(function(seg){
+    var start=seg[0],end=seg[1],flag=seg[2];
+    var estado=_tlEstadoSegmento(seg,nowMin,esDiaActual);
+    var cls='grupo-tl-bar'+(extraClass?' '+extraClass:'');
+    if(estado==='past')cls+=' is-past';
+    if(estado==='active')cls+=' is-active';
+    if(flag==='fromYesterday')cls+=' fade-left';
+    if(flag==='continuesTomorrow')cls+=' fade-right';
+    var leftPct=(start/1440*100),widthPct=((end-start)/1440*100);
+    var label=_tlFmtMin(start)+'–'+_tlFmtMin(end===1440?0:end);
+    return '<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%" title="'+label+'">'+label+'</div>';
+  }).join('');
+  return '<div class="grupo-tl-row'+(activa?' is-active':'')+'">'+barsHtml+'</div>';
+}
+
+function renderCompanerosTimeline(offsetDias,toggleIfOpen){
+  var wrap=document.getElementById('grupo-timeline');
+  var listPanel=document.getElementById('grupo-panel');
+  if(listPanel)listPanel.classList.remove('open');
+  if(toggleIfOpen&&wrap.classList.contains('open')){wrap.classList.remove('open');return;}
+
+  var navHtml='<div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
+
+  var data=_buildCompanerosTimelineData(offsetDias);
+  if(data.error==='no-excel'){wrap.innerHTML='<div class="grupo-empty">📋 Importa el Excel del grupo primero</div>';wrap.classList.add('open');return;}
+  if(data.error==='no-turno'){wrap.innerHTML=navHtml+'<div class="grupo-empty">📅 No tienes turno ese día</div>';wrap.classList.add('open');return;}
+  if(data.error==='no-match'){wrap.innerHTML=navHtml+'<div class="grupo-empty">'+(data.modoToda?'No hay nadie con turno ese día':'No coincides con nadie del grupo ese día')+'</div>';wrap.classList.add('open');return;}
+
+  var coinciden=data.coinciden.slice().sort(function(a,b){return (a.e1||0)-(b.e1||0);});
+  var esDiaActual=data.esDiaActual;
+  var nowMin=(function(){var n=new Date();return n.getHours()*60+n.getMinutes();})();
+  var CELL=32,GRID_W=CELL*48;
+
+  var headerHtml='';
+  for(var h=0;h<24;h++){headerHtml+='<div class="grupo-tl-hr">'+(h<10?'0':'')+h+'</div>';}
+
+  var namesHtml='<div class="grupo-tl-spacer"></div>';
+  var rowsHtml='';
+  if(data.myDay&&data.myDay.e1){
+    var myE1=toMinG(data.myDay.e1),myS1=toMinG(data.myDay.s1);
+    var myE2=data.myDay.e2?toMinG(data.myDay.e2):null,myS2=data.myDay.s2?toMinG(data.myDay.s2):null;
+    var segsYo=_tlSegmentos({e1:myE1,s1:myS1,e2:myE2,s2:myS2,nocheDiaFin:false});
+    namesHtml+='<div class="grupo-tl-name" style="color:var(--gold)">Tú</div>';
+    rowsHtml+=_tlFilaHtml(segsYo,'is-you',false,nowMin); // siempre en dorado, sin resaltado "activo"
+  } else {
+    namesHtml+='<div class="grupo-tl-name" style="color:var(--gray)">Tú · Libre</div>';
+    rowsHtml+='<div class="grupo-tl-row"></div>';
+  }
+
+  coinciden.forEach(function(c){
+    var segs=_tlSegmentos(c);
+    var activaFila=esDiaActual&&segs.some(function(seg){return _tlEstadoSegmento(seg,nowMin,true)==='active';});
+    namesHtml+='<div class="grupo-tl-name'+(activaFila?' is-active':'')+'">'+c.nombre+(c.nocheDiaFin||c.nocheReal?' 🌙':'')+'</div>';
+    rowsHtml+=_tlFilaHtml(segs,c.nocheReal?'is-night':'',esDiaActual,nowMin);
+  });
+
+  var nowLineHtml='';
+  if(esDiaActual){
+    var leftPx=Math.round((nowMin/1440)*GRID_W);
+    nowLineHtml='<div class="grupo-tl-now" style="left:'+leftPx+'px"></div><div class="grupo-tl-now-lbl" style="left:'+leftPx+'px">'+_tlFmtMin(nowMin)+'</div>';
+  }
+
+  var html=navHtml
+    +'<div class="grupo-title">👥 '+(data.modoToda?'Toda la plantilla':'Coincidencias')+' · '+coinciden.length+'</div>'
+    +'<div class="grupo-tl-hint">👉 Desliza para ver las 24h'+(esDiaActual?' · línea roja = ahora':'')+'</div>'
+    +'<div class="grupo-tl-body">'
+      +'<div class="grupo-tl-names">'+namesHtml+'</div>'
+      +'<div class="grupo-tl-scroll" id="grupo-tl-scroll">'
+        +'<div class="grupo-tl-grid" style="width:'+GRID_W+'px">'
+          +'<div class="grupo-tl-header" style="width:'+GRID_W+'px">'+headerHtml+'</div>'
+          +'<div style="width:'+GRID_W+'px">'+rowsHtml+'</div>'
+          +nowLineHtml
+        +'</div>'
+      +'</div>'
+    +'</div>';
+
+  wrap.innerHTML=html+'<div style="height:16px"></div>';
+  wrap.classList.add('open');
+
+  setTimeout(function(){
+    var sc=document.getElementById('grupo-tl-scroll');
+    if(!sc)return;
+    var targetMin=esDiaActual?nowMin:360;
+    sc.scrollLeft=Math.max(0,(targetMin/1440)*GRID_W-sc.clientWidth/2);
+  },0);
+}
+
+// Decide qué vista (lista o línea de tiempo) hay que refrescar/abrir.
+function refrescarCompanerosPanel(offsetDias,toggleIfOpen){
+  if(window._grupoVistaHoras)renderCompanerosTimeline(offsetDias,toggleIfOpen);
+  else renderCompanerosDia(offsetDias,toggleIfOpen);
+}
+
+function toggleVistaHoras(){
+  window._grupoVistaHoras=!window._grupoVistaHoras;
+  var btn=document.getElementById('btn-vista-horas');
+  if(btn){
+    btn.classList.toggle('active',window._grupoVistaHoras);
+    btn.textContent=window._grupoVistaHoras?'📋 Vista lista':'🕐 Vista por horas';
+  }
+  if(typeof window._grupoOffsetDias!=='number')window._grupoOffsetDias=0;
+  refrescarCompanerosPanel(window._grupoOffsetDias,false);
+}
+
 // Init: check if group data exists
 (function(){
   try{
@@ -5738,7 +6036,7 @@ function filtrarEnTurno(){
   var btn=document.getElementById('btn-en-turno');
   if(btn)btn.classList.toggle('active',_enTurnoMode);
   window._grupoOffsetDias=window._grupoOffsetDias||0;
-  renderCompanerosDia(window._grupoOffsetDias);
+  refrescarCompanerosPanel(window._grupoOffsetDias);
 }
 
 
@@ -5759,7 +6057,7 @@ function toggleSortSalida(){
   window._sortBySalida=!window._sortBySalida;
   var btn=document.getElementById('btn-sort-salida');
   if(btn){btn.style.background=window._sortBySalida?'rgba(200,168,75,.3)':'rgba(200,168,75,.12)';btn.style.color=window._sortBySalida?'var(--gold)':'inherit';}
-  renderCompanerosDia(window._grupoOffsetDias||0);
+  refrescarCompanerosPanel(window._grupoOffsetDias||0);
 }
 var _mismoTurnoMode=false;
 function filtrarMismoTurno(){
@@ -5767,7 +6065,7 @@ function filtrarMismoTurno(){
   var btn=document.getElementById('btn-mismo-turno');
   if(btn)btn.classList.toggle('active',_mismoTurnoMode);
   window._grupoOffsetDias=window._grupoOffsetDias||0;
-  renderCompanerosDia(window._grupoOffsetDias);
+  refrescarCompanerosPanel(window._grupoOffsetDias);
 }
 
 function buildHorarioHtml(c){
