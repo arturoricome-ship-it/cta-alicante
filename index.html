@@ -5882,19 +5882,25 @@ function _buildCompanerosTimelineData(offsetDias){
     if(turnoAyer&&turnoAyer.e1&&turnoAyer.s1){
       var yE1=toMinG(turnoAyer.e1),yS1=toMinG(turnoAyer.s1);
       var yE2=turnoAyer.e2?toMinG(turnoAyer.e2):null,yS2=turnoAyer.s2?toMinG(turnoAyer.s2):null;
-      var _nocheAyer=_turnoTieneNocheReal(yE1,yS1,yE2,yS2);
-      if(_nocheAyer){
+      // Fin del/los tramo(s) que de verdad cruzan medianoche (s<e). Cualquier
+      // turno que cruce cuenta aquí, no solo los de "noche real" (22-24h →
+      // 05-08h) — eso solo se usa más abajo para decidir el ESTILO (🌙/color).
+      var _finCruce1=(yE1!==null&&yS1!==null&&yS1<yE1)?yS1:null;
+      var _finCruce2=(yE2!==null&&yS2!==null&&yS2<yE2)?yS2:null;
+      var _finCruceAyer=(_finCruce1===null)?_finCruce2:(_finCruce2===null?_finCruce1:Math.max(_finCruce1,_finCruce2));
+      if(_finCruceAyer!==null){
+        var _nocheRealAyer=_turnoTieneNocheReal(yE1,yS1,yE2,yS2); // solo para el estilo
         var _trabOvn=true;
         if(modoEnTurno){
-          var dentro1=_esTramoNocheReal(yE1,yS1)&&minutoEnTramo(nowMinReal,0,yS1);
-          var dentro2=_esTramoNocheReal(yE2,yS2)&&minutoEnTramo(nowMinReal,0,yS2);
+          var dentro1=_finCruce1!==null&&minutoEnTramo(nowMinReal,0,_finCruce1);
+          var dentro2=_finCruce2!==null&&minutoEnTramo(nowMinReal,0,_finCruce2);
           _trabOvn=!!(dentro1||dentro2);
         }
-        if(_trabOvn&&(modoToda||turnosSeSuperponen(myE1,myS1,myE2,myS2,0,Math.max(yS1||0,yS2||0)+1,null,null))){
+        if(_trabOvn&&(modoToda||turnosSeSuperponen(myE1,myS1,myE2,myS2,0,_finCruceAyer+1,null,null))){
           var alreadyIn=coinciden.some(function(c){return c.nombre===emp.nombre&&c.nocheDiaFin;});
           if(!alreadyIn){
             var hAyer=turnoAyer.e1+'→'+turnoAyer.s1+(turnoAyer.e2&&turnoAyer.s2?' / '+turnoAyer.e2+'→'+turnoAyer.s2:'');
-            coinciden.push({nombre:emp.nombre,horario:hAyer,e1:0,s1:Math.max(yS1||0,yS2||0),e2:null,s2:null,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:(esDiaActual&&nowMinReal<Math.max(yS1||0,yS2||0)),overnight:true,futuraNoche:false,nocheReal:true,nocheDiaFin:true});
+            coinciden.push({nombre:emp.nombre,horario:hAyer,e1:0,s1:_finCruceAyer,e2:null,s2:null,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:(esDiaActual&&nowMinReal<_finCruceAyer),overnight:true,futuraNoche:false,nocheReal:_nocheRealAyer,nocheDiaFin:true});
           }
         }
       }
@@ -6212,7 +6218,7 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   coinciden.forEach(function(c){
     var segs=_tlSegmentos(c);
     var activaFila=esDiaActual&&segs.some(function(seg){return _tlEstadoSegmento(seg,nowMin,true)==='active';});
-    namesHtml+='<div class="grupo-tl-name'+(activaFila?' is-active':'')+'"><span class="nm">'+c.nombre+(c.nocheDiaFin||c.nocheReal?' 🌙':'')+'</span><span class="sch">'+c.horario+'</span></div>';
+    namesHtml+='<div class="grupo-tl-name'+(activaFila?' is-active':'')+'"><span class="nm">'+c.nombre+(c.nocheReal?' 🌙':'')+'</span><span class="sch">'+c.horario+'</span></div>';
     rowsHtml+=_tlFilaHtml(segs,c.nocheReal?'is-night':'',esDiaActual,nowMin);
   });
 
