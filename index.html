@@ -582,7 +582,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-vuelos-row{position:relative;border-bottom:2px solid rgba(255,255,255,.08);background:rgba(96,165,250,.04)}
 .grupo-tl-vuelo-bar{position:absolute;border-radius:4px;background:rgba(96,165,250,.24);border:1px solid rgba(96,165,250,.6);color:#bfdbfe;font-size:9.5px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;justify-content:center;clip-path:inset(0 round 4px);padding:0;cursor:pointer}
 .grupo-tl-vuelo-bar:active{transform:scale(.95)}
-.grupo-tl-vuelo-bar>.lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.grupo-tl-vuelo-bar>.lbl{display:flex;flex-direction:column;align-items:center;line-height:1.05;white-space:nowrap;overflow:hidden;max-width:100%}
+.grupo-tl-vuelo-bar>.lbl>small.park{font-size:6.5px;font-weight:700;opacity:.7;letter-spacing:.2px;margin-top:1px}
 .grupo-tl-vuelo-bar.is-now{background:rgba(96,165,250,.4);border-color:#60a5fa;box-shadow:0 0 8px rgba(96,165,250,.45);color:#eff6ff}
 .grupo-tl-vuelo-bar.is-past{opacity:.5}
 .grupo-tl-vuelo-bar.es-salida{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.6);color:#fecaca}
@@ -595,6 +596,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .descanso-flecha.izq{left:0}
 .descanso-flecha.der{right:0}
 .descanso-lbl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#241d0f;border:1px solid rgba(232,201,106,.5);padding:1px 6px;border-radius:8px;font-size:8px;color:var(--gold-light);font-weight:700;white-space:nowrap;z-index:1}
+.descanso-seg.es-vivo .descanso-lbl{background:#2e2210;border-color:var(--gold-light);box-shadow:0 0 6px rgba(232,201,106,.4)}
+.descanso-seg.es-vivo .descanso-linea{border-top-color:var(--gold-light)}
 
 /* Aviso emergente al tocar un vuelo, posicionado donde se pulsa */
 .tl-toast-vuelo{position:fixed;background:#15233a;border:1px solid rgba(96,165,250,.5);color:#dbeafe;padding:8px 14px;border-radius:10px;font-size:12.5px;font-weight:600;line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:9999;text-align:center;white-space:nowrap;font-family:'Outfit',sans-serif}
@@ -5792,7 +5795,20 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
 // no tocar la función de la vista de lista, que ya está en producción.
 // Si se cambia una regla de turnos/HL/cambios compartidos ahí, replicar
 // el cambio aquí también.
-window._grupoVistaHoras=window._grupoVistaHoras||false;
+function _tlPrefVistaHorasLeer(){
+  try{return localStorage.getItem('cta_vista_horas')==='1';}catch(e){return false;}
+}
+function _tlPrefVistaHorasGuardar(val){
+  try{localStorage.setItem('cta_vista_horas',val?'1':'0');}catch(e){}
+}
+window._grupoVistaHoras=_tlPrefVistaHorasLeer();
+(function(){
+  var btn=document.getElementById('btn-vista-horas');
+  if(btn&&window._grupoVistaHoras){
+    btn.classList.add('active');
+    btn.textContent='📋 Vista lista';
+  }
+})();
 
 function _buildCompanerosTimelineData(offsetDias){
   var modoToda=!!window._grupoMostrarTodaPlantilla;
@@ -6084,7 +6100,8 @@ function _tlLlegadasDelDia(offsetDias){
     .map(function(v){
       var start=hToMin(v.horaReal||v.horaProg||'');
       if(start===null)return null;
-      return{numero:v.numero||'',cod:_tlOrigenCorto(v.origen),start:start,end:start+DURACION_LLEGADA_TL,tipo:'llegada'};
+      var puerta=v.puerta||v.gate||v.embarque||v.puertaEmbarque||v.puertaSalida||'';
+      return{numero:v.numero||'',cod:_tlOrigenCorto(v.origen),start:start,end:start+DURACION_LLEGADA_TL,tipo:'llegada',puerta:puerta};
     })
     .filter(Boolean)
     .sort(function(a,b){return a.start-b.start;});
@@ -6104,10 +6121,24 @@ function _tlSalidasTempranasDelDia(offsetDias){
       var dep=hToMin(v.horaReal||v.horaProg||'');
       if(dep===null)return null;
       if(dep<VENTANA_SOLO_SALIDAS_INICIO||dep>VENTANA_SOLO_SALIDAS_FIN)return null;
-      return{numero:v.numero||'',cod:_tlOrigenCorto(v.destino),start:dep-DURACION_LLEGADA_TL,end:dep,tipo:'salida'};
+      var puerta=v.puerta||v.gate||v.embarque||v.puertaEmbarque||v.puertaSalida||'';
+      return{numero:v.numero||'',cod:_tlOrigenCorto(v.destino),start:dep-DURACION_LLEGADA_TL,end:dep,tipo:'salida',puerta:puerta};
     })
     .filter(Boolean)
     .sort(function(a,b){return a.start-b.start;});
+}
+
+// Texto pequeño de parking dentro del recuadro: usa gateOperationalLabel,
+// que ya tienes definido para el panel Live ("Parking N" / "Remoto"). Si
+// no hay dato de puerta o no encaja en los sets conocidos, no muestra nada
+// — esto es una preparación para cuando ese dato llegue fiable también en
+// llegadas, hoy puede que casi siempre venga vacío.
+function _tlParkingCorto(puerta){
+  if(typeof gateOperationalLabel!=='function')return'';
+  var info=gateOperationalLabel(puerta);
+  if(!info)return'';
+  if(info.cls==='remote')return'RT';
+  return String(info.text).replace(/^Parking\s*/i,'');
 }
 
 // Reparte cada llegada en la primera pista libre (igual idea que un
@@ -6154,6 +6185,11 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   if(listPanel)listPanel.classList.remove('open');
   if(toggleIfOpen&&wrap.classList.contains('open')){wrap.classList.remove('open');return;}
 
+  // Si ya había una vista por horas abierta (p.ej. en un refresco automático
+  // de fondo), recordamos su scroll para no "saltar" de sitio al redibujar.
+  var _scPrevio=document.getElementById('grupo-tl-scroll');
+  var _scrollLeftPrevio=_scPrevio?_scPrevio.scrollLeft:null;
+
   var navHtml='<div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
 
   var data=_buildCompanerosTimelineData(offsetDias);
@@ -6191,12 +6227,23 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
       var cls='grupo-tl-vuelo-bar'+(esSalida?' es-salida':'')+(activo?' is-now':'')+(pasado?' is-past':'');
       var leftPct=(v.start/1440*100),widthPct=((v.end-v.start)/1440*100);
       var top=(v.pista*PISTA_LLEGADA_H+2);
-      vuelosRowHtml+='<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%;top:'+top+'px;height:'+(PISTA_LLEGADA_H-4)+'px" title="'+((esSalida?'Salida ':'Llegada ')+v.numero+' · '+v.cod+' · '+_tlFmtMin(v.start)+'–'+_tlFmtMin(v.end===1440?0:v.end))+'" onclick="mostrarToastVuelo(event,\''+v.numero+'\',\''+v.cod+'\','+v.start+','+v.end+',\''+v.tipo+'\')"><span class="lbl">'+v.cod+'</span></div>';
+      var parkTxt=_tlParkingCorto(v.puerta);
+      vuelosRowHtml+='<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%;top:'+top+'px;height:'+(PISTA_LLEGADA_H-4)+'px" title="'+((esSalida?'Salida ':'Llegada ')+v.numero+' · '+v.cod+' · '+_tlFmtMin(v.start)+'–'+_tlFmtMin(v.end===1440?0:v.end)+(parkTxt?' · '+parkTxt:''))+'" onclick="mostrarToastVuelo(event,\''+v.numero+'\',\''+v.cod+'\','+v.start+','+v.end+',\''+v.tipo+'\')"><span class="lbl">'+v.cod+(parkTxt?'<small class="park">'+parkTxt+'</small>':'')+'</span></div>';
     });
     // descansos (huecos largos entre vuelos / bloques solapados) — en dorado, dentro de la propia fila
     _tlCalcularDescansos(llegadasConPista,UMBRAL_DESCANSO_MIN).forEach(function(d){
-      var dLeftPct=(d.start/1440*100),dWidthPct=((d.end-d.start)/1440*100);
-      vuelosRowHtml+='<div class="descanso-seg" style="left:'+dLeftPct+'%;width:'+dWidthPct+'%"><div class="descanso-linea"></div><span class="descanso-flecha izq">‹</span><span class="descanso-flecha der">›</span><span class="descanso-lbl">'+_tlFmtDur(d.dur)+'</span></div>';
+      var segStart=d.start,segEnd=d.end,esVivo=esDiaActual&&nowMin>=d.start&&nowMin<d.end;
+      var label;
+      if(esVivo){
+        // "ahora" está dentro de este descanso: contamos lo que queda de verdad,
+        // y la línea va desde "ahora" hasta el siguiente vuelo, no desde el inicio original
+        segStart=nowMin;
+        label=_tlFmtDur(d.end-nowMin)+' restantes';
+      } else {
+        label=_tlFmtDur(d.dur);
+      }
+      var dLeftPct=(segStart/1440*100),dWidthPct=((segEnd-segStart)/1440*100);
+      vuelosRowHtml+='<div class="descanso-seg'+(esVivo?' es-vivo':'')+'" style="left:'+dLeftPct+'%;width:'+dWidthPct+'%"><div class="descanso-linea"></div><span class="descanso-flecha izq">‹</span><span class="descanso-flecha der">›</span><span class="descanso-lbl">'+label+'</span></div>';
     });
   }
   vuelosRowHtml+='</div>';
@@ -6249,12 +6296,25 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   setTimeout(function(){
     var sc=document.getElementById('grupo-tl-scroll');
     if(!sc)return;
-    var targetMin=esDiaActual?nowMin:360;
-    sc.scrollLeft=Math.max(0,(targetMin/1440)*GRID_W-sc.clientWidth/2);
+    if(_scrollLeftPrevio!==null){
+      sc.scrollLeft=_scrollLeftPrevio; // ya estaba abierto: no lo recentramos, solo se actualizan los datos
+    } else {
+      var targetMin=esDiaActual?nowMin:360;
+      sc.scrollLeft=Math.max(0,(targetMin/1440)*GRID_W-sc.clientWidth/2);
+    }
     sc.addEventListener('scroll',actualizarAlturaVuelosCompaneros);
     actualizarAlturaVuelosCompaneros();
   },0);
 }
+
+// Refresco automático cada 30s para que la línea de "ahora" y el contador de
+// "descanso restante" no se queden desactualizados si dejas la pantalla abierta.
+// Reutiliza renderCompanerosTimeline, que ya preserva el scroll si ya estaba abierta.
+setInterval(function(){
+  if(!window._grupoVistaHoras)return;
+  var tl=document.getElementById('grupo-timeline');
+  if(tl&&tl.classList.contains('open'))renderCompanerosTimeline(window._grupoOffsetDias||0,false);
+},30000);
 
 // Decide qué vista (lista o línea de tiempo) hay que refrescar/abrir.
 function refrescarCompanerosPanel(offsetDias,toggleIfOpen){
@@ -6264,6 +6324,7 @@ function refrescarCompanerosPanel(offsetDias,toggleIfOpen){
 
 function toggleVistaHoras(){
   window._grupoVistaHoras=!window._grupoVistaHoras;
+  _tlPrefVistaHorasGuardar(window._grupoVistaHoras);
   var btn=document.getElementById('btn-vista-horas');
   if(btn){
     btn.classList.toggle('active',window._grupoVistaHoras);
