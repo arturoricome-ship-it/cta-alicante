@@ -471,6 +471,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .mc-stat-lbl{font-size:9px;color:var(--gray);letter-spacing:.4px;text-transform:uppercase}
 .mc-day.cp{background:rgba(251,146,60,.1);color:#fb923c}
 .mc-day.curso{background:rgba(56,189,248,.12);color:#38bdf8}
+.mc-day.permiso{background:rgba(244,114,182,.14);color:#f472b6}
 
 .mc-peren-chip{background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.3);border-radius:8px;color:#fb923c;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;padding:6px 10px;cursor:pointer}
 .mc-peren-chip:active{background:rgba(251,146,60,.25)}
@@ -2829,7 +2830,7 @@ function initGoogle(){
 (function(){
   var _MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
   var _ICO={trabajado:'⚙️',festivo:'🎉',hl:'🤝',hlp:'🤝',h6:'📋',curso:'📚',vacaciones:'🏖️',perentorias:'⏱️',hfun:'🏛️',baja:'🏥',rm:'🔄',nh:'🌙',bp:'💆',libre:'🌙'};
-  var _LABEL={trabajado:'Trabajado',festivo:'Festivo',hl:'H. Libre',hlp:'H. Libre Plus',h6:'Art. 6',curso:'Curso',vacaciones:'Vacaciones',perentorias:'Perentorias',hfun:'H. Función',baja:'Baja',rm:'R. Médico',nh:'Noche',bp:'Bienestar'};
+  var _LABEL={trabajado:'Trabajado',festivo:'Festivo',hl:'H. Libre',hlp:'H. Libre Plus',h6:'Art. 6',curso:'Curso',vacaciones:'Vacaciones',perentorias:'Perentorias',hfun:'H. Función',baja:'Baja',rm:'R. Médico',nh:'Noche',bp:'Bienestar',permiso:'Permiso'};
   var _timer=null;
 
   function toMin(t){if(!t||t.indexOf(':')<0)return null;var p=t.split(':');return +p[0]*60+ +p[1];}
@@ -4072,7 +4073,7 @@ function mcRenderWeeks(){
   // Week: Mon-Sun, find first Monday
   var firstDate=new Date(_mcYear,_mcMonth,1);
   var startDow=(firstDate.getDay()+6)%7; // 0=Mon
-  var totalTypes=['trabajado','vacaciones','festivo','hl','hlp','baja','rm','curso'];
+  var totalTypes=['trabajado','vacaciones','festivo','hl','hlp','baja','rm','curso','permiso'];
   var MNAMES_SHORT=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
   // Group into weeks (Mon-Sun)
@@ -4126,7 +4127,7 @@ function mcRenderWeeks(){
   }
 
   var html='';
-  var TIPO_ICO2={trabajado:'⚙️',festivo:'🎉',hl:'🤝',vacaciones:'🏖️',baja:'🏥',rm:'🔄',libre:'',curso:'📚'};
+  var TIPO_ICO2={trabajado:'⚙️',festivo:'🎉',hl:'🤝',vacaciones:'🏖️',baja:'🏥',rm:'🔄',libre:'',curso:'📚',permiso:'✋'};
   weeks.forEach(function(w,i){
     var startLbl=w.start.getDate()+' '+MNAMES_SHORT[w.start.getMonth()];
     var endLbl=w.end.getDate()+' '+MNAMES_SHORT[w.end.getMonth()];
@@ -4189,8 +4190,8 @@ function mcRenderSummary(ue){
   // totales año:  same
   // contador año: trabajado, hl, hlp, baja, rm
   // perentorias:  perenDur overlay (tracked separately)
-  var totalTypes=['trabajado','vacaciones','festivo','hl','hlp','baja','rm','hfun','curso'];
-  var contTypes= ['trabajado','hl','hlp','baja','rm','curso'];
+  var totalTypes=['trabajado','vacaciones','festivo','hl','hlp','baja','rm','hfun','curso','permiso'];
+  var contTypes= ['trabajado','hl','hlp','baja','rm','curso','permiso'];
   var anualMin=0,hlMin=0,hlAnualMin=0;
 
   Object.keys(mData).forEach(function(d){
@@ -4314,6 +4315,7 @@ var _MC_TIPOS=[
   {v:'bp',l:'Bienestar',ico:'💆',c:'#2dd4bf'},
   {v:'curso',l:'Curso',ico:'📚',c:'#38bdf8'},
   {v:'libre',l:'Libre',ico:'🌙',c:'rgba(255,255,255,.2)'},
+  {v:'permiso',l:'Permiso',ico:'✋',c:'#f472b6'},
 ];
 function mcEditDay(day,e){
   if(e)e.stopPropagation();
@@ -4375,7 +4377,7 @@ function mcEditSave(){
   if(!tipo)return;
   var tipoVal=tipo.dataset.tipo;
   var e1='',s1='',e2='',s2='';
-  if(tipoVal==='trabajado'||tipoVal==='curso'){
+  if(tipoVal==='trabajado'||tipoVal==='curso'||tipoVal==='permiso'){
     e1=document.getElementById('mc-edit-e1').value.trim();
     s1=document.getElementById('mc-edit-s1').value.trim();
     e2=document.getElementById('mc-edit-e2').value.trim();
@@ -4447,8 +4449,8 @@ function mcEditSave(){
     delete ue[month][day].perenTipo;
     delete ue[month][day].hfunDur;
   } else {
-    if(tipoVal==='trabajado'||tipoVal==='curso'){
-      // Trabajado/Curso sí permiten editar y guardar horarios manualmente.
+    if(tipoVal==='trabajado'||tipoVal==='curso'||tipoVal==='permiso'){
+      // Trabajado/Curso/Permiso sí permiten editar y guardar horarios manualmente.
       var totalMin = _mcMin(e1, s1) + _mcMin(e2, s2);
       ue[month][day]={
         tipo:tipoVal,
@@ -4497,7 +4499,7 @@ function mcTipoSel(btn){
   var showPeren=document.getElementById('mc-edit-peren');
   var showHfun=document.getElementById('mc-edit-hfun');
   var showHl=document.getElementById('mc-edit-hl');
-  if(v==='trabajado'||v==='curso'){
+  if(v==='trabajado'||v==='curso'||v==='permiso'){
     showTimes.style.display='block';
     showPeren.style.display='none';
     if(showHfun)showHfun.style.display='none';
@@ -4584,6 +4586,7 @@ document.addEventListener('DOMContentLoaded',function(){
     <button class="mc-tipo-btn" data-tipo="libre" onclick="mcTipoSel(this)"><span class="t-ico">🌙</span><span class="t-lbl">Libre</span></button>
     <button class="mc-tipo-btn" data-tipo="curso" onclick="mcTipoSel(this)"><span class="t-ico">📚</span><span class="t-lbl">Curso</span></button>
     <button class="mc-tipo-btn" data-tipo="hl" onclick="mcTipoSel(this)"><span class="t-ico">🤝</span><span class="t-lbl">HL</span></button>
+    <button class="mc-tipo-btn" data-tipo="permiso" onclick="mcTipoSel(this)"><span class="t-ico">✋</span><span class="t-lbl">Permiso</span></button>
   </div>
   <div class="mc-edit-hl" id="mc-edit-hl" style="display:none;margin-bottom:12px">
     <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -5411,7 +5414,14 @@ function _getCambioCompartidoEmpleado(emp,dateObj){
 }
 function _tipoCambioEsLibre(tipo){
   tipo=String(tipo||'').toLowerCase();
-  return ['hl','hlp','libre','dl','descanso','festivo','vacaciones','baja','perentorias','h6','hfun','rm','bp','nh','cp'].indexOf(tipo)>=0;
+  return ['hl','hlp','libre','dl','descanso','festivo','vacaciones','baja','perentorias','h6','hfun','rm','bp','nh','cp','permiso'].indexOf(tipo)>=0;
+}
+// Permiso cuenta horas (e1/s1/e2/s2 reales, para nómina) pero para todo lo
+// que sea "¿esta persona viene a trabajar?" (coincidencias, buscador de
+// cambio de turno, etc.) se trata exactamente igual que Libre.
+function _esTipoNoTrabaja(tipo){
+  tipo=String(tipo||'').toLowerCase();
+  return tipo==='libre'||tipo==='permiso';
 }
 function _cambioToTurno(c){
   if(!c)return null;
@@ -5623,7 +5633,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     if(_esArturoPlantilla(emp.nombre||emp.nomina)){
       turno=_arturoHLPubFecha(target)?null:_ajustarTurnoConHLPersonal(turno,_miCalendarioDiaArturo(target));
     }
-    if(turno&&turno.e1&&turno.tipo!=='libre'){
+    if(turno&&turno.e1&&!_esTipoNoTrabaja(turno.tipo)){
       var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
       var solapa=turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2);
@@ -5866,7 +5876,7 @@ function _buildCompanerosTimelineData(offsetDias){
     if(_esArturoPlantilla(emp.nombre||emp.nomina)){
       turno=_arturoHLPubFecha(target)?null:_ajustarTurnoConHLPersonal(turno,_miCalendarioDiaArturo(target));
     }
-    if(turno&&turno.e1&&turno.tipo!=='libre'){
+    if(turno&&turno.e1&&!_esTipoNoTrabaja(turno.tipo)){
       var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
       var solapa=turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2);
@@ -8244,7 +8254,7 @@ function calcularCambios(){
     var compTurnoMiDia=compDias[day]||null;
     compTurnoMiDia=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compTurnoMiDia);
     // Día libre: turno con tipo libre o e1 vacío
-    if(compTurnoMiDia&&(!compTurnoMiDia.e1||compTurnoMiDia.tipo==='libre'))compTurnoMiDia=null;
+    if(compTurnoMiDia&&(!compTurnoMiDia.e1||_esTipoNoTrabaja(compTurnoMiDia.tipo)))compTurnoMiDia=null;
     var compE1=compTurnoMiDia?_toMin(compTurnoMiDia.e1):null;
     var compS1=compTurnoMiDia?_toMin(compTurnoMiDia.s1):null;
     var compE2=compTurnoMiDia&&compTurnoMiDia.e2?_toMin(compTurnoMiDia.e2):null;
@@ -8288,12 +8298,12 @@ function calcularCambios(){
         if(d2===day||_esPasado(d2,monthKey,year))continue;
         var myT2=(myRaw[monthKey]||{})[d2];
         // Yo debo librar ese día: sin turno, o turno tipo libre, o e1 vacío
-        var yoTrabajoD2=!!(myT2&&myT2.e1&&myT2.tipo!=='libre');
+        var yoTrabajoD2=!!(myT2&&myT2.e1&&!_esTipoNoTrabaja(myT2.tipo));
         if(yoTrabajoD2)continue;
         var cT2=compDias[d2];
         cT2=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,d2),cT2);
         // Comp debe trabajar ese día
-        if(!cT2||!cT2.e1||cT2.tipo==='libre')continue;
+        if(!cT2||!cT2.e1||_esTipoNoTrabaja(cT2.tipo))continue;
         var cE1=_toMin(cT2.e1),cS1=_toMin(cT2.s1),cE2=cT2.e2?_toMin(cT2.e2):null,cS2=cT2.s2?_toMin(cT2.s2):null;
 
         // Simulación real del intercambio:
@@ -8350,12 +8360,12 @@ function calcularCambios(){
         if(d3===day||_esPasado(d3,monthKey,year))continue;
         var myT3=(myRaw[monthKey]||{})[d3];
         // Yo debo trabajar ese día
-        if(!myT3||!myT3.e1||myT3.tipo==='libre')continue;
+        if(!myT3||!myT3.e1||_esTipoNoTrabaja(myT3.tipo))continue;
         if(!_diaImportadoCambio(comp,monthKey,year,d3))continue;
         var cT3=compDias[d3];
         cT3=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,d3),cT3);
         // Comp debe librar ese día: sin turno, tipo libre o e1 vacío
-        var compTrabajaD3=!!(cT3&&cT3.e1&&cT3.tipo!=='libre');
+        var compTrabajaD3=!!(cT3&&cT3.e1&&!_esTipoNoTrabaja(cT3.tipo));
         if(compTrabajaD3)continue;
         var mE1=_toMin(myT3.e1),mS1=_toMin(myT3.s1),mE2=myT3.e2?_toMin(myT3.e2):null,mS2=myT3.s2?_toMin(myT3.s2):null;
 
@@ -8397,7 +8407,7 @@ function calcularCambios(){
     var compDias=(comp.meses&&comp.meses[monthKey])||{};
     var compT=compDias[day]||null;
     compT=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compT);
-    if(compT&&(!compT.e1||compT.tipo==='libre'))compT=null;
+    if(compT&&(!compT.e1||_esTipoNoTrabaja(compT.tipo)))compT=null;
     var compE1=compT?_toMin(compT.e1):null;
     var compS1=compT?_toMin(compT.s1):null;
     var compE2=compT&&compT.e2?_toMin(compT.e2):null;
@@ -8511,7 +8521,7 @@ function calcularCambios(){
     var compDias2=(comp.meses&&comp.meses[monthKey])||{};
     var compT2c=compDias2[day]||null;
     compT2c=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compT2c);
-    var compLibre2=!compT2c||!compT2c.e1||compT2c.tipo==='libre';
+    var compLibre2=!compT2c||!compT2c.e1||_esTipoNoTrabaja(compT2c.tipo);
     if(!compLibre2)return; // solo si el comp libra ese día
     if(myE2===null||myS2===null)return; // solo si mi turno es partido
 
