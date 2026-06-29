@@ -6222,37 +6222,45 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   // (no hay ninguna hora fija comprobada aquí, sea cuando sea aparecerán).
   // De madrugada se añaden también las salidas "sin llegada" (avión que
   // durmió en ALC) en rojo — ver _tlSalidasTempranasDelDia.
+  // TODO este bloque va en try/catch: si algo aquí falla, el resto del
+  // panel (nombres, filas, navegación, el propio botón de abrir/cerrar
+  // Llegadas) tiene que seguir funcionando igual.
   var llegadasConPista=[];
-  if(offsetDias===0||offsetDias===1){
-    var combinado=_tlLlegadasDelDia(offsetDias).concat(_tlSalidasTempranasDelDia(offsetDias));
-    llegadasConPista=_tlAsignarPistasVuelos(combinado);
-    if(!liveLoaded&&typeof loadLive==='function')loadLive(); // dispara la carga si aún no se había abierto el panel Live
-  }
-  window._tlLlegadasConPistaActual=llegadasConPista;
   var vuelosLabelHtml='<div class="grupo-tl-vuelos-label'+(window._tlMostrarLlegadas?'':' collapsed')+'" id="grupoTlVuelosLabel" onclick="toggleLlegadasTimeline()"><span class="chev">▾</span> ✈️ Llegadas</div>';
   var vuelosRowHtml='<div class="grupo-tl-vuelos-row" id="grupoTlVuelosRow" style="width:'+GRID_W+'px">';
-  if(window._tlMostrarLlegadas){
-    llegadasConPista.forEach(function(v){
-      var esSalida=v.tipo==='salida';
-      var activo=esDiaActual&&nowMin>=v.start&&nowMin<v.end;
-      var pasado=esDiaActual&&nowMin>=v.end;
-      var cls='grupo-tl-vuelo-bar'+(esSalida?' es-salida':'')+(activo?' is-now':'')+(pasado?' is-past':'');
-      var leftPct=(v.start/1440*100),widthPct=((v.end-v.start)/1440*100);
-      var top=(v.pista*PISTA_LLEGADA_H+2);
-      vuelosRowHtml+='<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%;top:'+top+'px;height:'+(PISTA_LLEGADA_H-4)+'px" title="'+((esSalida?'Salida ':'Llegada ')+v.numero+' · '+v.cod+' · '+_tlFmtMin(v.start)+'–'+_tlFmtMin(v.end===1440?0:v.end))+'" onclick="mostrarToastVuelo(event,\''+v.numero+'\',\''+v.cod+'\','+v.start+','+v.end+',\''+v.tipo+'\')"><span class="lbl">'+v.cod+'</span></div>';
-    });
-    // descansos (huecos largos entre vuelos / bloques solapados) — en dorado, dentro de la propia fila.
-    // El hueco que contiene "ahora" se pinta aparte más abajo (_tlGapEnVivo), sin umbral mínimo.
-    var gapVivo=esDiaActual?_tlGapEnVivo(llegadasConPista,nowMin):null;
-    _tlCalcularDescansos(llegadasConPista,UMBRAL_DESCANSO_MIN).forEach(function(d){
-      if(gapVivo&&d.end===gapVivo.end)return; // ese es el que pintamos "en vivo"
-      vuelosRowHtml+='<div class="descanso-seg" style="left:'+(d.start/1440*100)+'%;width:'+((d.end-d.start)/1440*100)+'%"><div class="descanso-linea"></div><span class="descanso-flecha izq">‹</span><span class="descanso-flecha der">›</span><span class="descanso-lbl">'+_tlFmtDur(d.dur)+'</span></div>';
-    });
-    if(gapVivo){
-      // sin umbral: aunque queden 5 minutos, se muestra — es justo lo que se quiere ver en directo
-      var dLeftPct=(gapVivo.start/1440*100),dWidthPct=((gapVivo.end-gapVivo.start)/1440*100);
-      vuelosRowHtml+='<div class="descanso-seg es-vivo" style="left:'+dLeftPct+'%;width:'+dWidthPct+'%"><div class="descanso-linea"></div><span class="descanso-flecha izq">‹</span><span class="descanso-flecha der">›</span><span class="descanso-lbl">'+_tlFmtDur(gapVivo.end-gapVivo.start)+' restantes</span></div>';
+  try{
+    if(offsetDias===0||offsetDias===1){
+      var combinado=_tlLlegadasDelDia(offsetDias).concat(_tlSalidasTempranasDelDia(offsetDias));
+      llegadasConPista=_tlAsignarPistasVuelos(combinado);
+      if(!liveLoaded&&typeof loadLive==='function')loadLive(); // dispara la carga si aún no se había abierto el panel Live
     }
+    window._tlLlegadasConPistaActual=llegadasConPista;
+    if(window._tlMostrarLlegadas){
+      llegadasConPista.forEach(function(v){
+        var esSalida=v.tipo==='salida';
+        var activo=esDiaActual&&nowMin>=v.start&&nowMin<v.end;
+        var pasado=esDiaActual&&nowMin>=v.end;
+        var cls='grupo-tl-vuelo-bar'+(esSalida?' es-salida':'')+(activo?' is-now':'')+(pasado?' is-past':'');
+        var leftPct=(v.start/1440*100),widthPct=((v.end-v.start)/1440*100);
+        var top=(v.pista*PISTA_LLEGADA_H+2);
+        vuelosRowHtml+='<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%;top:'+top+'px;height:'+(PISTA_LLEGADA_H-4)+'px" title="'+((esSalida?'Salida ':'Llegada ')+v.numero+' · '+v.cod+' · '+_tlFmtMin(v.start)+'–'+_tlFmtMin(v.end===1440?0:v.end))+'" onclick="mostrarToastVuelo(event,\''+v.numero+'\',\''+v.cod+'\','+v.start+','+v.end+',\''+v.tipo+'\')"><span class="lbl">'+v.cod+'</span></div>';
+      });
+      // descansos (huecos largos entre vuelos / bloques solapados) — en dorado, dentro de la propia fila.
+      // El hueco que contiene "ahora" se pinta aparte (_tlGapEnVivo), sin umbral mínimo.
+      var gapVivo=esDiaActual?_tlGapEnVivo(llegadasConPista,nowMin):null;
+      if(gapVivo&&(gapVivo.end-gapVivo.start)<UMBRAL_DESCANSO_MIN)gapVivo=null; // mismo umbral que entre vuelos: si quedan menos de 29min, no se muestra
+      _tlCalcularDescansos(llegadasConPista,UMBRAL_DESCANSO_MIN).forEach(function(d){
+        if(gapVivo&&d.end===gapVivo.end)return; // ese es el que pintamos "en vivo"
+        vuelosRowHtml+='<div class="descanso-seg" style="left:'+(d.start/1440*100)+'%;width:'+((d.end-d.start)/1440*100)+'%"><div class="descanso-linea"></div><span class="descanso-flecha izq">‹</span><span class="descanso-flecha der">›</span><span class="descanso-lbl">'+_tlFmtDur(d.dur)+'</span></div>';
+      });
+      if(gapVivo){
+        // sin umbral: aunque queden 5 minutos, se muestra — es justo lo que se quiere ver en directo
+        var dLeftPct=(gapVivo.start/1440*100),dWidthPct=((gapVivo.end-gapVivo.start)/1440*100);
+        vuelosRowHtml+='<div class="descanso-seg es-vivo" style="left:'+dLeftPct+'%;width:'+dWidthPct+'%"><div class="descanso-linea"></div><span class="descanso-flecha izq">‹</span><span class="descanso-flecha der">›</span><span class="descanso-lbl">'+_tlFmtDur(gapVivo.end-gapVivo.start)+' restantes</span></div>';
+      }
+    }
+  }catch(_eVuelos){
+    console.error('Error pintando el carril de llegadas (no debería bloquear el resto):',_eVuelos);
   }
   vuelosRowHtml+='</div>';
 
