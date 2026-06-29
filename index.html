@@ -582,8 +582,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-vuelos-row{position:relative;border-bottom:2px solid rgba(255,255,255,.08);background:rgba(96,165,250,.04)}
 .grupo-tl-vuelo-bar{position:absolute;border-radius:4px;background:rgba(96,165,250,.24);border:1px solid rgba(96,165,250,.6);color:#bfdbfe;font-size:9.5px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;justify-content:center;clip-path:inset(0 round 4px);padding:0;cursor:pointer}
 .grupo-tl-vuelo-bar:active{transform:scale(.95)}
-.grupo-tl-vuelo-bar>.lbl{display:flex;flex-direction:column;align-items:center;line-height:1.05;white-space:nowrap;overflow:hidden;max-width:100%}
-.grupo-tl-vuelo-bar>.lbl>small.park{font-size:6.5px;font-weight:700;opacity:.7;letter-spacing:.2px;margin-top:1px}
+.grupo-tl-vuelo-bar>.lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .grupo-tl-vuelo-bar.is-now{background:rgba(96,165,250,.4);border-color:#60a5fa;box-shadow:0 0 8px rgba(96,165,250,.45);color:#eff6ff}
 .grupo-tl-vuelo-bar.is-past{opacity:.5}
 .grupo-tl-vuelo-bar.es-salida{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.6);color:#fecaca}
@@ -6004,7 +6003,8 @@ function _tlFmtDur(mins){
 // Fusiona llegadas solapadas/contiguas en "bloques ocupados" y devuelve los
 // huecos entre bloques que sean >= UMBRAL_DESCANSO_MIN. Así un grupo de
 // vuelos solapados cuenta como un solo bloque, no como huecos sueltos.
-function _tlCalcularDescansos(llegadas,umbralMin){
+// Fusiona llegadas/salidas solapadas o contiguas en "bloques ocupados".
+function _tlBloquesOcupados(llegadas){
   var ordenadas=llegadas.slice().sort(function(a,b){return a.start-b.start;});
   var bloques=[];
   ordenadas.forEach(function(it){
@@ -6012,12 +6012,34 @@ function _tlCalcularDescansos(llegadas,umbralMin){
     if(ultimo&&it.start<=ultimo.end)ultimo.end=Math.max(ultimo.end,it.end);
     else bloques.push({start:it.start,end:it.end});
   });
+  return bloques;
+}
+
+function _tlCalcularDescansos(llegadas,umbralMin){
+  var bloques=_tlBloquesOcupados(llegadas);
   var descansos=[];
   for(var i=0;i<bloques.length-1;i++){
     var gap=bloques[i+1].start-bloques[i].end;
     if(gap>=umbralMin)descansos.push({start:bloques[i].end,end:bloques[i+1].start,dur:gap});
   }
   return descansos;
+}
+
+// Hueco que contiene "ahora mismo", sin umbral mínimo: puede ser antes del
+// primer vuelo del día, o entre dos bloques. Si "ahora" ya está dentro de
+// un vuelo, o ya ha pasado el último de hoy (no hay "siguiente avión" al
+// que contar), devuelve null — no hay nada que mostrar en directo.
+function _tlGapEnVivo(llegadas,nowMin){
+  var bloques=_tlBloquesOcupados(llegadas);
+  if(!bloques.length)return null;
+  for(var i=0;i<bloques.length;i++){
+    if(nowMin>=bloques[i].start&&nowMin<bloques[i].end)return null; // ahora mismo en un vuelo
+  }
+  if(nowMin<bloques[0].start)return{start:nowMin,end:bloques[0].start};
+  for(var j=0;j<bloques.length-1;j++){
+    if(nowMin>=bloques[j].end&&nowMin<bloques[j+1].start)return{start:nowMin,end:bloques[j+1].start};
+  }
+  return null; // ya pasó el último vuelo del día
 }
 
 // Aviso emergente al tocar un vuelo, posicionado justo donde se ha pulsado.
@@ -6100,8 +6122,7 @@ function _tlLlegadasDelDia(offsetDias){
     .map(function(v){
       var start=hToMin(v.horaReal||v.horaProg||'');
       if(start===null)return null;
-      var puerta=v.puerta||v.gate||v.embarque||v.puertaEmbarque||v.puertaSalida||'';
-      return{numero:v.numero||'',cod:_tlOrigenCorto(v.origen),start:start,end:start+DURACION_LLEGADA_TL,tipo:'llegada',puerta:puerta};
+      return{numero:v.numero||'',cod:_tlOrigenCorto(v.origen),start:start,end:start+DURACION_LLEGADA_TL,tipo:'llegada'};
     })
     .filter(Boolean)
     .sort(function(a,b){return a.start-b.start;});
@@ -6121,8 +6142,7 @@ function _tlSalidasTempranasDelDia(offsetDias){
       var dep=hToMin(v.horaReal||v.horaProg||'');
       if(dep===null)return null;
       if(dep<VENTANA_SOLO_SALIDAS_INICIO||dep>VENTANA_SOLO_SALIDAS_FIN)return null;
-      var puerta=v.puerta||v.gate||v.embarque||v.puertaEmbarque||v.puertaSalida||'';
-      return{numero:v.numero||'',cod:_tlOrigenCorto(v.destino),start:dep-DURACION_LLEGADA_TL,end:dep,tipo:'salida',puerta:puerta};
+      return{numero:v.numero||'',cod:_tlOrigenCorto(v.destino),start:dep-DURACION_LLEGADA_TL,end:dep,tipo:'salida'};
     })
     .filter(Boolean)
     .sort(function(a,b){return a.start-b.start;});
@@ -6133,14 +6153,6 @@ function _tlSalidasTempranasDelDia(offsetDias){
 // no hay dato de puerta o no encaja en los sets conocidos, no muestra nada
 // — esto es una preparación para cuando ese dato llegue fiable también en
 // llegadas, hoy puede que casi siempre venga vacío.
-function _tlParkingCorto(puerta){
-  if(typeof gateOperationalLabel!=='function')return'';
-  var info=gateOperationalLabel(puerta);
-  if(!info)return'';
-  if(info.cls==='remote')return'RT';
-  return String(info.text).replace(/^Parking\s*/i,'');
-}
-
 // Reparte cada llegada en la primera pista libre (igual idea que un
 // calendario apilando eventos solapados). La pista de cada vuelo es FIJA
 // para todo el día; lo que cambia con el scroll es solo el alto visible.
@@ -6227,24 +6239,20 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
       var cls='grupo-tl-vuelo-bar'+(esSalida?' es-salida':'')+(activo?' is-now':'')+(pasado?' is-past':'');
       var leftPct=(v.start/1440*100),widthPct=((v.end-v.start)/1440*100);
       var top=(v.pista*PISTA_LLEGADA_H+2);
-      var parkTxt=_tlParkingCorto(v.puerta);
-      vuelosRowHtml+='<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%;top:'+top+'px;height:'+(PISTA_LLEGADA_H-4)+'px" title="'+((esSalida?'Salida ':'Llegada ')+v.numero+' · '+v.cod+' · '+_tlFmtMin(v.start)+'–'+_tlFmtMin(v.end===1440?0:v.end)+(parkTxt?' · '+parkTxt:''))+'" onclick="mostrarToastVuelo(event,\''+v.numero+'\',\''+v.cod+'\','+v.start+','+v.end+',\''+v.tipo+'\')"><span class="lbl">'+v.cod+(parkTxt?'<small class="park">'+parkTxt+'</small>':'')+'</span></div>';
+      vuelosRowHtml+='<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%;top:'+top+'px;height:'+(PISTA_LLEGADA_H-4)+'px" title="'+((esSalida?'Salida ':'Llegada ')+v.numero+' · '+v.cod+' · '+_tlFmtMin(v.start)+'–'+_tlFmtMin(v.end===1440?0:v.end))+'" onclick="mostrarToastVuelo(event,\''+v.numero+'\',\''+v.cod+'\','+v.start+','+v.end+',\''+v.tipo+'\')"><span class="lbl">'+v.cod+'</span></div>';
     });
-    // descansos (huecos largos entre vuelos / bloques solapados) — en dorado, dentro de la propia fila
+    // descansos (huecos largos entre vuelos / bloques solapados) — en dorado, dentro de la propia fila.
+    // El hueco que contiene "ahora" se pinta aparte más abajo (_tlGapEnVivo), sin umbral mínimo.
+    var gapVivo=esDiaActual?_tlGapEnVivo(llegadasConPista,nowMin):null;
     _tlCalcularDescansos(llegadasConPista,UMBRAL_DESCANSO_MIN).forEach(function(d){
-      var segStart=d.start,segEnd=d.end,esVivo=esDiaActual&&nowMin>=d.start&&nowMin<d.end;
-      var label;
-      if(esVivo){
-        // "ahora" está dentro de este descanso: contamos lo que queda de verdad,
-        // y la línea va desde "ahora" hasta el siguiente vuelo, no desde el inicio original
-        segStart=nowMin;
-        label=_tlFmtDur(d.end-nowMin)+' restantes';
-      } else {
-        label=_tlFmtDur(d.dur);
-      }
-      var dLeftPct=(segStart/1440*100),dWidthPct=((segEnd-segStart)/1440*100);
-      vuelosRowHtml+='<div class="descanso-seg'+(esVivo?' es-vivo':'')+'" style="left:'+dLeftPct+'%;width:'+dWidthPct+'%"><div class="descanso-linea"></div><span class="descanso-flecha izq">‹</span><span class="descanso-flecha der">›</span><span class="descanso-lbl">'+label+'</span></div>';
+      if(gapVivo&&d.end===gapVivo.end)return; // ese es el que pintamos "en vivo"
+      vuelosRowHtml+='<div class="descanso-seg" style="left:'+(d.start/1440*100)+'%;width:'+((d.end-d.start)/1440*100)+'%"><div class="descanso-linea"></div><span class="descanso-flecha izq">‹</span><span class="descanso-flecha der">›</span><span class="descanso-lbl">'+_tlFmtDur(d.dur)+'</span></div>';
     });
+    if(gapVivo){
+      // sin umbral: aunque queden 5 minutos, se muestra — es justo lo que se quiere ver en directo
+      var dLeftPct=(gapVivo.start/1440*100),dWidthPct=((gapVivo.end-gapVivo.start)/1440*100);
+      vuelosRowHtml+='<div class="descanso-seg es-vivo" style="left:'+dLeftPct+'%;width:'+dWidthPct+'%"><div class="descanso-linea"></div><span class="descanso-flecha izq">‹</span><span class="descanso-flecha der">›</span><span class="descanso-lbl">'+_tlFmtDur(gapVivo.end-gapVivo.start)+' restantes</span></div>';
+    }
   }
   vuelosRowHtml+='</div>';
 
