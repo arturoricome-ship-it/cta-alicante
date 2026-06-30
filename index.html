@@ -573,8 +573,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-bar.is-you{background:rgba(200,168,75,.2);border-color:rgba(200,168,75,.5);color:var(--gold)}
 .grupo-tl-bar.fade-left::before{content:'‹';position:absolute;left:1px;opacity:.55;font-size:11px;font-weight:900}
 .grupo-tl-bar.fade-right::after{content:'›';position:absolute;right:1px;opacity:.55;font-size:11px;font-weight:900}
-.grupo-tl-now{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;z-index:4;box-shadow:0 0 5px #ef4444}
-.grupo-tl-now-lbl{position:absolute;top:-18px;transform:translateX(-50%);background:#ef4444;color:#1a0505;font-size:9.5px;font-weight:800;padding:1px 5px;border-radius:5px;white-space:nowrap;z-index:5}
+.grupo-tl-now{position:absolute;top:28px;bottom:0;width:0;border-left:2px dashed #ef4444;z-index:4;box-shadow:0 0 4px rgba(239,68,68,.35)}
+.grupo-tl-now-dot{position:absolute;top:28px;width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px #ef4444;transform:translate(-50%,-50%);z-index:6}
+.grupo-tl-now-lbl{position:absolute;top:5px;transform:translateX(-50%);background:#ef4444;color:#1a0a05;font-size:9px;font-weight:800;padding:1px 6px;border-radius:6px;white-space:nowrap;z-index:6;box-shadow:0 0 4px rgba(239,68,68,.5)}
 
 /* ─── Carril de llegadas (✈️) dentro de la vista por horas ─────────── */
 .grupo-tl-vuelos-label{display:flex;align-items:center;gap:5px;padding:0 8px;font-size:9.5px;color:#93c5fd;font-weight:700;letter-spacing:.3px;border-bottom:2px solid rgba(255,255,255,.08);background:rgba(96,165,250,.06);cursor:pointer;user-select:none}
@@ -6207,10 +6208,17 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   if(listPanel)listPanel.classList.remove('open');
   if(toggleIfOpen&&wrap.classList.contains('open')){wrap.classList.remove('open');return;}
 
-  // Si ya había una vista por horas abierta (p.ej. en un refresco automático
-  // de fondo), recordamos su scroll para no "saltar" de sitio al redibujar.
+  // Clave del fix: si el panel YA estaba realmente visible justo antes de
+  // este render (refresco de fondo mientras lo tienes abierto), mantenemos
+  // el scroll donde estuviera. Si NO estaba visible (se acaba de abrir,
+  // venías de la vista lista, o estaba cerrado), siempre centramos en
+  // "ahora" — antes se comprobaba solo si el elemento existía en el DOM,
+  // pero como queda ahí oculto tras cerrar (solo se le quita la clase
+  // 'open'), recuperaba un scroll antiguo en vez de recentrar. Por eso a
+  // veces no se abría donde tocaba.
+  var _yaEstabaVisible=wrap.classList.contains('open');
   var _scPrevio=document.getElementById('grupo-tl-scroll');
-  var _scrollLeftPrevio=_scPrevio?_scPrevio.scrollLeft:null;
+  var _scrollLeftPrevio=(_yaEstabaVisible&&_scPrevio)?_scPrevio.scrollLeft:null;
 
   var navHtml='<div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
 
@@ -6298,7 +6306,7 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   var nowLineHtml='';
   if(esDiaActual){
     var leftPx=Math.round((nowMin/1440)*GRID_W);
-    nowLineHtml='<div class="grupo-tl-now" style="left:'+leftPx+'px"></div><div class="grupo-tl-now-lbl" style="left:'+leftPx+'px">'+_tlFmtMin(nowMin)+'</div>';
+    nowLineHtml='<div class="grupo-tl-now" style="left:'+leftPx+'px"></div><div class="grupo-tl-now-dot" style="left:'+leftPx+'px"></div><div class="grupo-tl-now-lbl" style="left:'+leftPx+'px">'+_tlFmtMin(nowMin)+'</div>';
   }
 
   var html=navHtml
@@ -6323,7 +6331,7 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
     var sc=document.getElementById('grupo-tl-scroll');
     if(!sc)return;
     if(_scrollLeftPrevio!==null){
-      sc.scrollLeft=_scrollLeftPrevio; // ya estaba abierto: no lo recentramos, solo se actualizan los datos
+      sc.scrollLeft=_scrollLeftPrevio; // ya estaba VISIBLE de verdad: no recentramos, solo se actualizan los datos
     } else {
       var targetMin=esDiaActual?nowMin:360;
       sc.scrollLeft=Math.max(0,(targetMin/1440)*GRID_W-sc.clientWidth/2);
