@@ -559,7 +559,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-name.is-active{background:rgba(110,231,183,.12);color:#a7f3d0}
 .grupo-tl-name.is-active .sch{color:#a7f3d0;opacity:.75}
 .grupo-tl-scroll{flex:1;overflow-x:auto}
-.grupo-tl-grid{position:relative;width:max-content}
+.grupo-tl-grid{position:relative;width:max-content;border-right:1px solid rgba(255,255,255,.05)}
 .grupo-tl-header{display:flex;height:28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:2}
 .grupo-tl-header .grupo-tl-hr{width:64px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:9.5px;color:var(--gray);font-weight:600;border-right:1px solid rgba(255,255,255,.05)}
 .grupo-tl-row{height:40px;position:relative;border-bottom:1px solid rgba(255,255,255,.05);background-image:repeating-linear-gradient(to right, transparent 0, transparent 31px, rgba(255,255,255,.04) 31px, rgba(255,255,255,.04) 32px),repeating-linear-gradient(to right, transparent 0, transparent 63px, rgba(255,255,255,.09) 63px, rgba(255,255,255,.09) 64px)}
@@ -584,7 +584,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-vuelos-label{display:flex;align-items:center;gap:5px;padding:0 8px;font-size:9.5px;color:#93c5fd;font-weight:700;letter-spacing:.3px;border-bottom:2px solid rgba(255,255,255,.08);background:rgba(96,165,250,.06);cursor:pointer;user-select:none}
 .grupo-tl-vuelos-label .chev{font-size:8px;opacity:.8;transition:transform .15s ease;display:inline-block}
 .grupo-tl-vuelos-label.collapsed .chev{transform:rotate(-90deg)}
-.grupo-tl-vuelos-row{position:relative;border-bottom:2px solid rgba(255,255,255,.08);background:rgba(96,165,250,.04)}
+.grupo-tl-vuelos-row{position:relative;border-bottom:2px solid rgba(255,255,255,.08);background-color:rgba(96,165,250,.04);background-image:repeating-linear-gradient(to right, transparent 0, transparent 31px, rgba(255,255,255,.04) 31px, rgba(255,255,255,.04) 32px),repeating-linear-gradient(to right, transparent 0, transparent 63px, rgba(255,255,255,.09) 63px, rgba(255,255,255,.09) 64px)}
 .grupo-tl-vuelo-bar{position:absolute;border-radius:4px;background:rgba(96,165,250,.24);border:1px solid rgba(96,165,250,.6);color:#bfdbfe;font-size:9.5px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;justify-content:center;clip-path:inset(0 round 4px);padding:0;cursor:pointer}
 .grupo-tl-vuelo-bar:active{transform:scale(.95)}
 .grupo-tl-vuelo-bar>.lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -2513,6 +2513,22 @@ function extractLiveVuelos(res,tipo){
 function normalizarVueloAenaCliente(v,tipo){
   v=v||{};
   var txt=[v.estado,v.estadoAena,v.status,v.rawStatus,v.situacion,v.observaciones,v.info,v.remark,v.remarkPublic,v.descripcion].map(function(x){return x||'';}).join(' ').toLowerCase();
+
+  // Corrección "salto hacia atrás de medianoche": el backend marca
+  // esManana=true en función de la hora PROGRAMADA (p.ej. 00:05, ya cruza
+  // a mañana). Pero si luego AENA actualiza la hora REAL y esta cae a
+  // última hora de HOY (p.ej. 23:46), el vuelo ya no cruza la medianoche:
+  // sigue siendo de hoy, no de mañana. Sin esta corrección el vuelo
+  // desaparecía de "Compañeros" (no encajaba ni en hoy ni en mañana) y el
+  // panel Live mostraba "1d Xh" de cuenta atrás en vez de las horas reales
+  // que faltan.
+  if(v.esManana){
+    var _progM=hToMin(v.horaProg||'');
+    var _realM=hToMin(v.horaReal||'');
+    if(_progM!==null&&_realM!==null&&_progM<240&&_realM>=1140){
+      v.esManana=false;
+    }
+  }
 
   // Corrección importante para llegadas:
   // AENA puede publicar la cinta/sala antes de que el avión aterrice.
