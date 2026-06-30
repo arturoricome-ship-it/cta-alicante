@@ -563,6 +563,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-header{display:flex;height:28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:2}
 .grupo-tl-header .grupo-tl-hr{width:64px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:9.5px;color:var(--gray);font-weight:600;border-right:1px solid rgba(255,255,255,.05)}
 .grupo-tl-row{height:40px;position:relative;border-bottom:1px solid rgba(255,255,255,.05);background-image:repeating-linear-gradient(to right, transparent 0, transparent 31px, rgba(255,255,255,.04) 31px, rgba(255,255,255,.04) 32px),repeating-linear-gradient(to right, transparent 0, transparent 63px, rgba(255,255,255,.09) 63px, rgba(255,255,255,.09) 64px)}
+.grupo-tl-cat-sep{height:20px;display:flex;align-items:center;padding:0 8px;font-size:8.5px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;border-top:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.015)}
+.grupo-tl-cat-sep.is-fd{color:#fbbf24;border-top:2px dashed rgba(255,255,255,.12)}
+.grupo-tl-cat-sep-row{height:20px;border-top:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.015)}
 .grupo-tl-row.is-active{background-color:rgba(110,231,183,.04)}
 .grupo-tl-bar{position:absolute;top:5px;bottom:5px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;clip-path:inset(0 round 5px);padding:0;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.32);color:var(--white);text-shadow:0 1px 2px rgba(0,0,0,.4)}
 .grupo-tl-bar>.lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -6296,11 +6299,32 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
     rowsHtml+='<div class="grupo-tl-row"></div>';
   }
 
+  // Misma agrupación por categoría que ya usa la vista lista (Agentes Jefe,
+  // Supervisores, Operarios... alfabético, con FD siempre al final), con un
+  // separador visual entre grupos. Dentro de cada categoría, se mantiene el
+  // orden por hora de entrada de siempre.
+  var catGroups={};
   coinciden.forEach(function(c){
-    var segs=_tlSegmentos(c);
-    var activaFila=esDiaActual&&segs.some(function(seg){return _tlEstadoSegmento(seg,nowMin,true)==='active';});
-    namesHtml+='<div class="grupo-tl-name'+(activaFila?' is-active':'')+'"><span class="nm">'+c.nombre+(c.nocheReal?' 🌙':'')+'</span><span class="sch">'+c.horario+'</span></div>';
-    rowsHtml+=_tlFilaHtml(segs,c.nocheReal?'is-night':'',esDiaActual,nowMin);
+    var cat=normalizaCategoriaGrupo(c.categoria||'General');
+    if(!catGroups[cat])catGroups[cat]=[];
+    catGroups[cat].push(c);
+  });
+  var catKeysOrdenadas=Object.keys(catGroups).sort(function(a,b){
+    var afd=a==='FD',bfd=b==='FD';
+    if(afd&&!bfd)return 1;
+    if(!afd&&bfd)return -1;
+    return a.localeCompare(b,'es');
+  });
+  catKeysOrdenadas.forEach(function(cat){
+    var esFD=cat==='FD';
+    namesHtml+='<div class="grupo-tl-cat-sep'+(esFD?' is-fd':'')+'">'+(esFD?'🟡 Fijos Discontinuos':cat)+'</div>';
+    rowsHtml+='<div class="grupo-tl-cat-sep-row"></div>';
+    catGroups[cat].slice().sort(function(a,b){return (a.e1||0)-(b.e1||0);}).forEach(function(c){
+      var segs=_tlSegmentos(c);
+      var activaFila=esDiaActual&&segs.some(function(seg){return _tlEstadoSegmento(seg,nowMin,true)==='active';});
+      namesHtml+='<div class="grupo-tl-name'+(activaFila?' is-active':'')+'"><span class="nm">'+c.nombre+(c.nocheReal?' 🌙':'')+'</span><span class="sch">'+c.horario+'</span></div>';
+      rowsHtml+=_tlFilaHtml(segs,c.nocheReal?'is-night':'',esDiaActual,nowMin);
+    });
   });
 
   var nowLineHtml='';
