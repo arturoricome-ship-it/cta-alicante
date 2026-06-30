@@ -6170,15 +6170,35 @@ function _tlAsegurarDatosManana(){
 function _tlLlegadasDelDia(offsetDias){
   if(typeof liveData==='undefined'||!liveData||!liveData.lle)return[];
   var quiereManana=offsetDias===1; // mañana solo tiene datos si el backend ya los incluye con esManana=true (no hay umbral de hora fijo aquí)
-  return liveData.lle
+  var propios=liveData.lle
     .filter(function(v){return(!!v.esManana===quiereManana)&&v.estadoClass!=='e-cancelled';})
     .map(function(v){
       var start=hToMin(v.horaReal||v.horaProg||'');
       if(start===null)return null;
-      return{numero:v.numero||'',cod:_tlOrigenCorto(v.origen),start:start,end:start+DURACION_LLEGADA_TL,tipo:'llegada'};
+      // El bloque dura 45 min; si empieza muy cerca de medianoche, se
+      // recorta a las 23:59 de ESTE día (nunca se sale del grid) — la
+      // parte que sobra pasada la medianoche se añade como "entrante" en
+      // el día siguiente, ver bloque de abajo.
+      return{numero:v.numero||'',cod:_tlOrigenCorto(v.origen),start:start,end:Math.min(start+DURACION_LLEGADA_TL,1440),tipo:'llegada'};
     })
-    .filter(Boolean)
-    .sort(function(a,b){return a.start-b.start;});
+    .filter(Boolean);
+  var entrantes=[];
+  if(quiereManana){
+    // Llegadas de HOY cuyo bloque de 45 min cruza la medianoche: el
+    // trocito que sobra (desde las 00:00) tiene que verse al principio de
+    // la franja de mañana, no quedarse cortado ni desaparecer.
+    entrantes=liveData.lle
+      .filter(function(v){return!v.esManana&&v.estadoClass!=='e-cancelled';})
+      .map(function(v){
+        var start=hToMin(v.horaReal||v.horaProg||'');
+        if(start===null)return null;
+        var endReal=start+DURACION_LLEGADA_TL;
+        if(endReal<=1440)return null; // no cruza medianoche, no aplica aquí
+        return{numero:v.numero||'',cod:_tlOrigenCorto(v.origen),start:0,end:endReal-1440,tipo:'llegada'};
+      })
+      .filter(Boolean);
+  }
+  return propios.concat(entrantes).sort(function(a,b){return a.start-b.start;});
 }
 
 // De madrugada (04:30-08:00 por defecto) los primeros vuelos del día suelen
