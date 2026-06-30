@@ -2212,7 +2212,7 @@ var liveLoaded=false;
 var liveData={sal:[],lle:[]};
 var liveLastServerEmpty=false;
 
-var CIUDADES={"ALC":"Alicante","BCN":"Barcelona","MAD":"Madrid","VLC":"Valencia","SVQ":"Sevilla","BIO":"Bilbao","PMI":"Palma","IBZ":"Ibiza","MAH":"Menorca","TFN":"Tenerife Norte","TFS":"Tenerife Sur","LPA":"Gran Canaria","ACE":"Lanzarote","FUE":"Fuerteventura","LCG":"A Coruña","SCQ":"Santiago","OVD":"Asturias","VGO":"Vigo","ZAZ":"Zaragoza","GRX":"Granada","AGP":"Málaga","XRY":"Jerez","CDG":"París","ORY":"París Orly","LHR":"Londres","LGW":"Londres","STN":"Londres","AMS":"Ámsterdam","FCO":"Roma","MXP":"Milán","VCE":"Venecia","NCE":"Niza","DUB":"Dublín","LIS":"Lisboa","OPO":"Oporto","ATH":"Atenas","IST":"Estambul","BRU":"Bruselas","FRA":"Fráncfort","MUC":"Múnich","VIE":"Viena","WAW":"Varsovia","PRG":"Praga","BUD":"Budapest","GVA":"Ginebra","ZRH":"Zúrich","CPH":"Copenhague","ARN":"Estocolmo","HEL":"Helsinki","OSL":"Oslo","TLV":"Tel Aviv","CMN":"Casablanca","RAK":"Marrakech","TUN":"Túnez","ALG":"Argel","ORN":"Orán","BOD":"Burdeos","NTE":"Nantes","TLS":"Toulouse","MPL":"Montpellier","REU":"Reus","GRO":"Gerona","SDR":"Santander","LEI":"Almería","RMU":"Murcia"};
+var CIUDADES={"ALC":"Alicante","BCN":"Barcelona","MAD":"Madrid","VLC":"Valencia","SVQ":"Sevilla","BIO":"Bilbao","PMI":"Palma","IBZ":"Ibiza","MAH":"Menorca","TFN":"Tenerife Norte","TFS":"Tenerife Sur","LPA":"Gran Canaria","ACE":"Lanzarote","FUE":"Fuerteventura","LCG":"A Coruña","SCQ":"Santiago","OVD":"Asturias","VGO":"Vigo","ZAZ":"Zaragoza","GRX":"Granada","AGP":"Málaga","XRY":"Jerez","CDG":"París","ORY":"París Orly","LHR":"Londres","LGW":"Londres","STN":"Londres","AMS":"Ámsterdam","FCO":"Roma","MXP":"Milán","VCE":"Venecia","NCE":"Niza","DUB":"Dublín","LIS":"Lisboa","OPO":"Oporto","ATH":"Atenas","IST":"Estambul","BRU":"Bruselas","FRA":"Fráncfort","MUC":"Múnich","VIE":"Viena","WAW":"Varsovia","PRG":"Praga","BUD":"Budapest","GVA":"Ginebra","ZRH":"Zúrich","CPH":"Copenhague","ARN":"Estocolmo","HEL":"Helsinki","OSL":"Oslo","TLV":"Tel Aviv","CMN":"Casablanca","RAK":"Marrakech","TNG":"Tánger","TUN":"Túnez","ALG":"Argel","ORN":"Orán","BOD":"Burdeos","NTE":"Nantes","TLS":"Toulouse","MPL":"Montpellier","REU":"Reus","GRO":"Gerona","SDR":"Santander","LEI":"Almería","RMU":"Murcia"};
 
 function getCiudad(iata,icao,nombre){
   if(iata&&CIUDADES[iata])return CIUDADES[iata];
@@ -6128,6 +6128,29 @@ function _tlOrigenCorto(origenStr){
   return partes[0].substring(0,4).toUpperCase();
 }
 
+// Si ya hicimos una carga de vuelos esta sesión (liveLoaded=true) pero esa
+// carga no incluía aún vuelos de "mañana" (porque ocurrió antes de que el
+// backend los empezara a servir), el simple "if(!liveLoaded)loadLive()" ya
+// no vuelve a disparar nada y el carril de llegadas de mañana se queda
+// vacío para siempre, aunque el usuario reabra el panel. La única forma de
+// que apareciera antes era entrar en Vuelos Directo y pulsar ⟳ (que hace
+// /refresh + recarga). Aquí reproducimos exactamente eso, pero en automático
+// y limitado a 1 vez por minuto para no machacar el backend.
+var _tlUltimoForzadoManana=0;
+function _tlAsegurarDatosManana(){
+  if(typeof liveData==='undefined'||!liveData)return;
+  var hayManana=(liveData.lle||[]).concat(liveData.sal||[]).some(function(v){return!!v.esManana;});
+  if(hayManana)return;
+  var ahora=Date.now();
+  if(ahora-_tlUltimoForzadoManana<60000)return;
+  _tlUltimoForzadoManana=ahora;
+  if(typeof RAILWAY==='undefined'||typeof fetch!=='function')return;
+  fetch(RAILWAY+"/refresh").catch(function(){}).finally(function(){
+    liveLoaded=false;
+    if(typeof loadLive==='function')loadLive();
+  });
+}
+
 function _tlLlegadasDelDia(offsetDias){
   if(typeof liveData==='undefined'||!liveData||!liveData.lle)return[];
   var quiereManana=offsetDias===1; // mañana solo tiene datos si el backend ya los incluye con esManana=true (no hay umbral de hora fijo aquí)
@@ -6253,7 +6276,11 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
     if(offsetDias===0||offsetDias===1){
       var combinado=_tlLlegadasDelDia(offsetDias).concat(_tlSalidasTempranasDelDia(offsetDias));
       llegadasConPista=_tlAsignarPistasVuelos(combinado);
-      if(!liveLoaded&&typeof loadLive==='function')loadLive(); // dispara la carga si aún no se había abierto el panel Live
+      if(!liveLoaded&&typeof loadLive==='function'){
+        loadLive(); // dispara la carga si aún no se había abierto el panel Live
+      }else if(offsetDias===1&&typeof _tlAsegurarDatosManana==='function'){
+        _tlAsegurarDatosManana(); // ya había datos, pero sin vuelos de mañana: fuerza refresco real
+      }
     }
     window._tlLlegadasConPistaActual=llegadasConPista;
     if(window._tlMostrarLlegadas){
