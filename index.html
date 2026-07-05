@@ -212,6 +212,72 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .turno-file-fecha{font-size:10px;color:var(--gray)}
 .turno-file-fecha span{color:var(--gold);font-weight:600}
 .turno-empty{padding:14px;text-align:center;font-size:12px;color:var(--gray);border-top:1px solid var(--border)}
+#hp-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:700;backdrop-filter:blur(6px)}
+#hp-modal-bg.show{display:block}
+#hp-modal{position:fixed;inset:auto 0 0 0;height:92vh;max-height:92vh;background:var(--bg);border-radius:20px 20px 0 0;z-index:701;transform:translateY(105%);transition:transform .25s ease;display:flex;flex-direction:column;overflow:hidden;border-top:1px solid rgba(200,168,75,.25)}
+#hp-modal.show{transform:translateY(0)}
+.hp-handle{width:38px;height:4px;border-radius:4px;background:rgba(255,255,255,.18);margin:12px auto 10px;flex-shrink:0}
+.hp-head{padding:0 14px 10px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.hp-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:1px;color:var(--gold);line-height:1}
+.hp-sub{font-size:11px;color:var(--gray);margin-top:4px;line-height:1.35}
+.hp-close{position:absolute;right:12px;top:12px;width:32px;height:32px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--gray);font-size:16px;cursor:pointer}
+.hp-toolbar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.hp-search{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--white);font-family:"Outfit",sans-serif;font-size:12px;padding:9px 10px;outline:none}
+.hp-import{flex:0 0 auto;background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.45);border-radius:10px;color:var(--gold);font-family:"Outfit",sans-serif;font-size:11px;font-weight:800;padding:0 10px;cursor:pointer;white-space:nowrap}
+.hp-sort{flex:0 0 auto;background:rgba(96,165,250,.11);border:1px solid rgba(96,165,250,.32);border-radius:10px;color:#93c5fd;font-family:"Outfit",sans-serif;font-size:11px;font-weight:800;padding:0 10px;cursor:pointer;white-space:nowrap}
+.hp-clear{flex:0 0 auto;background:rgba(239,68,68,.11);border:1px solid rgba(239,68,68,.32);border-radius:10px;color:#fca5a5;font-family:"Outfit",sans-serif;font-size:11px;font-weight:800;padding:0 10px;cursor:pointer;white-space:nowrap}
+.hp-body{overflow-y:auto;padding:10px 12px 90px;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
+.hp-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:10px}
+.hp-kpi{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;text-align:center}
+.hp-kpi-btn{width:100%;cursor:pointer;font-family:"Outfit",sans-serif;color:inherit}
+.hp-kpi-btn:active{transform:scale(.98)}
+.hp-kpi-v{font-size:16px;font-weight:800;color:var(--gold);line-height:1}
+.hp-kpi-l{font-size:8.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-top:4px}
+.hp-change{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:8px}
+.hp-change-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.hp-change-day{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppercase;letter-spacing:.35px}
+.hp-delta{font-size:12px;font-weight:900;border-radius:999px;padding:4px 8px;white-space:nowrap}
+.hp-delta.plus{color:#86efac;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25)}
+.hp-delta.minus{color:#fca5a5;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25)}
+.hp-delta.zero{color:#93c5fd;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25)}
+.hp-change-lines{display:grid;grid-template-columns:1fr;gap:5px}
+.hp-change-line{display:flex;justify-content:space-between;gap:8px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:6px 7px;font-size:10px;color:var(--gray)}
+.hp-change-line b{color:#e9e4f5;font-size:10.5px;text-align:right}
+.hp-back{width:100%;border:1px solid rgba(200,168,75,.35);background:rgba(200,168,75,.1);color:var(--gold);border-radius:10px;padding:9px 10px;margin-bottom:10px;font-family:"Outfit",sans-serif;font-size:11px;font-weight:800;cursor:pointer}
+.hp-emp{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:8px}
+.hp-emp-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.hp-name{font-size:13px;font-weight:800;color:var(--white);line-height:1.15}
+.hp-cat{font-size:9px;color:var(--gray);margin-top:3px;text-transform:uppercase;letter-spacing:.35px}
+.hp-total{text-align:right;flex-shrink:0}
+.hp-total-v{font-size:18px;font-weight:900;color:var(--gold);line-height:1}
+.hp-total-l{font-size:8.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.hp-weeks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.hp-week{display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:6px 7px}
+.hp-week-l{font-size:9px;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp-week-v{font-size:11px;font-weight:800;color:#e9e4f5;white-space:nowrap}
+.hp-badge{display:inline-flex;margin-top:7px;font-size:9px;font-weight:800;color:#60a5fa;background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.25);border-radius:999px;padding:2px 7px}
+.hp-days{margin-top:8px;border-top:1px solid rgba(255,255,255,.07);padding-top:7px}
+.hp-days summary{font-size:10px;color:var(--gray);font-weight:700;cursor:pointer;list-style:none}
+.hp-days summary::-webkit-details-marker{display:none}
+.hp-day-list{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:7px}
+.hp-day{display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);border-radius:7px;padding:5px 6px}
+.hp-day.zero{opacity:.55;background:rgba(255,255,255,.02)}
+.hp-day.missing{opacity:.45;background:rgba(239,68,68,.035);border-color:rgba(239,68,68,.12)}
+.hp-day-l{font-size:9px;color:var(--gray);white-space:nowrap}
+.hp-day-r{font-size:9.5px;color:#e9e4f5;font-weight:800;text-align:right}
+.hp-day-r small{display:block;font-size:8px;color:#60a5fa;font-weight:700;margin-top:1px}
+.hp-empty{font-size:12px;color:var(--gray);text-align:center;padding:28px 12px;line-height:1.6}
+#cta-secret-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:704;backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:22px}
+#cta-secret-bg.show{display:flex}
+.cta-secret-menu{width:100%;max-width:340px;background:var(--card);border:1px solid rgba(200,168,75,.28);border-radius:18px;padding:16px;box-shadow:0 18px 60px rgba(0,0,0,.45)}
+.cta-secret-title{font-family:"Bebas Neue",sans-serif;font-size:24px;letter-spacing:1px;color:var(--gold);line-height:1;margin-bottom:5px}
+.cta-secret-sub{font-size:11px;color:var(--gray);line-height:1.35;margin-bottom:12px}
+.cta-secret-option{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.045);border-radius:12px;padding:12px 13px;margin-bottom:8px;color:var(--white);font-family:"Outfit",sans-serif;cursor:pointer;text-align:left}
+.cta-secret-option b{display:block;font-size:14px;color:var(--white)}
+.cta-secret-option span{display:block;font-size:10px;color:var(--gray);margin-top:2px;line-height:1.25}
+.cta-secret-option strong{color:var(--gold);font-size:18px;line-height:1}
+.cta-secret-close{width:100%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);border-radius:10px;padding:10px;color:var(--gray);font-family:"Outfit",sans-serif;font-size:12px;font-weight:800;cursor:pointer;margin-top:3px}
+@media(max-width:360px){.hp-summary{grid-template-columns:1fr}.hp-weeks,.hp-day-list{grid-template-columns:1fr}}
 .aviso-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px;margin-bottom:9px}
 .aviso-card.aviso-nuevo{border-color:rgba(200,168,75,.6);background:rgba(200,168,75,.06);box-shadow:0 0 12px rgba(200,168,75,.15)}
 .aviso-card.aviso-nuevo .aviso-tag::after{content:" · NUEVO";color:var(--gold);font-weight:900}
@@ -450,6 +516,28 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .cambio-card-val{color:var(--white);font-weight:600}
 .cambio-card-val.yo{color:#60a5fa}
 .cambio-card-val.el{color:#4ade80}
+.cambio-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:9px}
+.cambio-card-nombre{min-width:0}
+.cambio-chip{flex-shrink:0;font-size:9px;font-weight:800;letter-spacing:.35px;text-transform:uppercase;padding:3px 7px;border-radius:100px;background:rgba(200,168,75,.13);color:var(--gold);border:1px solid rgba(200,168,75,.25)}
+.cambio-columns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.cambio-person{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:9px;min-width:0}
+.cambio-person.me{border-color:rgba(96,165,250,.24);background:rgba(96,165,250,.055)}
+.cambio-person.other{border-color:rgba(74,222,128,.22);background:rgba(74,222,128,.045)}
+.cambio-person-title{font-size:10px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;margin-bottom:7px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cambio-person.me .cambio-person-title{color:#93c5fd}
+.cambio-person.other .cambio-person-title{color:#86efac}
+.cambio-mini-row{display:flex;flex-direction:column;gap:2px;padding:6px 0;border-top:1px solid rgba(255,255,255,.06)}
+.cambio-mini-row:first-of-type{border-top:0;padding-top:0}
+.cambio-mini-lbl{font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.35px}
+.cambio-mini-val{font-size:12px;line-height:1.25;color:var(--white);font-weight:800;overflow-wrap:anywhere}
+.cambio-shift-lines{display:flex;flex-direction:column;gap:4px}
+.cambio-shift-line{display:flex;align-items:baseline;gap:5px;line-height:1.2;flex-wrap:wrap}
+.cambio-shift-day{font-size:11px;font-weight:900;color:var(--gold)}
+.cambio-person.me .cambio-shift-day{color:#60a5fa}
+.cambio-person.other .cambio-shift-day{color:#4ade80}
+.cambio-shift-turno{font-size:12px;font-weight:900;color:var(--white)}
+.cambio-mini-note{font-size:9px;color:var(--gray);margin-top:7px;line-height:1.25}
+@media(max-width:360px){.cambio-columns{grid-template-columns:1fr}.cambio-card{padding:11px}}
 .cambio-error{font-size:10px;color:#f87171;margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.06)}
 .cambio-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(74,222,128,.15);color:#4ade80;margin-left:6px}
 .cambio-empty{text-align:center;padding:30px 16px;font-size:13px;color:var(--gray)}
@@ -671,6 +759,38 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .op-cal-row{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(255,255,255,.04);border-radius:8px}
 .op-cal-rl{font-size:17px;color:var(--gray)}
 .op-cal-rv{font-size:24px;font-weight:700;color:var(--gold)}
+.ta-card{background:linear-gradient(135deg,rgba(96,165,250,.10),rgba(255,255,255,.03));border:1px solid rgba(96,165,250,.25);border-radius:14px;padding:12px 14px;margin:8px 0 0;display:flex;align-items:center;gap:11px;cursor:pointer}
+.ta-card:active{transform:scale(.985)}
+.ta-card-ico{font-size:26px;line-height:1}
+.ta-card-title{font-size:14px;font-weight:900;color:var(--white);line-height:1.1}
+.ta-card-sub{font-size:10px;color:var(--gray);margin-top:3px;line-height:1.25}
+.ta-card-arr{margin-left:auto;color:#60a5fa;font-size:22px;font-weight:900}
+.ta-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:12px 0}
+.ta-kpi{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;text-align:center}
+.ta-kpi-v{font-size:22px;font-weight:900;color:var(--gold);line-height:1}
+.ta-kpi-l{font-size:8.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.35px;margin-top:5px}
+.ta-month{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px;margin-bottom:7px}
+.ta-month-top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:7px}
+.ta-month-name{font-size:12px;font-weight:900;color:var(--white)}
+.ta-month-hours{font-size:12px;font-weight:900;color:#4ade80}
+.ta-mini-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.ta-mini{background:rgba(0,0,0,.16);border-radius:8px;padding:6px 4px;text-align:center}
+.ta-mini b{display:block;font-size:13px;color:#60a5fa;line-height:1}
+.ta-mini span{display:block;font-size:7.5px;color:var(--gray);text-transform:uppercase;margin-top:3px;line-height:1}
+.ta-emp{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px;margin-bottom:7px}
+.ta-emp-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:7px}
+.ta-emp-name{font-size:12px;font-weight:900;color:var(--white);line-height:1.15}
+.ta-emp-cat{font-size:9px;color:var(--gray);margin-top:2px;line-height:1.1}
+.ta-emp-hours{font-size:14px;font-weight:900;color:#4ade80;white-space:nowrap}
+.ta-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 8px}
+.ta-section-title{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;font-weight:900}
+.ta-sort-btn{width:28px;height:24px;border-radius:8px;border:1px solid rgba(96,165,250,.35);background:rgba(96,165,250,.10);color:#60a5fa;font-size:15px;font-weight:900;line-height:1;cursor:pointer}
+.ta-sort-btn:active{transform:scale(.94)}
+.ta-sort-row{display:flex;gap:5px;flex-wrap:wrap;padding-bottom:2px;margin:-1px 0 8px}
+.ta-sort-chip{flex:1 1 calc(33.333% - 5px);min-width:0;border:1px solid rgba(96,165,250,.28);background:rgba(96,165,250,.08);color:#bfdbfe;border-radius:9px;padding:6px 5px;font-family:'Outfit',sans-serif;font-size:9px;font-weight:800;cursor:pointer;white-space:normal;line-height:1.05;text-align:center}
+.ta-sort-chip:active{transform:scale(.96)}
+.ta-search{width:100%;box-sizing:border-box;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);border-radius:11px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;padding:10px 12px;margin:0 0 8px;outline:none}
+.ta-search::placeholder{color:rgba(181,187,201,.7)}
 .op-comp-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent}
 .op-comp-card:active{transform:scale(.98)}
 .op-comp-num{font-size:36px;font-weight:800;color:#f87171;line-height:1}
@@ -1134,6 +1254,7 @@ body{font-size:14px}
       }
     ">&#8592;</button>
     <button id="btn-home" onclick="
+      if(typeof _hpCasaGestoRapido==='function'&&_hpCasaGestoRapido(event))return;
       switchTab('operativa',document.getElementById('tab-operativa'),document.getElementById('nav-operativa'));document.getElementById('scroll-area').scrollTop=0;
     " title="Inicio" style="font-size:16px">🏠</button>
     <div id="breadcrumb" style="display:none"></div>
@@ -1202,6 +1323,7 @@ body{font-size:14px}
             <div class="op-cal-row"><span class="op-cal-rl">Trabajados</span><span class="op-cal-rv" id="op-cal-trab">—</span></div>
             <div class="op-cal-row"><span class="op-cal-rl">Libres</span><span class="op-cal-rv" id="op-cal-lib">—</span></div>
             <div class="op-cal-row"><span class="op-cal-rl">Horas mes</span><span class="op-cal-rv" id="op-cal-hmes">—</span></div>
+            <div class="op-cal-row"><span class="op-cal-rl">Unidades</span><span class="op-cal-rv" id="op-cal-unidades">—</span></div>
           </div>
         </div>
         <div>
@@ -1709,6 +1831,20 @@ body{font-size:14px}
   </div>
 </div>
 
+<div id="cta-secret-bg" onclick="cerrarMenuSecretoCta()">
+  <div class="cta-secret-menu" onclick="event.stopPropagation()">
+    <div class="cta-secret-title">Herramientas CTA</div>
+    <div class="cta-secret-sub">Elige que herramienta quieres abrir.</div>
+    <button class="cta-secret-option" onclick="abrirOpcionSecretaCta('analizador')">
+      <div><b>Analizador</b><span>Excel anual o grupo, sin guardar datos.</span></div><strong>&rsaquo;</strong>
+    </button>
+    <button class="cta-secret-option" onclick="abrirOpcionSecretaCta('horas')">
+      <div><b>Horas plantilla</b><span>Resumen mensual de empleados importados.</span></div><strong>&rsaquo;</strong>
+    </button>
+    <button class="cta-secret-close" onclick="cerrarMenuSecretoCta()">Cerrar</button>
+  </div>
+</div>
+
 <!-- LIVE PANEL -->
 <div id="live-overlay"></div>
 <div id="live-panel">
@@ -2137,6 +2273,477 @@ function makeTurnoBlock(icon,label){
       body.appendChild(row);
     }
   };
+}
+
+// Pantalla oculta: horas mensuales/semanales de todos los empleados importados.
+var _hpData=null,_hpOrdenHorasDesc=false;
+function cerrarHorasPlantilla(){
+  var bg=document.getElementById('hp-modal-bg'),modal=document.getElementById('hp-modal');
+  if(bg)bg.classList.remove('show');
+  if(modal)modal.classList.remove('show');
+}
+function abrirHorasPlantilla(){
+  var bg=document.getElementById('hp-modal-bg'),modal=document.getElementById('hp-modal'),body=document.getElementById('hp-body');
+  if(bg)bg.classList.add('show');
+  if(modal)modal.classList.add('show');
+  var search=document.getElementById('hp-search');
+  if(search)search.value='';
+  if(body)body.innerHTML='<div class="hp-empty">Actualizando cambios y calculando horas...</div>';
+  var year=new Date().getFullYear();
+  var p=(typeof cargarCambiosTurnosCompartidos==='function')?cargarCambiosTurnosCompartidos(year,true):Promise.resolve(null);
+  Promise.resolve(p).catch(function(){return null;}).then(function(){
+    _hpData=calcularHorasPlantilla(year);
+    renderHorasPlantillaLista();
+  });
+}
+function borrarDatosAntiguosPlantilla(){
+  if(!confirm('¿Borrar los grupos importados en este dispositivo?\\n\\nNo borra los cambios compartidos de Sheets. Después tendrás que importar de nuevo el Excel del grupo.'))return;
+  _hpBorrarDatosImportados();
+}
+function _hpBorrarDatosImportados(){
+  var key=(typeof _GRUPO_KEY!=='undefined'?_GRUPO_KEY:'cta_grupo_2026');
+  try{
+    localStorage.removeItem(key+'_map');
+    localStorage.removeItem('cta_mi_empleado');
+  }catch(e){}
+  _hpData={rows:[],weeks:[],totalHoras:0,totalCambios:0,monthLabel:'sin datos'};
+  var body=document.getElementById('hp-body');
+  var sub=document.getElementById('hp-sub');
+  var search=document.getElementById('hp-search');
+  if(search)search.value='';
+  if(sub)sub.textContent='Datos importados borrados · importa de nuevo el Excel del grupo';
+  if(body)body.innerHTML='<div class="hp-empty">Datos antiguos borrados.<br>Importa de nuevo el Excel del grupo para recalcular con datos limpios.</div>';
+  var btn=document.getElementById('btn-import-grupo');
+  if(btn)btn.classList.remove('has-data');
+  var hint=document.getElementById('grupo-import-hint');
+  if(hint)hint.style.display='none';
+  var panel=document.getElementById('grupo-panel');
+  if(panel){panel.innerHTML='';panel.classList.remove('open');}
+  var tl=document.getElementById('grupo-timeline');
+  if(tl){tl.innerHTML='';tl.classList.remove('open');}
+  var banner=document.getElementById('op-grupo-import-banner');
+  if(banner)banner.style.display='block';
+}
+var _hpLogoTapTs=0,_hpCasaGestoBloqueadoHasta=0;
+function abrirMenuSecretoCta(){
+  var bg=document.getElementById('cta-secret-bg');
+  if(bg)bg.classList.add('show');
+  return true;
+}
+function cerrarMenuSecretoCta(){
+  var bg=document.getElementById('cta-secret-bg');
+  if(bg)bg.classList.remove('show');
+}
+function abrirOpcionSecretaCta(tipo){
+  cerrarMenuSecretoCta();
+  setTimeout(function(){
+    if(tipo==='analizador'&&typeof abrirAnalizadorTurnos==='function')abrirAnalizadorTurnos();
+    else if(tipo==='horas'&&typeof abrirHorasPlantilla==='function')abrirHorasPlantilla();
+  },60);
+}
+function _hpAbrirConGestoRapido(){
+  return abrirMenuSecretoCta();
+}
+function _hpMarcarLogoGesto(){
+  _hpLogoTapTs=Date.now();
+}
+function _hpCasaGestoRapido(ev){
+  if(Date.now()<_hpCasaGestoBloqueadoHasta){
+    if(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+    return true;
+  }
+  if(Date.now()-_hpLogoTapTs>=2500)return false;
+  _hpLogoTapTs=0;
+  _hpCasaGestoBloqueadoHasta=Date.now()+900;
+  if(ev){
+    ev.preventDefault();
+    ev.stopPropagation();
+  }
+  return _hpAbrirConGestoRapido();
+}
+function registrarGestoRapidoPlantilla(){
+  var logo=document.querySelector('#app-header .logo');
+  var home=document.getElementById('btn-home');
+  if(logo&&!logo.dataset.hpGesture){
+    logo.dataset.hpGesture='1';
+    logo.addEventListener('pointerdown',_hpMarcarLogoGesto,{capture:true});
+    logo.addEventListener('touchstart',_hpMarcarLogoGesto,{capture:true,passive:true});
+    logo.addEventListener('click',_hpMarcarLogoGesto,true);
+  }
+  if(home&&!home.dataset.hpGesture){
+    home.dataset.hpGesture='1';
+    home.addEventListener('pointerdown',function(ev){_hpCasaGestoRapido(ev);},{capture:true});
+    home.addEventListener('touchstart',function(ev){_hpCasaGestoRapido(ev);},{capture:true});
+    home.addEventListener('click',function(ev){_hpCasaGestoRapido(ev);},true);
+  }
+}
+document.addEventListener('DOMContentLoaded',registrarGestoRapidoPlantilla);
+setTimeout(registrarGestoRapidoPlantilla,300);
+function _hpFmtHoras(h){
+  h=Math.round((Number(h)||0)*10)/10;
+  return String(h).replace(/\.0$/,'')+'h';
+}
+function _hpMonthNames(){
+  return ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+}
+function _hpGrupoMonths(){
+  return (typeof _GRUPO_MONTHS!=='undefined'&&_GRUPO_MONTHS.length)?_GRUPO_MONTHS:['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+}
+function _hpLeerMapaGrupo(){
+  var key=(typeof _GRUPO_KEY!=='undefined'?_GRUPO_KEY:'cta_grupo_2026')+'_map';
+  try{return JSON.parse(localStorage.getItem(key)||'{}')||{};}catch(e){return {};}
+}
+function _hpElegirMes(nominaMap){
+  var months=_hpGrupoMonths(),actual=new Date().getMonth(),tieneActual=false,maxIdx=-1;
+  Object.keys(nominaMap||{}).forEach(function(k){
+    var meses=(nominaMap[k]&&nominaMap[k].meses)||{};
+    if(meses[months[actual]]&&Object.keys(meses[months[actual]]).length)tieneActual=true;
+    months.forEach(function(mk,idx){if(meses[mk]&&Object.keys(meses[mk]).length&&idx>maxIdx)maxIdx=idx;});
+  });
+  return tieneActual?actual:(maxIdx>=0?maxIdx:actual);
+}
+function _hpMin(t){
+  if(typeof _toMin==='function')return _toMin(t);
+  if(!t)return null;
+  var p=String(t).split(':');
+  return +p[0]*60+ +p[1];
+}
+function _hpDur(e,s){
+  if(e===null||s===null)return 0;
+  if(typeof _durMin==='function')return _durMin(e,s);
+  return s<e?s+1440-e:s-e;
+}
+function _hpTurnoHoras(turno){
+  if(!turno)return 0;
+  var e1=_hpMin(turno.e1),s1=_hpMin(turno.s1),e2=turno.e2?_hpMin(turno.e2):null,s2=turno.s2?_hpMin(turno.s2):null;
+  if(e1===null||s1===null){
+    var totalNum=parseFloat(String(turno.total||'').replace(',','.'));
+    return isNaN(totalNum)?0:totalNum;
+  }
+  return (_hpDur(e1,s1)+_hpDur(e2,s2))/60;
+}
+function _turnoGrupoTieneHoras(t){
+  return _hpTurnoHoras(t)>0||(!!(t&&t.e1&&t.s1));
+}
+function _mergeDiasGrupoPreferirHoras(prevDias,nuevosDias){
+  var res=Object.assign({},prevDias||{});
+  Object.keys(nuevosDias||{}).forEach(function(d){
+    var nuevo=nuevosDias[d],prev=res[d]||res[String(d)]||null;
+    if(!prev||_turnoGrupoTieneHoras(nuevo)||!_turnoGrupoTieneHoras(prev)){
+      res[d]=nuevo;
+    }
+  });
+  return res;
+}
+function _extraerDiasGrupoDeFila(row,rowRaw,dayColMap){
+  var dias={};
+  Object.keys(dayColMap||{}).forEach(function(d){
+    var col=dayColMap[d];
+    var t=_parseCeldaDiaGrupo(row&&row[col],rowRaw&&rowRaw[col]);
+    if(t)dias[parseInt(d,10)]=t;
+  });
+  return dias;
+}
+function _hpTurnoHorario(turno){
+  if(!turno)return 'Sin dato';
+  if(turno.e1&&turno.s1)return (turno.e1||'')+'-'+(turno.s1||'')+(turno.e2&&turno.s2?' / '+turno.e2+'-'+turno.s2:'');
+  var h=_hpTurnoHoras(turno);
+  if(h>0)return 'Total guardado';
+  return turno.rawGrupo?('Sin horas · '+turno.rawGrupo):'Sin horas';
+}
+function _hpFmtDelta(h){
+  h=Math.round((Number(h)||0)*10)/10;
+  if(h>0)return '+'+String(h).replace(/\.0$/,'')+'h';
+  if(h<0)return String(h).replace(/\.0$/,'')+'h';
+  return '0h';
+}
+function toggleOrdenHorasPlantilla(){
+  _hpOrdenHorasDesc=!_hpOrdenHorasDesc;
+  renderHorasPlantillaLista();
+}
+function _hpActualizarBotonOrden(){
+  var btn=document.getElementById('hp-sort-btn');
+  if(btn)btn.textContent=_hpOrdenHorasDesc?'Horas ↓':'Orden actual';
+}
+function _hpFechaISO(d){
+  if(typeof _fechaISOPlantilla==='function')return _fechaISOPlantilla(d);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function _hpDiaLocalPropio(year,monthKey,day){
+  var data={};
+  try{data=JSON.parse(localStorage.getItem('cta_ed_'+year)||'{}')||{};}catch(e){data={};}
+  return ((data[monthKey]||{})[day]||(data[monthKey]||{})[String(day)]||null);
+}
+function _hpMismoEmpleado(a,b){
+  if(!a||!b)return false;
+  var an=String(a.nomina||'').trim(),bn=String(b.nomina||'').trim();
+  if(an&&bn&&an===bn)return true;
+  var aa=_normPlantillaNombre(a.nombre||''),bb=_normPlantillaNombre(b.nombre||'');
+  return !!(aa&&bb&&(aa===bb||aa.indexOf(bb)>=0||bb.indexOf(aa)>=0));
+}
+function _hpEsEmpleadoLocal(emp,year,monthKey,day){
+  var cached=null;
+  try{cached=JSON.parse(localStorage.getItem('cta_mi_empleado')||'null');}catch(e){cached=null;}
+  if(_hpMismoEmpleado(emp,cached))return true;
+
+  var mi=null;
+  if(typeof _getMiEmpleadoGrupoActual==='function')mi=_getMiEmpleadoGrupoActual(year,monthKey,day);
+  if(_hpMismoEmpleado(emp,mi))return true;
+
+  var tryp=null;
+  try{tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){tryp=null;}
+  if(_hpMismoEmpleado(emp,tryp))return true;
+
+  var sess=(typeof _ctaSession==='function')?_ctaSession():{};
+  if(sess&&sess.nombre&&_normPlantillaNombre(sess.nombre)!==_normPlantillaNombre('Modo prueba')){
+    if(_hpMismoEmpleado(emp,{nombre:sess.nombre}))return true;
+  }
+  return false;
+}
+function _hpTurnoLocalPropio(emp,dateObj,monthKey,day){
+  if(!_hpEsEmpleadoLocal(emp,dateObj.getFullYear(),monthKey,day))return null;
+  var local=_hpDiaLocalPropio(dateObj.getFullYear(),monthKey,day);
+  if(!local)return null;
+  if((local.e1&&local.s1)||parseFloat(String(local.total||'').replace(',','.'))>0){
+    return Object.assign({},local,{cambioCompartido:true,etiquetaCambio:'APP LOCAL'});
+  }
+  return null;
+}
+function _hpTurnoFinal(emp,dateObj,monthKey,day){
+  var dias=(emp.meses&&emp.meses[monthKey])||{};
+  var turno=dias[day]||null;
+  if(typeof _getCambioCompartidoEmpleado==='function'){
+    var cambio=_getCambioCompartidoEmpleado(emp,dateObj);
+    if(cambio)turno=_hpCambioToTurnoHoras(cambio,turno);
+  }
+  var local=_hpTurnoLocalPropio(emp,dateObj,monthKey,day);
+  if(local)turno=local;
+  return turno;
+}
+function _hpCambioToTurnoHoras(c,turnoOriginal){
+  if(!c)return turnoOriginal;
+  var tipo=String(c.tipo||'').toLowerCase();
+  var etiqueta=String(c.tipo||'Cambio').toUpperCase();
+  if(c.e1&&c.s1){
+    var turnoCambio={
+      tipo:tipo||'trabajado',
+      e1:c.e1||'',
+      s1:c.s1||'',
+      e2:c.e2||'',
+      s2:c.s2||'',
+      total:c.total||0,
+      cambioCompartido:true,
+      etiquetaCambio:etiqueta
+    };
+    return turnoCambio;
+  }
+  if(parseFloat(String(c.total||'').replace(',','.'))>0){
+    return {
+      tipo:tipo||'trabajado',
+      e1:'',
+      s1:'',
+      e2:'',
+      s2:'',
+      total:c.total,
+      cambioCompartido:true,
+      etiquetaCambio:etiqueta
+    };
+  }
+  if(_hpTurnoHoras(turnoOriginal)>0||(turnoOriginal&&turnoOriginal.e1&&turnoOriginal.s1)){
+    return Object.assign({},turnoOriginal,{tipo:tipo||turnoOriginal.tipo||'trabajado',cambioCompartido:true,etiquetaCambio:etiqueta});
+  }
+  return {tipo:tipo||'libre',e1:'',s1:'',e2:'',s2:'',cambioCompartido:true,etiquetaCambio:etiqueta||'LIBRE'};
+}
+function _hpSemanaInfo(dateObj){
+  var dow=(dateObj.getDay()+6)%7;
+  var lunes=new Date(dateObj.getFullYear(),dateObj.getMonth(),dateObj.getDate()-dow);
+  var domingo=new Date(lunes.getFullYear(),lunes.getMonth(),lunes.getDate()+6);
+  var meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  function dm(d){return d.getDate()+' '+meses[d.getMonth()];}
+  return {key:String(lunes.getTime()),order:lunes.getTime(),label:dm(lunes)+' a '+dm(domingo)};
+}
+function calcularHorasPlantilla(year){
+  var map=_hpLeerMapaGrupo(),months=_hpGrupoMonths(),monthIdx=_hpElegirMes(map),monthKey=months[monthIdx],monthNames=_hpMonthNames();
+  var lastDay=new Date(year,monthIdx+1,0).getDate();
+  var empleados=Object.keys(map).map(function(k){return map[k];}).filter(function(e){return e&&e.nombre&&!(typeof _esNombreBasuraGrupo==='function'&&_esNombreBasuraGrupo(e.nombre));});
+  var semanasOrden={},totalHoras=0,totalCambios=0,totalDeltaCambios=0,cambiosDetalle=[];
+  var rows=empleados.map(function(emp){
+    var semanas={},diasDetalle=[],mesTotal=0,cambios=0;
+    for(var d=1;d<=lastDay;d++){
+      var fecha=new Date(year,monthIdx,d);
+      var diasMesRaw=(emp.meses&&emp.meses[monthKey])||{};
+      var tieneDatoGuardado=Object.prototype.hasOwnProperty.call(diasMesRaw,String(d))||Object.prototype.hasOwnProperty.call(diasMesRaw,d);
+      var turnoBase=(diasMesRaw[d]||diasMesRaw[String(d)]||null);
+      var cambioCompartido=(typeof _getCambioCompartidoEmpleado==='function')?_getCambioCompartidoEmpleado(emp,fecha):null;
+      var turno=cambioCompartido?_hpCambioToTurnoHoras(cambioCompartido,turnoBase):turnoBase;
+      var local=_hpTurnoLocalPropio(emp,fecha,monthKey,d);
+      var origenCambio=cambioCompartido?cambioCompartido:null;
+      var etiquetaCambio=cambioCompartido?String(cambioCompartido.tipo||'Cambio').toUpperCase():'';
+      if(local){
+        turno=local;
+        origenCambio={tipo:'APP LOCAL',actualizado_por:'Este dispositivo'};
+        etiquetaCambio='APP LOCAL';
+      }
+      if(origenCambio){
+        cambios++;
+        var hAntes=_hpTurnoHoras(turnoBase),hDespues=_hpTurnoHoras(turno),delta=hDespues-hAntes;
+        totalDeltaCambios+=delta;
+        cambiosDetalle.push({
+          nombre:emp.nombre||'',
+          categoria:emp.categoria||'General',
+          dia:d,
+          fecha:_hpFechaISO(fecha),
+          antes:_hpTurnoHorario(turnoBase),
+          despues:_hpTurnoHorario(turno),
+          horasAntes:hAntes,
+          horasDespues:hDespues,
+          delta:delta,
+          tipo:etiquetaCambio,
+          por:(origenCambio.actualizado_por||origenCambio.email||origenCambio.nombre||'')
+        });
+      }
+      var horas=_hpTurnoHoras(turno);
+      diasDetalle.push({
+        dia:d,
+        horas:horas,
+        horario:turno?_hpTurnoHorario(turno):(tieneDatoGuardado?'Sin horas':'Sin dato'),
+        cambio:!!(turno&&turno.cambioCompartido),
+        etiqueta:turno&&turno.etiquetaCambio||'',
+        missing:!tieneDatoGuardado&&!turno,
+        zero:tieneDatoGuardado&&horas<=0
+      });
+      if(horas<=0)continue;
+      var wi=_hpSemanaInfo(fecha);
+      if(!semanas[wi.key])semanas[wi.key]={label:wi.label,order:wi.order,horas:0};
+      semanas[wi.key].horas+=horas;
+      semanasOrden[wi.key]={label:wi.label,order:wi.order};
+      mesTotal+=horas;
+    }
+    totalHoras+=mesTotal;
+    totalCambios+=cambios;
+    return {nombre:emp.nombre||'',categoria:emp.categoria||'General',horas:mesTotal,cambios:cambios,semanas:semanas,dias:diasDetalle};
+  });
+  var weekList=Object.keys(semanasOrden).map(function(k){return {key:k,label:semanasOrden[k].label,order:semanasOrden[k].order};}).sort(function(a,b){return a.order-b.order;});
+  rows.sort(function(a,b){
+    var ca=String(a.categoria||''),cb=String(b.categoria||'');
+    if(ca!==cb)return ca.localeCompare(cb,'es');
+    return String(a.nombre||'').localeCompare(String(b.nombre||''),'es');
+  });
+  cambiosDetalle.sort(function(a,b){
+    var na=String(a.nombre||''),nb=String(b.nombre||'');
+    if(na!==nb)return na.localeCompare(nb,'es');
+    return a.dia-b.dia;
+  });
+  return {year:year,monthIdx:monthIdx,monthKey:monthKey,monthLabel:monthNames[monthIdx]+' '+year,rows:rows,weeks:weekList,totalHoras:totalHoras,totalCambios:totalCambios,totalDeltaCambios:totalDeltaCambios,cambiosDetalle:cambiosDetalle};
+}
+function renderHorasPlantillaLista(){
+  var body=document.getElementById('hp-body'),sub=document.getElementById('hp-sub'),search=document.getElementById('hp-search');
+  if(!body)return;
+  var data=_hpData;
+  if(!data||!data.rows){
+    body.innerHTML='<div class="hp-empty">No hay datos calculados.</div>';
+    return;
+  }
+  if(search)search.setAttribute('oninput','renderHorasPlantillaLista()');
+  _hpActualizarBotonOrden();
+  var q=(search&&search.value?search.value:'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  if(sub)sub.textContent='Horas publicadas de grupos · '+data.monthLabel+' · cambios compartidos incluidos';
+  var rows=data.rows.filter(function(r){
+    if(!q)return true;
+    var txt=(r.nombre+' '+r.categoria).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    return txt.indexOf(q)>=0;
+  });
+  if(_hpOrdenHorasDesc){
+    rows=rows.slice().sort(function(a,b){
+      var diff=(Number(b.horas)||0)-(Number(a.horas)||0);
+      if(diff)return diff;
+      return String(a.nombre||'').localeCompare(String(b.nombre||''),'es');
+    });
+  }
+  if(!data.rows.length){
+    body.innerHTML='<div class="hp-empty">No hay empleados importados. Importa primero el Excel del grupo.</div>';
+    return;
+  }
+  var html='<div class="hp-summary">'
+    +'<div class="hp-kpi"><div class="hp-kpi-v">'+data.rows.length+'</div><div class="hp-kpi-l">Empleados</div></div>'
+    +'<div class="hp-kpi"><div class="hp-kpi-v">'+_hpFmtHoras(data.totalHoras)+'</div><div class="hp-kpi-l">Horas mes</div></div>'
+    +'<button class="hp-kpi hp-kpi-btn" onclick="renderHorasPlantillaCambios()"><div class="hp-kpi-v">'+data.totalCambios+'</div><div class="hp-kpi-l">Cambios</div></button>'
+    +'</div>';
+  if(!rows.length){
+    body.innerHTML=html+'<div class="hp-empty">Sin resultados para esa búsqueda.</div>';
+    return;
+  }
+  rows.forEach(function(r){
+    html+='<div class="hp-emp">'
+      +'<div class="hp-emp-top">'
+        +'<div><div class="hp-name">'+escH(r.nombre)+'</div><div class="hp-cat">'+escH(r.categoria||'General')+'</div>'+(r.cambios?'<div class="hp-badge">'+r.cambios+' cambio'+(r.cambios===1?'':'s')+' aplicado'+(r.cambios===1?'':'s')+'</div>':'')+'</div>'
+        +'<div class="hp-total"><div class="hp-total-v">'+_hpFmtHoras(r.horas)+'</div><div class="hp-total-l">Mes</div></div>'
+      +'</div><div class="hp-weeks">';
+    data.weeks.forEach(function(w){
+      var h=(r.semanas[w.key]&&r.semanas[w.key].horas)||0;
+      html+='<div class="hp-week"><span class="hp-week-l">'+escH(w.label)+'</span><span class="hp-week-v">'+_hpFmtHoras(h)+'</span></div>';
+    });
+    html+='</div>';
+    var diasContados=(r.dias||[]).filter(function(x){return x.horas>0;}).length;
+    html+='<details class="hp-days"><summary>Ver detalle días · '+diasContados+' contados</summary><div class="hp-day-list">';
+    (r.dias||[]).forEach(function(dia){
+      var cls='hp-day'+(dia.missing?' missing':(dia.zero?' zero':''));
+      html+='<div class="'+cls+'"><span class="hp-day-l">Día '+dia.dia+'</span><span class="hp-day-r">'+_hpFmtHoras(dia.horas)+'<small>'+escH(dia.horario)+(dia.cambio?' · '+escH(dia.etiqueta||'Cambio'):'')+'</small></span></div>';
+    });
+    html+='</div></details></div>';
+  });
+  body.innerHTML=html;
+}
+function renderHorasPlantillaCambios(){
+  var body=document.getElementById('hp-body'),sub=document.getElementById('hp-sub'),search=document.getElementById('hp-search');
+  if(!body)return;
+  var data=_hpData;
+  if(!data||!data.rows){
+    body.innerHTML='<div class="hp-empty">No hay datos calculados.</div>';
+    return;
+  }
+  if(search)search.setAttribute('oninput','renderHorasPlantillaCambios()');
+  if(sub)sub.textContent='Cambios aplicados · '+data.monthLabel+' · diferencia contra el Excel importado';
+  var q=(search&&search.value?search.value:'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  var cambios=(data.cambiosDetalle||[]).filter(function(c){
+    if(!q)return true;
+    var txt=(c.nombre+' '+c.categoria+' '+c.fecha+' '+c.tipo).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    return txt.indexOf(q)>=0;
+  });
+  var html='<div class="hp-summary">'
+    +'<div class="hp-kpi"><div class="hp-kpi-v">'+(data.cambiosDetalle||[]).length+'</div><div class="hp-kpi-l">Cambios</div></div>'
+    +'<div class="hp-kpi"><div class="hp-kpi-v">'+_hpFmtDelta(data.totalDeltaCambios||0)+'</div><div class="hp-kpi-l">Balance</div></div>'
+    +'<button class="hp-kpi hp-kpi-btn" onclick="renderHorasPlantillaLista()"><div class="hp-kpi-v">←</div><div class="hp-kpi-l">Volver</div></button>'
+    +'</div>';
+  html+='<button class="hp-back" onclick="renderHorasPlantillaLista()">Volver a empleados</button>';
+  if(!(data.cambiosDetalle||[]).length){
+    body.innerHTML=html+'<div class="hp-empty">No hay cambios aplicados para este mes.</div>';
+    return;
+  }
+  if(!cambios.length){
+    body.innerHTML=html+'<div class="hp-empty">Sin cambios para esa búsqueda.</div>';
+    return;
+  }
+  cambios.forEach(function(c){
+    var delta=Number(c.delta)||0;
+    var cls=delta>0?'plus':(delta<0?'minus':'zero');
+    var deltaTxt=delta===0?'Sin variación':_hpFmtDelta(delta);
+    html+='<div class="hp-change">'
+      +'<div class="hp-change-top">'
+        +'<div><div class="hp-name">'+escH(c.nombre)+'</div><div class="hp-cat">'+escH(c.categoria||'General')+'</div><div class="hp-change-day">Día '+c.dia+' · '+escH(c.fecha)+' · '+escH(c.tipo||'Cambio')+'</div></div>'
+        +'<div class="hp-delta '+cls+'">'+escH(deltaTxt)+'</div>'
+      +'</div>'
+      +'<div class="hp-change-lines">'
+        +'<div class="hp-change-line"><span>Excel</span><b>'+escH(c.antes)+' · '+_hpFmtHoras(c.horasAntes)+'</b></div>'
+        +'<div class="hp-change-line"><span>Cambio</span><b>'+escH(c.despues)+' · '+_hpFmtHoras(c.horasDespues)+'</b></div>'
+        +(c.por?'<div class="hp-change-line"><span>Guardado por</span><b>'+escH(c.por)+'</b></div>':'')
+      +'</div>'
+    +'</div>';
+  });
+  body.innerHTML=html;
 }
 
 // BADGE AVISOS
@@ -2848,6 +3455,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 <script>
 var CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
 var SHEETS_URL="https://script.google.com/macros/s/AKfycby_IIimYE_dL1BolZrPdGdmslVW1gV-Ivj9E7H3jaJgxd4ZJq7IEcFEjBuVj3iy0qQo/exec";
+var CTA_LOGIN_DISABLED_FOR_TESTS=true;
 
 function parseJwt(token){
   try{var b=token.split(".")[1];var d=atob(b.replace(/-/g,"+").replace(/_/g,"/"));return JSON.parse(decodeURIComponent(escape(d)));}
@@ -2909,6 +3517,16 @@ function handleCredentialResponse(response){
 }
 
 window.addEventListener("load",function(){
+  if(CTA_LOGIN_DISABLED_FOR_TESTS){
+    var testSession={email:"prueba@cta.local",nombre:"Modo prueba",ts:Date.now()};
+    try{localStorage.setItem("cta_session",JSON.stringify(testSession));}catch(e){}
+    var loginScreen=document.getElementById("login-screen");
+    if(loginScreen)loginScreen.style.display="none";
+    var logoutBtn=document.getElementById("btn-logout");
+    if(logoutBtn)logoutBtn.style.display="none";
+    setWelcome(testSession.nombre);
+    return;
+  }
   // Verificar sesión guardada
   var sess=null;
   try{sess=JSON.parse(localStorage.getItem("cta_session"));}catch(e){}
@@ -3393,6 +4011,47 @@ function initGoogleWhenReady(intentos){
       📤 Descargar backup (.json)
     </button>
     <div style="font-size:10px;color:var(--gray);text-align:center;opacity:.7">El archivo incluye todos los años disponibles y puede restaurarse desde la pestaña "Restaurar backup".</div>
+  </div>
+</div>
+
+<!-- ─── ANALIZADOR ANUAL INDEPENDIENTE ─────────────────────── -->
+<div id="ta-bg" onclick="cerrarAnalizadorTurnos()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100000;backdrop-filter:blur(6px)"></div>
+<div id="ta-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:100001;max-height:88vh;overflow:hidden;transform:translateY(120%);transition:transform .3s cubic-bezier(.4,0,.2,1);flex-direction:column">
+  <div style="padding:14px 16px 10px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0">
+    <div style="width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 14px"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-size:28px">📈</div>
+      <div style="min-width:0">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:.8px;color:var(--gold);line-height:1">Analizador anual</div>
+        <div style="font-size:11px;color:var(--gray);line-height:1.25">Solo lee el Excel. No guarda ni sustituye tu calendario.</div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:12px 16px 20px;overflow-y:auto;flex:1;min-height:0">
+    <div id="ta-drop" onclick="document.getElementById('ta-file').click()"
+      ondragover="event.preventDefault();this.style.borderColor='#60a5fa'"
+      ondragleave="this.style.borderColor='rgba(96,165,250,.3)'"
+      ondrop="taHandleDrop(event)"
+      style="border:2px dashed rgba(96,165,250,.3);border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;margin-bottom:12px;transition:border-color .2s;background:rgba(96,165,250,.05)">
+      <div style="font-size:34px;margin-bottom:8px">📂</div>
+      <div id="ta-drop-txt" style="font-size:13px;color:var(--gray);font-weight:700">Toca para seleccionar un Excel anual</div>
+      <div style="font-size:10px;color:var(--gray);margin-top:4px;opacity:.75">Vale para tu calendario o el de un compañero</div>
+    </div>
+    <input type="file" id="ta-file" accept=".xlsx,.xls" style="display:none" onchange="taHandleFile(this.files[0])">
+    <div id="ta-status" style="font-size:11px;color:var(--gray);margin-bottom:10px;line-height:1.45">Pendiente de importar.</div>
+    <div id="ta-result"></div>
+  </div>
+  <div style="flex-shrink:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);background:#182135">
+    <div style="display:flex;gap:8px">
+      <button onclick="taLimpiarDatos()"
+        style="flex:1;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:13px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:#f87171;cursor:pointer">
+        Limpiar datos
+      </button>
+      <button onclick="cerrarAnalizadorTurnos()"
+        style="flex:1;background:var(--card2);border:none;border-radius:12px;padding:13px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--gray);cursor:pointer">
+        Salir
+      </button>
+    </div>
   </div>
 </div>
 
@@ -4104,6 +4763,420 @@ function tiParseSheet(sheet,filename){
 }
 function tiToMin(t){if(!t||t.indexOf(':')<0)return null;var p=t.split(':');return+p[0]*60+ +p[1];}
 
+var _taResultado=null;
+var _taBusquedaNombre='';
+function abrirAnalizadorTurnos(ev){
+  if(ev){ev.preventDefault();ev.stopPropagation();}
+  var bg=document.getElementById('ta-bg'),panel=document.getElementById('ta-panel');
+  if(!bg||!panel)return;
+  bg.style.display='block';
+  panel.style.display='flex';
+  setTimeout(function(){panel.style.transform='translateY(0)';},10);
+}
+function cerrarAnalizadorTurnos(){
+  var bg=document.getElementById('ta-bg'),panel=document.getElementById('ta-panel');
+  if(!bg||!panel)return;
+  panel.style.transform='translateY(120%)';
+  setTimeout(function(){panel.style.display='none';bg.style.display='none';},300);
+}
+function taLimpiarDatos(){
+  _taResultado=null;
+  _taBusquedaNombre='';
+  var result=document.getElementById('ta-result');
+  var status=document.getElementById('ta-status');
+  var dropTxt=document.getElementById('ta-drop-txt');
+  var input=document.getElementById('ta-file');
+  if(result)result.innerHTML='';
+  if(status)status.textContent='Pendiente de importar.';
+  if(dropTxt)dropTxt.textContent='Toca para seleccionar un Excel anual';
+  if(input)input.value='';
+}
+function taHandleDrop(e){
+  e.preventDefault();
+  var drop=document.getElementById('ta-drop');
+  if(drop)drop.style.borderColor='rgba(96,165,250,.3)';
+  var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+  if(f)taHandleFile(f);
+}
+function taFmtHoras(min){
+  min=Math.round(Number(min)||0);
+  var h=Math.floor(min/60),m=min%60;
+  return h+'h'+(m?' '+String(m).padStart(2,'0')+'m':'');
+}
+function taDurMin(e,s){
+  var a=tiToMin(e),b=tiToMin(s);
+  if(a===null||b===null)return 0;
+  if(b<a)b+=1440;
+  return b-a;
+}
+function taSumDiaMin(p){
+  if(!p)return 0;
+  return taDurMin(p.e1,p.s1)+taDurMin(p.e2,p.s2);
+}
+function taCuentaContador(p){
+  var tipo=String((p&&p.tipo)||'trabajado').toLowerCase();
+  return ['trabajado','hl','hlp','baja','rm','curso','permiso'].indexOf(tipo)>=0;
+}
+function taMesVacio(){
+  return{turnos:0,partidos:0,madrugas:0,nocturnas:0,noches:0,horasTurnoMin:0,horasContadorMin:0};
+}
+function taAddStats(dest,p){
+  if(!p||!p.e1||!p.s1)return;
+  var e1=tiToMin(p.e1),sFinal=tiToMin(p.s2||p.s1);
+  if(e1===null||sFinal===null)return;
+  var mins=taSumDiaMin(p);
+  if(mins<=0)return;
+  var partido=!!(p.e2&&p.s2);
+  var madruga=e1<=360;
+  var nocturna=e1>=1260;
+  var noche=e1>=1260&&e1<=1439&&(sFinal<e1||sFinal<=420);
+  dest.turnos++;
+  if(partido)dest.partidos++;
+  if(madruga)dest.madrugas++;
+  if(nocturna)dest.nocturnas++;
+  if(noche)dest.noches++;
+  dest.horasTurnoMin+=mins;
+  if(taCuentaContador(p))dest.horasContadorMin+=mins;
+}
+function taParseDia(sheet,row,col){
+  var raw=tiCellVal(sheet,row,col);
+  var colorTipo=tiColorToTipo(sheet,row,col);
+  var isGreyCell=tiColorEsGris(sheet,row,col);
+  var isEmpty=!raw||raw.split(' ').join('').split(String.fromCharCode(10)).join('')==='';
+  if(isEmpty){
+    if(colorTipo)return{tipo:colorTipo,e1:'',s1:'',e2:'',s2:''};
+    return null;
+  }
+  var parsed=tiParseCell(raw,isGreyCell);
+  if(!parsed)return null;
+  if(colorTipo&&parsed.tipo==='trabajado')parsed.tipo=colorTipo;
+  return parsed;
+}
+function taAnalizarSheet(sheet,filename,leyenda){
+  var total=taMesVacio(),meses=[];
+  for(var row=3;row<=14;row++){
+    var monthRaw=tiCellVal(sheet,row,0);
+    if(!monthRaw)continue;
+    var monthKey=_MONTHS_MAP[monthRaw.toLowerCase()];
+    if(!monthKey)continue;
+    var mes=taMesVacio();
+    mes.monthKey=monthKey;
+    mes.nombre=monthKey.charAt(0)+monthKey.slice(1).toLowerCase();
+    for(var col=1;col<=31;col++){
+      var parsed=taParseDia(sheet,row,col);
+      taAddStats(mes,parsed);
+    }
+    ['turnos','partidos','madrugas','nocturnas','noches','horasTurnoMin','horasContadorMin'].forEach(function(k){total[k]+=mes[k];});
+    meses.push(mes);
+  }
+  return{filename:filename||'',persona:(leyenda&&leyenda.nombreCompleto)||'',total:total,meses:meses};
+}
+function taDetectarCabeceraGrupo(rows){
+  for(var hr=0;hr<Math.min(8,rows.length);hr++){
+    var hrow=rows[hr]||[];
+    for(var hc=0;hc<Math.min(4,hrow.length);hc++){
+      if(String(hrow[hc]||'').trim().toLowerCase()==='empleado')return{hIdx:hr,empCol:hc};
+    }
+  }
+  return null;
+}
+function taAnalizarDiasGrupo(dias){
+  var st=taMesVacio();
+  Object.keys(dias||{}).forEach(function(d){taAddStats(st,dias[d]);});
+  return st;
+}
+function taSumaStats(dest,src){
+  ['turnos','partidos','madrugas','nocturnas','noches','horasTurnoMin','horasContadorMin'].forEach(function(k){dest[k]+=(src&&src[k])||0;});
+}
+function taParseGrupoSheet(ws,sheetName){
+  var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+  var rowsRaw=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+  var cab=taDetectarCabeceraGrupo(rows);
+  if(!cab)return null;
+  var hIdx=cab.hIdx,empCol=cab.empCol,nominaCol=empCol>0?empCol-1:null;
+  var formato=(nominaCol===null)?'MULTI':'SINGLE';
+  var dayColMap={};
+  var maxHeaderCols=Math.max((rows[hIdx]||[]).length,(rowsRaw[hIdx]||[]).length,(rows[hIdx-1]||[]).length,(rowsRaw[hIdx-1]||[]).length,(rows[hIdx-2]||[]).length,(rowsRaw[hIdx-2]||[]).length);
+  for(var c=empCol+1;c<maxHeaderCols;c++){
+    var dayNum=(typeof _detectarDiaColGrupoEnCabecera==='function')?_detectarDiaColGrupoEnCabecera(rows,rowsRaw,hIdx,c):null;
+    if(dayNum>=1&&dayNum<=31)dayColMap[dayNum]=c;
+  }
+  if(!Object.keys(dayColMap).length)return null;
+  var monthIdx=(typeof _detectarMesGrupo==='function')?_detectarMesGrupo(rows,sheetName):new Date().getMonth();
+  var mesesBase=(typeof _GRUPO_MONTHS!=='undefined'&&_GRUPO_MONTHS.length)?_GRUPO_MONTHS:['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  var monthKey=mesesBase[monthIdx]||mesesBase[new Date().getMonth()];
+  var empleados=[],gruposDetectados=[];
+  if(formato==='SINGLE'){
+    var row2=String(rows[1]&&rows[1][0]||'');
+    var categoria='General';
+    var row2clean=row2.replace(/\d{1,2}\s*(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)[\s\S]*/i,'').trim();
+    var dashParts=row2clean.split('-');
+    var lastToken=dashParts[dashParts.length-1].trim();
+    if(lastToken.length>2&&lastToken.length<50&&!/^\d+$/.test(lastToken))categoria=lastToken;
+    if(/\bFDS?\b|FIJOS?\s+DISCONTINUOS?/i.test([sheetName,row2,row2clean,categoria,lastToken].join(' ')))categoria='FD';
+    var lastEmpSingle=null;
+    for(var r=hIdx+1;r<rows.length;r++){
+      var row=rows[r]||[],rowRaw=rowsRaw[r]||[];
+      if(!row[nominaCol]||!row[empCol]){
+        if(lastEmpSingle){
+          var diasExtra=_extraerDiasGrupoDeFila(row,rowRaw,dayColMap);
+          if(Object.keys(diasExtra).length)lastEmpSingle.dias=_mergeDiasGrupoPreferirHoras(lastEmpSingle.dias,diasExtra);
+        }
+        continue;
+      }
+      var nomina=String(row[nominaCol]).trim();
+      var nombreFull=String(row[empCol]).trim();
+      if(nomina.toLowerCase().indexOf('calendario')>=0||nomina.toLowerCase().indexOf('fecha')>=0)continue;
+      var nombre=(typeof formatNombre==='function')?formatNombre(nombreFull):nombreFull;
+      if(typeof _esNombreBasuraGrupo==='function'&&_esNombreBasuraGrupo(nombre))continue;
+      lastEmpSingle={nomina:nomina,nombre:nombre,categoria:categoria,dias:_extraerDiasGrupoDeFila(row,rowRaw,dayColMap)};
+      empleados.push(lastEmpSingle);
+    }
+    gruposDetectados.push(categoria);
+  } else {
+    var currentCategoria='FIJO OPERARIO',lastEmpMulti=null;
+    for(var r2=hIdx+1;r2<rows.length;r2++){
+      var rowM=rows[r2]||[],rowMRaw=rowsRaw[r2]||[];
+      var cellA=String(rowM[empCol]||'').trim();
+      if(cellA===''){
+        if(lastEmpMulti){
+          var diasExtra2=_extraerDiasGrupoDeFila(rowM,rowMRaw,dayColMap);
+          if(Object.keys(diasExtra2).length)lastEmpMulti.dias=_mergeDiasGrupoPreferirHoras(lastEmpMulti.dias,diasExtra2);
+        }
+        continue;
+      }
+      if(cellA.indexOf(',')<0){
+        if(/^\d{1,2}\s/.test(cellA)){
+          currentCategoria=(typeof _categoriaDesdeTextoGrupo==='function')?_categoriaDesdeTextoGrupo(cellA):cellA;
+          if(gruposDetectados.indexOf(currentCategoria)<0)gruposDetectados.push(currentCategoria);
+          lastEmpMulti=null;
+        } else if(lastEmpMulti){
+          var diasExtraNoNombre=_extraerDiasGrupoDeFila(rowM,rowMRaw,dayColMap);
+          if(Object.keys(diasExtraNoNombre).length)lastEmpMulti.dias=_mergeDiasGrupoPreferirHoras(lastEmpMulti.dias,diasExtraNoNombre);
+        }
+        continue;
+      }
+      var nombreFull2=cellA;
+      var nomina2=(typeof _nominaSinteticaDesdeNombre==='function')?_nominaSinteticaDesdeNombre(nombreFull2):nombreFull2;
+      var nombre2=(typeof formatNombre==='function')?formatNombre(nombreFull2):nombreFull2;
+      if(typeof _esNombreBasuraGrupo==='function'&&_esNombreBasuraGrupo(nombre2))continue;
+      lastEmpMulti={nomina:nomina2,nombre:nombre2,categoria:currentCategoria,dias:_extraerDiasGrupoDeFila(rowM,rowMRaw,dayColMap)};
+      empleados.push(lastEmpMulti);
+    }
+  }
+  return{monthKey:monthKey,empleados:empleados,formato:formato,diasDetectados:Object.keys(dayColMap).length,gruposDetectados:gruposDetectados};
+}
+function taAnalizarGrupoWorkbook(wb,filename){
+  var empleadosMap={},total=taMesVacio(),hojas=0,mesesUsados={},diasDetectados=0;
+  wb.SheetNames.forEach(function(sheetName){
+    var parsed=taParseGrupoSheet(wb.Sheets[sheetName],sheetName);
+    if(!parsed)return;
+    hojas++;
+    mesesUsados[parsed.monthKey]=true;
+    diasDetectados=Math.max(diasDetectados,parsed.diasDetectados||0);
+    parsed.empleados.forEach(function(emp){
+      var key=emp.nomina||((typeof _normNombreGrupo==='function')?_normNombreGrupo(emp.nombre):emp.nombre);
+      if(!empleadosMap[key])empleadosMap[key]={nomina:key,nombre:emp.nombre,categoria:emp.categoria,total:taMesVacio(),meses:{}};
+      var st=taAnalizarDiasGrupo(emp.dias);
+      if(!empleadosMap[key].meses[parsed.monthKey])empleadosMap[key].meses[parsed.monthKey]=taMesVacio();
+      taSumaStats(empleadosMap[key].meses[parsed.monthKey],st);
+      taSumaStats(empleadosMap[key].total,st);
+    });
+  });
+  var empleados=Object.keys(empleadosMap).map(function(k){return empleadosMap[k];}).filter(function(e){return e.total.turnos>0;});
+  empleados.sort(function(a,b){return b.total.horasContadorMin-a.total.horasContadorMin;});
+  empleados.forEach(function(e){taSumaStats(total,e.total);});
+  return{kind:'grupo',filename:filename||'',total:total,empleados:empleados,hojas:hojas,meses:Object.keys(mesesUsados),diasDetectados:diasDetectados};
+}
+function taHandleFile(file){
+  if(!file)return;
+  _taBusquedaNombre='';
+  var dropTxt=document.getElementById('ta-drop-txt');
+  var status=document.getElementById('ta-status');
+  var result=document.getElementById('ta-result');
+  if(dropTxt)dropTxt.textContent='Procesando: '+file.name+'...';
+  if(status)status.textContent='Leyendo el Excel...';
+  if(result)result.innerHTML='';
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var data=new Uint8Array(ev.target.result);
+      var wb=XLSX.read(data,{type:'array',cellText:true,cellStyles:true});
+      var grupo=taAnalizarGrupoWorkbook(wb,file.name);
+      if(grupo&&grupo.hojas>0&&grupo.empleados.length>0){
+        _taResultado=grupo;
+      }else{
+        var sheet=wb.Sheets['Calendario empleado']||wb.Sheets[wb.SheetNames[0]];
+        if(!sheet)throw new Error('No se encontró ninguna hoja válida');
+        var leyenda=null;
+        try{if(typeof _leerLeyendaTryp==='function')leyenda=_leerLeyendaTryp(wb);}catch(e){leyenda=null;}
+        _taResultado=taAnalizarSheet(sheet,file.name,leyenda);
+      }
+      taRenderResultado(_taResultado);
+      if(dropTxt)dropTxt.textContent='Cargado: '+file.name;
+      var input=document.getElementById('ta-file');
+      if(input)input.value='';
+    }catch(err){
+      if(status)status.textContent='Error al leer el archivo: '+err.message;
+      if(dropTxt)dropTxt.textContent='Toca para seleccionar un Excel anual';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+function taRenderKpi(valor,label,color){
+  return '<div class="ta-kpi"><div class="ta-kpi-v" style="color:'+(color||'var(--gold)')+'">'+valor+'</div><div class="ta-kpi-l">'+label+'</div></div>';
+}
+function taValorOrden(item,campo){
+  var src=(item&&item.total)?item.total:item;
+  if(campo==='alpha')return 0;
+  if(!src)return 0;
+  if(campo==='horas')return src.horasContadorMin||0;
+  if(campo==='horasTurno')return src.horasTurnoMin||0;
+  return src[campo]||0;
+}
+function taOrdenMes(item){
+  var key=String((item&&item.monthKey)||'').toUpperCase();
+  var idx=_MONTHS_ALL.indexOf(key);
+  if(idx>=0)return idx;
+  var nombre=String((item&&item.nombre)||'').toUpperCase();
+  for(var i=0;i<_MONTHS_ALL.length;i++){
+    if(nombre===_MONTHS_ALL[i]||nombre.indexOf(_MONTHS_ALL[i].slice(0,3))===0)return i;
+  }
+  return 99;
+}
+function taSortBar(tipo){
+  var primerCampo=tipo==='meses'?'month':'alpha';
+  var primerLabel=tipo==='meses'?'Por meses':'Alfabético ↓';
+  var horasCampo=tipo==='meses'?'horasTurno':'horas';
+  var horasLabel=tipo==='meses'?'Horas totales ↓':'Horas contador ↓';
+  return '<div class="ta-sort-row">'+
+    '<button class="ta-sort-chip" onclick="taOrdenarSeccion(\''+tipo+'\',\''+primerCampo+'\')">'+primerLabel+'</button>'+
+    '<button class="ta-sort-chip" onclick="taOrdenarSeccion(\''+tipo+'\',\'partidos\')">Partidos ↓</button>'+
+    '<button class="ta-sort-chip" onclick="taOrdenarSeccion(\''+tipo+'\',\'madrugas\')">Madrugues ↓</button>'+
+    '<button class="ta-sort-chip" onclick="taOrdenarSeccion(\''+tipo+'\',\'nocturnas\')">Nocturnas ↓</button>'+
+    '<button class="ta-sort-chip" onclick="taOrdenarSeccion(\''+tipo+'\',\'noches\')">Noches ↓</button>'+
+    '<button class="ta-sort-chip" onclick="taOrdenarSeccion(\''+tipo+'\',\''+horasCampo+'\')">'+horasLabel+'</button>'+
+  '</div>';
+}
+function taOrdenarSeccion(tipo,campo){
+  if(!_taResultado)return;
+  if(tipo==='empleados'&&_taResultado.empleados){
+    if(campo==='alpha'){
+      _taResultado.empleados.sort(function(a,b){return String(a.nombre||'').localeCompare(String(b.nombre||''),'es',{sensitivity:'base'});});
+    }else{
+      _taResultado.empleados.sort(function(a,b){return taValorOrden(b,campo)-taValorOrden(a,campo);});
+    }
+  }
+  if(tipo==='meses'&&_taResultado.meses){
+    if(campo==='month'){
+      _taResultado.meses.sort(function(a,b){return taOrdenMes(a)-taOrdenMes(b);});
+    }else if(campo==='alpha'){
+      _taResultado.meses.sort(function(a,b){return String(a.nombre||'').localeCompare(String(b.nombre||''),'es',{sensitivity:'base'});});
+    }else{
+      _taResultado.meses.sort(function(a,b){return taValorOrden(b,campo)-taValorOrden(a,campo);});
+    }
+  }
+  taRenderResultado(_taResultado);
+}
+function taNormBuscaNombre(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+function taAplicarFiltroNombre(){
+  var filtro=taNormBuscaNombre(_taBusquedaNombre);
+  var rows=document.querySelectorAll('#ta-result .ta-emp[data-name]');
+  var visibles=0;
+  rows.forEach(function(row){
+    var ok=!filtro||String(row.getAttribute('data-name')||'').indexOf(filtro)>=0;
+    row.style.display=ok?'':'none';
+    if(ok)visibles++;
+  });
+  var empty=document.getElementById('ta-search-empty');
+  if(empty)empty.style.display=(rows.length&&visibles===0)?'block':'none';
+}
+function taBuscarNombre(valor){
+  _taBusquedaNombre=String(valor||'');
+  taAplicarFiltroNombre();
+}
+function taRenderResultadoGrupo(r){
+  var status=document.getElementById('ta-status');
+  var result=document.getElementById('ta-result');
+  if(!r||!result)return;
+  var t=r.total;
+  if(status){
+    status.innerHTML='Archivo de grupo: <b style="color:var(--white)">'+escH(r.filename||'Excel')+'</b>'+
+      '<br>'+r.empleados.length+' empleados con turno · '+(r.meses.length?r.meses.join(', '):'mes detectado')+
+      '<br>Importación independiente: no se ha guardado nada en grupos ni calendario.';
+  }
+  var html='<div class="ta-kpis">'+
+    taRenderKpi(r.empleados.length,'Empleados','#e5e7eb')+
+    taRenderKpi(t.turnos,'Turnos','#60a5fa')+
+    taRenderKpi(t.partidos,'Partidos')+
+    taRenderKpi(t.madrugas,'Madrugues <=06','#fbbf24')+
+    taRenderKpi(t.nocturnas,'Nocturnas >=21','#c084fc')+
+    taRenderKpi(t.noches,'Noches 21-23 a 5-7','#38bdf8')+
+    taRenderKpi(taFmtHoras(t.horasContadorMin),'Horas contador','#4ade80')+
+    taRenderKpi(taFmtHoras(t.horasTurnoMin),'Horas turnos','#93c5fd')+
+  '</div>';
+  html+='<div class="ta-section-head"><div class="ta-section-title">Por empleado</div></div>'+
+    '<input class="ta-search" type="search" placeholder="Buscar empleado..." value="'+escH(_taBusquedaNombre)+'" oninput="taBuscarNombre(this.value)">'+
+    taSortBar('empleados');
+  r.empleados.forEach(function(emp){
+    var e=emp.total;
+    html+='<div class="ta-emp" data-name="'+escH(taNormBuscaNombre(emp.nombre))+'">'+
+      '<div class="ta-emp-top"><div style="min-width:0"><div class="ta-emp-name">'+escH(emp.nombre||'Empleado')+'</div><div class="ta-emp-cat">'+escH(emp.categoria||'Grupo')+'</div></div><div class="ta-emp-hours">'+taFmtHoras(e.horasContadorMin)+'</div></div>'+
+      '<div class="ta-mini-grid">'+
+        '<div class="ta-mini"><b>'+e.turnos+'</b><span>Turnos</span></div>'+
+        '<div class="ta-mini"><b>'+e.partidos+'</b><span>Partidos</span></div>'+
+        '<div class="ta-mini"><b>'+e.madrugas+'</b><span>Madrugues</span></div>'+
+        '<div class="ta-mini"><b>'+e.nocturnas+'</b><span>Noct.</span></div>'+
+        '<div class="ta-mini"><b>'+e.noches+'</b><span>Noches</span></div>'+
+      '</div>'+
+    '</div>';
+  });
+  if(!r.empleados.length)html+='<div style="border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.08);border-radius:12px;padding:12px;color:#fca5a5;font-size:12px;line-height:1.35">He detectado formato de grupo, pero no empleados con horas.</div>';
+  else html+='<div id="ta-search-empty" style="display:none;border:1px solid rgba(96,165,250,.25);background:rgba(96,165,250,.08);border-radius:12px;padding:12px;color:#bfdbfe;font-size:12px;line-height:1.35">No hay empleados con ese nombre.</div>';
+  result.innerHTML=html;
+  taAplicarFiltroNombre();
+}
+function taRenderResultado(r){
+  if(r&&r.kind==='grupo')return taRenderResultadoGrupo(r);
+  var status=document.getElementById('ta-status');
+  var result=document.getElementById('ta-result');
+  if(!r||!result)return;
+  var t=r.total;
+  if(status){
+    status.innerHTML='Archivo: <b style="color:var(--white)">'+escH(r.filename||'Excel')+'</b>'+
+      (r.persona?' · Empleado: <b style="color:var(--white)">'+escH(r.persona)+'</b>':'')+
+      '<br>Importación independiente: no se ha guardado nada en tu calendario.';
+  }
+  var html='<div class="ta-kpis">'+
+    taRenderKpi(t.turnos,'Turnos','#60a5fa')+
+    taRenderKpi(t.partidos,'Partidos')+
+    taRenderKpi(t.madrugas,'Madrugues <=06','#fbbf24')+
+    taRenderKpi(t.nocturnas,'Nocturnas >=21','#c084fc')+
+    taRenderKpi(t.noches,'Noches 21-23 a 5-7','#38bdf8')+
+    taRenderKpi(taFmtHoras(t.horasTurnoMin),'Horas totales','#4ade80')+
+    taRenderKpi(taFmtHoras(t.horasContadorMin),'Horas contador','#93c5fd')+
+    taRenderKpi(r.meses.filter(function(m){return m.turnos>0;}).length,'Meses con datos','#e5e7eb')+
+  '</div>';
+  html+='<div class="ta-section-head"><div class="ta-section-title">Desglose mensual</div></div>'+taSortBar('meses');
+  r.meses.forEach(function(m){
+    if(!m.turnos)return;
+    html+='<div class="ta-month">'+
+      '<div class="ta-month-top"><div class="ta-month-name">'+escH(m.nombre)+'</div><div class="ta-month-hours">'+taFmtHoras(m.horasTurnoMin)+'</div></div>'+
+      '<div class="ta-mini-grid">'+
+        '<div class="ta-mini"><b>'+m.turnos+'</b><span>Turnos</span></div>'+
+        '<div class="ta-mini"><b>'+m.partidos+'</b><span>Partidos</span></div>'+
+        '<div class="ta-mini"><b>'+m.madrugas+'</b><span>Madrugues</span></div>'+
+        '<div class="ta-mini"><b>'+m.nocturnas+'</b><span>Noct.</span></div>'+
+        '<div class="ta-mini"><b>'+m.noches+'</b><span>Noches</span></div>'+
+      '</div>'+
+    '</div>';
+  });
+  if(t.turnos===0)html+='<div style="border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.08);border-radius:12px;padding:12px;color:#fca5a5;font-size:12px;line-height:1.35">No he encontrado turnos con hora de entrada y salida. Revisa que el Excel sea el calendario anual esperado.</div>';
+  result.innerHTML=html;
+}
+
 function tiApply(){
   if(!_tiParsed)return;
   var overwrite=document.getElementById('ti-overwrite').checked;
@@ -4813,7 +5886,7 @@ document.addEventListener('DOMContentLoaded',function(){
     <button id="cambio-modo-btn" onclick="toggleModoCambioCategorias()" style="margin-top:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 10px;color:var(--gray);font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer">🔒 Solo mi categoría</button>
     <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
       <div style="flex:1;position:relative">
-        <input id="cambio-ia-input" type="text" placeholder="¿Qué buscas? Ej: tarde el lunes, salir antes de las 14h..." 
+        <input id="cambio-ia-input" type="text" placeholder="Ej: tarde el lunes, salir antes d las 9:30..." 
           style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:var(--white);font-family:'Outfit',sans-serif;font-size:12px;padding:10px 40px 10px 12px;outline:none"
           onkeydown="if(event.key==='Enter')filtrarConIA()">
         <button onclick="filtrarConIA()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;padding:0;line-height:1" id="cambio-ia-btn">✨</button>
@@ -4823,6 +5896,26 @@ document.addEventListener('DOMContentLoaded',function(){
     <div id="cambio-ia-estado" style="font-size:10px;color:var(--gold);margin-top:6px;min-height:14px"></div>
   </div>
   <div id="cambio-body"></div>
+</div>
+
+<!-- PANEL OCULTO HORAS PLANTILLA -->
+<div id="hp-modal-bg" onclick="cerrarHorasPlantilla()"></div>
+<div id="hp-modal">
+  <button class="hp-close" onclick="cerrarHorasPlantilla()">×</button>
+  <div class="hp-handle"></div>
+  <div class="hp-head">
+    <div class="hp-title">Horas plantilla</div>
+    <div class="hp-sub" id="hp-sub">Empleados importados de grupos · mes y semanas</div>
+    <div class="hp-toolbar">
+      <input class="hp-search" id="hp-search" placeholder="Buscar empleado..." oninput="renderHorasPlantillaLista()">
+      <button class="hp-import" onclick="importarGrupoDesdePlantilla()">Importar grupo</button>
+      <button class="hp-sort" id="hp-sort-btn" onclick="toggleOrdenHorasPlantilla()">Orden actual</button>
+      <button class="hp-clear" onclick="borrarDatosAntiguosPlantilla()">Borrar importados</button>
+    </div>
+  </div>
+  <div class="hp-body" id="hp-body">
+    <div class="hp-empty">Calculando...</div>
+  </div>
 </div>
 
 
@@ -4979,9 +6072,7 @@ function _fusionarDuplicadosGrupoSilencioso(map){
       Object.keys(otro.meses||{}).forEach(function(mk){
         var diasOtro=otro.meses[mk]||{};
         var diasBase=meses[mk]||{};
-        if(!meses[mk]||Object.keys(diasOtro).length>Object.keys(diasBase).length){
-          meses[mk]=diasOtro;
-        }
+        meses[mk]=_mergeDiasGrupoPreferirHoras(diasBase,diasOtro);
       });
       delete map[keys[i]];
     }
@@ -5027,37 +6118,64 @@ function abrirCompanerosPorDia(){
 function importarGrupo(){
   document.getElementById('grupo-file-input').click();
 }
+function importarGrupoDesdePlantilla(){
+  var input=document.getElementById('grupo-file-input');
+  if(input)input.click();
+}
 
 // Extrae el turno/tipo de una celda de día del Excel de grupo (DL, !, horas, etc.)
 // Devuelve null si el día no está publicado (no se guarda).
-// Códigos de ausencia que en el Excel de grupo vienen anotados entre paréntesis
-// (segundo formato, alternativo al de "!"), p.ej. "06:00 13:00 (V) (B0)": el turno con
-// horas que trae la celda quedó anulado por la baja/excedencia/vacaciones, así que no
-// cuenta como turno de trabajo real aunque haya horas escritas.
-var _CODIGOS_AUSENCIA_GRUPO=['B0','EXC','V','MA'];
-function _parseCeldaDiaGrupo(cellRaw){
+// Códigos de ausencia que en el Excel de grupo vienen anotados entre paréntesis.
+// Si la celda trae horas, se conservan: para la pantalla oculta de horas todo día
+// con entrada/salida cuenta, aunque lleve MA, !, festivo, HL, baja, etc.
+var _CODIGOS_AUSENCIA_GRUPO=['B0','B1','B2','B4','B6','AC','ACI','EXC','V','V-','V+','MA','FM','FY','RM','HL','HLP','H6','AL','BP','BL','PP','NH'];
+function _tipoAusenciaGrupoDesdeTexto(texto){
+  var t=String(texto||'').toUpperCase();
+  var notas=(t.match(/\(([^)]+)\)/g)||[]).map(function(n){return n.replace(/[()]/g,'').trim();});
+  var piezas=notas.concat(t.split(/[^A-Z0-9+-]+/)).filter(Boolean);
+  for(var i=0;i<piezas.length;i++){
+    var p=piezas[i];
+    if(typeof _NOTA_TIPO!=='undefined'&&_NOTA_TIPO[p])return _NOTA_TIPO[p];
+    if(_CODIGOS_AUSENCIA_GRUPO.indexOf(p)>=0){
+      if(/^B\d*$|^AC|^ACI$|^EXC$/.test(p))return 'baja';
+      if(/^V/.test(p))return 'vacaciones';
+      if(p==='RM')return 'rm';
+      if(p==='HL'||p==='HLP')return p.toLowerCase();
+      if(p==='H6')return 'h6';
+      if(p==='AL')return 'perentorias';
+      return 'libre';
+    }
+  }
+  return '';
+}
+function _parseCeldaDiaGrupo(cellRaw,cellRawOriginal){
   var cell=String(cellRaw||'').trim();
+  var rawOrig=(cellRawOriginal===undefined||cellRawOriginal===null)?'':String(cellRawOriginal).trim();
+  if(rawOrig&&rawOrig!==cell)cell=(cell+' '+rawOrig).trim();
   if(cell==='')return null; // Celda vacía → sin publicar, no se guarda
-  // Exclamación → baja, vacaciones o similar → cuenta como día libre
-  if(cell.indexOf('!')!==-1){
-    return {tipo:'libre',e1:'',s1:'',e2:'',s2:'',ausencia:true};
+  var parsed=parseTurnoGrupo(cell);
+  if(parsed&&parsed.e1){
+    var tipoAusencia=_tipoAusenciaGrupoDesdeTexto(cell);
+    if(tipoAusencia)parsed.tipo=tipoAusencia;
+    parsed.rawGrupo=cell;
+    if(typeof _tieneMarcaNoCambiableCambio==='function'&&_tieneMarcaNoCambiableCambio(parsed))parsed.noCambiableCambio=true;
+    return parsed;
   }
-  // Formato alternativo: código de ausencia entre paréntesis, con o sin horas reales
-  // acompañándolo. El código manda: si está presente, es ausencia aunque haya horas.
+
+  // Sin horas: los códigos de ausencia sí se guardan como libre/ausencia.
   var notasCelda=(cell.match(/\(([^)]+)\)/g)||[]).map(function(n){return n.replace(/[()]/g,'').toUpperCase().trim();});
-  if(notasCelda.some(function(n){return _CODIGOS_AUSENCIA_GRUPO.indexOf(n)>=0;})){
-    return {tipo:'libre',e1:'',s1:'',e2:'',s2:'',ausencia:true};
-  }
   var cellUp=cell.toUpperCase().replace(/[\s.]/g,'');
+  var tipoAusenciaSinHoras=_tipoAusenciaGrupoDesdeTexto(cell);
+  if(tipoAusenciaSinHoras||notasCelda.some(function(n){return _CODIGOS_AUSENCIA_GRUPO.indexOf(n)>=0;})){
+    return {tipo:tipoAusenciaSinHoras||'libre',e1:'',s1:'',e2:'',s2:'',ausencia:true,rawGrupo:cell,noCambiableCambio:(cellUp==='MA'||cellUp==='FM'||cellUp==='FY')};
+  }
   var esLibre=(cellUp==='DL'||cellUp==='LIBRE'||cellUp==='DIALIBRE'||cellUp==='DESCANSO'||cellUp==='DESCANSOSEMANA'||cellUp==='MA'||cellUp==='FM'||cellUp==='FY');
   if(esLibre){
-    return {tipo:'libre',e1:'',s1:'',e2:'',s2:''};
+    return {tipo:'libre',e1:'',s1:'',e2:'',s2:'',rawGrupo:cell,noCambiableCambio:(cellUp==='MA'||cellUp==='FM'||cellUp==='FY')};
   }
-  var parsed=parseTurnoGrupo(cell);
-  if(parsed){
-    // Si no tiene horas válidas, tratarlo como libre (vacaciones, baja, etc. cuentan como no-trabajo ese día)
-    if(!parsed.e1)return {tipo:parsed.tipo||'libre',e1:'',s1:'',e2:'',s2:''};
-    return parsed;
+  // Exclamación sin horas → baja, vacaciones o similar: libre/ausencia.
+  if(cell.indexOf('!')!==-1){
+    return {tipo:'libre',e1:'',s1:'',e2:'',s2:'',ausencia:true,rawGrupo:cell};
   }
   return null;
 }
@@ -5096,6 +6214,28 @@ function _detectarMesGrupo(rows,sheetName){
   return detected;
 }
 
+function _detectarDiaColGrupo(headerCell){
+  var h=String(headerCell||'').trim();
+  if(!h)return null;
+  var m=h.match(/(?:^|[^0-9])([1-9]|[12][0-9]|3[01])(?:[^0-9]|$)/);
+  if(m)return parseInt(m[1],10);
+  var n=parseInt(h.replace(/^[^\d]*/,''),10);
+  return n>=1&&n<=31?n:null;
+}
+function _detectarDiaColGrupoEnCabecera(rows,rowsRaw,hIdx,c){
+  var piezas=[];
+  [hIdx,hIdx-1,hIdx-2].forEach(function(r){
+    if(r<0)return;
+    if(rows[r])piezas.push(rows[r][c]);
+    if(rowsRaw[r])piezas.push(rowsRaw[r][c]);
+  });
+  for(var i=0;i<piezas.length;i++){
+    var d=_detectarDiaColGrupo(piezas[i]);
+    if(d>=1&&d<=31)return d;
+  }
+  return null;
+}
+
 function procesarGrupoXlsx(file){
   if(!file)return;
   if(typeof XLSX==='undefined'){alert('Error: librería XLSX no cargada.');return;}
@@ -5105,6 +6245,7 @@ function procesarGrupoXlsx(file){
       var wb;try{wb=XLSX.read(e.target.result,{type:'array'});}catch(ex){alert('Error XLSX: '+ex.message);return;}
       var ws=wb.Sheets[wb.SheetNames[0]];
       var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+      var rowsRaw=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
 
       // Localizar la fila de cabecera buscando la celda "Empleado". Su columna nos dice
       // el formato: si "Empleado" está en la columna 0 → Excel "todos los grupos" (sin
@@ -5121,10 +6262,11 @@ function procesarGrupoXlsx(file){
 
       // Build day→col map from headers like "V1","S2","D3","L4"...
       var headerRow=rows[hIdx]||[];
+      var headerRaw=rowsRaw[hIdx]||[];
       var dayColMap={};
-      for(var c=empCol+1;c<headerRow.length;c++){
-        var h=String(headerRow[c]).trim();
-        var dayNum=parseInt(h.replace(/^[A-Za-z]+/,''));
+      var maxHeaderCols=Math.max(headerRow.length,headerRaw.length,(rows[hIdx-1]||[]).length,(rowsRaw[hIdx-1]||[]).length,(rows[hIdx-2]||[]).length,(rowsRaw[hIdx-2]||[]).length);
+      for(var c=empCol+1;c<maxHeaderCols;c++){
+        var dayNum=_detectarDiaColGrupoEnCabecera(rows,rowsRaw,hIdx,c);
         if(dayNum>=1&&dayNum<=31)dayColMap[dayNum]=c;
       }
 
@@ -5147,30 +6289,43 @@ function procesarGrupoXlsx(file){
         var isFD=/\bFDS?\b|FIJOS?\s+DISCONTINUOS?/i.test(_fdSource);
         if(isFD)categoria='FD';
 
+        var lastEmpSingle=null;
         for(var r=hIdx+1;r<rows.length;r++){
           var row=rows[r];
-          if(!row[nominaCol]||!row[empCol])continue;
+          var rowRaw=rowsRaw[r]||[];
+          if(!row[nominaCol]||!row[empCol]){
+            if(lastEmpSingle){
+              var diasExtra=_extraerDiasGrupoDeFila(row,rowRaw,dayColMap);
+              if(Object.keys(diasExtra).length)lastEmpSingle.dias=_mergeDiasGrupoPreferirHoras(lastEmpSingle.dias,diasExtra);
+            }
+            continue;
+          }
           var nomina=String(row[nominaCol]).trim();
           var nombreFull=String(row[empCol]).trim();
           if(nomina.toLowerCase().indexOf('calendario')>=0||nomina.toLowerCase().indexOf('fecha')>=0)continue;
           var nombre=formatNombre(nombreFull);
           if(_esNombreBasuraGrupo(nombre))continue; // p.ej. "(EXC)" colado como nombre, no es una persona
-          var diasMes={};
-          Object.keys(dayColMap).forEach(function(d){
-            var t=_parseCeldaDiaGrupo(row[dayColMap[d]]);
-            if(t)diasMes[parseInt(d)]=t;
-          });
-          empleados.push({nomina:nomina,nombre:nombre,categoria:categoria,dias:diasMes});
+          var diasMes=_extraerDiasGrupoDeFila(row,rowRaw,dayColMap);
+          lastEmpSingle={nomina:nomina,nombre:nombre,categoria:categoria,dias:diasMes};
+          empleados.push(lastEmpSingle);
         }
         gruposDetectados.push(categoria);
       } else {
         // ── Excel "todos los grupos" (varias categorías en la misma hoja, separadas por
         //    filas tipo "09 UAR-Ftp-Supervisores" que solo tienen texto en la columna A) ──
         var currentCategoria='FIJO OPERARIO';
+        var lastEmpMulti=null;
         for(var r2=hIdx+1;r2<rows.length;r2++){
           var rowM=rows[r2];
+          var rowMRaw=rowsRaw[r2]||[];
           var cellA=String((rowM&&rowM[empCol])||'').trim();
-          if(cellA==='')continue;
+          if(cellA===''){
+            if(lastEmpMulti){
+              var diasExtra2=_extraerDiasGrupoDeFila(rowM,rowMRaw,dayColMap);
+              if(Object.keys(diasExtra2).length)lastEmpMulti.dias=_mergeDiasGrupoPreferirHoras(lastEmpMulti.dias,diasExtra2);
+            }
+            continue;
+          }
 
           // Los nombres de empleado siempre vienen como "Apellido(s), Nombre" (con coma).
           // Lo que no lleva coma es cabecera de grupo (empieza por 2 dígitos) o un
@@ -5181,6 +6336,10 @@ function procesarGrupoXlsx(file){
             if(/^\d{1,2}\s/.test(cellA)){
               currentCategoria=_categoriaDesdeTextoGrupo(cellA);
               if(gruposDetectados.indexOf(currentCategoria)<0)gruposDetectados.push(currentCategoria);
+              lastEmpMulti=null;
+            } else if(lastEmpMulti){
+              var diasExtraNoNombre=_extraerDiasGrupoDeFila(rowM,rowMRaw,dayColMap);
+              if(Object.keys(diasExtraNoNombre).length)lastEmpMulti.dias=_mergeDiasGrupoPreferirHoras(lastEmpMulti.dias,diasExtraNoNombre);
             }
             continue;
           }
@@ -5189,12 +6348,9 @@ function procesarGrupoXlsx(file){
           var nomina2=_nominaSinteticaDesdeNombre(nombreFull2);
           var nombre2=formatNombre(nombreFull2);
           if(_esNombreBasuraGrupo(nombre2))continue; // p.ej. "(EXC)" colado como nombre, no es una persona
-          var diasMes2={};
-          Object.keys(dayColMap).forEach(function(d){
-            var t=_parseCeldaDiaGrupo(rowM[dayColMap[d]]);
-            if(t)diasMes2[parseInt(d)]=t;
-          });
-          empleados.push({nomina:nomina2,nombre:nombre2,categoria:currentCategoria,dias:diasMes2});
+          var diasMes2=_extraerDiasGrupoDeFila(rowM,rowMRaw,dayColMap);
+          lastEmpMulti={nomina:nomina2,nombre:nombre2,categoria:currentCategoria,dias:diasMes2};
+          empleados.push(lastEmpMulti);
         }
       }
 
@@ -5216,7 +6372,7 @@ function procesarGrupoXlsx(file){
         // Store month data under the detected month key
         var prev=nominaMap[key]||{};
         var meses=prev.meses||{};
-        meses[monthKey]=emp.dias;
+        meses[monthKey]=_mergeDiasGrupoPreferirHoras(meses[monthKey]||{},emp.dias);
         nominaMap[key]={
           nomina:key,
           nombre:emp.nombre,
@@ -5235,9 +6391,19 @@ function procesarGrupoXlsx(file){
       var etiqueta=(formato==='MULTI')?(gruposDetectados.length+' grupos'):gruposDetectados[0];
       if(hint&&txt){
         hint.style.display='block';txt.style.color='#4ade80';txt.style.fontSize='11px';
-        txt.textContent='✅ '+etiqueta+': +'+added+' nuevos, '+updated+' actualizados · '+total+' total';
+        var diasDetectados=Object.keys(dayColMap).length;
+        txt.textContent='✅ '+etiqueta+': +'+added+' nuevos, '+updated+' actualizados · '+total+' total · '+diasDetectados+' días detectados';
+        if(diasDetectados<28){
+          txt.style.color='#fbbf24';
+          txt.textContent+=' ⚠️ faltan columnas de días en el Excel/importación';
+        }
       }
       if(typeof logActividad==='function')logActividad('importar_companeros',etiqueta+': +'+added+' nuevos, '+updated+' actualizados');
+      var hp=document.getElementById('hp-modal');
+      if(hp&&hp.classList.contains('show')&&typeof calcularHorasPlantilla==='function'){
+        _hpData=calcularHorasPlantilla(new Date().getFullYear());
+        if(typeof renderHorasPlantillaLista==='function')renderHorasPlantillaLista();
+      }
     }catch(err){alert('Error al leer el Excel del grupo: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
@@ -5301,7 +6467,20 @@ function parseTurnoGrupo(cell){
   // Extract all HH:MM patterns from cell regardless of separator
   var hasExclamation=String(cell||'').indexOf('!')!==-1;
   var hasQuestion=String(cell||'').indexOf('?')!==-1;
-  var times=(cell.match(/\d{1,2}:\d{2}/g)||[]).map(function(t){return t.replace('!','').trim();}).filter(function(t){return /^\d{1,2}:\d{2}$/.test(t);});
+  var raw=String(cell||'');
+  var times=(raw.match(/\d{1,2}:\d{2}/g)||[]).map(function(t){return t.replace('!','').trim();}).filter(function(t){return /^\d{1,2}:\d{2}$/.test(t);});
+  if(times.length<2){
+    var candidatos=[raw,raw.replace(/[()]/g,' '),raw.replace(/\([^)]*\)/g,' ')];
+    for(var ci=0;ci<candidatos.length&&times.length<2;ci++){
+      times=(candidatos[ci].match(/\b(?:[01]?\d|2[0-3])(?::[0-5]\d|[\.,][0-5]\d)?\b/g)||[]).map(function(t){
+        t=String(t).replace(',','.');
+        var p=t.indexOf(':')>=0?t.split(':'):t.split('.');
+        var h=parseInt(p[0],10),m=p.length>1?parseInt(p[1],10):0;
+        if(isNaN(h)||isNaN(m)||h<0||h>23||m<0||m>59)return '';
+        return (h<10?'0':'')+h+':'+(m<10?'0':'')+m;
+      }).filter(Boolean);
+    }
+  }
   if(times.length<2)return null;
   return{e1:times[0],s1:times[1],e2:times.length>=4?times[2]:null,s2:times.length>=4?times[3]:null,disponibilidadNoConfirmada:hasExclamation,noVieneInterrogacion:hasQuestion};
 }
@@ -5601,11 +6780,51 @@ function _esTipoNoTrabaja(tipo){
   tipo=String(tipo||'').toLowerCase();
   return tipo==='libre'||tipo==='permiso';
 }
+function _normTipoCambioTurno(tipo){
+  return String(tipo||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+function _textoMarcaCambioTurno(t){
+  if(!t)return '';
+  return [t.tipo,t.rawGrupo,t.etiquetaCambio,t.codigo,t.subtipo].map(function(x){return x||'';}).join(' ');
+}
+function _tieneMarcaNoCambiableCambio(t){
+  if(!t)return false;
+  if(t.noCambiableCambio||t.ausencia||t.disponibilidadNoConfirmada)return true;
+  var up=_textoMarcaCambioTurno(t).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if(up.indexOf('!')>=0||up.indexOf('?')>=0)return true;
+  var tokens=up.replace(/[^A-Z0-9]+/g,' ').trim().split(/\s+/).filter(Boolean);
+  var bloquea={
+    V:1,VAC:1,VACACION:1,VACACIONES:1,
+    MA:1,FM:1,FY:1,B0:1,EXC:1,BAJA:1,
+    HL:1,HLP:1,FESTIVO:1,FT:1,
+    RM:1,CURSO:1,H6:1,HFUN:1,NH:1,BP:1,CP:1,PERMISO:1
+  };
+  for(var i=0;i<tokens.length;i++){if(bloquea[tokens[i]])return true;}
+  var compact=up.replace(/[^A-Z0-9]+/g,'');
+  return /HFUN|HFUNCION|HORASFUNCION/.test(compact);
+}
+function _esTipoTurnoNormalCambio(tipo){
+  tipo=_normTipoCambioTurno(tipo);
+  return !tipo||tipo==='trabajado'||tipo==='trabajo'||tipo==='normal'||tipo==='turno';
+}
+function _esTurnoNormalCambio(t){
+  if(!t||!t.e1||!t.s1)return false;
+  if(_tieneMarcaNoCambiableCambio(t))return false;
+  return _esTipoTurnoNormalCambio(t.tipo);
+}
+function _esLibreRealCambio(t){
+  if(!t)return true;
+  if(_tieneMarcaNoCambiableCambio(t))return false;
+  var tipo=_normTipoCambioTurno(t.tipo);
+  if(t.e1&&t.s1)return false;
+  return !tipo||tipo==='libre'||tipo==='dl'||tipo==='descanso';
+}
 function _cambioToTurno(c){
   if(!c)return null;
   var tipo=String(c.tipo||'').toLowerCase();
   if(_tipoCambioEsLibre(tipo)||(!c.e1&&!c.s1)){
-    return{tipo:'libre',e1:'',s1:'',e2:'',s2:'',cambioCompartido:true,etiquetaCambio:String(c.tipo||'Libre').toUpperCase(),actualizadoPor:c.actualizado_por||c.email||''};
+    var tipoLibreReal=(!tipo||tipo==='libre'||tipo==='dl'||tipo==='descanso')?'libre':tipo;
+    return{tipo:tipoLibreReal,e1:'',s1:'',e2:'',s2:'',cambioCompartido:true,etiquetaCambio:String(c.tipo||'Libre').toUpperCase(),actualizadoPor:c.actualizado_por||c.email||''};
   }
   var turno={tipo:(tipo==='curso'?'curso':'trabajado'),e1:c.e1||'',s1:c.s1||'',e2:c.e2||'',s2:c.s2||'',total:c.total||0,cambioCompartido:true,etiquetaCambio:String(c.tipo||'TRABAJA').toUpperCase(),actualizadoPor:c.actualizado_por||c.email||''};
   // HL parcial recibido de Sheets: recorta solo ese tramo, igual que en el propio dispositivo.
@@ -6779,24 +7998,48 @@ function _renderJornadaSinImportarTryp(card){
   var calCard=document.getElementById("op-cal-card");
   if(calCard)calCard.style.display="none";
   card.style.gridColumn="1 / -1";
+  card.classList.add("state-no-tryp");
   card.innerHTML=
-    '<div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:8px">📥 Importa tu calendario del Tryp</div>'+
-    '<div style="font-size:10.5px;color:var(--gray);line-height:1.55;margin-bottom:12px">'+
+    '<div class="op-no-tryp-title">📥 Importa tu calendario del Tryp</div>'+
+    '<div class="op-no-tryp-steps">'+
       '1. Entra en la intranet y descarga el Excel de tu calendario del Tryp.<br>'+
       '2. Vuelve aquí y pulsa <b style="color:#e9e4f5">Importar TRYP</b>.'+
     '</div>'+
-    '<div style="display:flex;gap:8px;margin-bottom:14px">'+
-      '<a href="https://tryp.southeu.com/tryp/website/horarios/calendario" target="_blank" onclick="event.stopPropagation()" style="flex:1;text-align:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 6px;color:var(--gray);font-size:11px;font-weight:700;text-decoration:none">🌐 Ir al Tryp</a>'+
-      '<button type="button" onclick="event.stopPropagation();openTrypImport()" style="flex:1;background:rgba(200,168,75,.18);border:1px solid rgba(200,168,75,.45);border-radius:10px;padding:9px 6px;color:var(--gold);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer">📤 Importar TRYP</button>'+
+    '<div class="op-no-tryp-actions">'+
+      '<a href="https://tryp.southeu.com/tryp/website/horarios/calendario" target="_blank" onclick="event.stopPropagation()">🌐 Ir al Tryp</a>'+
+      '<button type="button" onclick="event.stopPropagation();openTrypImport()">📤 Importar TRYP</button>'+
     '</div>'+
-    '<div style="font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Con esto tendrás</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:10.5px;color:var(--gray)">'+
+    '<div class="op-no-tryp-caption">Con esto tendrás</div>'+
+    '<div class="op-no-tryp-grid">'+
       '<div>📅 Calendario completo</div>'+
       '<div>⏱️ Horas mensuales</div>'+
       '<div>🔢 Horas contador</div>'+
       '<div>⚙️ Tus turnos cada día</div>'+
       '<div>📊 Total de horas</div>'+
     '</div>';
+}
+
+function _restaurarJornadaTryp(card){
+  if(!card)return;
+  card.classList.remove("state-no-tryp");
+  card.style.gridColumn="";
+  if(card.querySelector("#op-tc-lbl"))return;
+  card.innerHTML=
+    '<div class="op-tc-lbl" id="op-tc-lbl">Turno hoy</div>'+
+    '<div class="op-tc-row">'+
+      '<div class="op-tc-col op-tc-col-a">'+
+        '<div class="op-tc-pct" id="op-tc-pct">—</div>'+
+        '<div class="op-tc-rem" id="op-tc-rem"></div>'+
+      '</div>'+
+      '<div class="op-tc-col op-tc-col-b">'+
+        '<div class="op-tc-sub" id="op-tc-sub">—</div>'+
+        '<div class="op-tc-shift" id="op-tc-shift"></div>'+
+      '</div>'+
+      '<div class="op-tc-col op-tc-col-c">'+
+        '<div class="op-tc-times" id="op-tc-times"><span style="color:var(--gray);font-size:11px">Cargando...</span></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="op-tc-bar-bg"><div class="op-tc-bar" id="op-tc-bar" style="width:0%"></div></div>';
 }
 
 window.opSetDetalleDia=function(dia){
@@ -6898,6 +8141,10 @@ window.renderOperativa=function(){
   if(g("op-cal-trab"))g("op-cal-trab").textContent=trab;
   if(g("op-cal-lib"))g("op-cal-lib").textContent=lib;
   if(g("op-cal-hmes"))g("op-cal-hmes").textContent=Math.round(hMes*10)/10+"h";
+  if(g("op-cal-unidades")){
+    var unidadesMes=Math.round((hMes*0.175)*10)/10;
+    g("op-cal-unidades").textContent=String(unidadesMes).replace(/\.0$/,"");
+  }
   if(g("op-cal-cont"))g("op-cal-cont").textContent=Math.round(hCont*10)/10+"h";
   if(g("op-cal-htotal"))g("op-cal-htotal").textContent=Math.round(hAnualTrab*10)/10+"h";
   if(g("op-cal-fest"))g("op-cal-fest").textContent=festAnual;
@@ -7662,7 +8909,7 @@ window.renderOperativa=function(){
   })();
 
   if(!card)return;
-  ["state-working","state-pausa","state-rest","state-next"].forEach(function(c){card.classList.remove(c);});
+  ["state-working","state-pausa","state-rest","state-next","state-no-tryp"].forEach(function(c){card.classList.remove(c);});
 
   // Si el usuario nunca ha importado su Tryp personal (ningún mes con datos en
   // absoluto, no solo que hoy sea descanso), se muestran instrucciones de
@@ -7671,7 +8918,7 @@ window.renderOperativa=function(){
   // se restaura aquí en cuanto vuelva a haber datos (sin necesitar recargar la página).
   var hayDatosTryp=Object.keys(ue).some(function(mk){var m=ue[mk];return m&&typeof m==='object'&&Object.keys(m).length>0;});
   if(hayDatosTryp){
-    card.style.gridColumn="";
+    _restaurarJornadaTryp(card);
     var calCardRestore=document.getElementById("op-cal-card");
     if(calCardRestore)calCardRestore.style.display="";
   } else {
@@ -8229,7 +9476,7 @@ function _horasLVSemana(empDias, monthKey, dia, e1nuevo, s1nuevo, e2nuevo, s2nue
       if(e2!==null&&s2!==null)total+=_durMin(e2,s2);
     } else {
       turno=empDias[d];
-      if(turno&&turno.e1&&turno.s1){
+      if(_esTurnoNormalCambio(turno)){
         total+=_durMin(_toMin(turno.e1),_toMin(turno.s1));
         if(turno.e2&&turno.s2)total+=_durMin(_toMin(turno.e2),_toMin(turno.s2));
       }
@@ -8271,10 +9518,7 @@ function _aplicarTurnoSimCambio(dias,dia,e1,s1,e2,s2){
   return dias;
 }
 function _trabajaTurnoCambio(t){
-  if(!t)return false;
-  var tipo=String(t.tipo||'').toLowerCase();
-  if(tipo==='libre'||(typeof _tipoCambioEsLibre==='function'&&_tipoCambioEsLibre(tipo)))return false;
-  return !!(t.e1&&t.s1);
+  return _esTurnoNormalCambio(t);
 }
 function _turnoMinutosCambio(t){
   if(!_trabajaTurnoCambio(t))return{e1:null,s1:null,e2:null,s2:null};
@@ -8419,7 +9663,7 @@ function _validarDescanso10h(empDias, monthKey, dia, e1n, s1n, e2n, s2n, etiquet
   if(miSalida<miEntrada)miSalida+=1440; // turno nocturno: salida al dia siguiente
   function turnoDe(d){
     var t=empDias[d];
-    if(!t||!t.e1)return null;
+    if(!_esTurnoNormalCambio(t))return null;
     var e1=_toMin(t.e1), s1=_toMin(t.s1);
     var e2=t.e2?_toMin(t.e2):null, s2=t.s2?_toMin(t.s2):null;
     var sal=(e2!==null&&s2!==null)?s2:s1;
@@ -8460,7 +9704,7 @@ function _validarLibreSemana(empDias, monthKey, dia, e1n, etiqueta){
       var t=empDias[d];
       if(t===undefined||t===null){continue;} // sin publicar, podria ser libre
       diasPublicados++;
-      trabaja=!!(t&&t.e1);
+      trabaja=_esTurnoNormalCambio(t);
     }
     if(!trabaja)libres++;
   }
@@ -8479,6 +9723,7 @@ function _validarDescansoSemanal(empDias, monthKey, dia, e1n, s1n, e2n, s2n, eti
 
   function entradaDe(d){
     var t=d===dia?{e1:e1n!==null?_fmtMin(e1n):null}:(empDias[d]||null);
+    if(d!==dia&&!_esTurnoNormalCambio(t))return null;
     return t&&t.e1?_toMin(t.e1):null;
   }
   function salidaDe(d){
@@ -8487,7 +9732,7 @@ function _validarDescansoSemanal(empDias, monthKey, dia, e1n, s1n, e2n, s2n, eti
       return (e2n!==null&&s2n!==null)?s2n:s1n;
     }
     var t=empDias[d]||null;
-    if(!t||!t.e1)return null;
+    if(!_esTurnoNormalCambio(t))return null;
     var s=t.e2&&t.s2?_toMin(t.s2):_toMin(t.s1);
     return s;
   }
@@ -8520,10 +9765,7 @@ function _validarDescansoSemanal(empDias, monthKey, dia, e1n, s1n, e2n, s2n, eti
 // Empleados sin ningún turno real de trabajo en el mes = baja larga/excedencia.
 // Pueden aparecer como libres en eventos, pero NO deben ofrecerse para cambios de turno.
 function _esTurnoTrabajoRealCambio(t){
-  if(!t)return false;
-  var tipo=String(t.tipo||'').toLowerCase();
-  if(tipo==='libre'||_tipoCambioEsLibre(tipo))return false;
-  return !!(t.e1&&t.s1);
+  return _esTurnoNormalCambio(t);
 }
 function _empleadoTieneTurnosRealesMesCambio(emp, monthKey, year){
   if(!emp||!emp.meses)return false;
@@ -8592,11 +9834,21 @@ function calcularCambios(){
   // Si ese día tengo HL, ajusto mi disponibilidad: día completo → sin turno;
   // parcial → se descuenta solo el tramo marcado, el resto sigue contando como trabajo.
   var myDayObj=_ajustarTurnoConHLPersonal(myDayObjOriginal,myDayObjOriginal);
-  var myE1=myDayObj&&myDayObj.e1?_toMin(myDayObj.e1):null;
-  var myS1=myDayObj&&myDayObj.s1?_toMin(myDayObj.s1):null;
-  var myE2=myDayObj&&myDayObj.e2?_toMin(myDayObj.e2):null;
-  var myS2=myDayObj&&myDayObj.s2?_toMin(myDayObj.s2):null;
-  var esLibre=(myE1===null);
+  var yoTrabajaDia=_esTurnoNormalCambio(myDayObj);
+  var esLibre=_esLibreRealCambio(myDayObj);
+  var myE1=yoTrabajaDia?_toMin(myDayObj.e1):null;
+  var myS1=yoTrabajaDia?_toMin(myDayObj.s1):null;
+  var myE2=yoTrabajaDia&&myDayObj.e2?_toMin(myDayObj.e2):null;
+  var myS2=yoTrabajaDia&&myDayObj.s2?_toMin(myDayObj.s2):null;
+  if(!yoTrabajaDia&&!esLibre){
+    _todosResultados=[];
+    _todosParciales=[];
+    _todosNoImportados=[];
+    _filtroIA=null;
+    subTxt.textContent='Día bloqueado para cambios';
+    body.innerHTML='<div class="cambio-empty">Ese día no es un turno normal ni un libre real.<br><small style="font-size:10px">Vacaciones, baja, HL, festivo, MA, curso, permiso y similares no se ofrecen para cambios.</small></div><button onclick="cerrarBuscadorCambio()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;font-family:Outfit,sans-serif;font-size:13px;color:var(--gray);cursor:pointer;margin-top:8px">Cerrar</button>';
+    return;
+  }
 
   // Mi categoría
   var nominaMap;try{nominaMap=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){nominaMap={};}
@@ -8665,16 +9917,16 @@ function calcularCambios(){
     // El compañero ese día
     var compTurnoMiDia=compDias[day]||null;
     compTurnoMiDia=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compTurnoMiDia);
-    // Día libre: turno con tipo libre o e1 vacío
-    if(compTurnoMiDia&&(!compTurnoMiDia.e1||_esTipoNoTrabaja(compTurnoMiDia.tipo)))compTurnoMiDia=null;
-    var compE1=compTurnoMiDia?_toMin(compTurnoMiDia.e1):null;
-    var compS1=compTurnoMiDia?_toMin(compTurnoMiDia.s1):null;
-    var compE2=compTurnoMiDia&&compTurnoMiDia.e2?_toMin(compTurnoMiDia.e2):null;
-    var compS2=compTurnoMiDia&&compTurnoMiDia.s2?_toMin(compTurnoMiDia.s2):null;
-    var compLibreMiDia=(compE1===null);
+    var compTrabajaMiDia=_esTurnoNormalCambio(compTurnoMiDia);
+    var compLibreMiDia=_esLibreRealCambio(compTurnoMiDia);
+    if(!compTrabajaMiDia&&!compLibreMiDia)return;
+    var compE1=compTrabajaMiDia?_toMin(compTurnoMiDia.e1):null;
+    var compS1=compTrabajaMiDia?_toMin(compTurnoMiDia.s1):null;
+    var compE2=compTrabajaMiDia&&compTurnoMiDia.e2?_toMin(compTurnoMiDia.e2):null;
+    var compS2=compTrabajaMiDia&&compTurnoMiDia.s2?_toMin(compTurnoMiDia.s2):null;
 
     // CASO A: Ambos tienen turno ese día → intercambio directo
-    if(!esLibre&&!compLibreMiDia&&!_esPasado(day,monthKey,year)){
+    if(yoTrabajaDia&&compTrabajaMiDia&&!_esPasado(day,monthKey,year)){
       var errA=[];
       errA=errA.concat(_validarTurno(compE1,compS1,compE2,compS2).errores);
       errA=errA.concat(_validarTurno(myE1,myS1,myE2,myS2).errores);
@@ -8700,7 +9952,7 @@ function calcularCambios(){
 
     // CASO B: Yo tengo turno, comp libra ese día
     // Comp trabaja MI turno. A cambio yo trabajo un día futuro del comp.
-    if(!esLibre&&compLibreMiDia&&!_esPasado(day,monthKey,year)){
+    if(yoTrabajaDia&&compLibreMiDia&&!_esPasado(day,monthKey,year)){
       var myCatB=_parseCategoria(myCat);
       var ccB=_parseCategoria(comp.categoria||'');
       var nombreCortoB=comp.nombre.split(' ')[0];
@@ -8709,13 +9961,12 @@ function calcularCambios(){
       for(var d2=1;d2<=maxDiaCambioB;d2++){
         if(d2===day||_esPasado(d2,monthKey,year))continue;
         var myT2=(myRaw[monthKey]||{})[d2];
-        // Yo debo librar ese día: sin turno, o turno tipo libre, o e1 vacío
-        var yoTrabajoD2=!!(myT2&&myT2.e1&&!_esTipoNoTrabaja(myT2.tipo));
-        if(yoTrabajoD2)continue;
+        // Yo debo librar ese día de verdad. Vacaciones/baja/HL/etc. no cuentan como hueco para cambios.
+        if(!_esLibreRealCambio(myT2))continue;
         var cT2=compDias[d2];
         cT2=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,d2),cT2);
-        // Comp debe trabajar ese día
-        if(!cT2||!cT2.e1||_esTipoNoTrabaja(cT2.tipo))continue;
+        // Comp debe tener un turno normal ese día.
+        if(!_esTurnoNormalCambio(cT2))continue;
         var cE1=_toMin(cT2.e1),cS1=_toMin(cT2.s1),cE2=cT2.e2?_toMin(cT2.e2):null,cS2=cT2.s2?_toMin(cT2.s2):null;
 
         // Simulación real del intercambio:
@@ -8762,7 +10013,7 @@ function calcularCambios(){
 
     // CASO C: Yo libro ese día, comp trabaja
     // Yo trabajo turno del comp. A cambio comp trabaja mi turno un día futuro.
-    if(esLibre&&!compLibreMiDia&&!_esPasado(day,monthKey,year)){
+    if(esLibre&&compTrabajaMiDia&&!_esPasado(day,monthKey,year)){
       var myCatC=_parseCategoria(myCat);
       var ccC=_parseCategoria(comp.categoria||'');
       var nombreCortoC=comp.nombre.split(' ')[0];
@@ -8771,14 +10022,13 @@ function calcularCambios(){
       for(var d3=1;d3<=maxDiaCambioC;d3++){
         if(d3===day||_esPasado(d3,monthKey,year))continue;
         var myT3=(myRaw[monthKey]||{})[d3];
-        // Yo debo trabajar ese día
-        if(!myT3||!myT3.e1||_esTipoNoTrabaja(myT3.tipo))continue;
+        // Yo debo ceder un turno normal ese día.
+        if(!_esTurnoNormalCambio(myT3))continue;
         if(!_diaImportadoCambio(comp,monthKey,year,d3))continue;
         var cT3=compDias[d3];
         cT3=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,d3),cT3);
-        // Comp debe librar ese día: sin turno, tipo libre o e1 vacío
-        var compTrabajaD3=!!(cT3&&cT3.e1&&!_esTipoNoTrabaja(cT3.tipo));
-        if(compTrabajaD3)continue;
+        // Comp debe librar de verdad ese día; vacaciones/baja/HL/etc. bloquean el cambio.
+        if(!_esLibreRealCambio(cT3))continue;
         var mE1=_toMin(myT3.e1),mS1=_toMin(myT3.s1),mE2=myT3.e2?_toMin(myT3.e2):null,mS2=myT3.s2?_toMin(myT3.s2):null;
 
         // Simulación real del intercambio:
@@ -8819,11 +10069,11 @@ function calcularCambios(){
     var compDias=(comp.meses&&comp.meses[monthKey])||{};
     var compT=compDias[day]||null;
     compT=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compT);
-    if(compT&&(!compT.e1||_esTipoNoTrabaja(compT.tipo)))compT=null;
-    var compE1=compT?_toMin(compT.e1):null;
-    var compS1=compT?_toMin(compT.s1):null;
-    var compE2=compT&&compT.e2?_toMin(compT.e2):null;
-    var compS2=compT&&compT.s2?_toMin(compT.s2):null;
+    var compTNormal=_esTurnoNormalCambio(compT);
+    var compE1=compTNormal?_toMin(compT.e1):null;
+    var compS1=compTNormal?_toMin(compT.s1):null;
+    var compE2=compTNormal&&compT.e2?_toMin(compT.e2):null;
+    var compS2=compTNormal&&compT.s2?_toMin(compT.s2):null;
     if(_esPasado(day,monthKey,year))return;
 
     // Helper: validar turno resultante completo y devolver errores
@@ -8933,7 +10183,7 @@ function calcularCambios(){
     var compDias2=(comp.meses&&comp.meses[monthKey])||{};
     var compT2c=compDias2[day]||null;
     compT2c=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compT2c);
-    var compLibre2=!compT2c||!compT2c.e1||_esTipoNoTrabaja(compT2c.tipo);
+    var compLibre2=_esLibreRealCambio(compT2c);
     if(!compLibre2)return; // solo si el comp libra ese día
     if(myE2===null||myS2===null)return; // solo si mi turno es partido
 
@@ -9055,17 +10305,17 @@ function _interpretarLocal(texto, myS1ref, myE1ref){
   var mDia=t.match(/\bdia\s+(\d{1,2})\b|\bel\s+(\d{1,2})\b/);
   if(mDia)f.diaNumero=parseInt(mDia[1]||mDia[2]);
   // "salir antes" sin hora = antes de mi salida actual
-  var mSalAntes=t.match(/salir?\s+antes\s+(?:de\s+las?\s+)?(\d{1,2})(?::(\d{2}))?/);
+  var mSalAntes=t.match(/(?:salir|terminar|acabar)\s+(?:antes|hasta|como\s+tarde)\s+(?:(?:d|de)\s+)?(?:las?\s+)?(\d{1,2})(?:(?::|\.|,)(\d{2}))?/);
   if(mSalAntes){
     f.salidaAntesDe=(mSalAntes[1].length<2?'0':'')+mSalAntes[1]+':'+(mSalAntes[2]||'00');
-  } else if(/salir?\s+antes/.test(t)&&myS1ref!==null){
+  } else if(/(?:salir|terminar|acabar)\s+(?:antes|hasta|como\s+tarde)/.test(t)&&myS1ref!==null){
     f.salidaAntesDe=_fmtMin(myS1ref); // antes de mi salida actual
   }
   // "salir despues" sin hora = despues de mi salida actual
-  var mSalDespues=t.match(/salir?\s+despues\s+(?:de\s+las?\s+)?(\d{1,2})(?::(\d{2}))?/);
+  var mSalDespues=t.match(/(?:salir|terminar|acabar)\s+despues\s+(?:(?:d|de)\s+)?(?:las?\s+)?(\d{1,2})(?:(?::|\.|,)(\d{2}))?/);
   if(mSalDespues){
     f.salidaDespuesDe=(mSalDespues[1].length<2?'0':'')+mSalDespues[1]+':'+(mSalDespues[2]||'00');
-  } else if(/salir?\s+despues/.test(t)&&myS1ref!==null){
+  } else if(/(?:salir|terminar|acabar)\s+despues/.test(t)&&myS1ref!==null){
     f.salidaDespuesDe=_fmtMin(myS1ref);
   }
   var mEntDespues=t.match(/entrar?\s+(?:mas\s+tarde|despues)\s+(?:de\s+las?\s+)?(\d{1,2})(?::(\d{2}))?/);
@@ -9140,7 +10390,7 @@ function _aplicarFiltro(filtro,texto,estado){
     if(filtro.entradaDespuesDe&&tE1!==null&&tE1<_toMin(filtro.entradaDespuesDe))return false;
     if(filtro.entradaAntesDe&&tE1!==null&&tE1>=_toMin(filtro.entradaAntesDe))return false;
     if(filtro.salidaDespuesDe&&tS1!==null&&tS1<_toMin(filtro.salidaDespuesDe))return false;
-    if(filtro.salidaAntesDe&&tS1!==null&&tS1>=_toMin(filtro.salidaAntesDe))return false;
+    if(filtro.salidaAntesDe&&tS1!==null&&tS1>_toMin(filtro.salidaAntesDe))return false;
     return true;
   });
   // Si filtro librar, añadir también las cesiones parciales donde acabo con menos turno? No: librar = libro entero.
@@ -9161,7 +10411,7 @@ async function filtrarConIA(){
     'Eres un filtro de turnos de trabajo. El usuario quiere encontrar un cambio de turno.',
     'Definiciones: MANANA=entrada antes de 12:00 y salida antes de 15:00. TARDE=salida hasta las 20:00. NOCHE=resto hasta las 03:00.',
     'Devuelve SOLO un objeto JSON, sin texto adicional ni markdown, con estas propiedades:',
-    'turnoTipo (manana|tarde|noche|null), diaSemana (lunes|martes|miercoles|jueves|viernes|sabado|domingo|null), diaNumero (numero o null), entradaDespuesDe (HH:MM o null), entradaAntesDe (HH:MM o null), salidaDespuesDe (HH:MM o null), salidaAntesDe (HH:MM o null), nombre (texto parcial o null).',
+    'turnoTipo (manana|tarde|noche|null), diaSemana (lunes|martes|miercoles|jueves|viernes|sabado|domingo|null), diaNumero (numero o null), entradaDespuesDe (HH:MM o null), entradaAntesDe (HH:MM o null), salidaDespuesDe (HH:MM o null), salidaAntesDe (HH:MM o null), nombre (texto parcial o null). salidaAntesDe significa terminar como tarde a esa hora, incluida.',
     'Consulta del usuario: "'+texto+'"'
   ].join(' ');
 
@@ -9203,48 +10453,90 @@ function _fmtTurno(e1,s1,e2,s2){
   return s;
 }
 
+function _cambioTipoLabel(tipo){
+  if(tipo==='mismo_dia')return'Intercambio';
+  if(tipo==='yo_libro'||tipo==='comp_libro')return'Con contrapartida';
+  if(tipo==='parcial')return'Parcial';
+  if(tipo==='cesion_total'||tipo==='cesion_parcial')return'Cesión';
+  if(tipo==='no_importado')return'No importado';
+  return'Cambio';
+}
+function _cambioValorDias(items){
+  var html='<div class="cambio-shift-lines">';
+  (items||[]).forEach(function(it){
+    html+='<div class="cambio-shift-line"><span class="cambio-shift-day">'+escH(it.dia||'')+'</span><span class="cambio-shift-turno">'+escH(it.turno||'Libre')+'</span></div>';
+  });
+  html+='</div>';
+  return{html:html};
+}
+function _cambioMiniRow(label,value){
+  var valHtml=(value&&typeof value==='object'&&value.html)?value.html:escH(value||'Libre');
+  return '<div class="cambio-mini-row"><span class="cambio-mini-lbl">'+escH(label)+'</span><span class="cambio-mini-val">'+valHtml+'</span></div>';
+}
+function _cambioPersonaCol(cls,title,rows,note){
+  var html='<div class="cambio-person '+cls+'"><div class="cambio-person-title">'+escH(title)+'</div>';
+  rows.forEach(function(row){html+=_cambioMiniRow(row[0],row[1]);});
+  if(note)html+='<div class="cambio-mini-note">'+escH(note)+'</div>';
+  html+='</div>';
+  return html;
+}
+
 function _renderCambioCard(r,ok){
-  var nom=r.nombre.split(' ')[0];
+  var nom=(r.nombre||'').split(' ')[0]||'Compañero';
   var html='<div class="cambio-card '+(ok?'valido':'invalido')+'">';
-  html+='<div class="cambio-card-nombre">'+r.nombre+'<span style="font-size:9px;color:var(--gray);font-weight:400;margin-left:6px">'+r.cat+'</span></div>';
+  html+='<div class="cambio-card-head"><div class="cambio-card-nombre">'+escH(r.nombre||'')+'<span style="font-size:9px;color:var(--gray);font-weight:400;margin-left:6px">'+escH(r.cat||'')+'</span></div><span class="cambio-chip">'+escH(_cambioTipoLabel(r.tipo))+'</span></div>';
   if(r.tipo==='no_importado'){
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+r.labelDia+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+escH(r.labelDia)+'</span></div>';
     html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Estado:</span><span class="cambio-card-val" style="color:#fbbf24">No importado</span></div>';
     html+='<div style="font-size:9px;color:var(--gray);margin-top:4px">No se ofrece como opción porque ese día aún no está publicado/importado para FD.</div>';
   } else if(r.tipo==='mismo_dia'){
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+r.labelDia+'</span></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú harías:</span><span class="cambio-card-val el">'+r.turnoComp+'</span></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' haría:</span><span class="cambio-card-val yo">'+r.turnoYo+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+escH(r.labelDia)+'</span></div>';
+    html+='<div class="cambio-columns">';
+    html+=_cambioPersonaCol('me','Tú',[['Turno actual',r.turnoYo],['Se quedaría',r.turnoComp]]);
+    html+=_cambioPersonaCol('other',nom,[['Turno actual',r.turnoComp],['Se quedaría',r.turnoYo]]);
+    html+='</div>';
   } else if(r.tipo==='yo_libro'){
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú libras:</span><span class="cambio-card-val el">'+r.labelDia+'</span></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' trabaja:</span><span class="cambio-card-val yo">'+r.labelDia+' · '+r.turnoYo+'</span></div>';
-    html+='<div style="border-top:1px solid rgba(255,255,255,.06);margin:6px 0"></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">A cambio:</span><span class="cambio-card-val el">Tú trabajas '+r.labelComp+' · '+r.turnoComp+'</span></div>';
+    html+='<div class="cambio-columns">';
+    html+=_cambioPersonaCol('me','Tú',[
+      ['Turno actual',_cambioValorDias([{dia:r.labelDia,turno:r.turnoYo}])],
+      ['Se quedaría',_cambioValorDias([{dia:r.labelDia,turno:'Libre'},{dia:r.labelComp,turno:r.turnoComp}])]
+    ]);
+    html+=_cambioPersonaCol('other',nom,[
+      ['Turno actual',_cambioValorDias([{dia:r.labelDia,turno:'Libre'},{dia:r.labelComp,turno:r.turnoComp}])],
+      ['Se quedaría',_cambioValorDias([{dia:r.labelDia,turno:r.turnoYo},{dia:r.labelComp,turno:'Libre'}])]
+    ]);
+    html+='</div>';
   } else if(r.tipo==='comp_libro'){
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú trabajas:</span><span class="cambio-card-val el">'+r.labelDia+' · '+r.turnoYo+'</span></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' libra:</span><span class="cambio-card-val yo">'+r.labelDia+'</span></div>';
-    html+='<div style="border-top:1px solid rgba(255,255,255,.06);margin:6px 0"></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">A cambio:</span><span class="cambio-card-val el">'+nom+' trabaja '+r.labelComp+' · '+r.turnoComp+'</span></div>';
+    html+='<div class="cambio-columns">';
+    html+=_cambioPersonaCol('me','Tú',[
+      ['Turno actual',_cambioValorDias([{dia:r.labelDia,turno:'Libre'},{dia:r.labelComp,turno:r.turnoComp}])],
+      ['Se quedaría',_cambioValorDias([{dia:r.labelDia,turno:r.turnoYo},{dia:r.labelComp,turno:'Libre'}])]
+    ]);
+    html+=_cambioPersonaCol('other',nom,[
+      ['Turno actual',_cambioValorDias([{dia:r.labelDia,turno:r.turnoYo},{dia:r.labelComp,turno:'Libre'}])],
+      ['Se quedaría',_cambioValorDias([{dia:r.labelDia,turno:'Libre'},{dia:r.labelComp,turno:r.turnoComp}])]
+    ]);
+    html+='</div>';
   } else if(r.tipo==='parcial'){
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+r.labelDia+'</span></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú cedes:</span><span class="cambio-card-val yo">'+r.pMiaLabel+'</span></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' cede:</span><span class="cambio-card-val yo">'+r.pCompLabel+'</span></div>';
-    html+='<div style="border-top:1px solid rgba(255,255,255,.06);margin:6px 0"></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú quedas:</span><span class="cambio-card-val el">'+r.turnoYoRes+'</span></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' queda:</span><span class="cambio-card-val el">'+r.turnoCompRes+'</span></div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+escH(r.labelDia)+'</span></div>';
+    html+='<div class="cambio-columns">';
+    html+=_cambioPersonaCol('me','Tú',[['Cedes ahora',r.pMiaLabel],['Se quedaría',r.turnoYoRes]]);
+    html+=_cambioPersonaCol('other',nom,[['Cede ahora',r.pCompLabel],['Se quedaría',r.turnoCompRes]]);
+    html+='</div>';
   } else if(r.tipo==='cesion_total'){
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+r.labelDia+'</span></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú libras:</span><span class="cambio-card-val el">'+r.labelDia+' (cedes el turno)</span></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' trabaja:</span><span class="cambio-card-val yo">'+r.turnoYo+'</span></div>';
-    html+='<div style="font-size:9px;color:var(--gray);margin-top:4px">Cesión sin contrapartida</div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+escH(r.labelDia)+'</span></div>';
+    html+='<div class="cambio-columns">';
+    html+=_cambioPersonaCol('me','Tú',[['Turno actual',r.turnoYo],['Se quedaría','Libre']]);
+    html+=_cambioPersonaCol('other',nom,[['Turno actual','Libre'],['Se quedaría',r.turnoYo]]);
+    html+='</div><div class="cambio-mini-note">Cesión sin contrapartida.</div>';
   } else if(r.tipo==='cesion_parcial'){
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+r.labelDia+'</span></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú cedes:</span><span class="cambio-card-val el">'+r.pMiaLabel+'</span></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">'+nom+' trabaja:</span><span class="cambio-card-val yo">'+r.turnoCompRes+'</span></div>';
-    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Tú quedas:</span><span class="cambio-card-val el">'+r.turnoYoRes+'</span></div>';
-    html+='<div style="font-size:9px;color:var(--gray);margin-top:4px">Cesión sin contrapartida</div>';
+    html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+escH(r.labelDia)+'</span></div>';
+    html+='<div class="cambio-columns">';
+    html+=_cambioPersonaCol('me','Tú',[['Cedes ahora',r.pMiaLabel],['Se quedaría',r.turnoYoRes]]);
+    html+=_cambioPersonaCol('other',nom,[['Turno actual','Libre'],['Se quedaría',r.turnoCompRes]]);
+    html+='</div><div class="cambio-mini-note">Cesión sin contrapartida.</div>';
   }
-  if(!ok&&r.errores&&r.errores.length)html+='<div class="cambio-error">'+r.errores.join('<br>')+'</div>';
+  if(!ok&&r.errores&&r.errores.length)html+='<div class="cambio-error">'+r.errores.map(function(e){return escH(e);}).join('<br>')+'</div>';
   html+='</div>';
   return html;
 }
@@ -10353,6 +11645,106 @@ try{
 
   #panel-operativa.active #op-v2-mas{
     margin-bottom:0!important;
+  }
+</style>
+<!-- === AJUSTE 2026-07-03: aviso Tryp sin importar legible === -->
+<style id="cta-mi-jornada-sin-tryp-legible-20260703">
+  #panel-operativa.active #op-turno-card.state-no-tryp,
+  #op-turno-card.state-no-tryp{
+    display:block!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    flex:0 0 auto!important;
+    padding:12px 12px 14px!important;
+    overflow:visible!important;
+    justify-content:flex-start!important;
+    background:linear-gradient(160deg,rgba(200,168,75,.08),rgba(255,255,255,.025))!important;
+    border:2px solid rgba(200,168,75,.32)!important;
+    border-radius:13px!important;
+    cursor:default!important;
+  }
+
+  #op-turno-card.state-no-tryp .op-no-tryp-title{
+    display:block!important;
+    margin:0 0 8px!important;
+    color:var(--gold)!important;
+    font-size:12px!important;
+    font-weight:800!important;
+    line-height:1.25!important;
+    letter-spacing:.1px!important;
+    white-space:normal!important;
+  }
+
+  #op-turno-card.state-no-tryp .op-no-tryp-steps{
+    margin:0 0 12px!important;
+    color:var(--gray)!important;
+    font-size:11px!important;
+    line-height:1.55!important;
+    white-space:normal!important;
+  }
+
+  #op-turno-card.state-no-tryp .op-no-tryp-actions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+    margin:0 0 13px!important;
+  }
+
+  #op-turno-card.state-no-tryp .op-no-tryp-actions a,
+  #op-turno-card.state-no-tryp .op-no-tryp-actions button{
+    min-width:0!important;
+    min-height:36px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:9px 8px!important;
+    border-radius:10px!important;
+    font-family:inherit!important;
+    font-size:11px!important;
+    font-weight:800!important;
+    line-height:1.15!important;
+    text-align:center!important;
+    text-decoration:none!important;
+    white-space:normal!important;
+  }
+
+  #op-turno-card.state-no-tryp .op-no-tryp-actions a{
+    background:rgba(255,255,255,.06)!important;
+    border:1px solid rgba(255,255,255,.12)!important;
+    color:var(--gray)!important;
+  }
+
+  #op-turno-card.state-no-tryp .op-no-tryp-actions button{
+    background:rgba(200,168,75,.18)!important;
+    border:1px solid rgba(200,168,75,.45)!important;
+    color:var(--gold)!important;
+    cursor:pointer!important;
+  }
+
+  #op-turno-card.state-no-tryp .op-no-tryp-caption{
+    margin:0 0 7px!important;
+    color:var(--gray)!important;
+    font-size:9px!important;
+    font-weight:800!important;
+    line-height:1.2!important;
+    text-transform:uppercase!important;
+    letter-spacing:.5px!important;
+  }
+
+  #op-turno-card.state-no-tryp .op-no-tryp-grid{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:7px 10px!important;
+    color:var(--gray)!important;
+    font-size:10.5px!important;
+    line-height:1.25!important;
+  }
+
+  @media(max-width:360px){
+    #op-turno-card.state-no-tryp .op-no-tryp-grid{
+      grid-template-columns:1fr!important;
+    }
   }
 </style>
 </body>
