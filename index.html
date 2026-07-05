@@ -4813,6 +4813,33 @@ function taSumDiaMin(p){
   if(!p)return 0;
   return taDurMin(p.e1,p.s1)+taDurMin(p.e2,p.s2);
 }
+function taSegmentosMin(p){
+  var segs=[];
+  function add(e,s){
+    var a=tiToMin(e),b=tiToMin(s);
+    if(a===null||b===null)return;
+    if(b<a)b+=1440;
+    segs.push({e:a,s:b});
+  }
+  if(p){
+    add(p.e1,p.s1);
+    add(p.e2,p.s2);
+  }
+  return segs;
+}
+function taEsNoche(p){
+  var segs=taSegmentosMin(p);
+  return segs.some(function(seg){
+    var salida=seg.s>=1440?seg.s-1440:seg.s;
+    return seg.e>=1320&&seg.e<=1439&&seg.s>1440&&salida>=300&&salida<=479;
+  });
+}
+function taEsNocturna(p){
+  if(taEsNoche(p))return false;
+  return taSegmentosMin(p).some(function(seg){
+    return seg.s>1260;
+  });
+}
 function taCuentaContador(p){
   var tipo=String((p&&p.tipo)||'trabajado').toLowerCase();
   return ['trabajado','hl','hlp','baja','rm','curso','permiso'].indexOf(tipo)>=0;
@@ -4822,14 +4849,14 @@ function taMesVacio(){
 }
 function taAddStats(dest,p){
   if(!p||!p.e1||!p.s1)return;
-  var e1=tiToMin(p.e1),sFinal=tiToMin(p.s2||p.s1);
-  if(e1===null||sFinal===null)return;
+  var e1=tiToMin(p.e1);
+  if(e1===null)return;
   var mins=taSumDiaMin(p);
   if(mins<=0)return;
   var partido=!!(p.e2&&p.s2);
   var madruga=e1<=360;
-  var nocturna=e1>=1260;
-  var noche=e1>=1260&&e1<=1439&&(sFinal<e1||sFinal<=420);
+  var noche=taEsNoche(p);
+  var nocturna=taEsNocturna(p);
   dest.turnos++;
   if(partido)dest.partidos++;
   if(madruga)dest.madrugas++;
@@ -5113,7 +5140,7 @@ function taRenderResultadoGrupo(r){
     taRenderKpi(t.partidos,'Partidos')+
     taRenderKpi(t.madrugas,'Madrugues <=06','#fbbf24')+
     taRenderKpi(t.nocturnas,'Nocturnas >=21','#c084fc')+
-    taRenderKpi(t.noches,'Noches 21-23 a 5-7','#38bdf8')+
+    taRenderKpi(t.noches,'Noches 22-23 a 5-7','#38bdf8')+
     taRenderKpi(taFmtHoras(t.horasContadorMin),'Horas contador','#4ade80')+
     taRenderKpi(taFmtHoras(t.horasTurnoMin),'Horas turnos','#93c5fd')+
   '</div>';
@@ -5154,7 +5181,7 @@ function taRenderResultado(r){
     taRenderKpi(t.partidos,'Partidos')+
     taRenderKpi(t.madrugas,'Madrugues <=06','#fbbf24')+
     taRenderKpi(t.nocturnas,'Nocturnas >=21','#c084fc')+
-    taRenderKpi(t.noches,'Noches 21-23 a 5-7','#38bdf8')+
+    taRenderKpi(t.noches,'Noches 22-23 a 5-7','#38bdf8')+
     taRenderKpi(taFmtHoras(t.horasTurnoMin),'Horas totales','#4ade80')+
     taRenderKpi(taFmtHoras(t.horasContadorMin),'Horas contador','#93c5fd')+
     taRenderKpi(r.meses.filter(function(m){return m.turnos>0;}).length,'Meses con datos','#e5e7eb')+
@@ -6773,12 +6800,11 @@ function _tipoCambioEsLibre(tipo){
   tipo=String(tipo||'').toLowerCase();
   return ['hl','hlp','libre','dl','descanso','festivo','vacaciones','baja','perentorias','h6','hfun','rm','bp','nh','cp','permiso'].indexOf(tipo)>=0;
 }
-// Permiso cuenta horas (e1/s1/e2/s2 reales, para nómina) pero para todo lo
-// que sea "¿esta persona viene a trabajar?" (coincidencias, buscador de
-// cambio de turno, etc.) se trata exactamente igual que Libre.
+// Algunas ausencias conservan e1/s1 para sumar horas de plantilla, pero para todo lo
+// que sea "¿esta persona viene a trabajar?" no deben aparecer como operativas.
 function _esTipoNoTrabaja(tipo){
   tipo=String(tipo||'').toLowerCase();
-  return tipo==='libre'||tipo==='permiso';
+  return ['libre','dl','descanso','festivo','vacaciones','baja','perentorias','h6','hfun','rm','bp','nh','cp','permiso','hl','hlp','curso'].indexOf(tipo)>=0;
 }
 function _normTipoCambioTurno(tipo){
   return String(tipo||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
@@ -6802,6 +6828,27 @@ function _tieneMarcaNoCambiableCambio(t){
   for(var i=0;i<tokens.length;i++){if(bloquea[tokens[i]])return true;}
   var compact=up.replace(/[^A-Z0-9]+/g,'');
   return /HFUN|HFUNCION|HORASFUNCION/.test(compact);
+}
+function _turnoGrupoOperativo(t){
+  if(!t||!t.e1||!t.s1)return false;
+  if(_esTipoNoTrabaja(t.tipo))return false;
+  if(_turnoGrupoTieneMarcaNoOperativa(t))return false;
+  return true;
+}
+function _turnoGrupoTieneMarcaNoOperativa(t){
+  if(!t)return false;
+  if(t.ausencia)return true;
+  var up=_textoMarcaCambioTurno(t).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  var tokens=up.replace(/[^A-Z0-9]+/g,' ').trim().split(/\s+/).filter(Boolean);
+  var bloquea={
+    V:1,VAC:1,VACACION:1,VACACIONES:1,'V-':1,'V+':1,
+    MA:1,FM:1,FY:1,EXC:1,BAJA:1,
+    B0:1,B1:1,B2:1,B4:1,B6:1,AC:1,ACI:1,
+    HL:1,HLP:1,FESTIVO:1,FT:1,
+    RM:1,CURSO:1,H6:1,HFUN:1,NH:1,BP:1,CP:1,PERMISO:1
+  };
+  for(var i=0;i<tokens.length;i++){if(bloquea[tokens[i]])return true;}
+  return /HFUN|HFUNCION|HORASFUNCION/.test(up.replace(/[^A-Z0-9]+/g,''));
 }
 function _esTipoTurnoNormalCambio(tipo){
   tipo=_normTipoCambioTurno(tipo);
@@ -7030,7 +7077,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     if(_esArturoPlantilla(emp.nombre||emp.nomina)){
       turno=_arturoHLPubFecha(target)?null:_ajustarTurnoConHLPersonal(turno,_miCalendarioDiaArturo(target));
     }
-    if(turno&&turno.e1&&!_esTipoNoTrabaja(turno.tipo)){
+    if(_turnoGrupoOperativo(turno)){
       var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
       var solapa=turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2);
@@ -7064,7 +7111,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     var diasAyer=(emp.meses&&emp.meses[monthKeyAyer])||emp.dias||{};
     var turnoAyer=diasAyer[dayAyer];
     turnoAyer=_turnoGrupoConCambioCompartido(emp,fechaAyer,turnoAyer);
-    if(turnoAyer&&turnoAyer.e1&&turnoAyer.s1){
+    if(_turnoGrupoOperativo(turnoAyer)){
       var yE1=toMinG(turnoAyer.e1),yS1=toMinG(turnoAyer.s1);
       var yE2=turnoAyer.e2?toMinG(turnoAyer.e2):null,yS2=turnoAyer.s2?toMinG(turnoAyer.s2):null;
       var _nocheAyer=_turnoTieneNocheReal(yE1,yS1,yE2,yS2);
@@ -7273,7 +7320,7 @@ function _buildCompanerosTimelineData(offsetDias){
     if(_esArturoPlantilla(emp.nombre||emp.nomina)){
       turno=_arturoHLPubFecha(target)?null:_ajustarTurnoConHLPersonal(turno,_miCalendarioDiaArturo(target));
     }
-    if(turno&&turno.e1&&!_esTipoNoTrabaja(turno.tipo)){
+    if(_turnoGrupoOperativo(turno)){
       var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
       var solapa=turnosSeSuperponen(myE1,myS1,myE2,myS2,grE1,grS1,grE2,grS2);
@@ -7301,7 +7348,7 @@ function _buildCompanerosTimelineData(offsetDias){
     var diasAyer=(emp.meses&&emp.meses[monthKeyAyer])||emp.dias||{};
     var turnoAyer=diasAyer[dayAyer];
     turnoAyer=_turnoGrupoConCambioCompartido(emp,fechaAyer,turnoAyer);
-    if(turnoAyer&&turnoAyer.e1&&turnoAyer.s1){
+    if(_turnoGrupoOperativo(turnoAyer)){
       var yE1=toMinG(turnoAyer.e1),yS1=toMinG(turnoAyer.s1);
       var yE2=turnoAyer.e2?toMinG(turnoAyer.e2):null,yS2=turnoAyer.s2?toMinG(turnoAyer.s2):null;
       // Fin del/los tramo(s) que de verdad cruzan medianoche (s<e). Cualquier
@@ -8240,7 +8287,7 @@ window.renderOperativa=function(){
     if(_esArturoPlantilla((emp&&emp.nombre)||nom)){
       t=_arturoHLPubFecha(now)?null:_ajustarTurnoConHLPersonal(t,_miCalendarioDiaArturo(now));
     }
-    if(!t||!t.e1)return;
+    if(!_turnoGrupoOperativo(t))return;
     var excl=!!(t.noVieneInterrogacion||t.disponibilidadNoConfirmada);if(excl)return;
     var gE1=toM(t.e1),gS1=toM(t.s1),gE2=t.e2?toM(t.e2):null,gS2=t.s2?toM(t.s2):null;
     trabajanHoy.push({nombre:nom,e1:gE1,s1:gS1,e2:gE2,s2:gS2});
@@ -8263,7 +8310,7 @@ window.renderOperativa=function(){
       if(_esArturoPlantilla((emp&&emp.nombre)||nom)){
         t=_arturoHLPubFecha(dateObj)?null:_ajustarTurnoConHLPersonal(t,_miCalendarioDiaArturo(dateObj));
       }
-      if(!t||!t.e1)return;
+      if(!_turnoGrupoOperativo(t))return;
       var excl=!!(t.noVieneInterrogacion||t.disponibilidadNoConfirmada);if(excl)return;
       out.push({nombre:nom,e1:toM(t.e1),s1:toM(t.s1),e2:t.e2?toM(t.e2):null,s2:t.s2?toM(t.s2):null});
     });
