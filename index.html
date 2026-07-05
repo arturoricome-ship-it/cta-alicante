@@ -3455,7 +3455,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 <script>
 var CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
 var SHEETS_URL="https://script.google.com/macros/s/AKfycby_IIimYE_dL1BolZrPdGdmslVW1gV-Ivj9E7H3jaJgxd4ZJq7IEcFEjBuVj3iy0qQo/exec";
-var CTA_LOGIN_DISABLED_FOR_TESTS=true;
+var CTA_LOGIN_DISABLED_FOR_TESTS=false;
 
 function parseJwt(token){
   try{var b=token.split(".")[1];var d=atob(b.replace(/-/g,"+").replace(/_/g,"/"));return JSON.parse(decodeURIComponent(escape(d)));}
@@ -3517,16 +3517,6 @@ function handleCredentialResponse(response){
 }
 
 window.addEventListener("load",function(){
-  if(CTA_LOGIN_DISABLED_FOR_TESTS){
-    var testSession={email:"prueba@cta.local",nombre:"Modo prueba",ts:Date.now()};
-    try{localStorage.setItem("cta_session",JSON.stringify(testSession));}catch(e){}
-    var loginScreen=document.getElementById("login-screen");
-    if(loginScreen)loginScreen.style.display="none";
-    var logoutBtn=document.getElementById("btn-logout");
-    if(logoutBtn)logoutBtn.style.display="none";
-    setWelcome(testSession.nombre);
-    return;
-  }
   // Verificar sesión guardada
   var sess=null;
   try{sess=JSON.parse(localStorage.getItem("cta_session"));}catch(e){}
@@ -4831,11 +4821,10 @@ function taEsNoche(p){
   var segs=taSegmentosMin(p);
   return segs.some(function(seg){
     var salida=seg.s>=1440?seg.s-1440:seg.s;
-    return seg.e>=1320&&seg.e<=1439&&seg.s>1440&&salida>=300&&salida<=479;
+    return seg.s>1440&&salida>=180;
   });
 }
 function taEsNocturna(p){
-  if(taEsNoche(p))return false;
   return taSegmentosMin(p).some(function(seg){
     return seg.s>1260;
   });
@@ -5140,7 +5129,7 @@ function taRenderResultadoGrupo(r){
     taRenderKpi(t.partidos,'Partidos')+
     taRenderKpi(t.madrugas,'Madrugues <=06','#fbbf24')+
     taRenderKpi(t.nocturnas,'Nocturnas >=21','#c084fc')+
-    taRenderKpi(t.noches,'Noches 22-23 a 5-7','#38bdf8')+
+    taRenderKpi(t.noches,'Noches hasta >=03','#38bdf8')+
     taRenderKpi(taFmtHoras(t.horasContadorMin),'Horas contador','#4ade80')+
     taRenderKpi(taFmtHoras(t.horasTurnoMin),'Horas turnos','#93c5fd')+
   '</div>';
@@ -5181,7 +5170,7 @@ function taRenderResultado(r){
     taRenderKpi(t.partidos,'Partidos')+
     taRenderKpi(t.madrugas,'Madrugues <=06','#fbbf24')+
     taRenderKpi(t.nocturnas,'Nocturnas >=21','#c084fc')+
-    taRenderKpi(t.noches,'Noches 22-23 a 5-7','#38bdf8')+
+    taRenderKpi(t.noches,'Noches hasta >=03','#38bdf8')+
     taRenderKpi(taFmtHoras(t.horasTurnoMin),'Horas totales','#4ade80')+
     taRenderKpi(taFmtHoras(t.horasContadorMin),'Horas contador','#93c5fd')+
     taRenderKpi(r.meses.filter(function(m){return m.turnos>0;}).length,'Meses con datos','#e5e7eb')+
@@ -6835,6 +6824,40 @@ function _turnoGrupoOperativo(t){
   if(_turnoGrupoTieneMarcaNoOperativa(t))return false;
   return true;
 }
+function _dedupeCompanerosDia(lista){
+  var porNombre={},orden=[];
+  (lista||[]).forEach(function(c){
+    var key=_normPlantillaNombre(c.nombre||'');
+    if(!key)return;
+    if(!porNombre[key]){
+      porNombre[key]={items:[c]};
+      orden.push(key);
+      return;
+    }
+    porNombre[key].items.push(c);
+  });
+  function score(c){
+    return (c.operativoAhora?1000:0)+(c.origenDia==='actual'?100:0)+(c.nocheDiaFin?10:0);
+  }
+  return orden.map(function(k){
+    var items=porNombre[k].items;
+    var base=items.slice().sort(function(a,b){return score(b)-score(a);})[0];
+    var merged=Object.assign({},base);
+    var vistos={},partes=[];
+    items.forEach(function(it){
+      var keyParte=[it.e1,it.s1,it.e2||'',it.s2||'',it.nocheDiaFin?'ayer':'actual'].join('|');
+      if(vistos[keyParte])return;
+      vistos[keyParte]=true;
+      partes.push(Object.assign({},it));
+    });
+    partes.sort(function(a,b){return (a.e1||0)-(b.e1||0);});
+    merged.partesDia=partes;
+    merged.operativoAhora=items.some(function(it){return !!it.operativoAhora;});
+    var partesActuales=partes.filter(function(it){return it.origenDia==='actual';});
+    merged.horario=(partesActuales.length?partesActuales:partes).map(function(it){return it.horario;}).filter(Boolean).join(' / ');
+    return merged;
+  });
+}
 function _turnoGrupoTieneMarcaNoOperativa(t){
   if(!t)return false;
   if(t.ausencia)return true;
@@ -7100,7 +7123,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
         // Marca solo noches reales largas: 22/23 → 05/06/07 del día siguiente.
         var _nocheReal=_turnoTieneNocheReal(grE1,grS1,grE2,grS2);
         var _futOvn=_nocheReal&&nowMinReal<grE1;
-        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,e2:grE2,s2:grS2,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false,futuraNoche:_futOvn,nocheReal:_nocheReal,nocheDiaFin:false});
+        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,e2:grE2,s2:grS2,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false,futuraNoche:_futOvn,nocheReal:_nocheReal,nocheDiaFin:false,origenDia:'actual'});
       }
     }
     // Turno de noche real empezado el día anterior y terminado en el día consultado.
@@ -7127,12 +7150,14 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
           var alreadyIn=coinciden.some(function(c){return c.nombre===emp.nombre&&c.nocheDiaFin;});
           if(!alreadyIn){
             var hAyer=turnoAyer.e1+'→'+turnoAyer.s1+(turnoAyer.e2&&turnoAyer.s2?' / '+turnoAyer.e2+'→'+turnoAyer.s2:'');
-            coinciden.push({nombre:emp.nombre,horario:hAyer,e1:0,s1:Math.max(yS1||0,yS2||0),e2:null,s2:null,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:(esDiaActual&&nowMinReal<Math.max(yS1||0,yS2||0)),overnight:true,futuraNoche:false,nocheReal:true,nocheDiaFin:true});
+            coinciden.push({nombre:emp.nombre,horario:hAyer,e1:0,s1:Math.max(yS1||0,yS2||0),e2:null,s2:null,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:(esDiaActual&&nowMinReal<Math.max(yS1||0,yS2||0)),overnight:true,futuraNoche:false,nocheReal:true,nocheDiaFin:true,origenDia:'ayer'});
           }
         }
       }
     }
   });
+
+  coinciden=_dedupeCompanerosDia(coinciden);
 
   if(!coinciden.length){
     panel.innerHTML=navHtml+'<div class="grupo-empty">'+(modoToda?'No hay nadie con turno ese día':'No coincides con nadie del grupo ese día')+'</div>';
@@ -7339,7 +7364,7 @@ function _buildCompanerosTimelineData(offsetDias){
         var opAhora=esDiaActual&&(enT1||enT2)&&!turno.disponibilidadNoConfirmada&&!turno.noVieneInterrogacion;
         var _nocheReal=_turnoTieneNocheReal(grE1,grS1,grE2,grS2);
         var _futOvn=_nocheReal&&nowMinReal<grE1;
-        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,e2:grE2,s2:grS2,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false,futuraNoche:_futOvn,nocheReal:_nocheReal,nocheDiaFin:false});
+        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,e2:grE2,s2:grS2,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false,futuraNoche:_futOvn,nocheReal:_nocheReal,nocheDiaFin:false,origenDia:'actual'});
       }
     }
     var fechaAyer=new Date(target.getFullYear(),target.getMonth(),target.getDate()-1);
@@ -7369,12 +7394,14 @@ function _buildCompanerosTimelineData(offsetDias){
           var alreadyIn=coinciden.some(function(c){return c.nombre===emp.nombre&&c.nocheDiaFin;});
           if(!alreadyIn){
             var hAyer=turnoAyer.e1+'→'+turnoAyer.s1+(turnoAyer.e2&&turnoAyer.s2?' / '+turnoAyer.e2+'→'+turnoAyer.s2:'');
-            coinciden.push({nombre:emp.nombre,horario:hAyer,e1:0,s1:_finCruceAyer,e2:null,s2:null,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:(esDiaActual&&nowMinReal<_finCruceAyer),overnight:true,futuraNoche:false,nocheReal:_nocheRealAyer,nocheDiaFin:true});
+            coinciden.push({nombre:emp.nombre,horario:hAyer,e1:0,s1:_finCruceAyer,e2:null,s2:null,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:(esDiaActual&&nowMinReal<_finCruceAyer),overnight:true,futuraNoche:false,nocheReal:_nocheRealAyer,nocheDiaFin:true,origenDia:'ayer'});
           }
         }
       }
     }
   });
+
+  coinciden=_dedupeCompanerosDia(coinciden);
 
   if(!coinciden.length) return {error:'no-match',modoToda:modoToda};
 
@@ -7392,14 +7419,19 @@ function _tlFmtMin(m){
 // flag 'continuesTomorrow' = el tramo sigue después de medianoche (fin<inicio en los datos crudos).
 function _tlSegmentos(c){
   var segs=[];
-  function add(e,s,esFinDeNoche){
+  function add(e,s,esFinDeNoche,labelCompleta){
     if(e===null||typeof e==='undefined'||s===null||typeof s==='undefined')return;
-    if(esFinDeNoche){segs.push([0,s,'fromYesterday']);return;}
-    if(s<e){segs.push([e,1440,'continuesTomorrow']);return;}
-    segs.push([e,s,null]);
+    var label=labelCompleta||(_tlFmtMin(e)+'–'+_tlFmtMin(s));
+    if(esFinDeNoche){segs.push([0,s,'fromYesterday',label]);return;}
+    if(s<e){segs.push([e,1440,'continuesTomorrow',label]);return;}
+    segs.push([e,s,null,label]);
   }
-  add(c.e1,c.s1,!!c.nocheDiaFin);
-  add(c.e2,c.s2,false);
+  var partes=(c&&c.partesDia&&c.partesDia.length)?c.partesDia:[c];
+  partes.forEach(function(p){
+    var label1=p.nocheDiaFin?(p.horario||''):'';
+    add(p.e1,p.s1,!!p.nocheDiaFin,label1);
+    add(p.e2,p.s2,false,'');
+  });
   return segs;
 }
 
@@ -7424,7 +7456,7 @@ function _tlFilaHtml(segs,extraClass,esDiaActual,nowMin){
     if(flag==='fromYesterday')cls+=' fade-left';
     if(flag==='continuesTomorrow')cls+=' fade-right';
     var leftPct=(start/1440*100),widthPct=((end-start)/1440*100);
-    var label=_tlFmtMin(start)+'–'+_tlFmtMin(end===1440?0:end);
+    var label=seg[3]||(_tlFmtMin(start)+'–'+_tlFmtMin(end===1440?0:end));
     return '<div class="'+cls+'" style="left:'+leftPct+'%;width:'+widthPct+'%" title="'+label+'"><span class="lbl">'+label+'</span></div>';
   }).join('');
   return '<div class="grupo-tl-row'+(activa?' is-active':'')+'">'+barsHtml+'</div>';
@@ -7969,7 +8001,7 @@ function buildHorarioHtml(c){
     var ts=seg.split('→');
     if(ts.length<2){html+=seg;return;}
     var entH=ts[0].trim(),salH=ts[1].trim();
-    var salId='exit_'+c.nombre.replace(/\s/g,'_')+'_'+(i===0?'s1':'s2');
+    var salId='exit_'+c.nombre.replace(/\s/g,'_')+'_s'+i;
     html+=(i>0?' / ':'')+entH+'→<span id="'+salId+'" class="hora-exit" data-exit="'+salH+'">'+salH+'</span>';
   });
   if(c&&c.nocheDiaFin){
