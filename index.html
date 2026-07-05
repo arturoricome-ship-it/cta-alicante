@@ -7421,14 +7421,14 @@ function _tlSegmentos(c){
   var segs=[];
   function add(e,s,esFinDeNoche,labelCompleta){
     if(e===null||typeof e==='undefined'||s===null||typeof s==='undefined')return;
-    var label=labelCompleta||(_tlFmtMin(e)+'–'+_tlFmtMin(s));
+    var label=labelCompleta||(_tlFmtMin(e)+'→'+_tlFmtMin(s));
     if(esFinDeNoche){segs.push([0,s,'fromYesterday',label]);return;}
     if(s<e){segs.push([e,1440,'continuesTomorrow',label]);return;}
     segs.push([e,s,null,label]);
   }
   var partes=(c&&c.partesDia&&c.partesDia.length)?c.partesDia:[c];
   partes.forEach(function(p){
-    var label1=p.nocheDiaFin?(p.horario||''):'';
+    var label1=p.nocheDiaFin?'00:00→'+_tlFmtMin(p.s1):'';
     add(p.e1,p.s1,!!p.nocheDiaFin,label1);
     add(p.e2,p.s2,false,'');
   });
