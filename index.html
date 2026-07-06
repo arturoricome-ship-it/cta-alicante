@@ -679,8 +679,8 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-vuelo-bar>.lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .grupo-tl-vuelo-bar.is-recortado{min-width:0;clip-path:none;overflow:hidden}
 .grupo-tl-vuelo-bar.is-recortado>.lbl{font-size:7px;line-height:1;max-width:100%;padding:0 1px}
-.grupo-tl-vuelo-bar.is-recortado.is-corto{overflow:visible}
-.grupo-tl-vuelo-bar.is-recortado.is-corto>.lbl{position:absolute;left:calc(100% + 4px);top:50%;transform:translateY(-50%);max-width:none;background:rgba(24,33,53,.92);border:1px solid rgba(96,165,250,.35);border-radius:4px;padding:0 3px;font-size:8px;line-height:13px;box-shadow:0 2px 6px rgba(0,0,0,.22)}
+.grupo-tl-vuelo-bar.is-recortado.is-corto{overflow:hidden}
+.grupo-tl-vuelo-bar.is-recortado.is-corto>.lbl{display:none}
 .grupo-tl-vuelo-bar.is-now{background:rgba(96,165,250,.4);border-color:#60a5fa;box-shadow:0 0 8px rgba(96,165,250,.45);color:#eff6ff}
 .grupo-tl-vuelo-bar.is-past{opacity:.5}
 .grupo-tl-vuelo-bar.es-salida{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.6);color:#fecaca}
@@ -779,8 +779,22 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .ta-month-hours{font-size:12px;font-weight:900;color:#4ade80}
 .ta-mini-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
 .ta-mini{background:rgba(0,0,0,.16);border-radius:8px;padding:6px 4px;text-align:center}
+.ta-num-click{cursor:pointer}
+.ta-num-click:active{opacity:.72}
 .ta-mini b{display:block;font-size:13px;color:#60a5fa;line-height:1}
 .ta-mini span{display:block;font-size:7.5px;color:var(--gray);text-transform:uppercase;margin-top:3px;line-height:1}
+.ta-detail-bg{position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:100003;display:flex;align-items:flex-end;justify-content:center;padding:18px}
+.ta-detail-box{width:100%;max-width:430px;max-height:min(72vh,620px);background:#182135;border:1px solid rgba(96,165,250,.34);border-radius:18px 18px 14px 14px;box-shadow:0 18px 60px rgba(0,0,0,.5);overflow:hidden;display:flex;flex-direction:column}
+.ta-detail-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.ta-detail-title{font-size:13px;font-weight:900;color:#bfdbfe;line-height:1.25}
+.ta-detail-close{width:30px;height:30px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:var(--gray);font-size:18px;line-height:1;cursor:pointer}
+.ta-detail-list{overflow:auto;padding:10px 12px 13px;-webkit-overflow-scrolling:touch}
+.ta-detail-row{display:grid;grid-template-columns:74px 1fr auto;gap:8px;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px 9px;margin-bottom:6px}
+.ta-detail-date{font-size:10px;font-weight:900;color:var(--gold);line-height:1.15}
+.ta-detail-main{min-width:0}
+.ta-detail-emp{font-size:11px;font-weight:900;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ta-detail-turno{font-size:10px;color:#bfdbfe;margin-top:2px}
+.ta-detail-type{font-size:8px;color:var(--gray);text-transform:uppercase;text-align:right;max-width:70px;overflow:hidden;text-overflow:ellipsis}
 .ta-emp{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px;margin-bottom:7px}
 .ta-emp-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:7px}
 .ta-emp-name{font-size:12px;font-weight:900;color:var(--white);line-height:1.15}
@@ -4863,10 +4877,13 @@ var _taResultado=null;
 var _taBusquedaNombre='';
 var _taMesSeleccionado='ALL';
 var _taAvisoMemoria='';
+var _taDetalleStore={};
+var _taDetalleSeq=0;
 var _TA_MEMORY_KEY='cta_ta_memory_v1';
 var _TA_HORAS_MODO_KEY='cta_ta_horas_modo_v1';
 var _taHorasModo=taLeerModoHorasAnalizador();
 var _TA_STATS_KEYS=['turnos','partidos','madrugas','nocturnas','noches','horasTurnoMin','horasContadorMin'];
+var _TA_DETAIL_KEYS=['turnos','partidos','madrugas','nocturnas','noches','horasTurnoMin','horasContadorMin'];
 function taLeerModoHorasAnalizador(){
   var v='contador';
   try{v=localStorage.getItem(_TA_HORAS_MODO_KEY)||'contador';}catch(e){}
@@ -4955,6 +4972,11 @@ function taMesesMemoria(mem){
 function taStatsClone(src){
   var st=taMesVacio();
   _TA_STATS_KEYS.forEach(function(k){st[k]=Number((src&&src[k])||0);});
+  if(src&&src.detalles){
+    _TA_DETAIL_KEYS.forEach(function(k){
+      st.detalles[k]=Array.isArray(src.detalles[k])?src.detalles[k].map(taDetalleClone):[];
+    });
+  }
   return st;
 }
 function taStatsTieneDatos(st){
@@ -5176,6 +5198,29 @@ function taFmtHoras(min){
   var h=Math.floor(min/60),m=min%60;
   return h+'h'+(m?' '+String(m).padStart(2,'0')+'m':'');
 }
+function taTurnoTexto(p){
+  if(!p||!p.e1||!p.s1)return 'Sin horas';
+  return p.e1+'→'+p.s1+(p.e2&&p.s2?' / '+p.e2+'→'+p.s2:'');
+}
+function taDetalleClone(it){
+  return{mes:it&&it.mes||'',dia:it&&it.dia||'',empleado:it&&it.empleado||'',turno:it&&it.turno||'',tipo:it&&it.tipo||'',minutos:Number((it&&it.minutos)||0)};
+}
+function taCrearDetalle(ctx,p,mins){
+  ctx=ctx||{};
+  return{
+    mes:taMesNombre(ctx.monthKey||ctx.mes||''),
+    dia:ctx.dia||'',
+    empleado:ctx.empleado||'',
+    turno:taTurnoTexto(p),
+    tipo:String((p&&p.tipo)||'trabajado'),
+    minutos:Number(mins||0)
+  };
+}
+function taPushDetalle(dest,key,item){
+  if(!dest.detalles)dest.detalles={};
+  if(!dest.detalles[key])dest.detalles[key]=[];
+  dest.detalles[key].push(taDetalleClone(item));
+}
 function taDurMin(e,s){
   var a=tiToMin(e),b=tiToMin(s);
   if(a===null||b===null)return 0;
@@ -5217,9 +5262,9 @@ function taCuentaContador(p){
   return ['trabajado','hl','hlp','baja','rm','curso','permiso'].indexOf(tipo)>=0;
 }
 function taMesVacio(){
-  return{turnos:0,partidos:0,madrugas:0,nocturnas:0,noches:0,horasTurnoMin:0,horasContadorMin:0};
+  return{turnos:0,partidos:0,madrugas:0,nocturnas:0,noches:0,horasTurnoMin:0,horasContadorMin:0,detalles:{turnos:[],partidos:[],madrugas:[],nocturnas:[],noches:[],horasTurnoMin:[],horasContadorMin:[]}};
 }
-function taAddStats(dest,p){
+function taAddStats(dest,p,ctx){
   if(!p||!p.e1||!p.s1)return;
   var e1=tiToMin(p.e1);
   if(e1===null)return;
@@ -5229,13 +5274,16 @@ function taAddStats(dest,p){
   var madruga=e1<=360;
   var noche=taEsNoche(p);
   var nocturna=taEsNocturna(p);
+  var detalle=taCrearDetalle(ctx,p,mins);
   dest.turnos++;
-  if(partido)dest.partidos++;
-  if(madruga)dest.madrugas++;
-  if(nocturna)dest.nocturnas++;
-  if(noche)dest.noches++;
+  taPushDetalle(dest,'turnos',detalle);
+  if(partido){dest.partidos++;taPushDetalle(dest,'partidos',detalle);}
+  if(madruga){dest.madrugas++;taPushDetalle(dest,'madrugas',detalle);}
+  if(nocturna){dest.nocturnas++;taPushDetalle(dest,'nocturnas',detalle);}
+  if(noche){dest.noches++;taPushDetalle(dest,'noches',detalle);}
   dest.horasTurnoMin+=mins;
-  if(taCuentaContador(p))dest.horasContadorMin+=mins;
+  taPushDetalle(dest,'horasTurnoMin',detalle);
+  if(taCuentaContador(p)){dest.horasContadorMin+=mins;taPushDetalle(dest,'horasContadorMin',detalle);}
 }
 function taParseDia(sheet,row,col){
   var raw=tiCellVal(sheet,row,col);
@@ -5263,9 +5311,9 @@ function taAnalizarSheet(sheet,filename,leyenda){
     mes.nombre=monthKey.charAt(0)+monthKey.slice(1).toLowerCase();
     for(var col=1;col<=31;col++){
       var parsed=taParseDia(sheet,row,col);
-      taAddStats(mes,parsed);
+      taAddStats(mes,parsed,{monthKey:monthKey,dia:col});
     }
-    ['turnos','partidos','madrugas','nocturnas','noches','horasTurnoMin','horasContadorMin'].forEach(function(k){total[k]+=mes[k];});
+    taSumaStats(total,mes);
     meses.push(mes);
   }
   return{filename:filename||'',persona:(leyenda&&leyenda.nombreCompleto)||'',total:total,meses:meses};
@@ -5279,13 +5327,20 @@ function taDetectarCabeceraGrupo(rows){
   }
   return null;
 }
-function taAnalizarDiasGrupo(dias){
+function taAnalizarDiasGrupo(dias,ctx){
   var st=taMesVacio();
-  Object.keys(dias||{}).forEach(function(d){taAddStats(st,dias[d]);});
+  Object.keys(dias||{}).forEach(function(d){taAddStats(st,dias[d],Object.assign({},ctx||{},{dia:d}));});
   return st;
 }
 function taSumaStats(dest,src){
   ['turnos','partidos','madrugas','nocturnas','noches','horasTurnoMin','horasContadorMin'].forEach(function(k){dest[k]+=(src&&src[k])||0;});
+  if(src&&src.detalles){
+    if(!dest.detalles)dest.detalles={};
+    _TA_DETAIL_KEYS.forEach(function(k){
+      if(!dest.detalles[k])dest.detalles[k]=[];
+      if(Array.isArray(src.detalles[k]))dest.detalles[k]=dest.detalles[k].concat(src.detalles[k].map(taDetalleClone));
+    });
+  }
 }
 function taParseGrupoSheet(ws,sheetName){
   var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
@@ -5376,7 +5431,7 @@ function taAnalizarGrupoWorkbook(wb,filename){
     parsed.empleados.forEach(function(emp){
       var key=emp.nomina||((typeof _normNombreGrupo==='function')?_normNombreGrupo(emp.nombre):emp.nombre);
       if(!empleadosMap[key])empleadosMap[key]={nomina:key,nombre:emp.nombre,categoria:emp.categoria,total:taMesVacio(),meses:{}};
-      var st=taAnalizarDiasGrupo(emp.dias);
+      var st=taAnalizarDiasGrupo(emp.dias,{monthKey:parsed.monthKey,empleado:emp.nombre||''});
       if(!empleadosMap[key].meses[parsed.monthKey])empleadosMap[key].meses[parsed.monthKey]=taMesVacio();
       taSumaStats(empleadosMap[key].meses[parsed.monthKey],st);
       taSumaStats(empleadosMap[key].total,st);
@@ -5426,8 +5481,58 @@ function taHandleFile(file){
   };
   reader.readAsArrayBuffer(file);
 }
-function taRenderKpi(valor,label,color){
-  return '<div class="ta-kpi"><div class="ta-kpi-v" style="color:'+(color||'var(--gold)')+'">'+valor+'</div><div class="ta-kpi-l">'+label+'</div></div>';
+function taDetalleItems(src,key){
+  return (src&&src.detalles&&Array.isArray(src.detalles[key]))?src.detalles[key]:[];
+}
+function taRegisterDetalle(title,items){
+  items=(items||[]).map(taDetalleClone);
+  if(!items.length)return '';
+  var id='ta-det-'+(++_taDetalleSeq);
+  _taDetalleStore[id]={title:title,items:items};
+  return id;
+}
+function taDetalleValorAttrs(title,items){
+  var id=taRegisterDetalle(title,items);
+  return id?' ta-num-click" onclick="event.stopPropagation();taMostrarDetalleAnalizador(\''+id+'\')" role="button" tabindex="0"':'"';
+}
+function taMostrarDetalleAnalizador(id){
+  var data=_taDetalleStore[id];
+  if(!data||!data.items||!data.items.length)return;
+  taCerrarDetalleAnalizador();
+  var bg=document.createElement('div');
+  bg.className='ta-detail-bg';
+  bg.id='ta-detail-bg';
+  bg.onclick=taCerrarDetalleAnalizador;
+  var rows=data.items.map(function(it){
+    var fecha=(it.dia?('Día '+it.dia):'Día')+(it.mes?'<br>'+escH(it.mes):'');
+    var emp=it.empleado||'Calendario';
+    var mins=it.minutos?'<br><span style="color:#4ade80">'+taFmtHoras(it.minutos)+'</span>':'';
+    return '<div class="ta-detail-row">'+
+      '<div class="ta-detail-date">'+fecha+'</div>'+
+      '<div class="ta-detail-main"><div class="ta-detail-emp">'+escH(emp)+'</div><div class="ta-detail-turno">'+escH(it.turno||'Sin horas')+mins+'</div></div>'+
+      '<div class="ta-detail-type">'+escH(it.tipo||'')+'</div>'+
+    '</div>';
+  }).join('');
+  bg.innerHTML='<div class="ta-detail-box" onclick="event.stopPropagation()">'+
+    '<div class="ta-detail-head"><div class="ta-detail-title">'+escH(data.title)+' · '+data.items.length+'</div><button class="ta-detail-close" onclick="taCerrarDetalleAnalizador()" type="button">&times;</button></div>'+
+    '<div class="ta-detail-list">'+rows+'</div>'+
+  '</div>';
+  document.body.appendChild(bg);
+}
+function taCerrarDetalleAnalizador(){
+  var bg=document.getElementById('ta-detail-bg');
+  if(bg)bg.remove();
+}
+function taRenderKpi(valor,label,color,src,key,title){
+  var items=key?taDetalleItems(src,key):[];
+  var attrs=taDetalleValorAttrs(title||label,items);
+  return '<div class="ta-kpi"><div class="ta-kpi-v'+attrs+' style="color:'+(color||'var(--gold)')+'">'+valor+'</div><div class="ta-kpi-l">'+label+'</div></div>';
+}
+function taMiniStat(src,key,label,title){
+  var val=(src&&src[key])||0;
+  var items=taDetalleItems(src,key);
+  var attrs=taDetalleValorAttrs(title||label,items);
+  return '<div class="ta-mini"><b class="'+attrs+'>'+val+'</b><span>'+label+'</span></div>';
 }
 function taValorOrden(item,campo){
   var src=(item&&item.total)?item.total:item;
@@ -5522,6 +5627,7 @@ function taSearchEmpleadoHtml(){
   '</div>';
 }
 function taRenderResultadoGrupo(r){
+  _taDetalleStore={};_taDetalleSeq=0;
   var status=document.getElementById('ta-status');
   var result=document.getElementById('ta-result');
   if(!r||!result)return;
@@ -5538,13 +5644,13 @@ function taRenderResultadoGrupo(r){
   }
   var html=taMonthTabsHtml(r)+'<div class="ta-kpis">'+
     taRenderKpi(r.empleados.length,'Empleados','#e5e7eb')+
-    taRenderKpi(t.turnos,'Turnos','#60a5fa')+
-    taRenderKpi(t.partidos,'Partidos')+
-    taRenderKpi(t.madrugas,'Madrugues <=06','#fbbf24')+
-    taRenderKpi(t.nocturnas,'Nocturnas >=21','#c084fc')+
-    taRenderKpi(t.noches,'Noches hasta >=03','#38bdf8')+
-    taRenderKpi(taFmtHoras(t.horasContadorMin),'Horas contador','#4ade80')+
-    taRenderKpi(taFmtHoras(t.horasTurnoMin),'Horas totales','#93c5fd')+
+    taRenderKpi(t.turnos,'Turnos','#60a5fa',t,'turnos','Turnos contabilizados')+
+    taRenderKpi(t.partidos,'Partidos',null,t,'partidos','Turnos partidos contabilizados')+
+    taRenderKpi(t.madrugas,'Madrugues <=06','#fbbf24',t,'madrugas','Madrugues contabilizados')+
+    taRenderKpi(t.nocturnas,'Nocturnas >=21','#c084fc',t,'nocturnas','Nocturnas contabilizadas')+
+    taRenderKpi(t.noches,'Noches hasta >=03','#38bdf8',t,'noches','Noches contabilizadas')+
+    taRenderKpi(taFmtHoras(t.horasContadorMin),'Horas contador','#4ade80',t,'horasContadorMin','Horas contador contabilizadas')+
+    taRenderKpi(taFmtHoras(t.horasTurnoMin),'Horas totales','#93c5fd',t,'horasTurnoMin','Horas totales contabilizadas')+
   '</div>';
   html+='<div class="ta-section-head"><div class="ta-section-title">Por empleado</div></div>'+
     taHorasModoHtml()+
@@ -5558,11 +5664,11 @@ function taRenderResultadoGrupo(r){
     html+='<div class="ta-emp" data-name="'+escH(taNormBuscaNombre(emp.nombre))+'">'+
       '<div class="ta-emp-top"><div style="min-width:0"><div class="ta-emp-name">'+escH(emp.nombre||'Empleado')+'</div><div class="ta-emp-cat">'+escH(empSub)+'</div></div><div class="ta-emp-hours">'+taFmtHoras(e[horasCampoEmp]||0)+'<small>'+escH(horasLabelEmp)+'</small></div></div>'+
       '<div class="ta-mini-grid">'+
-        '<div class="ta-mini"><b>'+e.turnos+'</b><span>Turnos</span></div>'+
-        '<div class="ta-mini"><b>'+e.partidos+'</b><span>Partidos</span></div>'+
-        '<div class="ta-mini"><b>'+e.madrugas+'</b><span>Madrugues</span></div>'+
-        '<div class="ta-mini"><b>'+e.nocturnas+'</b><span>Noct.</span></div>'+
-        '<div class="ta-mini"><b>'+e.noches+'</b><span>Noches</span></div>'+
+        taMiniStat(e,'turnos','Turnos',(emp.nombre||'Empleado')+' · turnos')+
+        taMiniStat(e,'partidos','Partidos',(emp.nombre||'Empleado')+' · partidos')+
+        taMiniStat(e,'madrugas','Madrugues',(emp.nombre||'Empleado')+' · madrugues')+
+        taMiniStat(e,'nocturnas','Noct.',(emp.nombre||'Empleado')+' · nocturnas')+
+        taMiniStat(e,'noches','Noches',(emp.nombre||'Empleado')+' · noches')+
       '</div>'+
     '</div>';
   });
@@ -5572,6 +5678,7 @@ function taRenderResultadoGrupo(r){
   taAplicarFiltroNombre();
 }
 function taRenderResultado(r){
+  _taDetalleStore={};_taDetalleSeq=0;
   if(r&&r.kind==='grupo')return taRenderResultadoGrupo(r);
   var status=document.getElementById('ta-status');
   var result=document.getElementById('ta-result');
@@ -5588,13 +5695,13 @@ function taRenderResultado(r){
     }
   }
   var html=taMonthTabsHtml(r)+'<div class="ta-kpis">'+
-    taRenderKpi(t.turnos,'Turnos','#60a5fa')+
-    taRenderKpi(t.partidos,'Partidos')+
-    taRenderKpi(t.madrugas,'Madrugues <=06','#fbbf24')+
-    taRenderKpi(t.nocturnas,'Nocturnas >=21','#c084fc')+
-    taRenderKpi(t.noches,'Noches hasta >=03','#38bdf8')+
-    taRenderKpi(taFmtHoras(t.horasTurnoMin),'Horas totales','#4ade80')+
-    taRenderKpi(taFmtHoras(t.horasContadorMin),'Horas contador','#93c5fd')+
+    taRenderKpi(t.turnos,'Turnos','#60a5fa',t,'turnos','Turnos contabilizados')+
+    taRenderKpi(t.partidos,'Partidos',null,t,'partidos','Turnos partidos contabilizados')+
+    taRenderKpi(t.madrugas,'Madrugues <=06','#fbbf24',t,'madrugas','Madrugues contabilizados')+
+    taRenderKpi(t.nocturnas,'Nocturnas >=21','#c084fc',t,'nocturnas','Nocturnas contabilizadas')+
+    taRenderKpi(t.noches,'Noches hasta >=03','#38bdf8',t,'noches','Noches contabilizadas')+
+    taRenderKpi(taFmtHoras(t.horasTurnoMin),'Horas totales','#4ade80',t,'horasTurnoMin','Horas totales contabilizadas')+
+    taRenderKpi(taFmtHoras(t.horasContadorMin),'Horas contador','#93c5fd',t,'horasContadorMin','Horas contador contabilizadas')+
     taRenderKpi(r.meses.filter(function(m){return m.turnos>0;}).length,'Meses con datos','#e5e7eb')+
   '</div>';
   html+='<div class="ta-section-head"><div class="ta-section-title">Desglose mensual</div></div>'+taSortBar('meses');
@@ -5603,11 +5710,11 @@ function taRenderResultado(r){
     html+='<div class="ta-month">'+
       '<div class="ta-month-top"><div class="ta-month-name">'+escH(m.nombre)+'</div><div class="ta-month-hours">'+taFmtHoras(m.horasTurnoMin)+'</div></div>'+
       '<div class="ta-mini-grid">'+
-        '<div class="ta-mini"><b>'+m.turnos+'</b><span>Turnos</span></div>'+
-        '<div class="ta-mini"><b>'+m.partidos+'</b><span>Partidos</span></div>'+
-        '<div class="ta-mini"><b>'+m.madrugas+'</b><span>Madrugues</span></div>'+
-        '<div class="ta-mini"><b>'+m.nocturnas+'</b><span>Noct.</span></div>'+
-        '<div class="ta-mini"><b>'+m.noches+'</b><span>Noches</span></div>'+
+        taMiniStat(m,'turnos','Turnos',m.nombre+' · turnos')+
+        taMiniStat(m,'partidos','Partidos',m.nombre+' · partidos')+
+        taMiniStat(m,'madrugas','Madrugues',m.nombre+' · madrugues')+
+        taMiniStat(m,'nocturnas','Noct.',m.nombre+' · nocturnas')+
+        taMiniStat(m,'noches','Noches',m.nombre+' · noches')+
       '</div>'+
     '</div>';
   });
