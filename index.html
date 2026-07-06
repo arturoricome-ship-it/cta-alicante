@@ -791,6 +791,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .ta-sort-chip:active{transform:scale(.96)}
 .ta-search{width:100%;box-sizing:border-box;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);border-radius:11px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;padding:10px 12px;margin:0 0 8px;outline:none}
 .ta-search::placeholder{color:rgba(181,187,201,.7)}
+.ta-month-tabs{display:flex;gap:6px;overflow-x:auto;padding:1px 0 7px;margin:2px 0 8px;scrollbar-width:none}
+.ta-month-tabs::-webkit-scrollbar{display:none}
+.ta-month-tab{border:1px solid rgba(96,165,250,.28);background:rgba(96,165,250,.08);color:#bfdbfe;border-radius:999px;padding:7px 11px;font-family:'Outfit',sans-serif;font-size:10px;font-weight:900;white-space:nowrap;cursor:pointer;flex:0 0 auto}
+.ta-month-tab.active{background:rgba(200,168,75,.18);border-color:rgba(200,168,75,.48);color:var(--gold)}
+.ta-empty-memory{border:1px solid rgba(96,165,250,.22);background:rgba(96,165,250,.07);border-radius:14px;padding:13px;color:#bfdbfe;font-size:12px;line-height:1.45;margin-top:10px}
 .op-comp-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent}
 .op-comp-card:active{transform:scale(.98)}
 .op-comp-num{font-size:36px;font-weight:800;color:#f87171;line-height:1}
@@ -1836,10 +1841,10 @@ body{font-size:14px}
     <div class="cta-secret-title">Herramientas CTA</div>
     <div class="cta-secret-sub">Elige que herramienta quieres abrir.</div>
     <button class="cta-secret-option" onclick="abrirOpcionSecretaCta('analizador')">
-      <div><b>Analizador</b><span>Excel anual o grupo, sin guardar datos.</span></div><strong>&rsaquo;</strong>
+      <div><b>Analizador</b><span>Totales acumulados por empleado: todos los meses o uno concreto.</span></div><strong>&rsaquo;</strong>
     </button>
     <button class="cta-secret-option" onclick="abrirOpcionSecretaCta('horas')">
-      <div><b>Horas plantilla</b><span>Resumen mensual de empleados importados.</span></div><strong>&rsaquo;</strong>
+      <div><b>Horas plantilla</b><span>Detalle mensual operativo: semanas, días y cambios aplicados.</span></div><strong>&rsaquo;</strong>
     </button>
     <button class="cta-secret-close" onclick="cerrarMenuSecretoCta()">Cerrar</button>
   </div>
@@ -4013,7 +4018,7 @@ function initGoogleWhenReady(intentos){
       <div style="font-size:28px">📈</div>
       <div style="min-width:0">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:.8px;color:var(--gold);line-height:1">Analizador anual</div>
-        <div style="font-size:11px;color:var(--gray);line-height:1.25">Solo lee el Excel. No guarda ni sustituye tu calendario.</div>
+        <div style="font-size:11px;color:var(--gray);line-height:1.25">Guarda los meses importados en este dispositivo.</div>
       </div>
     </div>
   </div>
@@ -4024,18 +4029,18 @@ function initGoogleWhenReady(intentos){
       ondrop="taHandleDrop(event)"
       style="border:2px dashed rgba(96,165,250,.3);border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;margin-bottom:12px;transition:border-color .2s;background:rgba(96,165,250,.05)">
       <div style="font-size:34px;margin-bottom:8px">📂</div>
-      <div id="ta-drop-txt" style="font-size:13px;color:var(--gray);font-weight:700">Toca para seleccionar un Excel anual</div>
-      <div style="font-size:10px;color:var(--gray);margin-top:4px;opacity:.75">Vale para tu calendario o el de un compañero</div>
+      <div id="ta-drop-txt" style="font-size:13px;color:var(--gray);font-weight:700">Toca para seleccionar un Excel</div>
+      <div style="font-size:10px;color:var(--gray);margin-top:4px;opacity:.75">Si el mes ya existe, se sustituye. Si no, se añade.</div>
     </div>
     <input type="file" id="ta-file" accept=".xlsx,.xls" style="display:none" onchange="taHandleFile(this.files[0])">
-    <div id="ta-status" style="font-size:11px;color:var(--gray);margin-bottom:10px;line-height:1.45">Pendiente de importar.</div>
+    <div id="ta-status" style="font-size:11px;color:var(--gray);margin-bottom:10px;line-height:1.45">Sin datos cargados.</div>
     <div id="ta-result"></div>
   </div>
   <div style="flex-shrink:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);background:#182135">
     <div style="display:flex;gap:8px">
-      <button onclick="taLimpiarDatos()"
+      <button onclick="taRestaurarMemoria()"
         style="flex:1;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:13px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:#f87171;cursor:pointer">
-        Limpiar datos
+        Restaurar
       </button>
       <button onclick="cerrarAnalizadorTurnos()"
         style="flex:1;background:var(--card2);border:none;border-radius:12px;padding:13px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;color:var(--gray);cursor:pointer">
@@ -4755,6 +4760,10 @@ function tiToMin(t){if(!t||t.indexOf(':')<0)return null;var p=t.split(':');retur
 
 var _taResultado=null;
 var _taBusquedaNombre='';
+var _taMesSeleccionado='ALL';
+var _taAvisoMemoria='';
+var _TA_MEMORY_KEY='cta_ta_memory_v1';
+var _TA_STATS_KEYS=['turnos','partidos','madrugas','nocturnas','noches','horasTurnoMin','horasContadorMin'];
 function abrirAnalizadorTurnos(ev){
   if(ev){ev.preventDefault();ev.stopPropagation();}
   var bg=document.getElementById('ta-bg'),panel=document.getElementById('ta-panel');
@@ -4762,6 +4771,7 @@ function abrirAnalizadorTurnos(ev){
   bg.style.display='block';
   panel.style.display='flex';
   setTimeout(function(){panel.style.transform='translateY(0)';},10);
+  setTimeout(taRenderDesdeMemoria,20);
 }
 function cerrarAnalizadorTurnos(){
   var bg=document.getElementById('ta-bg'),panel=document.getElementById('ta-panel');
@@ -4772,14 +4782,224 @@ function cerrarAnalizadorTurnos(){
 function taLimpiarDatos(){
   _taResultado=null;
   _taBusquedaNombre='';
+  _taMesSeleccionado='ALL';
+  _taAvisoMemoria='';
   var result=document.getElementById('ta-result');
   var status=document.getElementById('ta-status');
   var dropTxt=document.getElementById('ta-drop-txt');
   var input=document.getElementById('ta-file');
   if(result)result.innerHTML='';
-  if(status)status.textContent='Pendiente de importar.';
-  if(dropTxt)dropTxt.textContent='Toca para seleccionar un Excel anual';
+  if(status)status.textContent='Sin datos cargados.';
+  if(dropTxt)dropTxt.textContent='Toca para seleccionar un Excel';
   if(input)input.value='';
+}
+function taCrearMemoria(){
+  return{version:1,kind:'',updatedAt:'',months:{}};
+}
+function taCargarMemoria(){
+  var raw=null,mem=null;
+  try{raw=localStorage.getItem(_TA_MEMORY_KEY);}catch(e){raw=null;}
+  if(raw){
+    try{mem=JSON.parse(raw);}catch(e){mem=null;}
+  }
+  if(!mem||!mem.months)mem=taCrearMemoria();
+  return mem;
+}
+function taGuardarMemoria(mem){
+  mem.updatedAt=new Date().toISOString();
+  try{
+    localStorage.setItem(_TA_MEMORY_KEY,JSON.stringify(mem));
+    return true;
+  }catch(e){
+    alert('No he podido guardar la memoria interna. Puede que el navegador tenga el almacenamiento lleno.');
+    return false;
+  }
+}
+function taMesesMemoria(mem){
+  var months=(mem&&mem.months)||{};
+  return Object.keys(months).filter(function(k){return months[k];}).sort(function(a,b){return _MONTHS_ALL.indexOf(a)-_MONTHS_ALL.indexOf(b);});
+}
+function taStatsClone(src){
+  var st=taMesVacio();
+  _TA_STATS_KEYS.forEach(function(k){st[k]=Number((src&&src[k])||0);});
+  return st;
+}
+function taStatsTieneDatos(st){
+  return !!(st&&(st.turnos||st.horasTurnoMin||st.horasContadorMin));
+}
+function taMesNombre(key){
+  key=String(key||'').toUpperCase();
+  if(!key)return '';
+  return key.charAt(0)+key.slice(1).toLowerCase();
+}
+function taEmpleadoKey(emp){
+  var nombre=String((emp&&emp.nombre)||'').trim();
+  if(nombre){
+    if(typeof _normNombreGrupo==='function')return _normNombreGrupo(nombre);
+    return taNormBuscaNombre(nombre);
+  }
+  return String((emp&&emp.nomina)||'').trim();
+}
+function taNormalizarMesInput(txt){
+  var s=String(txt||'').trim();
+  if(!s)return '';
+  if(/^\d+$/.test(s)){
+    var idx=parseInt(s,10)-1;
+    return _MONTHS_ALL[idx]||'';
+  }
+  var n=s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  var map={'enero':'ENERO','febrero':'FEBRERO','marzo':'MARZO','abril':'ABRIL','mayo':'MAYO','junio':'JUNIO','julio':'JULIO','agosto':'AGOSTO','septiembre':'SEPTIEMBRE','setiembre':'SEPTIEMBRE','octubre':'OCTUBRE','noviembre':'NOVIEMBRE','diciembre':'DICIEMBRE'};
+  if(map[n])return map[n];
+  for(var i=0;i<_MONTHS_ALL.length;i++){
+    var m=_MONTHS_ALL[i].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if(m.indexOf(n)===0||n.indexOf(m.slice(0,3))===0)return _MONTHS_ALL[i];
+  }
+  return '';
+}
+function taSelectedMonthKeys(mem){
+  var keys=taMesesMemoria(mem);
+  if(_taMesSeleccionado&&_taMesSeleccionado!=='ALL'&&keys.indexOf(_taMesSeleccionado)>=0)return[_taMesSeleccionado];
+  _taMesSeleccionado='ALL';
+  return keys;
+}
+function taMonthTabsHtml(r){
+  var keys=(r&&r.availableMonths)||[];
+  if(!keys.length)return '';
+  var html='<div class="ta-month-tabs">';
+  html+='<button class="ta-month-tab '+(_taMesSeleccionado==='ALL'?'active':'')+'" onclick="taSetMesAnalizador(\'ALL\')">Todos</button>';
+  keys.forEach(function(k){
+    html+='<button class="ta-month-tab '+(_taMesSeleccionado===k?'active':'')+'" onclick="taSetMesAnalizador(\''+escH(k)+'\')">'+escH(taMesNombre(k))+'</button>';
+  });
+  html+='</div>';
+  return html;
+}
+function taSetMesAnalizador(monthKey){
+  _taMesSeleccionado=monthKey||'ALL';
+  _taBusquedaNombre='';
+  taRenderDesdeMemoria();
+}
+function taBuildPersonaDesdeMemoria(mem){
+  var keys=taSelectedMonthKeys(mem),allKeys=taMesesMemoria(mem),total=taMesVacio(),meses=[];
+  keys.forEach(function(k){
+    var md=mem.months[k];
+    if(!md)return;
+    var st=taStatsClone(md.total);
+    st.monthKey=k;
+    st.nombre=taMesNombre(k);
+    meses.push(st);
+    taSumaStats(total,st);
+  });
+  return{filename:'Memoria interna',persona:'',total:total,meses:meses,memory:true,availableMonths:allKeys,selectedMonths:keys};
+}
+function taBuildGrupoDesdeMemoria(mem){
+  var keys=taSelectedMonthKeys(mem),allKeys=taMesesMemoria(mem),total=taMesVacio(),empleadosMap={};
+  keys.forEach(function(k){
+    var md=mem.months[k];
+    if(!md)return;
+    (md.empleados||[]).forEach(function(emp){
+      var empKey=emp.key||taEmpleadoKey(emp);
+      if(!empleadosMap[empKey])empleadosMap[empKey]={nomina:empKey,nombre:emp.nombre,categoria:emp.categoria,total:taMesVacio(),meses:{}};
+      var st=taStatsClone(emp.total);
+      empleadosMap[empKey].meses[k]=st;
+      taSumaStats(empleadosMap[empKey].total,st);
+      taSumaStats(total,st);
+    });
+  });
+  var empleados=Object.keys(empleadosMap).map(function(k){return empleadosMap[k];}).filter(function(e){return taStatsTieneDatos(e.total);});
+  empleados.sort(function(a,b){return b.total.horasContadorMin-a.total.horasContadorMin;});
+  return{kind:'grupo',filename:'Memoria interna',total:total,empleados:empleados,hojas:keys.length,meses:keys,diasDetectados:0,memory:true,availableMonths:allKeys,selectedMonths:keys};
+}
+function taBuildResultadoDesdeMemoria(){
+  var mem=taCargarMemoria();
+  var keys=taMesesMemoria(mem);
+  if(!keys.length)return null;
+  return mem.kind==='grupo'?taBuildGrupoDesdeMemoria(mem):taBuildPersonaDesdeMemoria(mem);
+}
+function taRenderDesdeMemoria(){
+  var result=document.getElementById('ta-result');
+  var status=document.getElementById('ta-status');
+  var dropTxt=document.getElementById('ta-drop-txt');
+  var r=taBuildResultadoDesdeMemoria();
+  _taResultado=r;
+  if(dropTxt)dropTxt.textContent='Toca para seleccionar un Excel';
+  if(!r){
+    if(status)status.textContent='Sin datos cargados.';
+    if(result)result.innerHTML='<div class="ta-empty-memory">Importa un Excel para empezar. Los meses quedaran guardados en este dispositivo y podras verlos juntos o por separado.</div>';
+    return;
+  }
+  taRenderResultado(r);
+}
+function taGuardarImportacionEnMemoria(r){
+  var mem=taCargarMemoria();
+  var importKind=(r&&r.kind==='grupo')?'grupo':'persona';
+  var existingKeys=taMesesMemoria(mem);
+  var changedKind=!!(mem.kind&&mem.kind!==importKind&&existingKeys.length);
+  if(changedKind)mem=taCrearMemoria();
+  mem.kind=importKind;
+  var anadidos=0,sustituidos=0,mesesImportados=[];
+  function markMonth(k,monthData){
+    if(!k)return;
+    if(mem.months[k])sustituidos++;else anadidos++;
+    mem.months[k]=monthData;
+    mesesImportados.push(k);
+  }
+  if(importKind==='grupo'){
+    (r.meses||[]).forEach(function(k){
+      var total=taMesVacio(),empleados=[];
+      (r.empleados||[]).forEach(function(emp){
+        var st=taStatsClone(emp.meses&&emp.meses[k]);
+        if(!taStatsTieneDatos(st))return;
+        empleados.push({key:taEmpleadoKey(emp),nomina:emp.nomina||'',nombre:emp.nombre||'',categoria:emp.categoria||'',total:st});
+        taSumaStats(total,st);
+      });
+      markMonth(k,{kind:'grupo',monthKey:k,nombre:taMesNombre(k),filename:r.filename||'',total:total,empleados:empleados,updatedAt:new Date().toISOString()});
+    });
+  }else{
+    (r.meses||[]).forEach(function(m){
+      if(!m||!m.monthKey)return;
+      markMonth(m.monthKey,{kind:'persona',monthKey:m.monthKey,nombre:taMesNombre(m.monthKey),filename:r.filename||'',persona:r.persona||'',total:taStatsClone(m),updatedAt:new Date().toISOString()});
+    });
+  }
+  if(!mesesImportados.length){
+    _taAvisoMemoria='No he detectado meses validos para guardar.';
+    return false;
+  }
+  if(!taGuardarMemoria(mem))return false;
+  _taMesSeleccionado=mesesImportados.length===1?mesesImportados[0]:'ALL';
+  _taAvisoMemoria=(changedKind?'Tipo de archivo distinto: he reiniciado la memoria del analizador. ':'')+
+    anadidos+' mes(es) añadido(s) · '+sustituidos+' mes(es) sustituido(s).';
+  return true;
+}
+function taRestaurarMemoria(){
+  var mem=taCargarMemoria();
+  var keys=taMesesMemoria(mem);
+  if(!keys.length){alert('No hay meses guardados para borrar.');return;}
+  var def=(_taMesSeleccionado&&_taMesSeleccionado!=='ALL')?taMesNombre(_taMesSeleccionado):'';
+  var msg='Escribe TODO para borrar toda la memoria.\n\nO escribe los meses que quieras borrar separados por coma.\nGuardados: '+keys.map(taMesNombre).join(', ');
+  var resp=prompt(msg,def);
+  if(resp===null)return;
+  resp=String(resp||'').trim();
+  if(!resp)return;
+  var upper=resp.toUpperCase();
+  if(upper==='TODO'||upper==='TODOS'||upper==='ALL'){
+    if(!confirm('Se borraran todos los meses guardados del analizador.'))return;
+    try{localStorage.removeItem(_TA_MEMORY_KEY);}catch(e){}
+    _taMesSeleccionado='ALL';
+    _taAvisoMemoria='';
+    taRenderDesdeMemoria();
+    return;
+  }
+  var borrados=[],fallidos=[];
+  resp.split(/[,\n;]+/).forEach(function(part){
+    var k=taNormalizarMesInput(part);
+    if(k&&mem.months[k]){delete mem.months[k];borrados.push(k);}
+    else if(String(part||'').trim())fallidos.push(String(part).trim());
+  });
+  if(!borrados.length){alert('No he encontrado esos meses guardados.');return;}
+  if(taMesesMemoria(mem).length){taGuardarMemoria(mem);}else{try{localStorage.removeItem(_TA_MEMORY_KEY);}catch(e){}}
+  _taMesSeleccionado='ALL';
+  _taAvisoMemoria='Borrado: '+borrados.map(taMesNombre).join(', ')+(fallidos.length?' · No encontrado: '+fallidos.join(', '):'');
+  taRenderDesdeMemoria();
 }
 function taHandleDrop(e){
   e.preventDefault();
@@ -5007,6 +5227,7 @@ function taAnalizarGrupoWorkbook(wb,filename){
 function taHandleFile(file){
   if(!file)return;
   _taBusquedaNombre='';
+  _taAvisoMemoria='';
   var dropTxt=document.getElementById('ta-drop-txt');
   var status=document.getElementById('ta-status');
   var result=document.getElementById('ta-result');
@@ -5019,16 +5240,18 @@ function taHandleFile(file){
       var data=new Uint8Array(ev.target.result);
       var wb=XLSX.read(data,{type:'array',cellText:true,cellStyles:true});
       var grupo=taAnalizarGrupoWorkbook(wb,file.name);
+      var parsed=null;
       if(grupo&&grupo.hojas>0&&grupo.empleados.length>0){
-        _taResultado=grupo;
+        parsed=grupo;
       }else{
         var sheet=wb.Sheets['Calendario empleado']||wb.Sheets[wb.SheetNames[0]];
         if(!sheet)throw new Error('No se encontró ninguna hoja válida');
         var leyenda=null;
         try{if(typeof _leerLeyendaTryp==='function')leyenda=_leerLeyendaTryp(wb);}catch(e){leyenda=null;}
-        _taResultado=taAnalizarSheet(sheet,file.name,leyenda);
+        parsed=taAnalizarSheet(sheet,file.name,leyenda);
       }
-      taRenderResultado(_taResultado);
+      taGuardarImportacionEnMemoria(parsed);
+      taRenderDesdeMemoria();
       if(dropTxt)dropTxt.textContent='Cargado: '+file.name;
       var input=document.getElementById('ta-file');
       if(input)input.value='';
@@ -5119,11 +5342,16 @@ function taRenderResultadoGrupo(r){
   if(!r||!result)return;
   var t=r.total;
   if(status){
-    status.innerHTML='Archivo de grupo: <b style="color:var(--white)">'+escH(r.filename||'Excel')+'</b>'+
-      '<br>'+r.empleados.length+' empleados con turno · '+(r.meses.length?r.meses.join(', '):'mes detectado')+
-      '<br>Importación independiente: no se ha guardado nada en grupos ni calendario.';
+    if(r.memory){
+      status.innerHTML='Memoria interna: <b style="color:var(--white)">'+(r.availableMonths||[]).length+' mes(es) guardado(s)</b>'+
+        '<br>Viendo: <b style="color:var(--white)">'+escH((_taMesSeleccionado==='ALL')?'Todos los meses':taMesNombre(_taMesSeleccionado))+'</b> · '+r.empleados.length+' empleados'+
+        (_taAvisoMemoria?'<br><span style="color:#4ade80">'+escH(_taAvisoMemoria)+'</span>':'');
+    }else{
+      status.innerHTML='Archivo de grupo: <b style="color:var(--white)">'+escH(r.filename||'Excel')+'</b>'+
+        '<br>'+r.empleados.length+' empleados con turno · '+(r.meses.length?r.meses.join(', '):'mes detectado');
+    }
   }
-  var html='<div class="ta-kpis">'+
+  var html=taMonthTabsHtml(r)+'<div class="ta-kpis">'+
     taRenderKpi(r.empleados.length,'Empleados','#e5e7eb')+
     taRenderKpi(t.turnos,'Turnos','#60a5fa')+
     taRenderKpi(t.partidos,'Partidos')+
@@ -5138,8 +5366,9 @@ function taRenderResultadoGrupo(r){
     taSortBar('empleados');
   r.empleados.forEach(function(emp){
     var e=emp.total;
+    var empSub=(r.memory&&_taMesSeleccionado==='ALL')?'Total '+((r.selectedMonths||[]).length)+' meses':(emp.categoria||'Grupo');
     html+='<div class="ta-emp" data-name="'+escH(taNormBuscaNombre(emp.nombre))+'">'+
-      '<div class="ta-emp-top"><div style="min-width:0"><div class="ta-emp-name">'+escH(emp.nombre||'Empleado')+'</div><div class="ta-emp-cat">'+escH(emp.categoria||'Grupo')+'</div></div><div class="ta-emp-hours">'+taFmtHoras(e.horasContadorMin)+'</div></div>'+
+      '<div class="ta-emp-top"><div style="min-width:0"><div class="ta-emp-name">'+escH(emp.nombre||'Empleado')+'</div><div class="ta-emp-cat">'+escH(empSub)+'</div></div><div class="ta-emp-hours">'+taFmtHoras(e.horasContadorMin)+'</div></div>'+
       '<div class="ta-mini-grid">'+
         '<div class="ta-mini"><b>'+e.turnos+'</b><span>Turnos</span></div>'+
         '<div class="ta-mini"><b>'+e.partidos+'</b><span>Partidos</span></div>'+
@@ -5161,11 +5390,16 @@ function taRenderResultado(r){
   if(!r||!result)return;
   var t=r.total;
   if(status){
-    status.innerHTML='Archivo: <b style="color:var(--white)">'+escH(r.filename||'Excel')+'</b>'+
-      (r.persona?' · Empleado: <b style="color:var(--white)">'+escH(r.persona)+'</b>':'')+
-      '<br>Importación independiente: no se ha guardado nada en tu calendario.';
+    if(r.memory){
+      status.innerHTML='Memoria interna: <b style="color:var(--white)">'+(r.availableMonths||[]).length+' mes(es) guardado(s)</b>'+
+        '<br>Viendo: <b style="color:var(--white)">'+escH((_taMesSeleccionado==='ALL')?'Todos los meses':taMesNombre(_taMesSeleccionado))+'</b>'+
+        (_taAvisoMemoria?'<br><span style="color:#4ade80">'+escH(_taAvisoMemoria)+'</span>':'');
+    }else{
+      status.innerHTML='Archivo: <b style="color:var(--white)">'+escH(r.filename||'Excel')+'</b>'+
+        (r.persona?' · Empleado: <b style="color:var(--white)">'+escH(r.persona)+'</b>':'');
+    }
   }
-  var html='<div class="ta-kpis">'+
+  var html=taMonthTabsHtml(r)+'<div class="ta-kpis">'+
     taRenderKpi(t.turnos,'Turnos','#60a5fa')+
     taRenderKpi(t.partidos,'Partidos')+
     taRenderKpi(t.madrugas,'Madrugues <=06','#fbbf24')+
@@ -6370,11 +6604,29 @@ function procesarGrupoXlsx(file){
         }
       }
 
-      // Merge: flat map by nomina — month-independent, category-aware
+      // Merge: flat map by nomina — si el mes ya existe, se sustituye completo.
       var nominaMap={};
       var _rawMap=localStorage.getItem(_GRUPO_KEY+'_map');
       try{nominaMap=JSON.parse(_rawMap||'{}')}catch(ex){}
       _fusionarDuplicadosGrupoSilencioso(nominaMap);
+
+      var mesYaExistia=false,empleadosLimpiados=0;
+      Object.keys(nominaMap).forEach(function(k){
+        var empOld=nominaMap[k]||{};
+        var mesesOld=empOld.meses||{};
+        if(Object.prototype.hasOwnProperty.call(mesesOld,monthKey)){
+          mesYaExistia=true;
+          delete mesesOld[monthKey];
+          empleadosLimpiados++;
+        }
+        empOld.meses=mesesOld;
+        if(Object.keys(mesesOld).length){
+          nominaMap[k]=empOld;
+        }else{
+          delete nominaMap[k];
+        }
+      });
+
       var _porNombreExistente={};
       Object.keys(nominaMap).forEach(function(k){_porNombreExistente[_normNombreGrupo(nominaMap[k].nombre)]=k;});
       var added=0,updated=0;
@@ -6388,7 +6640,7 @@ function procesarGrupoXlsx(file){
         // Store month data under the detected month key
         var prev=nominaMap[key]||{};
         var meses=prev.meses||{};
-        meses[monthKey]=_mergeDiasGrupoPreferirHoras(meses[monthKey]||{},emp.dias);
+        meses[monthKey]=meses[monthKey]?_mergeDiasGrupoPreferirHoras(meses[monthKey],emp.dias):(emp.dias||{});
         nominaMap[key]={
           nomina:key,
           nombre:emp.nombre,
@@ -6408,13 +6660,14 @@ function procesarGrupoXlsx(file){
       if(hint&&txt){
         hint.style.display='block';txt.style.color='#4ade80';txt.style.fontSize='11px';
         var diasDetectados=Object.keys(dayColMap).length;
-        txt.textContent='✅ '+etiqueta+': +'+added+' nuevos, '+updated+' actualizados · '+total+' total · '+diasDetectados+' días detectados';
+        txt.textContent='✅ '+etiqueta+': '+monthKey+(mesYaExistia?' sustituido':' añadido')+' · +'+added+' nuevos, '+updated+' actualizados · '+total+' total · '+diasDetectados+' días detectados';
+        if(mesYaExistia)txt.textContent+=' · se borró el '+monthKey+' anterior ('+empleadosLimpiados+' empleados)';
         if(diasDetectados<28){
           txt.style.color='#fbbf24';
           txt.textContent+=' ⚠️ faltan columnas de días en el Excel/importación';
         }
       }
-      if(typeof logActividad==='function')logActividad('importar_companeros',etiqueta+': +'+added+' nuevos, '+updated+' actualizados');
+      if(typeof logActividad==='function')logActividad('importar_companeros',etiqueta+' '+monthKey+(mesYaExistia?' sustituido':' añadido')+': +'+added+' nuevos, '+updated+' actualizados');
       var hp=document.getElementById('hp-modal');
       if(hp&&hp.classList.contains('show')&&typeof calcularHorasPlantilla==='function'){
         _hpData=calcularHorasPlantilla(new Date().getFullYear());
