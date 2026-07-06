@@ -7149,7 +7149,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
         if(_trabOvn&&(modoToda||turnosSeSuperponen(myE1,myS1,myE2,myS2,0,Math.max(yS1||0,yS2||0)+1,null,null))){
           var alreadyIn=coinciden.some(function(c){return c.nombre===emp.nombre&&c.nocheDiaFin;});
           if(!alreadyIn){
-            var hAyer=turnoAyer.e1+'→'+turnoAyer.s1+(turnoAyer.e2&&turnoAyer.s2?' / '+turnoAyer.e2+'→'+turnoAyer.s2:'');
+            var hAyer='00:00→'+_tlFmtMin(Math.max(yS1||0,yS2||0));
             coinciden.push({nombre:emp.nombre,horario:hAyer,e1:0,s1:Math.max(yS1||0,yS2||0),e2:null,s2:null,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:(esDiaActual&&nowMinReal<Math.max(yS1||0,yS2||0)),overnight:true,futuraNoche:false,nocheReal:true,nocheDiaFin:true,origenDia:'ayer'});
           }
         }
@@ -7393,7 +7393,7 @@ function _buildCompanerosTimelineData(offsetDias){
         if(_trabOvn&&(modoToda||turnosSeSuperponen(myE1,myS1,myE2,myS2,0,_finCruceAyer+1,null,null))){
           var alreadyIn=coinciden.some(function(c){return c.nombre===emp.nombre&&c.nocheDiaFin;});
           if(!alreadyIn){
-            var hAyer=turnoAyer.e1+'→'+turnoAyer.s1+(turnoAyer.e2&&turnoAyer.s2?' / '+turnoAyer.e2+'→'+turnoAyer.s2:'');
+            var hAyer='00:00→'+_tlFmtMin(_finCruceAyer);
             coinciden.push({nombre:emp.nombre,horario:hAyer,e1:0,s1:_finCruceAyer,e2:null,s2:null,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:(esDiaActual&&nowMinReal<_finCruceAyer),overnight:true,futuraNoche:false,nocheReal:_nocheRealAyer,nocheDiaFin:true,origenDia:'ayer'});
           }
         }
@@ -7703,25 +7703,24 @@ function _tlAsignarPistasVuelos(llegadas){
   return llegadas;
 }
 
-// Ajusta el ALTO del carril según cuántas pistas hacen falta para los
-// vuelos que se solapan con la ventana visible AHORA MISMO al hacer scroll
-// horizontal (no según el total del día).
+function _tlAltoCarrilVuelos(lista){
+  if(!window._tlMostrarLlegadas)return 18;
+  if(!lista||!lista.length)return PISTA_LLEGADA_H;
+  var maxPista=0;
+  lista.forEach(function(v){
+    if((v.pista||0)>maxPista)maxPista=v.pista||0;
+  });
+  return (maxPista+1)*PISTA_LLEGADA_H;
+}
+
+// Ajusta el ALTO del carril según todas las pistas que hacen falta en el
+// día completo. Si se calcula solo con la ventana visible, al hacer scroll
+// o al cargar con muchos vuelos en la misma franja algunos quedaban pisados.
 function actualizarAlturaVuelosCompaneros(){
   var row=document.getElementById('grupoTlVuelosRow');
   var label=document.getElementById('grupoTlVuelosLabel');
   if(!row||!label)return;
-  if(!window._tlMostrarLlegadas){row.style.height='18px';label.style.height='18px';return;}
-  var lista=window._tlLlegadasConPistaActual||[];
-  if(!lista.length){row.style.height=PISTA_LLEGADA_H+'px';label.style.height=PISTA_LLEGADA_H+'px';return;}
-  var sc=document.getElementById('grupo-tl-scroll');
-  if(!sc)return;
-  var visStart=(sc.scrollLeft/TL_GRID_W_VUELOS)*1440;
-  var visEnd=((sc.scrollLeft+sc.clientWidth)/TL_GRID_W_VUELOS)*1440;
-  var maxPista=0;
-  lista.forEach(function(v){
-    if(v.start<visEnd&&v.end>visStart&&v.pista>maxPista)maxPista=v.pista;
-  });
-  var alto=(maxPista+1)*PISTA_LLEGADA_H;
+  var alto=_tlAltoCarrilVuelos(window._tlLlegadasConPistaActual||[]);
   row.style.height=alto+'px';
   label.style.height=alto+'px';
 }
@@ -7768,8 +7767,8 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   // panel (nombres, filas, navegación, el propio botón de abrir/cerrar
   // Llegadas) tiene que seguir funcionando igual.
   var llegadasConPista=[];
-  var vuelosLabelHtml='<div class="grupo-tl-vuelos-label'+(window._tlMostrarLlegadas?'':' collapsed')+'" id="grupoTlVuelosLabel" onclick="toggleLlegadasTimeline()"><span class="chev">▾</span> ✈️ Llegadas</div>';
-  var vuelosRowHtml='<div class="grupo-tl-vuelos-row" id="grupoTlVuelosRow" style="width:'+GRID_W+'px">';
+  var vuelosLabelHtml='';
+  var vuelosRowHtml='';
   try{
     if(offsetDias===0||offsetDias===1){
       var combinado=_tlLlegadasDelDia(offsetDias).concat(_tlSalidasTempranasDelDia(offsetDias));
@@ -7808,7 +7807,9 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   }catch(_eVuelos){
     console.error('Error pintando el carril de llegadas (no debería bloquear el resto):',_eVuelos);
   }
-  vuelosRowHtml+='</div>';
+  var altoVuelos=_tlAltoCarrilVuelos(llegadasConPista);
+  vuelosLabelHtml='<div class="grupo-tl-vuelos-label'+(window._tlMostrarLlegadas?'':' collapsed')+'" id="grupoTlVuelosLabel" style="height:'+altoVuelos+'px" onclick="toggleLlegadasTimeline()"><span class="chev">▾</span> ✈️ Llegadas</div>';
+  vuelosRowHtml='<div class="grupo-tl-vuelos-row" id="grupoTlVuelosRow" style="width:'+GRID_W+'px;height:'+altoVuelos+'px">'+vuelosRowHtml+'</div>';
 
   var namesHtml='<div class="grupo-tl-spacer"></div>'+vuelosLabelHtml;
   var rowsHtml='';
