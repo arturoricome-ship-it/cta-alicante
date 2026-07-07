@@ -639,17 +639,22 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #grupo-timeline::-webkit-scrollbar-track{background:transparent}
 #grupo-timeline::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
 .grupo-tl-hint{font-size:9.5px;color:var(--gray);text-align:center;margin:0 0 8px}
-.grupo-tl-body{display:flex;align-items:flex-start;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
-.grupo-tl-names{flex:0 0 96px;border-right:1px solid var(--border)}
-.grupo-tl-names .grupo-tl-spacer{height:28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:3}
+.grupo-tl-body{--tl-name-w:96px;position:relative;border:1px solid var(--border);border-radius:12px;overflow:visible;background:var(--card)}
+.grupo-tl-sticky-head{position:sticky;top:0;z-index:12;display:flex;align-items:flex-start;background:var(--card);box-shadow:0 5px 12px rgba(0,0,0,.18)}
+.grupo-tl-head-left{flex:0 0 var(--tl-name-w);width:var(--tl-name-w);min-width:var(--tl-name-w);max-width:var(--tl-name-w);box-sizing:border-box;border-right:1px solid var(--border);background:var(--card)}
+.grupo-tl-head-scroll{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.grupo-tl-head-scroll::-webkit-scrollbar{display:none}
+.grupo-tl-rows-wrap{display:flex;align-items:flex-start}
+.grupo-tl-names{flex:0 0 var(--tl-name-w);width:var(--tl-name-w);min-width:var(--tl-name-w);max-width:var(--tl-name-w);box-sizing:border-box;border-right:1px solid var(--border)}
+.grupo-tl-spacer{height:28px;border-bottom:1px solid var(--border);background:var(--card)}
 .grupo-tl-name{height:40px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;padding:0 8px;border-bottom:1px solid rgba(255,255,255,.05);overflow:hidden}
 .grupo-tl-name .nm{font-size:11px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .grupo-tl-name .sch{font-size:8px;font-weight:500;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .grupo-tl-name.is-active{background:rgba(110,231,183,.12);color:#a7f3d0}
 .grupo-tl-name.is-active .sch{color:#a7f3d0;opacity:.75}
-.grupo-tl-scroll{flex:1;overflow-x:auto}
+.grupo-tl-scroll{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden}
 .grupo-tl-grid{position:relative;width:max-content;border-right:1px solid rgba(255,255,255,.05)}
-.grupo-tl-header{display:flex;height:28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:2}
+.grupo-tl-header{display:flex;height:28px;border-bottom:1px solid var(--border);background:var(--card)}
 .grupo-tl-header .grupo-tl-hr{width:64px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:9.5px;color:var(--gray);font-weight:600;border-right:1px solid rgba(255,255,255,.05)}
 .grupo-tl-row{height:40px;position:relative;border-bottom:1px solid rgba(255,255,255,.05);background-image:repeating-linear-gradient(to right, transparent 0, transparent 31px, rgba(255,255,255,.04) 31px, rgba(255,255,255,.04) 32px),repeating-linear-gradient(to right, transparent 0, transparent 63px, rgba(255,255,255,.09) 63px, rgba(255,255,255,.09) 64px)}
 .grupo-tl-cat-sep{height:20px;display:flex;align-items:center;padding:0 8px;font-size:8.5px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;border-top:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.015)}
@@ -665,15 +670,20 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-tl-bar.is-you{background:rgba(200,168,75,.2);border-color:rgba(200,168,75,.5);color:var(--gold)}
 .grupo-tl-bar.fade-left::before{content:'‹';position:absolute;left:1px;opacity:.55;font-size:11px;font-weight:900}
 .grupo-tl-bar.fade-right::after{content:'›';position:absolute;right:1px;opacity:.55;font-size:11px;font-weight:900}
-.grupo-tl-now{position:absolute;top:28px;bottom:0;width:0;border-left:2px dashed #ef4444;z-index:4;box-shadow:0 0 4px rgba(239,68,68,.35)}
-.grupo-tl-now-dot{position:absolute;top:28px;width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px #ef4444;transform:translate(-50%,-50%);z-index:6}
-.grupo-tl-now-lbl{position:absolute;top:5px;transform:translateX(-50%);background:#ef4444;color:#1a0a05;font-size:9px;font-weight:800;padding:1px 6px;border-radius:6px;white-space:nowrap;z-index:6;box-shadow:0 0 4px rgba(239,68,68,.5)}
+.grupo-tl-now{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed #ef4444;z-index:4;box-shadow:0 0 4px rgba(239,68,68,.35)}
+.grupo-tl-now-dot{position:absolute;top:0;width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 6px #ef4444;transform:translate(-50%,-50%);z-index:6}
+.grupo-tl-now-lbl{position:absolute;top:5px;transform:translateX(-50%);background:#ef4444;color:#1a0a05;font-size:9px;font-weight:900;min-width:38px;height:18px;padding:0 7px;border-radius:999px;white-space:nowrap;z-index:30;box-shadow:0 0 4px rgba(239,68,68,.5);display:inline-flex;align-items:center;justify-content:center;line-height:18px;box-sizing:border-box}
+.grupo-tl-now-overlay{position:absolute;top:0;bottom:0;left:0;width:0;z-index:20;pointer-events:none;overflow:visible}
+.grupo-tl-now-overlay .grupo-tl-now,.grupo-tl-now-overlay .grupo-tl-now-dot,.grupo-tl-now-overlay .grupo-tl-now-lbl{left:0}
+.grupo-tl-now-overlay .grupo-tl-now{top:28px;bottom:0}
+.grupo-tl-now-overlay .grupo-tl-now-dot{top:28px}
+.grupo-tl-now-overlay .grupo-tl-now-lbl{position:sticky;top:5px}
 
 /* ─── Carril de llegadas (✈️) dentro de la vista por horas ─────────── */
-.grupo-tl-vuelos-label{display:flex;align-items:center;gap:5px;padding:0 8px;font-size:9.5px;color:#93c5fd;font-weight:700;letter-spacing:.3px;border-bottom:2px solid rgba(255,255,255,.08);background:rgba(96,165,250,.06);cursor:pointer;user-select:none}
+.grupo-tl-vuelos-label{display:flex;align-items:center;gap:5px;padding:0 8px;font-size:9.5px;color:#93c5fd;font-weight:700;letter-spacing:.3px;border-bottom:2px solid rgba(255,255,255,.08);background:#17263d;cursor:pointer;user-select:none}
 .grupo-tl-vuelos-label .chev{font-size:8px;opacity:.8;transition:transform .15s ease;display:inline-block}
 .grupo-tl-vuelos-label.collapsed .chev{transform:rotate(-90deg)}
-.grupo-tl-vuelos-row{position:relative;border-bottom:2px solid rgba(255,255,255,.08);background-color:rgba(96,165,250,.04);background-image:repeating-linear-gradient(to right, transparent 0, transparent 31px, rgba(255,255,255,.04) 31px, rgba(255,255,255,.04) 32px),repeating-linear-gradient(to right, transparent 0, transparent 63px, rgba(255,255,255,.09) 63px, rgba(255,255,255,.09) 64px)}
+.grupo-tl-vuelos-row{position:relative;border-bottom:2px solid rgba(255,255,255,.08);background-color:#16263d;background-image:repeating-linear-gradient(to right, transparent 0, transparent 31px, rgba(255,255,255,.04) 31px, rgba(255,255,255,.04) 32px),repeating-linear-gradient(to right, transparent 0, transparent 63px, rgba(255,255,255,.09) 63px, rgba(255,255,255,.09) 64px)}
 .grupo-tl-vuelo-bar{position:absolute;border-radius:4px;background:rgba(96,165,250,.24);border:1px solid rgba(96,165,250,.6);color:#bfdbfe;font-size:9.5px;font-weight:800;letter-spacing:.2px;display:flex;align-items:center;justify-content:center;clip-path:inset(0 round 4px);padding:0;cursor:pointer;min-width:34px}
 .grupo-tl-vuelo-bar:active{transform:scale(.95)}
 .grupo-tl-vuelo-bar>.lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -8316,6 +8326,7 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   var _yaEstabaVisible=wrap.classList.contains('open');
   var _scPrevio=document.getElementById('grupo-tl-scroll');
   var _scrollLeftPrevio=(_yaEstabaVisible&&_scPrevio)?_scPrevio.scrollLeft:null;
+  var _scrollTopPrevio=_yaEstabaVisible?wrap.scrollTop:null;
 
   var navHtml='<div class="grupo-nav"><button class="grupo-nav-btn" onclick="moverCompanerosDia(-1)">← Día anterior</button><div class="grupo-nav-date">'+formateaFechaGrupo(new Date(),offsetDias)+'</div><button class="grupo-nav-btn" onclick="moverCompanerosDia(1)">Día siguiente →</button></div>';
 
@@ -8328,6 +8339,18 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   var esDiaActual=data.esDiaActual;
   var nowMin=(function(){var n=new Date();return n.getHours()*60+n.getMinutes();})();
   var CELL=32,GRID_W=CELL*48;
+  var nameColW=(function(){
+    var nombres=['Llegadas','Tú'].concat(coinciden.map(function(c){return c.nombre||'';}));
+    var max=0;
+    try{
+      var canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+      ctx.font='600 11px Outfit, sans-serif';
+      nombres.forEach(function(n){max=Math.max(max,ctx.measureText(String(n||'')).width);});
+    }catch(e){
+      nombres.forEach(function(n){max=Math.max(max,String(n||'').length*7);});
+    }
+    return Math.max(96,Math.min(280,Math.ceil(max)+24));
+  })();
 
   var headerHtml='';
   for(var h=0;h<24;h++){headerHtml+='<div class="grupo-tl-hr">'+(h<10?'0':'')+h+'</div>';}
@@ -8386,7 +8409,8 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   vuelosLabelHtml='<div class="grupo-tl-vuelos-label'+(window._tlMostrarLlegadas?'':' collapsed')+'" id="grupoTlVuelosLabel" style="height:'+altoVuelos+'px" onclick="toggleLlegadasTimeline()"><span class="chev">▾</span> ✈️ Llegadas</div>';
   vuelosRowHtml='<div class="grupo-tl-vuelos-row" id="grupoTlVuelosRow" style="width:'+GRID_W+'px;height:'+altoVuelos+'px">'+vuelosRowHtml+'</div>';
 
-  var namesHtml='<div class="grupo-tl-spacer"></div>'+vuelosLabelHtml;
+  var headNamesHtml='<div class="grupo-tl-spacer"></div>'+vuelosLabelHtml;
+  var namesHtml='';
   var rowsHtml='';
   if(data.myDay&&data.myDay.e1){
     var myE1=toMinG(data.myDay.e1),myS1=toMinG(data.myDay.s1);
@@ -8428,32 +8452,43 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
     });
   });
 
-  var nowLineHtml='';
+  var nowOverlayHtml='';
   if(esDiaActual){
     var leftPx=Math.round((nowMin/1440)*GRID_W);
-    nowLineHtml='<div class="grupo-tl-now" id="grupoTlNowLine" style="left:'+leftPx+'px"></div><div class="grupo-tl-now-dot" id="grupoTlNowDot" style="left:'+leftPx+'px"></div><div class="grupo-tl-now-lbl" id="grupoTlNowLbl" style="left:'+leftPx+'px">'+_tlFmtMin(nowMin)+'</div>';
+    nowOverlayHtml='<div class="grupo-tl-now-overlay" id="grupoTlNowOverlay" style="left:'+(nameColW+leftPx)+'px"><div class="grupo-tl-now" id="grupoTlNowLine"></div><div class="grupo-tl-now-dot" id="grupoTlNowDot"></div><div class="grupo-tl-now-lbl" id="grupoTlNowLbl">'+_tlFmtMin(nowMin)+'</div></div>';
   }
 
   var html=navHtml
     +'<div class="grupo-title">👥 '+(data.modoToda?'Toda la plantilla':'Coincidencias')+' · '+coinciden.length+'</div>'
     +'<div class="grupo-tl-hint">👉 Desliza para ver las 24h'+(esDiaActual?' · línea roja = ahora':'')+'</div>'
-    +'<div class="grupo-tl-body">'
-      +'<div class="grupo-tl-names">'+namesHtml+'</div>'
-      +'<div class="grupo-tl-scroll" id="grupo-tl-scroll">'
-        +'<div class="grupo-tl-grid" style="width:'+GRID_W+'px">'
+    +'<div class="grupo-tl-body" style="--tl-name-w:'+nameColW+'px">'
+      +'<div class="grupo-tl-sticky-head">'
+        +'<div class="grupo-tl-head-left">'+headNamesHtml+'</div>'
+        +'<div class="grupo-tl-head-scroll" id="grupo-tl-head-scroll">'
+          +'<div class="grupo-tl-grid" style="width:'+GRID_W+'px">'
           +'<div class="grupo-tl-header" style="width:'+GRID_W+'px">'+headerHtml+'</div>'
           +vuelosRowHtml
-          +'<div style="width:'+GRID_W+'px">'+rowsHtml+'</div>'
-          +nowLineHtml
+          +'</div>'
         +'</div>'
       +'</div>'
+      +'<div class="grupo-tl-rows-wrap">'
+        +'<div class="grupo-tl-names">'+namesHtml+'</div>'
+        +'<div class="grupo-tl-scroll" id="grupo-tl-scroll">'
+          +'<div class="grupo-tl-grid" style="width:'+GRID_W+'px">'
+            +'<div style="width:'+GRID_W+'px">'+rowsHtml+'</div>'
+          +'</div>'
+        +'</div>'
+      +'</div>'
+      +nowOverlayHtml
     +'</div>';
 
   wrap.innerHTML=html+'<div style="height:16px"></div>';
   wrap.classList.add('open');
+  if(_scrollTopPrevio!==null)wrap.scrollTop=_scrollTopPrevio;
 
-  setTimeout(function(){
+  function _tlAfterRender(){
     var sc=document.getElementById('grupo-tl-scroll');
+    var headSc=document.getElementById('grupo-tl-head-scroll');
     if(!sc)return;
     if(_scrollLeftPrevio!==null){
       sc.scrollLeft=_scrollLeftPrevio; // ya estaba VISIBLE de verdad: no recentramos, solo se actualizan los datos
@@ -8461,9 +8496,32 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
       var targetMin=esDiaActual?nowMin:360;
       sc.scrollLeft=Math.max(0,(targetMin/1440)*GRID_W-sc.clientWidth/2);
     }
+    if(headSc)headSc.scrollLeft=sc.scrollLeft;
+    if(headSc){
+      var syncing=false;
+      sc.addEventListener('scroll',function(){
+        if(syncing)return;
+        syncing=true;
+        headSc.scrollLeft=sc.scrollLeft;
+        _tlActualizarLineaAhora();
+        syncing=false;
+      });
+      headSc.addEventListener('scroll',function(){
+        if(syncing)return;
+        syncing=true;
+        sc.scrollLeft=headSc.scrollLeft;
+        _tlActualizarLineaAhora();
+        syncing=false;
+      });
+    }
     sc.addEventListener('scroll',actualizarAlturaVuelosCompaneros);
+    wrap.onscroll=_tlActualizarLineaAhora;
     actualizarAlturaVuelosCompaneros();
-  },0);
+    _tlActualizarLineaAhora();
+    if(_scrollTopPrevio!==null)wrap.scrollTop=_scrollTopPrevio;
+  }
+  _tlAfterRender();
+  requestAnimationFrame(function(){actualizarAlturaVuelosCompaneros();_tlActualizarLineaAhora();if(_scrollTopPrevio!==null)wrap.scrollTop=_scrollTopPrevio;});
 }
 
 // La línea roja se movía antes solo dentro del repintado completo cada
@@ -8473,14 +8531,15 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
 // parpadeo), y el repintado completo (que sí actualiza activo/pasado,
 // huecos de descanso y datos nuevos) pasa a cada 2 minutos en vez de 30s.
 function _tlActualizarLineaAhora(){
-  var linea=document.getElementById('grupoTlNowLine'),dot=document.getElementById('grupoTlNowDot'),lbl=document.getElementById('grupoTlNowLbl');
-  if(!linea||!dot||!lbl)return; // el timeline no está abierto en el día de hoy: nada que mover
+  var overlay=document.getElementById('grupoTlNowOverlay'),lbl=document.getElementById('grupoTlNowLbl'),sc=document.getElementById('grupo-tl-scroll'),body=document.querySelector('#grupo-timeline .grupo-tl-body');
+  if(!overlay||!lbl||!sc||!body)return; // el timeline no está abierto en el día de hoy: nada que mover
   var nowMin=(function(){var n=new Date();return n.getHours()*60+n.getMinutes();})();
   var GRID_W=32*48;
   var leftPx=Math.round((nowMin/1440)*GRID_W);
-  linea.style.left=leftPx+'px';
-  dot.style.left=leftPx+'px';
-  lbl.style.left=leftPx+'px';
+  var nameColW=parseFloat(getComputedStyle(body).getPropertyValue('--tl-name-w'))||96;
+  var visibleLeft=nameColW+leftPx-sc.scrollLeft;
+  overlay.style.left=visibleLeft+'px';
+  overlay.style.display=(visibleLeft>=nameColW&&visibleLeft<=body.clientWidth)?'block':'none';
   lbl.textContent=_tlFmtMin(nowMin);
 }
 setInterval(_tlActualizarLineaAhora,15000);
