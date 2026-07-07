@@ -2429,6 +2429,7 @@ function _hpFmtHoras(h){
   totalMin=Math.abs(totalMin);
   var horas=Math.floor(totalMin/60);
   var mins=totalMin%60;
+  if(mins===0)return sign+horas+'h';
   return sign+horas+','+String(mins).padStart(2,'0')+'min';
 }
 function _hpMonthNames(){
@@ -2503,7 +2504,7 @@ function _hpFmtDelta(h){
   h=Number(h)||0;
   if(h>0)return '+'+_hpFmtHoras(h);
   if(h<0)return _hpFmtHoras(h);
-  return '0,00min';
+  return '0h';
 }
 function toggleOrdenHorasPlantilla(){
   _hpOrdenHorasDesc=!_hpOrdenHorasDesc;
