@@ -266,6 +266,23 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .hp-day-l{font-size:9px;color:var(--gray);white-space:nowrap}
 .hp-day-r{font-size:9.5px;color:#e9e4f5;font-weight:800;text-align:right}
 .hp-day-r small{display:block;font-size:8px;color:#60a5fa;font-weight:700;margin-top:1px}
+.hp-name-btn{display:block;background:none;border:0;padding:0;margin:0;text-align:left;font-family:"Outfit",sans-serif;cursor:pointer}
+.hp-name-btn .hp-name{text-decoration:underline dotted rgba(200,168,75,.55);text-underline-offset:3px}
+.hp-name-btn:active .hp-name{color:var(--gold)}
+.hp-cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:9px 0 4px}
+.hp-cal-dow{text-align:center;font-size:8px;color:var(--gray);font-weight:800;letter-spacing:.35px}
+.hp-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.hp-cal-day{min-height:58px;border-radius:8px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.035);padding:5px 3px;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.hp-cal-day.empty{background:transparent;border-color:transparent}
+.hp-cal-day.work{background:rgba(59,130,246,.13);border-color:rgba(96,165,250,.24)}
+.hp-cal-day.zero{opacity:.62}
+.hp-cal-day.missing{opacity:.42;background:rgba(239,68,68,.035);border-color:rgba(239,68,68,.12)}
+.hp-cal-day.change{box-shadow:inset 0 -2px 0 rgba(200,168,75,.9)}
+.hp-cal-day.today{outline:2px solid rgba(200,168,75,.85);outline-offset:-2px}
+.hp-cal-num{font-size:11px;font-weight:900;color:#e9e4f5;line-height:1}
+.hp-cal-time{font-size:7.5px;color:#93c5fd;font-weight:800;line-height:1.15;word-break:break-word}
+.hp-cal-hours{font-size:7px;color:var(--gold);font-weight:800;line-height:1}
+.hp-cal-note{font-size:7px;color:#fbbf24;font-weight:800;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hp-empty{font-size:12px;color:var(--gray);text-align:center;padding:28px 12px;line-height:1.6}
 #cta-secret-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:704;backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:22px}
 #cta-secret-bg.show{display:flex}
@@ -2723,9 +2740,10 @@ function renderHorasPlantillaLista(){
     return;
   }
   rows.forEach(function(r){
+    var rowIdx=data.rows.indexOf(r);
     html+='<div class="hp-emp">'
       +'<div class="hp-emp-top">'
-        +'<div><div class="hp-name">'+escH(r.nombre)+'</div><div class="hp-cat">'+escH(r.categoria||'General')+'</div>'+(r.cambios?'<div class="hp-badge">'+r.cambios+' cambio'+(r.cambios===1?'':'s')+' aplicado'+(r.cambios===1?'':'s')+'</div>':'')+'</div>'
+        +'<div><button class="hp-name-btn" onclick="renderHorasPlantillaCalendario('+rowIdx+')"><div class="hp-name">'+escH(r.nombre)+'</div></button><div class="hp-cat">'+escH(r.categoria||'General')+'</div>'+(r.cambios?'<div class="hp-badge">'+r.cambios+' cambio'+(r.cambios===1?'':'s')+' aplicado'+(r.cambios===1?'':'s')+'</div>':'')+'</div>'
         +'<div class="hp-total"><div class="hp-total-v">'+_hpFmtHoras(r.horas)+'</div><div class="hp-total-l">Mes</div></div>'
       +'</div><div class="hp-weeks">';
     data.weeks.forEach(function(w){
@@ -2742,6 +2760,57 @@ function renderHorasPlantillaLista(){
     html+='</div></details></div>';
   });
   body.innerHTML=html;
+}
+function renderHorasPlantillaCalendario(rowIdx){
+  var body=document.getElementById('hp-body'),sub=document.getElementById('hp-sub'),search=document.getElementById('hp-search');
+  var data=_hpData;
+  if(!body||!data||!data.rows||!data.rows[rowIdx])return;
+  var r=data.rows[rowIdx];
+  if(search)search.setAttribute('oninput','renderHorasPlantillaLista()');
+  if(sub)sub.textContent='Calendario de '+(r.nombre||'Empleado')+' · '+data.monthLabel;
+  var lastDay=new Date(data.year,data.monthIdx+1,0).getDate();
+  var dias=r.dias||[];
+  var contados=dias.filter(function(x){return x.horas>0;}).length;
+  var hoy=new Date();
+  var esMesActual=hoy.getFullYear()===data.year&&hoy.getMonth()===data.monthIdx;
+  var primer=new Date(data.year,data.monthIdx,1).getDay();
+  var offset=primer===0?6:primer-1;
+  var html='<button class="hp-back" onclick="renderHorasPlantillaLista()">← Volver a empleados</button>'
+    +'<div class="hp-emp">'
+      +'<div class="hp-emp-top">'
+        +'<div><div class="hp-name">'+escH(r.nombre||'Empleado')+'</div><div class="hp-cat">'+escH(r.categoria||'General')+'</div></div>'
+        +'<div class="hp-total"><div class="hp-total-v">'+_hpFmtHoras(r.horas||0)+'</div><div class="hp-total-l">Mes</div></div>'
+      +'</div>'
+      +'<div class="hp-summary" style="margin-bottom:0">'
+        +'<div class="hp-kpi"><div class="hp-kpi-v">'+contados+'</div><div class="hp-kpi-l">Días con horas</div></div>'
+        +'<div class="hp-kpi"><div class="hp-kpi-v">'+(r.cambios||0)+'</div><div class="hp-kpi-l">Cambios</div></div>'
+        +'<div class="hp-kpi"><div class="hp-kpi-v">'+data.monthLabel.split(' ')[0]+'</div><div class="hp-kpi-l">'+data.year+'</div></div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="hp-cal-head">';
+  ['L','M','X','J','V','S','D'].forEach(function(d){html+='<div class="hp-cal-dow">'+d+'</div>';});
+  html+='</div><div class="hp-cal-grid">';
+  for(var i=0;i<offset;i++)html+='<div class="hp-cal-day empty"></div>';
+  for(var d=1;d<=lastDay;d++){
+    var dia=dias[d-1]||{dia:d,horas:0,horario:'Sin dato',missing:true};
+    var cls='hp-cal-day';
+    if(dia.horas>0)cls+=' work';
+    else if(dia.missing)cls+=' missing';
+    else cls+=' zero';
+    if(dia.cambio)cls+=' change';
+    if(esMesActual&&d===hoy.getDate())cls+=' today';
+    var horario=dia.horario||'Sin dato';
+    var horarioHtml=escH(horario).replace(/\s\/\s/g,'<br>');
+    html+='<div class="'+cls+'">'
+      +'<div class="hp-cal-num">'+d+'</div>'
+      +'<div class="hp-cal-time">'+horarioHtml+'</div>'
+      +(dia.horas>0?'<div class="hp-cal-hours">'+_hpFmtHoras(dia.horas)+'</div>':'')
+      +(dia.cambio?'<div class="hp-cal-note">'+escH(dia.etiqueta||'Cambio')+'</div>':'')
+      +'</div>';
+  }
+  html+='</div><div class="hp-empty" style="padding:12px 4px 0">Los días con línea dorada tienen cambios aplicados. El borde dorado marca hoy.</div>';
+  body.innerHTML=html;
+  body.scrollTop=0;
 }
 function renderHorasPlantillaCambios(){
   var body=document.getElementById('hp-body'),sub=document.getElementById('hp-sub'),search=document.getElementById('hp-search');
