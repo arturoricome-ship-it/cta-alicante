@@ -2424,8 +2424,12 @@ function registrarGestoRapidoPlantilla(){
 document.addEventListener('DOMContentLoaded',registrarGestoRapidoPlantilla);
 setTimeout(registrarGestoRapidoPlantilla,300);
 function _hpFmtHoras(h){
-  h=Math.round((Number(h)||0)*10)/10;
-  return String(h).replace(/\.0$/,'')+'h';
+  var totalMin=Math.round((Number(h)||0)*60);
+  var sign=totalMin<0?'-':'';
+  totalMin=Math.abs(totalMin);
+  var horas=Math.floor(totalMin/60);
+  var mins=totalMin%60;
+  return sign+horas+','+String(mins).padStart(2,'0')+'min';
 }
 function _hpMonthNames(){
   return ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -2496,10 +2500,10 @@ function _hpTurnoHorario(turno){
   return turno.rawGrupo?('Sin horas · '+turno.rawGrupo):'Sin horas';
 }
 function _hpFmtDelta(h){
-  h=Math.round((Number(h)||0)*10)/10;
-  if(h>0)return '+'+String(h).replace(/\.0$/,'')+'h';
-  if(h<0)return String(h).replace(/\.0$/,'')+'h';
-  return '0h';
+  h=Number(h)||0;
+  if(h>0)return '+'+_hpFmtHoras(h);
+  if(h<0)return _hpFmtHoras(h);
+  return '0,00min';
 }
 function toggleOrdenHorasPlantilla(){
   _hpOrdenHorasDesc=!_hpOrdenHorasDesc;
