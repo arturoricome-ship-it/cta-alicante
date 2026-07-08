@@ -853,6 +853,10 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .ta-month-tabs::-webkit-scrollbar{display:none}
 .ta-month-tab{border:1px solid rgba(96,165,250,.28);background:rgba(96,165,250,.08);color:#bfdbfe;border-radius:999px;padding:7px 11px;font-family:'Outfit',sans-serif;font-size:10px;font-weight:900;white-space:nowrap;cursor:pointer;flex:0 0 auto}
 .ta-month-tab.active{background:rgba(200,168,75,.18);border-color:rgba(200,168,75,.48);color:var(--gold)}
+.ta-group-tabs{margin-top:-2px;margin-bottom:10px}
+.ta-group-tabs::before{content:'Filtrar grupo';flex:0 0 auto;align-self:center;font-size:8px;color:var(--gray);font-weight:900;text-transform:uppercase;letter-spacing:.45px;margin-right:2px}
+.ta-group-tab{border-color:rgba(74,222,128,.25);background:rgba(74,222,128,.07);color:#bbf7d0}
+.ta-group-tab.active{background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.45);color:#6ee7b7}
 .ta-empty-memory{border:1px solid rgba(96,165,250,.22);background:rgba(96,165,250,.07);border-radius:14px;padding:13px;color:#bfdbfe;font-size:12px;line-height:1.45;margin-top:10px}
 .op-comp-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent}
 .op-comp-card:active{transform:scale(.98)}
@@ -5083,6 +5087,7 @@ function tiToMin(t){if(!t||t.indexOf(':')<0)return null;var p=t.split(':');retur
 var _taResultado=null;
 var _taBusquedaNombre='';
 var _taMesSeleccionado='ALL';
+var _taGrupoSeleccionado='ALL';
 var _taAvisoMemoria='';
 var _taDetalleStore={};
 var _taDetalleSeq=0;
@@ -5141,6 +5146,7 @@ function taLimpiarDatos(){
   _taResultado=null;
   _taBusquedaNombre='';
   _taMesSeleccionado='ALL';
+  _taGrupoSeleccionado='ALL';
   _taAvisoMemoria='';
   var result=document.getElementById('ta-result');
   var status=document.getElementById('ta-status');
@@ -5293,6 +5299,83 @@ function taSetMesAnalizador(monthKey){
   }
   taRenderDesdeMemoria();
 }
+
+function taGrupoLabel(cat){
+  var g=String(cat||'').trim();
+  return g||'Sin grupo';
+}
+function taGroupKeysResultado(r){
+  var map={};
+  (r&&r.empleados||[]).forEach(function(emp){
+    map[taGrupoLabel(emp&&emp.categoria)]=true;
+  });
+  return Object.keys(map).sort(function(a,b){return a.localeCompare(b,'es',{sensitivity:'base'});});
+}
+function taGruposSeleccionadosArray(keys){
+  keys=keys||[];
+  if(_taGrupoSeleccionado==='ALL')return keys;
+  if(Array.isArray(_taGrupoSeleccionado)){
+    return _taGrupoSeleccionado.filter(function(k){return keys.indexOf(k)>=0;}).sort(function(a,b){return keys.indexOf(a)-keys.indexOf(b);});
+  }
+  if(_taGrupoSeleccionado&&keys.indexOf(_taGrupoSeleccionado)>=0)return[_taGrupoSeleccionado];
+  return keys;
+}
+function taTextoGruposSeleccionados(gd){
+  if(!gd||!gd.groups||gd.groups.length<=1)return '';
+  if(gd.allActive)return 'Todos los grupos';
+  if(!gd.selected.length)return 'Ningún grupo';
+  if(gd.selected.length===1)return gd.selected[0];
+  return gd.selected.join(', ');
+}
+function taAplicarFiltroGrupoResultado(r){
+  var groups=taGroupKeysResultado(r);
+  var selected=taGruposSeleccionadosArray(groups);
+  var allActive=(_taGrupoSeleccionado==='ALL')||!groups.length||selected.length===groups.length;
+  if(!selected.length){allActive=true;selected=groups;_taGrupoSeleccionado='ALL';}
+  var empleados=(r&&r.empleados||[]).filter(function(emp){
+    return allActive||selected.indexOf(taGrupoLabel(emp&&emp.categoria))>=0;
+  });
+  var total=taMesVacio();
+  empleados.forEach(function(emp){taSumaStats(total,emp.total);});
+  return{groups:groups,selected:selected,allActive:allActive,empleados:empleados,total:total};
+}
+function taGroupTabsHtml(r,gd){
+  gd=gd||taAplicarFiltroGrupoResultado(r);
+  var groups=gd.groups||[];
+  if(groups.length<=1)return '';
+  var html='<div class="ta-month-tabs ta-group-tabs">';
+  html+='<button class="ta-month-tab ta-group-tab '+(gd.allActive?'active':'')+'" onclick="taSetGrupoAnalizador(\'ALL\')">Todos</button>';
+  groups.forEach(function(g,i){
+    var active=gd.allActive||gd.selected.indexOf(g)>=0;
+    html+='<button class="ta-month-tab ta-group-tab '+(active?'active':'')+'" onclick="taSetGrupoAnalizadorIndex('+i+')">'+escH(g)+'</button>';
+  });
+  html+='</div>';
+  return html;
+}
+function taSetGrupoAnalizador(groupKey){
+  if(groupKey==='ALL'){
+    _taGrupoSeleccionado='ALL';
+  }else{
+    var keys=taGroupKeysResultado(_taResultado);
+    if(keys.indexOf(groupKey)<0){_taGrupoSeleccionado='ALL';}
+    else{
+      var sel=(_taGrupoSeleccionado==='ALL')?[]:taGruposSeleccionadosArray(keys);
+      var idx=sel.indexOf(groupKey);
+      if(idx>=0)sel.splice(idx,1);else sel.push(groupKey);
+      sel.sort(function(a,b){return keys.indexOf(a)-keys.indexOf(b);});
+      _taGrupoSeleccionado=sel.length?sel:'ALL';
+      if(sel.length===keys.length)_taGrupoSeleccionado='ALL';
+    }
+  }
+  taRenderDesdeMemoria();
+}
+function taSetGrupoAnalizadorIndex(idx){
+  var keys=taGroupKeysResultado(_taResultado);
+  var g=keys[Number(idx)];
+  if(!g)return;
+  taSetGrupoAnalizador(g);
+}
+
 function taBuildPersonaDesdeMemoria(mem){
   var keys=taSelectedMonthKeys(mem),allKeys=taMesesMemoria(mem),total=taMesVacio(),meses=[];
   keys.forEach(function(k){
@@ -5885,19 +5968,24 @@ function taRenderResultadoGrupo(r){
   var status=document.getElementById('ta-status');
   var result=document.getElementById('ta-result');
   if(!r||!result)return;
-  var t=r.total;
+  var gd=taAplicarFiltroGrupoResultado(r);
+  var t=gd.total;
+  var empleadosFiltrados=gd.empleados||[];
+  var grupoTxt=taTextoGruposSeleccionados(gd);
   if(status){
     if(r.memory){
-      status.innerHTML='Memoria interna: <b style="color:var(--white)">'+(r.availableMonths||[]).length+' mes(es) guardado(s)</b>'+
-        '<br>Viendo: <b style="color:var(--white)">'+escH(taTextoMesesSeleccionados(r))+'</b> · '+r.empleados.length+' empleados'+
+      status.innerHTML='Memoria interna: <b style="color:var(--white)">'+(r.availableMonths||[]).length+' mes(es) guardado(s)</b>'+ 
+        '<br>Viendo: <b style="color:var(--white)">'+escH(taTextoMesesSeleccionados(r))+'</b> · '+empleadosFiltrados.length+(gd.allActive?' empleados':' de '+r.empleados.length+' empleados')+
+        (grupoTxt?'<br>Grupo: <b style="color:var(--white)">'+escH(grupoTxt)+'</b>':'')+
         (_taAvisoMemoria?'<br><span style="color:#4ade80">'+escH(_taAvisoMemoria)+'</span>':'');
     }else{
-      status.innerHTML='Archivo de grupo: <b style="color:var(--white)">'+escH(r.filename||'Excel')+'</b>'+
-        '<br>'+r.empleados.length+' empleados con turno · '+(r.meses.length?r.meses.join(', '):'mes detectado');
+      status.innerHTML='Archivo de grupo: <b style="color:var(--white)">'+escH(r.filename||'Excel')+'</b>'+ 
+        '<br>'+empleadosFiltrados.length+(gd.allActive?' empleados con turno':' de '+r.empleados.length+' empleados')+' · '+(r.meses.length?r.meses.join(', '):'mes detectado')+
+        (grupoTxt?'<br>Grupo: <b style="color:var(--white)">'+escH(grupoTxt)+'</b>':'');
     }
   }
-  var html=taMonthTabsHtml(r)+'<div class="ta-kpis">'+
-    taRenderKpi(r.empleados.length,'Empleados','#e5e7eb')+
+  var html=taMonthTabsHtml(r)+taGroupTabsHtml(r,gd)+'<div class="ta-kpis">'+
+    taRenderKpi(empleadosFiltrados.length,'Empleados','#e5e7eb')+
     taRenderKpi(t.turnos,'Turnos','#60a5fa',t,'turnos','Turnos contabilizados')+
     taRenderKpi(t.partidos,'Partidos',null,t,'partidos','Turnos partidos contabilizados')+
     taRenderKpi(t.madrugas,'Madrugues <=06','#fbbf24',t,'madrugas','Madrugues contabilizados')+
@@ -5906,27 +5994,27 @@ function taRenderResultadoGrupo(r){
     taRenderKpi(taFmtHoras(t.horasContadorMin),'Horas contador','#4ade80',t,'horasContadorMin','Horas contador contabilizadas')+
     taRenderKpi(taFmtHoras(t.horasTurnoMin),'Horas totales','#93c5fd',t,'horasTurnoMin','Horas totales contabilizadas')+
   '</div>';
-  html+='<div class="ta-section-head"><div class="ta-section-title">Por empleado</div></div>'+
+  html+='<div class="ta-section-head"><div class="ta-section-title">Por empleado</div></div>'+ 
     taHorasModoHtml()+
     taSearchEmpleadoHtml()+
     taSortBar('empleados');
   var horasCampoEmp=taHorasCampoAnalizador();
   var horasLabelEmp=taHorasLabelAnalizador();
-  r.empleados.forEach(function(emp){
+  empleadosFiltrados.forEach(function(emp){
     var e=emp.total;
     var empSub=(r.memory&&((r.selectedMonths||[]).length!==1))?'Total '+((r.selectedMonths||[]).length)+' meses':(emp.categoria||'Grupo');
     html+='<div class="ta-emp" data-name="'+escH(taNormBuscaNombre(emp.nombre))+'">'+
-      '<div class="ta-emp-top"><div style="min-width:0"><div class="ta-emp-name">'+escH(emp.nombre||'Empleado')+'</div><div class="ta-emp-cat">'+escH(empSub)+'</div></div><div class="ta-emp-hours">'+taFmtHoras(e[horasCampoEmp]||0)+'<small>'+escH(horasLabelEmp)+'</small></div></div>'+
+      '<div class="ta-emp-top"><div style="min-width:0"><div class="ta-emp-name">'+escH(emp.nombre||'Empleado')+'</div><div class="ta-emp-cat">'+escH(empSub)+'</div></div><div class="ta-emp-hours">'+taFmtHoras(e[horasCampoEmp]||0)+'<small>'+escH(horasLabelEmp)+'</small></div></div>'+ 
       '<div class="ta-mini-grid">'+
         taMiniStat(e,'turnos','Turnos',(emp.nombre||'Empleado')+' · turnos')+
         taMiniStat(e,'partidos','Partidos',(emp.nombre||'Empleado')+' · partidos')+
         taMiniStat(e,'madrugas','Madrugues',(emp.nombre||'Empleado')+' · madrugues')+
         taMiniStat(e,'nocturnas','Noct.',(emp.nombre||'Empleado')+' · nocturnas')+
         taMiniStat(e,'noches','Noches',(emp.nombre||'Empleado')+' · noches')+
-      '</div>'+
+      '</div>'+ 
     '</div>';
   });
-  if(!r.empleados.length)html+='<div style="border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.08);border-radius:12px;padding:12px;color:#fca5a5;font-size:12px;line-height:1.35">He detectado formato de grupo, pero no empleados con horas.</div>';
+  if(!empleadosFiltrados.length)html+='<div style="border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.08);border-radius:12px;padding:12px;color:#fca5a5;font-size:12px;line-height:1.35">No hay empleados con horas en el grupo seleccionado.</div>';
   else html+='<div id="ta-search-empty" style="display:none;border:1px solid rgba(96,165,250,.25);background:rgba(96,165,250,.08);border-radius:12px;padding:12px;color:#bfdbfe;font-size:12px;line-height:1.35">No hay empleados con ese nombre.</div>';
   result.innerHTML=html;
   taAplicarFiltroNombre();
