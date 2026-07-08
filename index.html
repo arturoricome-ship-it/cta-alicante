@@ -353,6 +353,10 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #calc-overlay.show{display:block}
 #calc-panel{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:24px 20px calc(112px + env(safe-area-inset-bottom));z-index:301;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);max-height:calc(100vh - 8px);overflow-y:auto;box-sizing:border-box;-webkit-overflow-scrolling:touch}
 #calc-panel.show{transform:translateY(0)}
+#calc-panel:not(.show){
+  transform:translateY(calc(100% + 100px))!important;
+  pointer-events:none!important;
+}
 .calc-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
 .calc-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px}
 .calc-sub{font-size:11px;color:var(--gray);margin-bottom:20px}
@@ -1458,10 +1462,6 @@ body{font-size:14px}
 }
 
 
-/* Calendario: ocultar panel flotante abierto sin alterar tamaños */
-body[data-panel="afiliate"] #calc-panel,
-body[data-panel="afiliate"] #calc-overlay{display:none!important;}
-
 /* Calendario: evita scroll muerto debajo del resumen */
 body[data-panel="afiliate"] #scroll-area{
   padding-bottom:calc(76px + env(safe-area-inset-bottom))!important;
@@ -2244,12 +2244,7 @@ function switchTab(name,tabEl,navEl){
   currentPanel=name;
   try{
     document.body.setAttribute('data-panel',name);
-    if(name==='afiliate'){
-      var cp=document.getElementById('calc-panel');
-      var co=document.getElementById('calc-overlay');
-      if(cp)cp.classList.remove('show');
-      if(co)co.classList.remove('show');
-    }
+    if(typeof cerrarCompanerosPorDia==='function')cerrarCompanerosPorDia();
   }catch(e){}
   document.querySelectorAll(".panel").forEach(function(p){p.classList.remove("active")});
   document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active")});
@@ -3872,7 +3867,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 <div id="calc-overlay"></div>
 <div id="calc-panel">
   <div style="display:flex;justify-content:center;padding:6px 0 4px">
-    <button onclick="document.getElementById('calc-panel').classList.remove('show');document.getElementById('calc-overlay').classList.remove('show')" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:20px;color:var(--gray);font-size:11px;font-weight:600;padding:4px 28px;cursor:pointer;font-family:'Outfit',sans-serif;letter-spacing:.3px">✕</button>
+    <button onclick="(typeof cerrarCompanerosPorDia==='function'?cerrarCompanerosPorDia():(document.getElementById('calc-panel').classList.remove('show'),document.getElementById('calc-overlay').classList.remove('show')))" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:20px;color:var(--gray);font-size:11px;font-weight:600;padding:4px 28px;cursor:pointer;font-family:'Outfit',sans-serif;letter-spacing:.3px">✕</button>
   </div>
   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
     <div class="calc-title" style="margin:0">Compañeros por día</div>
@@ -7354,6 +7349,13 @@ document.addEventListener('DOMContentLoaded',function(){setTimeout(_ajustarFitZo
 setTimeout(_ajustarFitZoneOperativa,120);
 setTimeout(_ajustarFitZoneOperativa,900);
 
+function cerrarCompanerosPorDia(){
+  var p=document.getElementById('calc-panel');
+  var o=document.getElementById('calc-overlay');
+  if(p)p.classList.remove('show');
+  if(o)o.classList.remove('show');
+}
+
 function abrirCompanerosPorDia(){
   if(typeof verCompanerosHoy!=='function')return;
   var p=document.getElementById('calc-panel');
@@ -9752,6 +9754,20 @@ window.renderOperativa=function(){
   }
 
   var d=mD[now.getDate()]||null;
+  // Si el día tiene HL parcial, Mi jornada debe mostrar solo la parte realmente trabajada.
+  // Ej.: 05:00→11:00 / 12:00→15:00 con HL 12:00→15:00 queda 05:00→11:00.
+  function _opDiaConHLParcial(dia){
+    if(!dia||!dia.hlParcial||typeof _restarRangoDeTurno!=="function")return dia;
+    var adj=_restarRangoDeTurno(Object.assign({},dia),dia.hlParcial);
+    if(!adj)return dia;
+    var out=Object.assign({},dia,{
+      e1:adj.e1||'',s1:adj.s1||'',e2:adj.e2||'',s2:adj.s2||''
+    });
+    var _hm1=mcMinOp2(out.e1,out.s1),_hm2=mcMinOp2(out.e2,out.s2);
+    out.total=(_hm1+_hm2)/60;
+    return out;
+  }
+  d=_opDiaConHLParcial(d);
   var card=g("op-turno-card");
   // ─ Resumen Operativo ─────────────────────────────────────
   var gmap={};try{gmap=JSON.parse(localStorage.getItem("cta_grupo_2026_map")||"{}");}catch(e){}
@@ -10463,7 +10479,7 @@ window.renderOperativa=function(){
     var _DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
     for(var ddF=1;ddF<=30;ddF++){
       var nDF=new Date(now.getFullYear(),now.getMonth(),now.getDate()+ddF);
-      var nMdF=(ue[MESES[nDF.getMonth()]]||{})[nDF.getDate()];
+      var nMdF=_opDiaConHLParcial((ue[MESES[nDF.getMonth()]]||{})[nDF.getDate()]);
       if(nMdF&&nMdF.e1&&nMdF.tipo&&ANXTF.indexOf(nMdF.tipo)>=0){nxtMinF=toM(nMdF.e1);nxtStrF=_DIAS[nDF.getDay()]+' '+nDF.getDate()+'  ·  '+nMdF.e1+(nMdF.s1?' → '+nMdF.s1:'')+(nMdF.e2&&nMdF.s2?'  ·  '+nMdF.e2+' → '+nMdF.s2:'');nxtDaysF=ddF;break;}
     }
     var restMF=nxtMinF!==null?(nxtDaysF*1440+nxtMinF-nowMin):null;
@@ -10489,7 +10505,7 @@ window.renderOperativa=function(){
     var lastShiftEnd=null;
     for(var ddB=1;ddB<=30;ddB++){
       var pDB=new Date(now.getFullYear(),now.getMonth(),now.getDate()-ddB);
-      var pMdB=(ue[MESES[pDB.getMonth()]]||{})[pDB.getDate()];
+      var pMdB=_opDiaConHLParcial((ue[MESES[pDB.getMonth()]]||{})[pDB.getDate()]);
       if(pMdB&&pMdB.e1&&pMdB.tipo&&ANXTF.indexOf(pMdB.tipo)>=0){
         var lastS=pMdB.s2?toM(pMdB.s2):toM(pMdB.s1);
         if(lastS!==null)lastShiftEnd=ddB*1440-lastS+nowMin; // minutes elapsed since last shift ended
@@ -10555,7 +10571,7 @@ window.renderOperativa=function(){
     var ANXT=["trabajado","h6","baja","rm","curso"]; // HL/HLP se tratan como libre: descanso, no próximo turno
     for(var dd2=1;dd2<=30;dd2++){
       var nD=new Date(now.getFullYear(),now.getMonth(),now.getDate()+dd2);
-      var nMd=(ue[MESES[nD.getMonth()]]||{})[nD.getDate()];
+      var nMd=_opDiaConHLParcial((ue[MESES[nD.getMonth()]]||{})[nD.getDate()]);
       if(nMd&&nMd.e1&&nMd.tipo&&ANXT.indexOf(nMd.tipo)>=0){var _D2=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];nxtMin=toM(nMd.e1);nxtStr=_D2[nD.getDay()]+' '+nD.getDate()+'  ·  '+nMd.e1+(nMd.s1?' → '+nMd.s1:'')+(nMd.e2&&nMd.s2?'  ·  '+nMd.e2+' → '+nMd.s2:'');nxtDays=dd2;break;}
     }
     // Calculate total minutes remaining (including full days)
@@ -13320,5 +13336,31 @@ try{
     }
   }
 </style>
+
+<style id="cta-fix-calendario-sin-cruz-calc-panel">
+  body[data-panel="afiliate"] #calc-panel,
+  body[data-panel="afiliate"] #calc-overlay{
+    display:none!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+    transform:translateY(140%)!important;
+  }
+</style>
+
+<style id="cta-fix-companeros-sin-cruz-abajo">
+  /* La cruz superior de Compañeros por día no debe aparecer como pestaña flotante. */
+  #calc-panel > div:first-child{
+    display:none!important;
+    height:0!important;
+    min-height:0!important;
+    padding:0!important;
+    margin:0!important;
+    overflow:hidden!important;
+  }
+  #calc-panel{
+    padding-top:10px!important;
+  }
+</style>
+
 </body>
 </html>
