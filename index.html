@@ -1452,6 +1452,20 @@ body{font-size:14px}
   #calc-panel #btn-sort-salida{height:23px!important;min-height:23px!important}
 }
 
+
+/* Calendario: ocultar panel flotante abierto sin alterar tamaños */
+body[data-panel="afiliate"] #calc-panel,
+body[data-panel="afiliate"] #calc-overlay{display:none!important;}
+
+/* Calendario: evita scroll muerto debajo del resumen */
+body[data-panel="afiliate"] #scroll-area{
+  padding-bottom:calc(76px + env(safe-area-inset-bottom))!important;
+  overscroll-behavior-y:contain;
+}
+body[data-panel="afiliate"] #panel-afiliate{
+  margin-bottom:0!important;
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -2223,6 +2237,15 @@ function driveList(params){
 var currentPanel='documentos';
 function switchTab(name,tabEl,navEl){
   currentPanel=name;
+  try{
+    document.body.setAttribute('data-panel',name);
+    if(name==='afiliate'){
+      var cp=document.getElementById('calc-panel');
+      var co=document.getElementById('calc-overlay');
+      if(cp)cp.classList.remove('show');
+      if(co)co.classList.remove('show');
+    }
+  }catch(e){}
   document.querySelectorAll(".panel").forEach(function(p){p.classList.remove("active")});
   document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active")});
   document.querySelectorAll(".nav-btn").forEach(function(n){n.classList.remove("active")});
