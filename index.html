@@ -626,6 +626,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-clickable:active{opacity:.85}
 .grupo-exclamacion{display:inline-block;margin-left:2px;color:#b7a57a;font-weight:700;font-size:12px;opacity:.8}
 .grupo-no-viene{color:#b7a57a;text-decoration:line-through;text-decoration-thickness:1px;text-decoration-color:#b7a57a}
+.grupo-hl-visible{background:rgba(192,132,252,.10);border:1px solid rgba(192,132,252,.24);border-radius:10px;padding:8px 10px;margin:4px 0}
+.grupo-hl-visible .grupo-nombre,.grupo-hl-visible .grupo-horario{color:#c084fc!important}
+.grupo-hl-chip{display:inline-flex;align-items:center;margin-left:5px;padding:1px 6px;border-radius:999px;border:1px solid rgba(192,132,252,.45);background:rgba(192,132,252,.16);color:#e9d5ff;font-size:8px;font-weight:900;letter-spacing:.3px;vertical-align:middle}
+.grupo-tl-name.is-hl{background:rgba(192,132,252,.10)}
+.grupo-tl-name.is-hl .nm,.grupo-tl-name.is-hl .sch{color:#c084fc!important}
 #disp-cartel{position:fixed;left:50%;bottom:88px;transform:translate(-50%,20px);background:rgba(13,22,35,.96);border:1px solid rgba(200,168,75,.45);color:var(--white);padding:9px 12px;border-radius:10px;font-size:12px;z-index:950;opacity:0;pointer-events:none;transition:all .2s ease;max-width:88vw;text-align:center}
 #disp-cartel.on{opacity:1;transform:translate(-50%,0)}
 
@@ -2871,7 +2876,20 @@ function _hpTurnoFinal(emp,dateObj,monthKey,day){
 function _hpCambioToTurnoHoras(c,turnoOriginal){
   if(!c)return turnoOriginal;
   var tipo=String(c.tipo||'').toLowerCase();
-  var etiqueta=String(c.tipo||'Cambio').toUpperCase();
+  var esHL=(typeof _cambioCompartidoEsHL==='function')?_cambioCompartidoEsHL(c):(tipo==='hl'||tipo==='hlp'||(c.hlIni&&c.hlFin));
+  var puedeVerHL=(typeof _usuarioPuedeVerHLCompartido==='function')?_usuarioPuedeVerHLCompartido():false;
+  var etiqueta=esHL?(puedeVerHL?_labelHLCompartido(c):'Libre'):String(c.tipo||'Cambio').toUpperCase();
+
+  // Protección sindical: para usuarios normales, una HL compartida no se etiqueta como HL.
+  // HL completa se muestra como día no operativo; HL parcial solo recorta el tramo afectado.
+  if(esHL&&!puedeVerHL){
+    if(c.hlIni&&c.hlFin&&turnoOriginal){
+      var rec=_restarRangoDeTurno(Object.assign({},turnoOriginal),{ini:c.hlIni,fin:c.hlFin});
+      return Object.assign({},rec,{cambioCompartido:false,etiquetaCambio:''});
+    }
+    return {tipo:'libre',e1:'',s1:'',e2:'',s2:'',total:0,cambioCompartido:false,etiquetaCambio:''};
+  }
+
   if(c.e1&&c.s1){
     var turnoCambio={
       tipo:tipo||'trabajado',
@@ -2881,8 +2899,13 @@ function _hpCambioToTurnoHoras(c,turnoOriginal){
       s2:c.s2||'',
       total:c.total||0,
       cambioCompartido:true,
-      etiquetaCambio:etiqueta
+      etiquetaCambio:etiqueta,
+      hlVisible:esHL&&puedeVerHL
     };
+    if(c.hlIni&&c.hlFin){
+      turnoCambio=_restarRangoDeTurno(turnoCambio,{ini:c.hlIni,fin:c.hlFin});
+      turnoCambio=Object.assign({},turnoCambio,{cambioCompartido:true,etiquetaCambio:etiqueta,hlVisible:esHL&&puedeVerHL});
+    }
     return turnoCambio;
   }
   if(parseFloat(String(c.total||'').replace(',','.'))>0){
@@ -2894,13 +2917,14 @@ function _hpCambioToTurnoHoras(c,turnoOriginal){
       s2:'',
       total:c.total,
       cambioCompartido:true,
-      etiquetaCambio:etiqueta
+      etiquetaCambio:etiqueta,
+      hlVisible:esHL&&puedeVerHL
     };
   }
   if(_hpTurnoHoras(turnoOriginal)>0||(turnoOriginal&&turnoOriginal.e1&&turnoOriginal.s1)){
-    return Object.assign({},turnoOriginal,{tipo:tipo||turnoOriginal.tipo||'trabajado',cambioCompartido:true,etiquetaCambio:etiqueta});
+    return Object.assign({},turnoOriginal,{tipo:tipo||turnoOriginal.tipo||'trabajado',cambioCompartido:true,etiquetaCambio:etiqueta,hlVisible:esHL&&puedeVerHL});
   }
-  return {tipo:tipo||'libre',e1:'',s1:'',e2:'',s2:'',cambioCompartido:true,etiquetaCambio:etiqueta||'LIBRE'};
+  return {tipo:tipo||'libre',e1:'',s1:'',e2:'',s2:'',cambioCompartido:true,etiquetaCambio:etiqueta||'LIBRE',hlVisible:esHL&&puedeVerHL};
 }
 function _hpSemanaInfo(dateObj){
   var dow=(dateObj.getDay()+6)%7;
@@ -2926,10 +2950,11 @@ function calcularHorasPlantilla(year){
       var tieneDatoGuardado=Object.prototype.hasOwnProperty.call(diasMesRaw,String(d))||Object.prototype.hasOwnProperty.call(diasMesRaw,d);
       var turnoBase=(diasMesRaw[d]||diasMesRaw[String(d)]||null);
       var cambioCompartido=(typeof _getCambioCompartidoEmpleado==='function')?_getCambioCompartidoEmpleado(emp,fecha):null;
+      var cambioHLProtegido=!!(cambioCompartido&&typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(cambioCompartido)&&!(typeof _usuarioPuedeVerHLCompartido==='function'&&_usuarioPuedeVerHLCompartido()));
       var turno=cambioCompartido?_hpCambioToTurnoHoras(cambioCompartido,turnoBase):turnoBase;
       var local=_hpTurnoLocalPropio(emp,fecha,monthKey,d);
-      var origenCambio=cambioCompartido?cambioCompartido:null;
-      var etiquetaCambio=cambioCompartido?String(cambioCompartido.tipo||'Cambio').toUpperCase():'';
+      var origenCambio=(cambioCompartido&&!cambioHLProtegido)?cambioCompartido:null;
+      var etiquetaCambio=(cambioCompartido&&!cambioHLProtegido)?((typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(cambioCompartido)&&typeof _labelHLCompartido==='function')?_labelHLCompartido(cambioCompartido):String(cambioCompartido.tipo||'Cambio').toUpperCase()):'';
       if(local){
         turno=local;
         origenCambio={tipo:'APP LOCAL',actualizado_por:'Este dispositivo'};
@@ -7867,6 +7892,85 @@ function _arturoDebeTratarseLibre(nombre,dateObj){
   return _esArturoPlantilla(nombre)&&(_miCalendarioMarcaHL(dateObj)||_arturoHLPubFecha(dateObj));
 }
 
+function _usuarioActualEsArturo(){
+  var textos=[];
+  try{
+    var sess=(typeof _ctaSession==='function')?_ctaSession():JSON.parse(localStorage.getItem('cta_session')||'{}');
+    textos.push(sess&&sess.nombre||'',sess&&sess.email||'');
+  }catch(e){}
+  try{var tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');if(tryp)textos.push(tryp.nombre||'',tryp.email||'',tryp.nomina||'');}catch(e){}
+  try{var emp=JSON.parse(localStorage.getItem('cta_mi_empleado')||'null');if(emp)textos.push(emp.nombre||'',emp.email||'',emp.nomina||'');}catch(e){}
+  var t=textos.join(' ');
+  if(/arturoricome/i.test(t))return true;
+  return _esArturoPlantilla(t);
+}
+function _cambioCompartidoEsHL(c){
+  if(!c)return false;
+  var tipo=String(c.tipo||'').toLowerCase();
+  if(tipo==='hl'||tipo==='hlp')return true;
+  return !!(c.hlIni&&c.hlFin);
+}
+function _labelHLCompartido(c){
+  if(!c)return 'HL';
+  var tipo=String(c.tipo||'HL').toUpperCase();
+  if(tipo!=='HL'&&tipo!=='HLP')tipo='HL';
+  if(c.hlIni&&c.hlFin)return tipo+' '+c.hlIni+'–'+c.hlFin;
+  return tipo;
+}
+function _usuarioPuedeVerHLCompartido(){
+  return _usuarioActualEsArturo();
+}
+function _miCalendarioDiaLocal(dateObj){
+  if(!dateObj)return null;
+  var meses=(typeof _MC_MONTHS!=='undefined'&&_MC_MONTHS.length)?_MC_MONTHS:((typeof _GRUPO_MONTHS!=='undefined'&&_GRUPO_MONTHS.length)?_GRUPO_MONTHS:['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE']);
+  var raw=null;
+  try{raw=localStorage.getItem('cta_ed_'+dateObj.getFullYear());}catch(e){raw=null;}
+  var ue={};
+  try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
+  var mData=(ue&&ue[meses[dateObj.getMonth()]])||{};
+  return mData[dateObj.getDate()]||mData[String(dateObj.getDate())]||null;
+}
+function _mismoEmpleadoPlantillaFlexible(a,b){
+  if(!a||!b)return false;
+  var an=String(a.nomina||'').trim(),bn=String(b.nomina||'').trim();
+  if(an&&bn&&an===bn)return true;
+  var aa=_normPlantillaNombre(a.nombre||a.empleado||''),bb=_normPlantillaNombre(b.nombre||b.empleado||'');
+  return !!(aa&&bb&&(aa===bb||aa.indexOf(bb)>=0||bb.indexOf(aa)>=0));
+}
+function _empleadoEsUsuarioActual(emp,dateObj){
+  if(!emp||!dateObj)return false;
+  var monthKey=(typeof _GRUPO_MONTHS!=='undefined'&&_GRUPO_MONTHS[dateObj.getMonth()])||((typeof _MC_MONTHS!=='undefined'&&_MC_MONTHS[dateObj.getMonth()])||'');
+  var day=dateObj.getDate();
+  var cached=null;try{cached=JSON.parse(localStorage.getItem('cta_mi_empleado')||'null');}catch(e){cached=null;}
+  if(_mismoEmpleadoPlantillaFlexible(emp,cached))return true;
+  var tryp=null;try{tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){tryp=null;}
+  var sess=(typeof _ctaSession==='function')?_ctaSession():{};
+  if(tryp&&(!tryp.email||!sess.email||tryp.email===sess.email)&&_mismoEmpleadoPlantillaFlexible(emp,{nombre:tryp.nombre,nomina:tryp.nomina}))return true;
+  if(typeof _getMiEmpleadoGrupoActual==='function'){
+    var mi=_getMiEmpleadoGrupoActual(dateObj.getFullYear(),monthKey,day);
+    if(_mismoEmpleadoPlantillaFlexible(emp,mi))return true;
+  }
+  if(sess&&sess.nombre&&_normPlantillaNombre(sess.nombre)!==_normPlantillaNombre('Modo prueba')){
+    if(_mismoEmpleadoPlantillaFlexible(emp,{nombre:sess.nombre}))return true;
+  }
+  return false;
+}
+function _aplicarHLPersonalLocalAEmpleado(emp,dateObj,turno){
+  // Arturo mantiene la protección local antigua.
+  if(_esArturoPlantilla((emp&&emp.nombre)||emp||'')){
+    if(_arturoHLPubFecha(dateObj))return null;
+    turno=_ajustarTurnoConHLPersonal(turno,_miCalendarioDiaArturo(dateObj));
+  }
+  // Nueva regla general: si el usuario identificado como ese empleado marca HL/HLP
+  // en su calendario personal, se trata igual que Arturo: no aparece operativo al resto.
+  // En otros dispositivos llegará por Sheets como cambio compartido; aquí se aplica
+  // inmediatamente también en el propio móvil.
+  if(_empleadoEsUsuarioActual(emp,dateObj)){
+    turno=_ajustarTurnoConHLPersonal(turno,_miCalendarioDiaLocal(dateObj));
+  }
+  return turno;
+}
+
 function _minToHHMM(min){
   min=((min%1440)+1440)%1440;
   var h=Math.floor(min/60),m=Math.round(min%60);
@@ -8123,13 +8227,17 @@ function _esLibreRealCambio(t){
 function _cambioToTurno(c){
   if(!c)return null;
   var tipo=String(c.tipo||'').toLowerCase();
+  var esHL=(typeof _cambioCompartidoEsHL==='function')?_cambioCompartidoEsHL(c):(tipo==='hl'||tipo==='hlp'||(c.hlIni&&c.hlFin));
+  var puedeVerHL=(typeof _usuarioPuedeVerHLCompartido==='function')?_usuarioPuedeVerHLCompartido():false;
+  var etiqueta=esHL?(puedeVerHL?_labelHLCompartido(c):'Libre'):String(c.tipo||'Libre').toUpperCase();
   if(_tipoCambioEsLibre(tipo)||(!c.e1&&!c.s1)){
-    var tipoLibreReal=(!tipo||tipo==='libre'||tipo==='dl'||tipo==='descanso')?'libre':tipo;
-    return{tipo:tipoLibreReal,e1:'',s1:'',e2:'',s2:'',cambioCompartido:true,etiquetaCambio:String(c.tipo||'Libre').toUpperCase(),actualizadoPor:c.actualizado_por||c.email||''};
+    var tipoLibreReal=(!tipo||tipo==='libre'||tipo==='dl'||tipo==='descanso'||(esHL&&!puedeVerHL))?'libre':tipo;
+    return{tipo:tipoLibreReal,e1:'',s1:'',e2:'',s2:'',cambioCompartido:true,etiquetaCambio:etiqueta,actualizadoPor:c.actualizado_por||c.email||'',hlVisible:esHL&&puedeVerHL};
   }
-  var turno={tipo:(tipo==='curso'?'curso':'trabajado'),e1:c.e1||'',s1:c.s1||'',e2:c.e2||'',s2:c.s2||'',total:c.total||0,cambioCompartido:true,etiquetaCambio:String(c.tipo||'TRABAJA').toUpperCase(),actualizadoPor:c.actualizado_por||c.email||''};
-  // HL parcial recibido de Sheets: recorta solo ese tramo, igual que en el propio dispositivo.
-  if(c.hlIni&&c.hlFin)turno=Object.assign({},_restarRangoDeTurno(turno,{ini:c.hlIni,fin:c.hlFin}),{cambioCompartido:true,etiquetaCambio:turno.etiquetaCambio,actualizadoPor:turno.actualizadoPor});
+  var turno={tipo:(tipo==='curso'?'curso':'trabajado'),e1:c.e1||'',s1:c.s1||'',e2:c.e2||'',s2:c.s2||'',total:c.total||0,cambioCompartido:true,etiquetaCambio:etiqueta,actualizadoPor:c.actualizado_por||c.email||'',hlVisible:esHL&&puedeVerHL};
+  // HL parcial recibido de Sheets: recorta solo ese tramo. Arturo verá la etiqueta HL;
+  // el resto solo verá el turno restante, sin exponer la causa sindical.
+  if(c.hlIni&&c.hlFin)turno=Object.assign({},_restarRangoDeTurno(turno,{ini:c.hlIni,fin:c.hlFin}),{cambioCompartido:true,etiquetaCambio:etiqueta,actualizadoPor:turno.actualizadoPor,hlVisible:esHL&&puedeVerHL});
   return turno;
 }
 function _turnoGrupoConCambioCompartido(emp,dateObj,turnoOriginal){
@@ -8151,6 +8259,31 @@ function _getMiEmpleadoGrupoActual(year,monthKey,day){
   var nominaMap={};
   try{nominaMap=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')||{};}catch(e){nominaMap={};}
   if(cached&&cached.nomina&&nominaMap[cached.nomina])return {nomina:cached.nomina,nombre:nominaMap[cached.nomina].nombre||cached.nombre||'',categoria:nominaMap[cached.nomina].categoria||cached.categoria||''};
+
+  // Identidad oficial extraída del Tryp personal. Es la vía más fiable para que
+  // cualquier delegado que marque HL en su propio calendario quede protegido para todos.
+  var sessTryp=_ctaSession();
+  var trypId=null;try{trypId=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){trypId=null;}
+  if(trypId&&trypId.nombre&&(!trypId.email||!sessTryp.email||trypId.email===sessTryp.email)){
+    if(trypId.nomina&&nominaMap[trypId.nomina]){
+      var empNom=nominaMap[trypId.nomina];
+      var resNom={nomina:trypId.nomina,nombre:empNom.nombre||trypId.nombre||'',categoria:empNom.categoria||''};
+      try{localStorage.setItem('cta_mi_empleado',JSON.stringify(resNom));}catch(e){}
+      return resNom;
+    }
+    var trypNorm=_normPlantillaNombre(trypId.nombre);
+    var foundKey='',foundCount=0;
+    Object.keys(nominaMap).forEach(function(k){
+      var en=_normPlantillaNombre((nominaMap[k]&&nominaMap[k].nombre)||'');
+      if(en&&(en===trypNorm||en.indexOf(trypNorm)>=0||trypNorm.indexOf(en)>=0)){foundKey=k;foundCount++;}
+    });
+    if(foundCount===1&&foundKey){
+      var empTryp=nominaMap[foundKey];
+      var resTryp={nomina:empTryp.nomina||foundKey,nombre:empTryp.nombre||trypId.nombre||'',categoria:empTryp.categoria||''};
+      try{localStorage.setItem('cta_mi_empleado',JSON.stringify(resTryp));}catch(e){}
+      return resTryp;
+    }
+  }
 
   var personal={};
   try{personal=JSON.parse(localStorage.getItem('cta_ed_'+year)||'{}')||{};}catch(e){personal={};}
@@ -8325,12 +8458,13 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   empleados.forEach(function(emp){
     // Today's shift
     var turno=emp.dias[day];
+    var cambioDia=(typeof _getCambioCompartidoEmpleado==='function')?_getCambioCompartidoEmpleado(emp,target):null;
+    var puedeVerHLDia=!!(cambioDia&&typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(cambioDia)&&typeof _usuarioPuedeVerHLCompartido==='function'&&_usuarioPuedeVerHLCompartido());
+    var labelHLDia=puedeVerHLDia?_labelHLCompartido(cambioDia):'';
     turno=_turnoGrupoConCambioCompartido(emp,target,turno);
     // Si es Arturo y su calendario personal marca HL ese día, se ajusta su turno:
     // día completo → sin turno; parcial → se descuenta solo ese tramo.
-    if(_esArturoPlantilla(emp.nombre||emp.nomina)){
-      turno=_arturoHLPubFecha(target)?null:_ajustarTurnoConHLPersonal(turno,_miCalendarioDiaArturo(target));
-    }
+    turno=_aplicarHLPersonalLocalAEmpleado(emp,target,turno);
     if(_turnoGrupoOperativo(turno)){
       var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
@@ -8345,6 +8479,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
       var _esExcl=!!(turno&&(turno.noVieneInterrogacion||turno.disponibilidadNoConfirmada));
       if((modoToda||solapa)&&mismoTurno&&trabAhora&&(!_esExcl||window._showExcl)){
         var horario=turno.e1+'→'+turno.s1+(turno.e2&&turno.s2?' / '+turno.e2+'→'+turno.s2:'');
+        if(puedeVerHLDia&&labelHLDia)horario+=' · '+labelHLDia;
         var enT1=minutoEnTramo(ahoraMin,grE1,grS1),enT2=minutoEnTramo(ahoraMin,grE2,grS2);
         // TODAY overnight: only active if already started (nowMin >= e1)
         // After-midnight portion handled by yesterday's data block
@@ -8354,8 +8489,10 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
         // Marca solo noches reales largas: 22/23 → 05/06/07 del día siguiente.
         var _nocheReal=_turnoTieneNocheReal(grE1,grS1,grE2,grS2);
         var _futOvn=_nocheReal&&nowMinReal<grE1;
-        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,e2:grE2,s2:grS2,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false,futuraNoche:_futOvn,nocheReal:_nocheReal,nocheDiaFin:false,origenDia:'actual'});
+        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,e2:grE2,s2:grS2,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false,futuraNoche:_futOvn,nocheReal:_nocheReal,nocheDiaFin:false,origenDia:'actual',hlVisible:puedeVerHLDia,hlLabel:labelHLDia});
       }
+    }else if(puedeVerHLDia&&modoToda&&!modoEnTurno&&!modoMismoTurno){
+      coinciden.push({nombre:emp.nombre,horario:labelHLDia||'HL',e1:1440,s1:1440,e2:null,s2:null,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:false,overnight:false,futuraNoche:false,nocheReal:false,nocheDiaFin:false,origenDia:'actual',hlVisible:true,hlLabel:labelHLDia||'HL'});
     }
     // Turno de noche real empezado el día anterior y terminado en el día consultado.
     // Debe verse también en el día de salida, siempre marcado como noche.
@@ -8439,16 +8576,17 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     // - El distintivo 🌙 solo se marca cuando el turno se está reflejando en el día que termina de madrugada.
     //   Así evitamos duplicados confusos tipo misma persona marcada dos veces el mismo día.
     var _esNocheMadrugada=!!c.nocheDiaFin;
-    var _dot=_esNocheMadrugada?'#fb923c':'#60a5fa';
+    var _dot=c.hlVisible?'#c084fc':(_esNocheMadrugada?'#fb923c':'#60a5fa');
     var _nameExtra=_esNocheMadrugada?' 🌙':'';
-    var _nameColor=_esNocheMadrugada?'color:#fb923c;':'';
+    if(c.hlVisible)_nameExtra+=' <span class="grupo-hl-chip">'+escH(c.hlLabel||'HL')+'</span>';
+    var _nameColor=c.hlVisible?'color:#c084fc;':(_esNocheMadrugada?'color:#fb923c;':'');
     var _nightStyle='';
     if(_esNocheMadrugada&&!c.operativoAhora){
       _nightStyle='background:rgba(251,146,60,.10);border:1px solid rgba(251,146,60,.35);border-radius:10px;padding:8px 10px;margin:4px 0;';
     }
     var _finalStyle=(extraStyle||'')+_nightStyle;
     var _hor=buildHorarioHtml(c);
-    return '<div class="grupo-item'+(c.operativoAhora?' grupo-item-operativo':'')+'" '+(_finalStyle?'style="'+_finalStyle+'"':'')+(c.futuraNoche?' data-futura-noche="1"':'')+'>'+ 
+    return '<div class="grupo-item'+(c.operativoAhora?' grupo-item-operativo':'')+(c.hlVisible?' grupo-hl-visible':'')+'" '+(_finalStyle?'style="'+_finalStyle+'"':'')+(c.futuraNoche?' data-futura-noche="1"':'')+'>'+ 
       '<div class="grupo-solapamiento" style="background:'+_dot+'"></div>'+
       '<div class="grupo-nombre'+((c.noVieneInterrogacion||c.disponibilidadNoConfirmada)?' grupo-no-viene':'')+'" style="'+_nameColor+'">'+c.nombre+_nameExtra+(c.disponibilidadNoConfirmada?'<span class="grupo-exclamacion grupo-clickable" onclick="showDisponibilidadCartel()">  !</span>':'')+'</div>'+ 
       '<div class="grupo-horario" style="'+_nameColor+'">'+_hor+'</div></div>';
@@ -8572,10 +8710,11 @@ function _buildCompanerosTimelineData(offsetDias){
   var coinciden=[];
   empleados.forEach(function(emp){
     var turno=emp.dias[day];
+    var cambioDia=(typeof _getCambioCompartidoEmpleado==='function')?_getCambioCompartidoEmpleado(emp,target):null;
+    var puedeVerHLDia=!!(cambioDia&&typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(cambioDia)&&typeof _usuarioPuedeVerHLCompartido==='function'&&_usuarioPuedeVerHLCompartido());
+    var labelHLDia=puedeVerHLDia?_labelHLCompartido(cambioDia):'';
     turno=_turnoGrupoConCambioCompartido(emp,target,turno);
-    if(_esArturoPlantilla(emp.nombre||emp.nomina)){
-      turno=_arturoHLPubFecha(target)?null:_ajustarTurnoConHLPersonal(turno,_miCalendarioDiaArturo(target));
-    }
+    turno=_aplicarHLPersonalLocalAEmpleado(emp,target,turno);
     if(_turnoGrupoOperativo(turno)){
       var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
@@ -8589,14 +8728,17 @@ function _buildCompanerosTimelineData(offsetDias){
       var _esExcl=!!(turno&&(turno.noVieneInterrogacion||turno.disponibilidadNoConfirmada));
       if((modoToda||solapa)&&mismoTurno&&trabAhora&&(!_esExcl||window._showExcl)){
         var horario=turno.e1+'→'+turno.s1+(turno.e2&&turno.s2?' / '+turno.e2+'→'+turno.s2:'');
+        if(puedeVerHLDia&&labelHLDia)horario+=' · '+labelHLDia;
         var enT1=minutoEnTramo(ahoraMin,grE1,grS1),enT2=minutoEnTramo(ahoraMin,grE2,grS2);
         if(esDiaActual&&grE1!==null&&grS1!==null&&grS1<grE1)enT1=(ahoraMin>=grE1);
         if(esDiaActual&&grE2!==null&&grS2!==null&&grS2<grE2)enT2=(ahoraMin>=grE2);
         var opAhora=esDiaActual&&(enT1||enT2)&&!turno.disponibilidadNoConfirmada&&!turno.noVieneInterrogacion;
         var _nocheReal=_turnoTieneNocheReal(grE1,grS1,grE2,grS2);
         var _futOvn=_nocheReal&&nowMinReal<grE1;
-        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,e2:grE2,s2:grS2,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false,futuraNoche:_futOvn,nocheReal:_nocheReal,nocheDiaFin:false,origenDia:'actual'});
+        coinciden.push({nombre:emp.nombre,horario:horario,e1:grE1,s1:grS1,e2:grE2,s2:grS2,categoria:emp.categoria||'General',disponibilidadNoConfirmada:!!turno.disponibilidadNoConfirmada,noVieneInterrogacion:!!turno.noVieneInterrogacion,operativoAhora:opAhora,overnight:false,futuraNoche:_futOvn,nocheReal:_nocheReal,nocheDiaFin:false,origenDia:'actual',hlVisible:puedeVerHLDia,hlLabel:labelHLDia});
       }
+    }else if(puedeVerHLDia&&modoToda&&!modoEnTurno&&!modoMismoTurno){
+      coinciden.push({nombre:emp.nombre,horario:labelHLDia||'HL',e1:null,s1:null,e2:null,s2:null,categoria:emp.categoria||'General',disponibilidadNoConfirmada:false,noVieneInterrogacion:false,operativoAhora:false,overnight:false,futuraNoche:false,nocheReal:false,nocheDiaFin:false,origenDia:'actual',hlVisible:true,hlLabel:labelHLDia||'HL'});
     }
     var fechaAyer=new Date(target.getFullYear(),target.getMonth(),target.getDate()-1);
     var monthKeyAyer=_GRUPO_MONTHS[fechaAyer.getMonth()];
@@ -9120,7 +9262,7 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
     catGroups[cat].slice().sort(function(a,b){return (a.e1||0)-(b.e1||0);}).forEach(function(c){
       var segs=_tlSegmentos(c);
       var activaFila=esDiaActual&&segs.some(function(seg){return _tlEstadoSegmento(seg,nowMin,true)==='active';});
-      namesHtml+='<div class="grupo-tl-name'+(activaFila?' is-active':'')+'"><span class="nm">'+c.nombre+(c.nocheReal?' 🌙':'')+'</span><span class="sch">'+c.horario+'</span></div>';
+      namesHtml+='<div class="grupo-tl-name'+(activaFila?' is-active':'')+(c.hlVisible?' is-hl':'')+'"><span class="nm">'+c.nombre+(c.nocheReal?' 🌙':'')+(c.hlVisible?' 🤝':'')+'</span><span class="sch">'+c.horario+'</span></div>';
       rowsHtml+=_tlFilaHtml(segs,c.nocheReal?'is-night':'',esDiaActual,nowMin);
     });
   });
@@ -9624,9 +9766,7 @@ window.renderOperativa=function(){
     if(_estaExcluidoPlantilla((emp&&emp.nombre)||nom,_fechaISOPlantilla(now)))return;
     if(!dias)return;
     var t=dias[todayNum];t=_turnoGrupoConCambioCompartido(emp,now,t);
-    if(_esArturoPlantilla((emp&&emp.nombre)||nom)){
-      t=_arturoHLPubFecha(now)?null:_ajustarTurnoConHLPersonal(t,_miCalendarioDiaArturo(now));
-    }
+    t=_aplicarHLPersonalLocalAEmpleado(emp,now,t);
     if(!_turnoGrupoOperativo(t))return;
     var excl=!!(t.noVieneInterrogacion||t.disponibilidadNoConfirmada);if(excl)return;
     var gE1=toM(t.e1),gS1=toM(t.s1),gE2=t.e2?toM(t.e2):null,gS2=t.s2?toM(t.s2):null;
@@ -9647,9 +9787,7 @@ window.renderOperativa=function(){
     Object.keys(gmap).forEach(function(nom){
       var emp=gmap[nom],dias=(emp.meses&&emp.meses[mk])||null;if(_estaExcluidoPlantilla((emp&&emp.nombre)||nom,_fechaISOPlantilla(dateObj)))return;if(!dias)return;
       var t=dias[dn];t=_turnoGrupoConCambioCompartido(emp,dateObj,t);
-      if(_esArturoPlantilla((emp&&emp.nombre)||nom)){
-        t=_arturoHLPubFecha(dateObj)?null:_ajustarTurnoConHLPersonal(t,_miCalendarioDiaArturo(dateObj));
-      }
+      t=_aplicarHLPersonalLocalAEmpleado(emp,dateObj,t);
       if(!_turnoGrupoOperativo(t))return;
       var excl=!!(t.noVieneInterrogacion||t.disponibilidadNoConfirmada);if(excl)return;
       out.push({nombre:nom,e1:toM(t.e1),s1:toM(t.s1),e2:t.e2?toM(t.e2):null,s2:t.s2?toM(t.s2):null});
@@ -12088,9 +12226,7 @@ function _evClasificarEmpleadoEvento(emp, mes, dia, hDesde, hHasta, mesPublicado
   // día completo → sin turno; parcial → se descuenta solo ese tramo. Igual que en
   // Vista compañeros, esto faltaba aquí y por eso Buscar Evento seguía mostrando el
   // turno entero aunque hubiera HL parcial marcado.
-  if(_esArturoPlantilla(emp.nombre||emp.nomina)){
-    turno=_arturoHLPubFecha(fechaEvento)?null:_ajustarTurnoConHLPersonal(turno,_miCalendarioDiaArturo(fechaEvento));
-  }
+  turno=_aplicarHLPersonalLocalAEmpleado(emp,fechaEvento,turno);
   var nombre=emp.nombre;
   var diasGuardados=Object.keys(diasMes).length;
   var mesVacioEmpleado=tieneMesEmp&&diasGuardados===0;
