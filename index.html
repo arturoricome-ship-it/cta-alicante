@@ -3658,6 +3658,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
   <div class="calc-sub">Importa el Excel del grupo y consulta quién coincide contigo</div>
   <div class="calc-btn-row">
     <button class="calc-small-btn" id="btn-import-grupo" onclick="importarGrupo()">📥 Importar</button>
+    <button class="calc-small-btn" id="btn-gestionar-grupo" onclick="gestionarImportacionesCompaneros()" title="Borrar una importación equivocada">🧹 Gestionar</button>
     <button class="calc-small-btn" id="btn-mismo-turno" onclick="filtrarMismoTurno()">🎯 Mismo turno</button>
     <button class="calc-small-btn" id="btn-en-turno" onclick="filtrarEnTurno()">⚡ En turno</button>
     <button id="btn-sort-salida" onclick="toggleSortSalida()" title="Ordenar por próxima salida" style="background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:5px 9px;cursor:pointer;font-size:13px;line-height:1">⇅</button>
@@ -4261,7 +4262,7 @@ function initGoogleWhenReady(intentos){
       style="border:2px dashed rgba(96,165,250,.3);border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;margin-bottom:12px;transition:border-color .2s;background:rgba(96,165,250,.05)">
       <div style="font-size:34px;margin-bottom:8px">📂</div>
       <div id="ta-drop-txt" style="font-size:13px;color:var(--gray);font-weight:700">Toca para seleccionar un Excel</div>
-      <div style="font-size:10px;color:var(--gray);margin-top:4px;opacity:.75">Si el mes ya existe, se sustituye. Si no, se añade.</div>
+      <div style="font-size:10px;color:var(--gray);margin-top:4px;opacity:.75">Grupo: si el mes ya existe, se acumula por empleado. Personal: actualiza ese mes.</div>
     </div>
     <input type="file" id="ta-file" accept=".xlsx,.xls" style="display:none" onchange="taHandleFile(this.files[0])">
     <div id="ta-status" style="font-size:11px;color:var(--gray);margin-bottom:10px;line-height:1.45">Sin datos cargados.</div>
@@ -4549,6 +4550,7 @@ function _ctaLogHumanizar(tipo,detalle){
     ver_companeros:'Abrir compañeros por día',
     abrirCompanerosPorDia:'Abrir compañeros por día',
     importar_companeros:'Importar compañeros',
+    gestionarImportacionesCompaneros:'Compañeros: gestionar importaciones',
     importarGrupoDesdePlantilla:'Horas plantilla: importar grupo',
     borrarDatosAntiguosPlantilla:'Horas plantilla: borrar importados',
     cerrarHorasPlantilla:'Cerrar horas plantilla',
@@ -5085,6 +5087,7 @@ var _taAvisoMemoria='';
 var _taDetalleStore={};
 var _taDetalleSeq=0;
 var _TA_MEMORY_KEY='cta_ta_memory_v1';
+var _TA_MEMORY_BACKUP_KEY='cta_ta_memory_v1_backup';
 var _TA_HORAS_MODO_KEY='cta_ta_horas_modo_v1';
 var _taHorasModo=taLeerModoHorasAnalizador();
 var _TA_STATS_KEYS=['turnos','partidos','madrugas','nocturnas','noches','horasTurnoMin','horasContadorMin'];
@@ -5169,6 +5172,30 @@ function taGuardarMemoria(mem){
     alert('No he podido guardar la memoria interna. Puede que el navegador tenga el almacenamiento lleno.');
     return false;
   }
+}
+function taGuardarBackupMemoria(rawMem,filename){
+  try{
+    var before=rawMem?JSON.parse(rawMem):taCrearMemoria();
+    localStorage.setItem(_TA_MEMORY_BACKUP_KEY,JSON.stringify({ts:new Date().toISOString(),filename:String(filename||''),before:before}));
+  }catch(e){}
+}
+function taFusionarMesGrupoAnalizador(existing,incoming){
+  if(!existing||existing.kind!=='grupo')return incoming;
+  var empMap={};
+  (existing.empleados||[]).forEach(function(emp){
+    var key=emp.key||taEmpleadoKey(emp);
+    empMap[key]={key:key,nomina:emp.nomina||'',nombre:emp.nombre||'',categoria:emp.categoria||'',total:taStatsClone(emp.total)};
+  });
+  (incoming.empleados||[]).forEach(function(emp){
+    var key=emp.key||taEmpleadoKey(emp);
+    empMap[key]={key:key,nomina:emp.nomina||'',nombre:emp.nombre||'',categoria:emp.categoria||'',total:taStatsClone(emp.total)};
+  });
+  var empleados=Object.keys(empMap).map(function(k){return empMap[k];}).filter(function(e){return taStatsTieneDatos(e.total);});
+  var campo=taHorasCampoAnalizador();
+  empleados.sort(function(a,b){return ((b.total&&b.total[campo])||0)-((a.total&&a.total[campo])||0);});
+  var total=taMesVacio();
+  empleados.forEach(function(emp){taSumaStats(total,emp.total);});
+  return{kind:'grupo',monthKey:incoming.monthKey,nombre:incoming.nombre||existing.nombre||taMesNombre(incoming.monthKey),filename:incoming.filename||existing.filename||'',total:total,empleados:empleados,updatedAt:new Date().toISOString(),acumulado:true};
 }
 function taMesesMemoria(mem){
   var months=(mem&&mem.months)||{};
@@ -5319,7 +5346,10 @@ function taRenderDesdeMemoria(){
   taRenderResultado(r);
 }
 function taGuardarImportacionEnMemoria(r){
+  var rawMemPrev=null;
+  try{rawMemPrev=localStorage.getItem(_TA_MEMORY_KEY);}catch(e){rawMemPrev=null;}
   var mem=taCargarMemoria();
+  if(!rawMemPrev){try{rawMemPrev=JSON.stringify(mem);}catch(e){rawMemPrev='';}}
   var importKind=(r&&r.kind==='grupo')?'grupo':'persona';
   var existingKeys=taMesesMemoria(mem);
   var changedKind=!!(mem.kind&&mem.kind!==importKind&&existingKeys.length);
@@ -5341,7 +5371,9 @@ function taGuardarImportacionEnMemoria(r){
         empleados.push({key:taEmpleadoKey(emp),nomina:emp.nomina||'',nombre:emp.nombre||'',categoria:emp.categoria||'',total:st});
         taSumaStats(total,st);
       });
-      markMonth(k,{kind:'grupo',monthKey:k,nombre:taMesNombre(k),filename:r.filename||'',total:total,empleados:empleados,updatedAt:new Date().toISOString()});
+      var incoming={kind:'grupo',monthKey:k,nombre:taMesNombre(k),filename:r.filename||'',total:total,empleados:empleados,updatedAt:new Date().toISOString()};
+      var monthData=mem.months[k]?taFusionarMesGrupoAnalizador(mem.months[k],incoming):incoming;
+      markMonth(k,monthData);
     });
   }else{
     (r.meses||[]).forEach(function(m){
@@ -5353,10 +5385,16 @@ function taGuardarImportacionEnMemoria(r){
     _taAvisoMemoria='No he detectado meses validos para guardar.';
     return false;
   }
+  taGuardarBackupMemoria(rawMemPrev,r&&r.filename);
   if(!taGuardarMemoria(mem))return false;
   _taMesSeleccionado=mesesImportados.length===1?[mesesImportados[0]]:'ALL';
-  _taAvisoMemoria=(changedKind?'Tipo de archivo distinto: he reiniciado la memoria del analizador. ':'')+
-    anadidos+' mes(es) añadido(s) · '+sustituidos+' mes(es) sustituido(s).';
+  if(importKind==='grupo'){
+    _taAvisoMemoria=(changedKind?'Tipo de archivo distinto: he reiniciado la memoria del analizador. ':'')+
+      anadidos+' mes(es) añadido(s) · '+sustituidos+' mes(es) acumulado(s).';
+  }else{
+    _taAvisoMemoria=(changedKind?'Tipo de archivo distinto: he reiniciado la memoria del analizador. ':'')+
+      anadidos+' mes(es) añadido(s) · '+sustituidos+' mes(es) sustituido(s).';
+  }
   return true;
 }
 function taRestaurarMemoria(){
@@ -5365,12 +5403,23 @@ function taRestaurarMemoria(){
   if(!keys.length){alert('No hay meses guardados para borrar.');return;}
   var seleccionActual=taSelectedMonthKeys(mem);
   var def=(_taMesSeleccionado!=='ALL'&&seleccionActual.length)?seleccionActual.map(taMesNombre).join(', '):'';
-  var msg='Escribe TODO para borrar toda la memoria.\n\nO escribe los meses que quieras borrar separados por coma.\nGuardados: '+keys.map(taMesNombre).join(', ');
+  var msg='Escribe ULTIMA para deshacer la última importación.\n\nEscribe TODO para borrar toda la memoria.\n\nO escribe los meses que quieras borrar separados por coma.\nGuardados: '+keys.map(taMesNombre).join(', ');
   var resp=prompt(msg,def);
   if(resp===null)return;
   resp=String(resp||'').trim();
   if(!resp)return;
   var upper=resp.toUpperCase();
+  if(upper==='ULTIMA'||upper==='DESHACER'){
+    var backup=null;
+    try{backup=JSON.parse(localStorage.getItem(_TA_MEMORY_BACKUP_KEY)||'null');}catch(e){backup=null;}
+    if(!backup||!backup.before||!backup.before.months){alert('No hay copia anterior disponible. Se guarda a partir de las próximas importaciones.');return;}
+    if(!confirm('Se restaurará el analizador al estado anterior a la última importación.\n\n¿Continuar?'))return;
+    try{localStorage.setItem(_TA_MEMORY_KEY,JSON.stringify(backup.before));localStorage.removeItem(_TA_MEMORY_BACKUP_KEY);}catch(e){alert('No he podido restaurar: '+e.message);return;}
+    _taMesSeleccionado='ALL';
+    _taAvisoMemoria='Restaurada la memoria anterior a la última importación.';
+    taRenderDesdeMemoria();
+    return;
+  }
   if(upper==='TODO'||upper==='TODOS'||upper==='ALL'){
     if(!confirm('Se borraran todos los meses guardados del analizador.'))return;
     try{localStorage.removeItem(_TA_MEMORY_KEY);}catch(e){}
@@ -6721,12 +6770,143 @@ function _estaExcluidoPlantilla(nombre,fechaISO){
 function resetGrupo(){
   if(!confirm('¿Borrar todos los datos del grupo importados?'))return;
   localStorage.removeItem(_GRUPO_KEY+'_map');
+  localStorage.removeItem(_GRUPO_KEY+'_map_backup');
   var btn=document.getElementById('btn-import-grupo');
   if(btn)btn.classList.remove('has-data');
   var hint=document.getElementById('grupo-import-hint');
   if(hint)hint.style.display='none';
   var panel=document.getElementById('grupo-panel');
   if(panel){panel.innerHTML='';panel.classList.remove('open');}
+}
+function _grupoLeerMapCompaneros(){
+  var map={};
+  try{map=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')||{};}catch(e){map={};}
+  return map;
+}
+function _grupoGuardarMapCompaneros(map){
+  try{localStorage.setItem(_GRUPO_KEY+'_map',JSON.stringify(map||{}));return true;}catch(e){alert('No he podido guardar los cambios: '+e.message);return false;}
+}
+function _grupoGuardarBackupCompaneros(rawMap,fileName,monthKey,etiqueta){
+  try{
+    var before=JSON.parse(rawMap||'{}')||{};
+    localStorage.setItem(_GRUPO_KEY+'_map_backup',JSON.stringify({ts:new Date().toISOString(),fileName:String(fileName||''),monthKey:String(monthKey||''),etiqueta:String(etiqueta||''),before:before}));
+  }catch(e){}
+}
+function _grupoNormalizarMesInput(txt){
+  var s=String(txt||'').trim();
+  if(!s)return '';
+  if(/^\d+$/.test(s))return _GRUPO_MONTHS[parseInt(s,10)-1]||'';
+  var n=s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  for(var i=0;i<_GRUPO_MONTHS.length;i++){
+    var m=_GRUPO_MONTHS[i].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if(m===n||m.indexOf(n)===0||n.indexOf(m.slice(0,3))===0)return _GRUPO_MONTHS[i];
+  }
+  return '';
+}
+function _grupoResumenImportadosCompaneros(map){
+  var res={};
+  Object.keys(map||{}).forEach(function(k){
+    var emp=map[k]||{},cat=String(emp.categoria||'Sin categoría').trim()||'Sin categoría';
+    Object.keys(emp.meses||{}).forEach(function(mk){
+      if(!res[mk])res[mk]={total:0,cats:{}};
+      res[mk].total++;
+      res[mk].cats[cat]=(res[mk].cats[cat]||0)+1;
+    });
+  });
+  var meses=Object.keys(res).sort(function(a,b){return _GRUPO_MONTHS.indexOf(a)-_GRUPO_MONTHS.indexOf(b);});
+  if(!meses.length)return 'Sin meses guardados';
+  return meses.map(function(mk){
+    var cats=Object.keys(res[mk].cats).sort().map(function(c){return c+'('+res[mk].cats[c]+')';}).join(', ');
+    return mk+': '+res[mk].total+' empleados · '+cats;
+  }).join('\n');
+}
+function _grupoBorrarMesCategoriaCompaneros(map,monthKey,categoriaFiltro){
+  var catNorm=_normNombreGrupo(categoriaFiltro||'');
+  var empleadosAfectados=0,diasBorrados=0;
+  Object.keys(map||{}).forEach(function(k){
+    var emp=map[k]||{};
+    if(!emp.meses||!emp.meses[monthKey])return;
+    if(catNorm){
+      var empCat=_normNombreGrupo(emp.categoria||'');
+      if(empCat.indexOf(catNorm)<0&&catNorm.indexOf(empCat)<0)return;
+    }
+    diasBorrados+=Object.keys(emp.meses[monthKey]||{}).length;
+    delete emp.meses[monthKey];
+    empleadosAfectados++;
+    if(!Object.keys(emp.meses||{}).length)delete map[k];
+    else map[k]=emp;
+  });
+  return{empleados:empleadosAfectados,dias:diasBorrados};
+}
+function _grupoRefrescarTrasGestion(){
+  var map=_grupoLeerMapCompaneros();
+  var total=Object.keys(map).length;
+  var btn=document.getElementById('btn-import-grupo');
+  if(btn)btn.classList.toggle('has-data',total>0);
+  var hint=document.getElementById('grupo-import-hint');
+  var txt=document.getElementById('grupo-import-txt');
+  if(hint&&txt){
+    hint.style.display='block';
+    txt.style.color=total?'#4ade80':'#f87171';
+    txt.style.fontSize='11px';
+    txt.textContent=total?'Importaciones ajustadas · '+total+' empleados guardados':'Importaciones borradas';
+  }
+  if(typeof refrescarCompanerosPanel==='function'&&document.getElementById('calc-panel')&&document.getElementById('calc-panel').classList.contains('show')){
+    refrescarCompanerosPanel(window._grupoOffsetDias||0,false);
+  }
+}
+function gestionarImportacionesCompaneros(){
+  var map=_grupoLeerMapCompaneros();
+  if(!Object.keys(map).length){alert('No hay importaciones guardadas en Compañeros por día.');return;}
+  var resumen=_grupoResumenImportadosCompaneros(map);
+  var msg='Gestión de importaciones de Compañeros por día\n\n'+
+    'Escribe una opción:\n'+
+    'ULTIMA = deshacer la última importación hecha desde ahora en adelante\n'+
+    'TODO = borrar todo Compañeros por día\n'+
+    'JULIO = borrar ese mes completo\n'+
+    'JULIO/FTP OPERARIO = borrar solo esa categoría de ese mes\n\n'+
+    'Guardado ahora:\n'+resumen;
+  var resp=prompt(msg,'');
+  if(resp===null)return;
+  resp=String(resp||'').trim();
+  if(!resp)return;
+  var up=resp.toUpperCase();
+  if(up==='ULTIMA'||up==='DESHACER'){
+    var backup=null;
+    try{backup=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map_backup')||'null');}catch(e){backup=null;}
+    if(!backup||!backup.before){alert('No hay copia anterior disponible. La copia se guarda a partir de las próximas importaciones.');return;}
+    var label=(backup.monthKey?backup.monthKey+' · ':'')+(backup.etiqueta||backup.fileName||'última importación');
+    if(!confirm('Se restaurará el estado anterior a: '+label+'\n\n¿Continuar?'))return;
+    if(_grupoGuardarMapCompaneros(backup.before)){
+      try{localStorage.removeItem(_GRUPO_KEY+'_map_backup');}catch(e){}
+      _grupoRefrescarTrasGestion();
+    }
+    return;
+  }
+  if(up==='TODO'||up==='TODOS'||up==='ALL'){
+    if(!confirm('Se borrarán todos los datos importados en Compañeros por día.'))return;
+    localStorage.removeItem(_GRUPO_KEY+'_map');
+    localStorage.removeItem(_GRUPO_KEY+'_map_backup');
+    _grupoRefrescarTrasGestion();
+    return;
+  }
+  var totalEmp=0,totalDias=0,fallidos=[];
+  resp.split(/[;,\n]+/).forEach(function(part){
+    part=String(part||'').trim();
+    if(!part)return;
+    var piezas=part.split(/[\/|]+/);
+    var monthKey=_grupoNormalizarMesInput(piezas[0]);
+    var categoria=piezas.slice(1).join('/').trim();
+    if(!monthKey){fallidos.push(part);return;}
+    var res=_grupoBorrarMesCategoriaCompaneros(map,monthKey,categoria);
+    if(!res.empleados)fallidos.push(part);else{totalEmp+=res.empleados;totalDias+=res.dias;}
+  });
+  if(!totalEmp){alert('No he encontrado coincidencias para borrar.'+(fallidos.length?'\nNo encontrado: '+fallidos.join(', '):''));return;}
+  if(!confirm('Se borrarán '+totalDias+' día(s) de '+totalEmp+' empleado(s).\n\n¿Confirmas?'))return;
+  if(_grupoGuardarMapCompaneros(map)){
+    _grupoRefrescarTrasGestion();
+    if(fallidos.length)alert('Borrado realizado. No encontrado: '+fallidos.join(', '));
+  }
 }
 
 // Códigos de día que nunca son un nombre real, por si se han colado como "nombre"
@@ -7159,6 +7339,7 @@ function procesarGrupoXlsx(file,destino){
         };
         _porNombreExistente[_normNombreGrupo(emp.nombre)]=key;
       });
+      if(!esImportHoras)_grupoGuardarBackupCompaneros(_rawMap,file&&file.name,monthKey,'');
       try{localStorage.setItem(_storageKey,JSON.stringify(nominaMap));}catch(ex){alert('Error guardando: '+ex.message);}
 
       var total=0;for(var _k2 in nominaMap){if(nominaMap.hasOwnProperty(_k2))total++;}
