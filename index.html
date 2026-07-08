@@ -1281,6 +1281,177 @@ body{font-size:14px}
   .op-turno-card.op-tc-horiz{padding:6px 11px!important}.op-tc-pct{font-size:29px!important}.op-tc-shift{font-size:19px!important}.op-tc-times span{font-size:18px!important}
 }
 
+
+/* === Ajuste Compañeros por día: panel fijo, solo scroll en lista/timeline === */
+#calc-panel{
+  top:max(8px, env(safe-area-inset-top));
+  bottom:calc(72px + env(safe-area-inset-bottom));
+  height:auto;
+  max-height:none;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  padding:12px 20px 8px;
+}
+#calc-panel.show{transform:translateY(0)}
+#calc-panel > div[style*="justify-content:center"],
+#calc-panel > div[style*="justify-content:space-between"],
+#calc-panel .calc-sub,
+#calc-panel .calc-btn-row,
+#grupo-import-hint{flex:0 0 auto}
+#calc-panel .calc-sub{margin-bottom:8px}
+#calc-panel .calc-btn-row{margin-bottom:8px}
+#grupo-panel.open,#grupo-timeline.open{
+  flex:1 1 auto;
+  min-height:0;
+  max-height:none!important;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding-bottom:8px;
+  margin-top:6px;
+}
+#grupo-import-hint{margin-top:6px!important;margin-bottom:0!important;padding-bottom:0!important}
+@media(max-height:720px){
+  #calc-panel{padding-top:8px}
+  #calc-panel .calc-sub{margin-bottom:6px}
+  #calc-panel .calc-btn-row{gap:5px;margin-bottom:6px}
+  #calc-panel .calc-small-btn{padding:5px 9px;font-size:10.5px}
+}
+
+
+/* === Compañeros por día: botones compactos sin quitar acciones === */
+#calc-panel > div:first-child{padding:3px 0 2px!important}
+#calc-panel > div:first-child button{padding:3px 24px!important;font-size:10px!important;line-height:1!important}
+#calc-panel > div[style*="justify-content:space-between"]{margin-bottom:2px!important;align-items:flex-end!important}
+#calc-panel .calc-title{font-size:24px!important;line-height:.95!important;letter-spacing:.9px!important}
+#calc-panel #btn-toda-plantilla2{height:28px!important;padding:0 9px!important;font-size:9.5px!important;border-radius:9px!important}
+#calc-panel .calc-sub{font-size:10.5px!important;line-height:1.25!important;margin-bottom:5px!important}
+#calc-panel .calc-btn-row{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:4px!important;
+  margin-bottom:5px!important;
+}
+#calc-panel .calc-btn-row > button{
+  width:100%!important;
+  min-width:0!important;
+  height:31px!important;
+  padding:0 5px!important;
+  border-radius:9px!important;
+  font-size:9.8px!important;
+  line-height:1!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  font-weight:800!important;
+}
+#calc-panel #btn-sort-salida{font-size:13px!important;padding:0!important}
+@media(max-width:360px){
+  #calc-panel .calc-btn-row > button{font-size:9.2px!important;height:30px!important;padding:0 3px!important}
+  #calc-panel .calc-title{font-size:22px!important}
+}
+
+/* === Compañeros por día: botones ultra compactos v2 === */
+#calc-panel{
+  padding-top:7px!important;
+}
+#calc-panel > div:first-child{
+  padding:0!important;
+  margin:0 0 2px!important;
+  height:24px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+#calc-panel > div:first-child button{
+  height:22px!important;
+  padding:0 22px!important;
+  font-size:9px!important;
+  line-height:1!important;
+  border-radius:999px!important;
+}
+#calc-panel > div[style*="justify-content:space-between"]{
+  margin-bottom:1px!important;
+  gap:6px!important;
+  align-items:center!important;
+}
+#calc-panel .calc-title{
+  font-size:21px!important;
+  line-height:.9!important;
+  letter-spacing:.75px!important;
+  white-space:nowrap!important;
+}
+#calc-panel #btn-toda-plantilla2{
+  height:23px!important;
+  min-height:23px!important;
+  padding:0 8px!important;
+  font-size:8.5px!important;
+  border-radius:8px!important;
+  line-height:1!important;
+  max-width:145px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+#calc-panel .calc-sub{
+  font-size:9px!important;
+  line-height:1.12!important;
+  margin:0 0 4px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+#calc-panel .calc-btn-row{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:3px!important;
+  margin:0 0 4px!important;
+}
+#calc-panel .calc-btn-row > button{
+  height:25px!important;
+  min-height:25px!important;
+  padding:0 3px!important;
+  border-radius:8px!important;
+  font-size:8.7px!important;
+  line-height:1!important;
+  letter-spacing:-.15px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+#calc-panel #btn-sort-salida{
+  height:25px!important;
+  min-height:25px!important;
+  font-size:12px!important;
+  padding:0!important;
+}
+#grupo-panel.open,#grupo-timeline.open{
+  margin-top:4px!important;
+}
+.grupo-tl-hint{
+  margin-bottom:4px!important;
+  font-size:8.8px!important;
+  line-height:1.1!important;
+}
+@media(max-width:360px){
+  #calc-panel .calc-title{font-size:19px!important;letter-spacing:.55px!important}
+  #calc-panel #btn-toda-plantilla2{max-width:130px!important;font-size:8px!important;padding:0 6px!important}
+  #calc-panel .calc-btn-row > button{height:24px!important;min-height:24px!important;font-size:8px!important;padding:0 2px!important}
+  #calc-panel .calc-sub{font-size:8.5px!important}
+}
+@media(max-height:720px){
+  #calc-panel{padding-top:5px!important}
+  #calc-panel > div:first-child{height:20px!important;margin-bottom:1px!important}
+  #calc-panel > div:first-child button{height:19px!important;font-size:8.5px!important}
+  #calc-panel .calc-title{font-size:19px!important}
+  #calc-panel .calc-sub{display:none!important}
+  #calc-panel .calc-btn-row > button{height:23px!important;min-height:23px!important;font-size:8px!important}
+  #calc-panel #btn-sort-salida{height:23px!important;min-height:23px!important}
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -7140,6 +7311,7 @@ function abrirCompanerosPorDia(){
   var p=document.getElementById('calc-panel');
   var o=document.getElementById('calc-overlay');
   if(!p)return;
+  p.scrollTop=0;
   p.classList.add('show');
   if(o)o.classList.add('show');
   setTimeout(function(){verCompanerosHoy();},80);
