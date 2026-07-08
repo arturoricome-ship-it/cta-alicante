@@ -247,7 +247,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .hp-emp{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:8px}
 .hp-emp-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
 .hp-name{font-size:13px;font-weight:800;color:var(--white);line-height:1.15}
-.hp-cat{font-size:9px;color:var(--gray);margin-top:3px;text-transform:uppercase;letter-spacing:.35px}
+.hp-cat{display:block;font-size:9px;color:var(--gray);margin-top:3px;text-transform:uppercase;letter-spacing:.35px;line-height:1.15}
 .hp-total{text-align:right;flex-shrink:0}
 .hp-total-v{font-size:18px;font-weight:900;color:var(--gold);line-height:1}
 .hp-total-l{font-size:8.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
@@ -266,8 +266,11 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .hp-day-l{font-size:9px;color:var(--gray);white-space:nowrap}
 .hp-day-r{font-size:9.5px;color:#e9e4f5;font-weight:800;text-align:right}
 .hp-day-r small{display:block;font-size:8px;color:#60a5fa;font-weight:700;margin-top:1px}
-.hp-name-btn{display:block;background:none;border:0;padding:0;margin:0;text-align:left;font-family:"Outfit",sans-serif;cursor:pointer}
-.hp-name-btn .hp-name{text-decoration:underline dotted rgba(200,168,75,.55);text-underline-offset:3px}
+.hp-name-btn{display:block;width:100%;background:none;border:0;padding:4px 6px 6px 0;margin:-4px 0 0;text-align:left;font-family:"Outfit",sans-serif;cursor:pointer;border-radius:10px;touch-action:manipulation;-webkit-tap-highlight-color:rgba(200,168,75,.18)}
+.hp-name-btn .hp-name{display:block;text-decoration:underline dotted rgba(200,168,75,.55);text-underline-offset:3px}
+.hp-name-btn .hp-cat{display:block}
+.hp-name-btn .hp-badge{display:inline-flex}
+.hp-name-btn:active{background:rgba(200,168,75,.08)}
 .hp-name-btn:active .hp-name{color:var(--gold)}
 .hp-cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:9px 0 4px}
 .hp-cal-dow{text-align:center;font-size:8px;color:var(--gray);font-weight:800;letter-spacing:.35px}
@@ -348,7 +351,7 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 #calc-btn:hover{background:rgba(200,168,75,.28);transform:scale(1.05)}
 #calc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;backdrop-filter:blur(4px)}
 #calc-overlay.show{display:block}
-#calc-panel{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:24px 20px 40px;z-index:301;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+#calc-panel{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:24px 20px calc(112px + env(safe-area-inset-bottom));z-index:301;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);max-height:calc(100vh - 8px);overflow-y:auto;box-sizing:border-box;-webkit-overflow-scrolling:touch}
 #calc-panel.show{transform:translateY(0)}
 .calc-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
 .calc-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px}
@@ -615,7 +618,9 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .grupo-nombre{font-size:13px;font-weight:600;color:var(--white);flex:1}
 .grupo-horario{font-size:11px;color:var(--gray);text-align:right}
 .grupo-empty{font-size:12px;color:var(--gray);text-align:center;padding:12px 0;opacity:.7}
-.grupo-import-wrap{margin-top:6px;font-size:10px;color:var(--gray);text-align:center}
+.grupo-import-wrap{margin-top:10px;font-size:10px;color:var(--gray);text-align:center;line-height:1.45;white-space:normal;overflow-wrap:anywhere;padding:0 6px 4px;box-sizing:border-box}
+#calc-panel .grupo-import-wrap{margin-bottom:calc(14px + env(safe-area-inset-bottom));}
+#grupo-import-txt{display:block;max-width:100%;}
 #grupo-panel{max-height:min(72vh,560px);overflow-y:auto;overflow-x:hidden;padding-right:2px;padding-bottom:20px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent}
 .grupo-clickable{cursor:pointer}
 .grupo-clickable:active{opacity:.85}
@@ -2359,10 +2364,9 @@ function borrarDatosAntiguosPlantilla(){
   _hpBorrarDatosImportados();
 }
 function _hpBorrarDatosImportados(){
-  var key=(typeof _GRUPO_KEY!=='undefined'?_GRUPO_KEY:'cta_grupo_2026');
+  var key=(typeof _HP_GRUPO_KEY!=='undefined'?_HP_GRUPO_KEY:'cta_hp_grupo_2026');
   try{
     localStorage.removeItem(key+'_map');
-    localStorage.removeItem('cta_mi_empleado');
   }catch(e){}
   _hpData={rows:[],weeks:[],totalHoras:0,totalCambios:0,monthLabel:'sin datos'};
   var body=document.getElementById('hp-body');
@@ -2371,16 +2375,7 @@ function _hpBorrarDatosImportados(){
   if(search)search.value='';
   if(sub)sub.textContent='Datos importados borrados · importa de nuevo el Excel del grupo';
   if(body)body.innerHTML='<div class="hp-empty">Datos antiguos borrados.<br>Importa de nuevo el Excel del grupo para recalcular con datos limpios.</div>';
-  var btn=document.getElementById('btn-import-grupo');
-  if(btn)btn.classList.remove('has-data');
-  var hint=document.getElementById('grupo-import-hint');
-  if(hint)hint.style.display='none';
-  var panel=document.getElementById('grupo-panel');
-  if(panel){panel.innerHTML='';panel.classList.remove('open');}
-  var tl=document.getElementById('grupo-timeline');
-  if(tl){tl.innerHTML='';tl.classList.remove('open');}
-  var banner=document.getElementById('op-grupo-import-banner');
-  if(banner)banner.style.display='block';
+  // No tocamos Compañeros por día: Horas plantilla tiene su propia memoria.
 }
 var _hpLogoTapTs=0,_hpCasaGestoBloqueadoHasta=0;
 function abrirMenuSecretoCta(){
@@ -2449,6 +2444,95 @@ function _hpFmtHoras(h){
   if(mins===0)return sign+horas+'h';
   return sign+horas+','+String(mins).padStart(2,'0')+'min';
 }
+function _hpNormPrivado(v){
+  return String(v||'')
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^A-Z0-9 ]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function _hpTokensPrivado(v){
+  return _hpNormPrivado(v).split(' ').filter(Boolean);
+}
+function _hpTextoPrivado(emp){
+  if(typeof emp==='string')return emp;
+  if(!emp)return '';
+  return [
+    emp.nombre,
+    emp.empleado,
+    emp.apellidos,
+    emp.nomina,
+    emp.empleado_norm,
+    emp.norm,
+    emp.nombreNorm,
+    emp.categoria,
+    emp.email
+  ].filter(Boolean).join(' ');
+}
+function _hpNombreCategoriaLimpio(emp){
+  var nombre=String((emp&&emp.nombre)||emp||'').replace(/\s+/g,' ').trim();
+  var categoria=String((emp&&emp.categoria)||'General').replace(/\s+/g,' ').trim()||'General';
+  var original=nombre;
+
+  // Algunos nombres vienen pegados a la categoría, por ejemplo:
+  // "Arturo RicoFTP OPERARIO" o "Jorge Rico VicenteFTP OPERARIO".
+  // Aquí se separa para que se vea como el resto: nombre arriba y categoría abajo.
+  var m=nombre.match(/^(.+?)(?:\s*)(FTP|FD|FDT|FIJO(?:\s+DISCONTINUO)?|FIJA(?:\s+DISCONTINUA)?|EVENTUAL|TEMPORAL)\s+(OPERARIO|OPERARIA|AGENTE\s+JEFE|SUPERVISOR|SUPERVISORA|ADMINISTRATIVO|ADMINISTRATIVA|AUXILIAR|PASAJE|RAMPA)$/i);
+  if(m){
+    nombre=m[1].replace(/[\s·•-]+$/,'').trim();
+    categoria=(m[2]+' '+m[3]).replace(/\s+/g,' ').trim();
+  }
+
+  // Caso más genérico: categoría profesional pegada sin prefijo claro.
+  if(nombre===original){
+    var m2=nombre.match(/^(.+?)(?:\s*)(OPERARIO|OPERARIA|AGENTE\s+JEFE|SUPERVISOR|SUPERVISORA|ADMINISTRATIVO|ADMINISTRATIVA|AUXILIAR)$/i);
+    if(m2 && m2[1].trim().split(/\s+/).length>=2){
+      nombre=m2[1].replace(/[\s·•-]+$/,'').trim();
+      categoria=m2[2].replace(/\s+/g,' ').trim();
+    }
+  }
+
+  return {nombre:nombre||original||'',categoria:categoria||'General'};
+}
+function _hpEsEmpleadoPrivado(emp){
+  var n=_hpNormPrivado(_hpTextoPrivado(emp));
+  if(!n)return false;
+  var c=n.replace(/\s+/g,'');
+
+  // Privacidad SOLO para Arturo Rico / Arturo Rico Vicente en Horas plantilla.
+  // Jorge Rico Vicente NO se bloquea: debe verse y funcionar como cualquier empleado.
+  if((/\bARTURO\b/.test(n)||c.indexOf('ARTURO')>=0) && (/\bRICO\b/.test(n)||c.indexOf('RICO')>=0))return true;
+  if(c.indexOf('ARTURORICO')>=0||c.indexOf('ARTURORICOVICENTE')>=0)return true;
+  if(/ARTURORICOME/.test(c))return true;
+  return false;
+}
+function _hpAbrirCalendarioEmpleado(rowIdx){
+  var data=_hpData;
+  var r=data&&data.rows&&data.rows[rowIdx];
+  if(_hpEsEmpleadoPrivado(r)||r&&r.privado)return false;
+  renderHorasPlantillaCalendario(rowIdx);
+  return false;
+}
+function _hpAplicarPrivacidadDOM(){
+  var body=document.getElementById('hp-body');
+  if(!body)return;
+  Array.prototype.slice.call(body.querySelectorAll('.hp-emp')).forEach(function(card){
+    if(card.getAttribute('data-hp-privado')==='1'||_hpEsEmpleadoPrivado(card.textContent||'')){
+      card.setAttribute('data-hp-privado','1');
+      Array.prototype.slice.call(card.querySelectorAll('.hp-name-btn')).forEach(function(btn){
+        var span=document.createElement('span');
+        span.className='hp-name';
+        span.textContent=(btn.querySelector('.hp-name')&&btn.querySelector('.hp-name').textContent)||btn.textContent||'';
+        btn.parentNode.replaceChild(span,btn);
+      });
+      Array.prototype.slice.call(card.querySelectorAll('.hp-days,.hp-badge')).forEach(function(el){
+        if(el&&el.parentNode)el.parentNode.removeChild(el);
+      });
+    }
+  });
+}
 function _hpMonthNames(){
   return ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 }
@@ -2456,7 +2540,7 @@ function _hpGrupoMonths(){
   return (typeof _GRUPO_MONTHS!=='undefined'&&_GRUPO_MONTHS.length)?_GRUPO_MONTHS:['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 }
 function _hpLeerMapaGrupo(){
-  var key=(typeof _GRUPO_KEY!=='undefined'?_GRUPO_KEY:'cta_grupo_2026')+'_map';
+  var key=(typeof _HP_GRUPO_KEY!=='undefined'?_HP_GRUPO_KEY:'cta_hp_grupo_2026')+'_map';
   try{return JSON.parse(localStorage.getItem(key)||'{}')||{};}catch(e){return {};}
 }
 function _hpElegirMes(nominaMap){
@@ -2634,6 +2718,9 @@ function calcularHorasPlantilla(year){
   var empleados=Object.keys(map).map(function(k){return map[k];}).filter(function(e){return e&&e.nombre&&!(typeof _esNombreBasuraGrupo==='function'&&_esNombreBasuraGrupo(e.nombre));});
   var semanasOrden={},totalHoras=0,totalCambios=0,totalDeltaCambios=0,cambiosDetalle=[];
   var rows=empleados.map(function(emp){
+    var empNC=_hpNombreCategoriaLimpio(emp);
+    var empNombre=empNC.nombre||emp.nombre||'';
+    var empCategoria=empNC.categoria||emp.categoria||'General';
     var semanas={},diasDetalle=[],mesTotal=0,cambios=0;
     for(var d=1;d<=lastDay;d++){
       var fecha=new Date(year,monthIdx,d);
@@ -2655,8 +2742,11 @@ function calcularHorasPlantilla(year){
         var hAntes=_hpTurnoHoras(turnoBase),hDespues=_hpTurnoHoras(turno),delta=hDespues-hAntes;
         totalDeltaCambios+=delta;
         cambiosDetalle.push({
-          nombre:emp.nombre||'',
-          categoria:emp.categoria||'General',
+          nombre:empNombre,
+          categoria:empCategoria,
+          nomina:emp.nomina||'',
+          empleado_norm:emp.empleado_norm||emp.norm||'',
+          privado:_hpEsEmpleadoPrivado(emp),
           dia:d,
           fecha:_hpFechaISO(fecha),
           antes:_hpTurnoHorario(turnoBase),
@@ -2687,7 +2777,17 @@ function calcularHorasPlantilla(year){
     }
     totalHoras+=mesTotal;
     totalCambios+=cambios;
-    return {nombre:emp.nombre||'',categoria:emp.categoria||'General',horas:mesTotal,cambios:cambios,semanas:semanas,dias:diasDetalle};
+    return {
+      nombre:empNombre,
+      categoria:empCategoria,
+      nomina:emp.nomina||'',
+      empleado_norm:emp.empleado_norm||emp.norm||'',
+      privado:_hpEsEmpleadoPrivado(emp),
+      horas:mesTotal,
+      cambios:cambios,
+      semanas:semanas,
+      dias:diasDetalle
+    };
   });
   var weekList=Object.keys(semanasOrden).map(function(k){return {key:k,label:semanasOrden[k].label,order:semanasOrden[k].order};}).sort(function(a,b){return a.order-b.order;});
   rows.sort(function(a,b){
@@ -2730,10 +2830,11 @@ function renderHorasPlantillaLista(){
     body.innerHTML='<div class="hp-empty">No hay empleados importados. Importa primero el Excel del grupo.</div>';
     return;
   }
+  var cambiosVisiblesTotal=(data.cambiosDetalle||[]).filter(function(c){return !(c.privado||_hpEsEmpleadoPrivado(c));}).length;
   var html='<div class="hp-summary">'
     +'<div class="hp-kpi"><div class="hp-kpi-v">'+data.rows.length+'</div><div class="hp-kpi-l">Empleados</div></div>'
     +'<div class="hp-kpi"><div class="hp-kpi-v">'+_hpFmtHoras(data.totalHoras)+'</div><div class="hp-kpi-l">Horas mes</div></div>'
-    +'<button class="hp-kpi hp-kpi-btn" onclick="renderHorasPlantillaCambios()"><div class="hp-kpi-v">'+data.totalCambios+'</div><div class="hp-kpi-l">Cambios</div></button>'
+    +'<button class="hp-kpi hp-kpi-btn" onclick="renderHorasPlantillaCambios()"><div class="hp-kpi-v">'+cambiosVisiblesTotal+'</div><div class="hp-kpi-l">Cambios</div></button>'
     +'</div>';
   if(!rows.length){
     body.innerHTML=html+'<div class="hp-empty">Sin resultados para esa búsqueda.</div>';
@@ -2741,9 +2842,16 @@ function renderHorasPlantillaLista(){
   }
   rows.forEach(function(r){
     var rowIdx=data.rows.indexOf(r);
-    html+='<div class="hp-emp">'
+    var rNC=_hpNombreCategoriaLimpio(r);
+    var rNombre=rNC.nombre||r.nombre||'';
+    var rCategoria=rNC.categoria||r.categoria||'General';
+    var privado=!!(r.privado||_hpEsEmpleadoPrivado(r));
+    var bloqueNombre=privado
+      ? '<div style="flex:1;min-width:0"><div class="hp-name">'+escH(rNombre)+'</div><div class="hp-cat">'+escH(rCategoria||'General')+'</div></div>'
+      : '<div style="flex:1;min-width:0"><button type="button" class="hp-name-btn" onclick="event.stopPropagation();return _hpAbrirCalendarioEmpleado('+rowIdx+')"><span class="hp-name">'+escH(rNombre)+'</span><span class="hp-cat">'+escH(rCategoria||'General')+'</span>'+(r.cambios?'<span class="hp-badge">'+r.cambios+' cambio'+(r.cambios===1?'':'s')+' aplicado'+(r.cambios===1?'':'s')+'</span>':'')+'</button></div>';
+    html+='<div class="hp-emp"'+(privado?' data-hp-privado="1"':'')+'>'
       +'<div class="hp-emp-top">'
-        +'<div><button class="hp-name-btn" onclick="renderHorasPlantillaCalendario('+rowIdx+')"><div class="hp-name">'+escH(r.nombre)+'</div></button><div class="hp-cat">'+escH(r.categoria||'General')+'</div>'+(r.cambios?'<div class="hp-badge">'+r.cambios+' cambio'+(r.cambios===1?'':'s')+' aplicado'+(r.cambios===1?'':'s')+'</div>':'')+'</div>'
+        +bloqueNombre
         +'<div class="hp-total"><div class="hp-total-v">'+_hpFmtHoras(r.horas)+'</div><div class="hp-total-l">Mes</div></div>'
       +'</div><div class="hp-weeks">';
     data.weeks.forEach(function(w){
@@ -2751,23 +2859,31 @@ function renderHorasPlantillaLista(){
       html+='<div class="hp-week"><span class="hp-week-l">'+escH(w.label)+'</span><span class="hp-week-v">'+_hpFmtHoras(h)+'</span></div>';
     });
     html+='</div>';
-    var diasContados=(r.dias||[]).filter(function(x){return x.horas>0;}).length;
-    html+='<details class="hp-days"><summary>Ver detalle días · '+diasContados+' contados</summary><div class="hp-day-list">';
-    (r.dias||[]).forEach(function(dia){
-      var cls='hp-day'+(dia.missing?' missing':(dia.zero?' zero':''));
-      html+='<div class="'+cls+'"><span class="hp-day-l">Día '+dia.dia+'</span><span class="hp-day-r">'+_hpFmtHoras(dia.horas)+'<small>'+escH(dia.horario)+(dia.cambio?' · '+escH(dia.etiqueta||'Cambio'):'')+'</small></span></div>';
-    });
-    html+='</div></details></div>';
+    if(!privado){
+      var diasContados=(r.dias||[]).filter(function(x){return x.horas>0;}).length;
+      html+='<details class="hp-days"><summary>Ver detalle días · '+diasContados+' contados</summary><div class="hp-day-list">';
+      (r.dias||[]).forEach(function(dia){
+        var cls='hp-day'+(dia.missing?' missing':(dia.zero?' zero':''));
+        html+='<div class="'+cls+'"><span class="hp-day-l">Día '+dia.dia+'</span><span class="hp-day-r">'+_hpFmtHoras(dia.horas)+'<small>'+escH(dia.horario)+(dia.cambio?' · '+escH(dia.etiqueta||'Cambio'):'')+'</small></span></div>';
+      });
+      html+='</div></details>';
+    }
+    html+='</div>';
   });
   body.innerHTML=html;
+  _hpAplicarPrivacidadDOM();
 }
 function renderHorasPlantillaCalendario(rowIdx){
   var body=document.getElementById('hp-body'),sub=document.getElementById('hp-sub'),search=document.getElementById('hp-search');
   var data=_hpData;
   if(!body||!data||!data.rows||!data.rows[rowIdx])return;
   var r=data.rows[rowIdx];
+  if(r.privado||_hpEsEmpleadoPrivado(r)){renderHorasPlantillaLista();return;}
+  var rNC=_hpNombreCategoriaLimpio(r);
+  var rNombre=rNC.nombre||r.nombre||'Empleado';
+  var rCategoria=rNC.categoria||r.categoria||'General';
   if(search)search.setAttribute('oninput','renderHorasPlantillaLista()');
-  if(sub)sub.textContent='Calendario de '+(r.nombre||'Empleado')+' · '+data.monthLabel;
+  if(sub)sub.textContent='Calendario de '+(rNombre||'Empleado')+' · '+data.monthLabel;
   var lastDay=new Date(data.year,data.monthIdx+1,0).getDate();
   var dias=r.dias||[];
   var contados=dias.filter(function(x){return x.horas>0;}).length;
@@ -2775,10 +2891,10 @@ function renderHorasPlantillaCalendario(rowIdx){
   var esMesActual=hoy.getFullYear()===data.year&&hoy.getMonth()===data.monthIdx;
   var primer=new Date(data.year,data.monthIdx,1).getDay();
   var offset=primer===0?6:primer-1;
-  var html='<button class="hp-back" onclick="renderHorasPlantillaLista()">← Volver a empleados</button>'
+  var html='<button type="button" class="hp-back" onclick="renderHorasPlantillaLista()">← Volver a empleados</button>'
     +'<div class="hp-emp">'
       +'<div class="hp-emp-top">'
-        +'<div><div class="hp-name">'+escH(r.nombre||'Empleado')+'</div><div class="hp-cat">'+escH(r.categoria||'General')+'</div></div>'
+        +'<div><div class="hp-name">'+escH(rNombre||'Empleado')+'</div><div class="hp-cat">'+escH(rCategoria||'General')+'</div></div>'
         +'<div class="hp-total"><div class="hp-total-v">'+_hpFmtHoras(r.horas||0)+'</div><div class="hp-total-l">Mes</div></div>'
       +'</div>'
       +'<div class="hp-summary" style="margin-bottom:0">'
@@ -2823,18 +2939,20 @@ function renderHorasPlantillaCambios(){
   if(search)search.setAttribute('oninput','renderHorasPlantillaCambios()');
   if(sub)sub.textContent='Cambios aplicados · '+data.monthLabel+' · diferencia contra el Excel importado';
   var q=(search&&search.value?search.value:'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
-  var cambios=(data.cambiosDetalle||[]).filter(function(c){
+  var cambiosBase=(data.cambiosDetalle||[]).filter(function(c){return !(c.privado||_hpEsEmpleadoPrivado(c));});
+  var balanceVisible=cambiosBase.reduce(function(acc,c){return acc+(Number(c.delta)||0);},0);
+  var cambios=cambiosBase.filter(function(c){
     if(!q)return true;
     var txt=(c.nombre+' '+c.categoria+' '+c.fecha+' '+c.tipo).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     return txt.indexOf(q)>=0;
   });
   var html='<div class="hp-summary">'
-    +'<div class="hp-kpi"><div class="hp-kpi-v">'+(data.cambiosDetalle||[]).length+'</div><div class="hp-kpi-l">Cambios</div></div>'
-    +'<div class="hp-kpi"><div class="hp-kpi-v">'+_hpFmtDelta(data.totalDeltaCambios||0)+'</div><div class="hp-kpi-l">Balance</div></div>'
+    +'<div class="hp-kpi"><div class="hp-kpi-v">'+cambiosBase.length+'</div><div class="hp-kpi-l">Cambios</div></div>'
+    +'<div class="hp-kpi"><div class="hp-kpi-v">'+_hpFmtDelta(balanceVisible)+'</div><div class="hp-kpi-l">Balance</div></div>'
     +'<button class="hp-kpi hp-kpi-btn" onclick="renderHorasPlantillaLista()"><div class="hp-kpi-v">←</div><div class="hp-kpi-l">Volver</div></button>'
     +'</div>';
   html+='<button class="hp-back" onclick="renderHorasPlantillaLista()">Volver a empleados</button>';
-  if(!(data.cambiosDetalle||[]).length){
+  if(!cambiosBase.length){
     body.innerHTML=html+'<div class="hp-empty">No hay cambios aplicados para este mes.</div>';
     return;
   }
@@ -2843,12 +2961,15 @@ function renderHorasPlantillaCambios(){
     return;
   }
   cambios.forEach(function(c){
+    var cNC=_hpNombreCategoriaLimpio(c);
+    var cNombre=cNC.nombre||c.nombre||'';
+    var cCategoria=cNC.categoria||c.categoria||'General';
     var delta=Number(c.delta)||0;
     var cls=delta>0?'plus':(delta<0?'minus':'zero');
     var deltaTxt=delta===0?'Sin variación':_hpFmtDelta(delta);
     html+='<div class="hp-change">'
       +'<div class="hp-change-top">'
-        +'<div><div class="hp-name">'+escH(c.nombre)+'</div><div class="hp-cat">'+escH(c.categoria||'General')+'</div><div class="hp-change-day">Día '+c.dia+' · '+escH(c.fecha)+' · '+escH(c.tipo||'Cambio')+'</div></div>'
+        +'<div><div class="hp-name">'+escH(cNombre)+'</div><div class="hp-cat">'+escH(cCategoria||'General')+'</div><div class="hp-change-day">Día '+c.dia+' · '+escH(c.fecha)+' · '+escH(c.tipo||'Cambio')+'</div></div>'
         +'<div class="hp-delta '+cls+'">'+escH(deltaTxt)+'</div>'
       +'</div>'
       +'<div class="hp-change-lines">'
@@ -5920,13 +6041,17 @@ function mcRender(){
 
 var _mcMode='mes';
 function mcSetMode(mode){
+  if(mode!=='sem')mode='mes';
   _mcMode=mode;
-  document.getElementById('mc-btn-mes').classList.toggle('on',mode==='mes');
-  document.getElementById('mc-btn-sem').classList.toggle('on',mode==='sem');
-  document.getElementById('mc-grid-wrap').style.display=mode==='mes'?'block':'none';
+  var btnMes=document.getElementById('mc-btn-mes');
+  var btnSem=document.getElementById('mc-btn-sem');
+  if(btnMes)btnMes.classList.toggle('on',mode==='mes');
+  if(btnSem)btnSem.classList.toggle('on',mode==='sem');
+  var gw=document.getElementById('mc-grid-wrap');
   var wl=document.getElementById('mc-weeks-list');
-  if(mode==='sem'){wl.classList.add('open');mcRenderWeeks();}
-  else{wl.classList.remove('open');}
+  if(gw)gw.style.display=mode==='mes'?'block':'none';
+  if(wl)wl.classList.toggle('open',mode==='sem');
+  mcRender();
 }
 
 function mcRenderWeeks(){
@@ -6552,6 +6677,13 @@ document.addEventListener('DOMContentLoaded',function(){
 
 // ─── GRUPO COMPAÑEROS ────────────────────────────────────────────
 var _GRUPO_KEY='cta_grupo_2026';
+// Datos independientes para el menú oculto "Horas plantilla".
+// No se mezclan con Compañeros por día.
+var _HP_GRUPO_KEY='cta_hp_grupo_2026';
+var _grupoImportDestino='companeros';
+function _grupoMapStorageKey(destino){
+  return ((destino==='horas'||destino==='plantilla'||destino==='hp')?_HP_GRUPO_KEY:_GRUPO_KEY)+'_map';
+}
 var _GRUPO_MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 
 
@@ -6745,9 +6877,12 @@ function abrirCompanerosPorDia(){
   setTimeout(function(){verCompanerosHoy();},80);
 }
 function importarGrupo(){
-  document.getElementById('grupo-file-input').click();
+  _grupoImportDestino='companeros';
+  var input=document.getElementById('grupo-file-input');
+  if(input)input.click();
 }
 function importarGrupoDesdePlantilla(){
+  _grupoImportDestino='horas';
   var input=document.getElementById('grupo-file-input');
   if(input)input.click();
 }
@@ -6865,8 +7000,11 @@ function _detectarDiaColGrupoEnCabecera(rows,rowsRaw,hIdx,c){
   return null;
 }
 
-function procesarGrupoXlsx(file){
+function procesarGrupoXlsx(file,destino){
   if(!file)return;
+  var destinoImport=destino||_grupoImportDestino||'companeros';
+  _grupoImportDestino='companeros';
+  var esImportHoras=(destinoImport==='horas'||destinoImport==='plantilla'||destinoImport==='hp');
   if(typeof XLSX==='undefined'){alert('Error: librería XLSX no cargada.');return;}
   var reader=new FileReader();
   reader.onload=function(e){
@@ -6983,27 +7121,20 @@ function procesarGrupoXlsx(file){
         }
       }
 
-      // Merge: flat map by nomina — si el mes ya existe, se sustituye completo.
+      // Merge acumulativo: cada importación se añade a lo ya guardado.
+      // Si el mismo empleado/día ya existía, se conserva el dato más completo
+      // o se actualiza con el turno nuevo cuando trae horas. No se borra el mes entero.
       var nominaMap={};
-      var _rawMap=localStorage.getItem(_GRUPO_KEY+'_map');
+      var _storageKey=_grupoMapStorageKey(esImportHoras?'horas':'companeros');
+      var _rawMap=localStorage.getItem(_storageKey);
       try{nominaMap=JSON.parse(_rawMap||'{}')}catch(ex){}
       _fusionarDuplicadosGrupoSilencioso(nominaMap);
 
-      var mesYaExistia=false,empleadosLimpiados=0;
+      var mesYaExistia=false;
       Object.keys(nominaMap).forEach(function(k){
         var empOld=nominaMap[k]||{};
         var mesesOld=empOld.meses||{};
-        if(Object.prototype.hasOwnProperty.call(mesesOld,monthKey)){
-          mesYaExistia=true;
-          delete mesesOld[monthKey];
-          empleadosLimpiados++;
-        }
-        empOld.meses=mesesOld;
-        if(Object.keys(mesesOld).length){
-          nominaMap[k]=empOld;
-        }else{
-          delete nominaMap[k];
-        }
+        if(Object.prototype.hasOwnProperty.call(mesesOld,monthKey))mesYaExistia=true;
       });
 
       var _porNombreExistente={};
@@ -7028,29 +7159,33 @@ function procesarGrupoXlsx(file){
         };
         _porNombreExistente[_normNombreGrupo(emp.nombre)]=key;
       });
-      try{localStorage.setItem(_GRUPO_KEY+'_map',JSON.stringify(nominaMap));}catch(ex){alert('Error guardando: '+ex.message);}
+      try{localStorage.setItem(_storageKey,JSON.stringify(nominaMap));}catch(ex){alert('Error guardando: '+ex.message);}
 
       var total=0;for(var _k2 in nominaMap){if(nominaMap.hasOwnProperty(_k2))total++;}
-      var btn=document.getElementById('btn-import-grupo');
-      if(btn)btn.classList.add('has-data');
-      var hint=document.getElementById('grupo-import-hint');
-      var txt=document.getElementById('grupo-import-txt');
       var etiqueta=(formato==='MULTI')?(gruposDetectados.length+' grupos'):gruposDetectados[0];
-      if(hint&&txt){
-        hint.style.display='block';txt.style.color='#4ade80';txt.style.fontSize='11px';
-        var diasDetectados=Object.keys(dayColMap).length;
-        txt.textContent='✅ '+etiqueta+': '+monthKey+(mesYaExistia?' sustituido':' añadido')+' · +'+added+' nuevos, '+updated+' actualizados · '+total+' total · '+diasDetectados+' días detectados';
-        if(mesYaExistia)txt.textContent+=' · se borró el '+monthKey+' anterior ('+empleadosLimpiados+' empleados)';
-        if(diasDetectados<28){
-          txt.style.color='#fbbf24';
-          txt.textContent+=' ⚠️ faltan columnas de días en el Excel/importación';
+      var diasDetectados=Object.keys(dayColMap).length;
+      var msg='✅ '+etiqueta+': '+monthKey+(mesYaExistia?' acumulado':' añadido')+' · +'+added+' nuevos, '+updated+' actualizados · '+total+' total · '+diasDetectados+' días detectados';
+      if(diasDetectados<28)msg+=' ⚠️ faltan columnas de días en el Excel/importación';
+
+      if(esImportHoras){
+        var hp=document.getElementById('hp-modal');
+        if(hp&&hp.classList.contains('show')&&typeof calcularHorasPlantilla==='function'){
+          _hpData=calcularHorasPlantilla(new Date().getFullYear());
+          if(typeof renderHorasPlantillaLista==='function')renderHorasPlantillaLista();
+          var hpSub=document.getElementById('hp-sub');
+          if(hpSub)hpSub.textContent='Importado en Horas plantilla · '+etiqueta+' · '+monthKey+(mesYaExistia?' acumulado':' añadido')+' · '+total+' empleados';
         }
-      }
-      if(typeof logActividad==='function')logActividad('importar_companeros',etiqueta+' '+monthKey+(mesYaExistia?' sustituido':' añadido')+': +'+added+' nuevos, '+updated+' actualizados');
-      var hp=document.getElementById('hp-modal');
-      if(hp&&hp.classList.contains('show')&&typeof calcularHorasPlantilla==='function'){
-        _hpData=calcularHorasPlantilla(new Date().getFullYear());
-        if(typeof renderHorasPlantillaLista==='function')renderHorasPlantillaLista();
+        if(typeof logActividad==='function')logActividad('importarGrupoDesdePlantilla',etiqueta+' '+monthKey+(mesYaExistia?' acumulado':' añadido')+': '+added+' nuevos, '+updated+' actualizados');
+      }else{
+        var btn=document.getElementById('btn-import-grupo');
+        if(btn)btn.classList.add('has-data');
+        var hint=document.getElementById('grupo-import-hint');
+        var txt=document.getElementById('grupo-import-txt');
+        if(hint&&txt){
+          hint.style.display='block';txt.style.color=diasDetectados<28?'#fbbf24':'#4ade80';txt.style.fontSize='11px';
+          txt.textContent=msg;
+        }
+        if(typeof logActividad==='function')logActividad('importar_companeros',etiqueta+' '+monthKey+(mesYaExistia?' acumulado':' añadido')+': +'+added+' nuevos, '+updated+' actualizados');
       }
     }catch(err){alert('Error al leer el Excel del grupo: '+err.message);}
   };
@@ -7241,8 +7376,8 @@ function _arturoHLPubFecha(dateObj){
   return !!(_ARTURO_HL_PUBLICO&&_ARTURO_HL_PUBLICO[k]);
 }
 function _esArturoPlantilla(nombre){
-  var n=_normPlantillaNombre(nombre);
-  return n==='ARTURO RICO'||n==='ARTURO RICO GARCIA'||n.indexOf('ARTURO RICO')>=0;
+  var n=(typeof _hpNormPrivado==='function')?_hpNormPrivado(nombre):_normPlantillaNombre(nombre);
+  return /\bARTURO\b/.test(n)&&/\bRICO\b/.test(n);
 }
 // Devuelve el día del calendario PERSONAL de Arturo (este dispositivo) para una fecha,
 // o null si no hay datos. Usado tanto para el chequeo HL como para leer el hlParcial.
