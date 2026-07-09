@@ -8765,6 +8765,11 @@ function _buildCompanerosTimelineData(offsetDias){
   var myData={};
   try{myData=JSON.parse(localStorage.getItem('cta_ed_'+target.getFullYear())||'{}')}catch(e){}
   var myDay=(myData[monthKey]||{})[day];
+  // Si mi propio calendario tiene HL parcial, en vista por horas se usa solo el tramo real de trabajo.
+  // No debe aparecer el tramo HL ni en la fila TÚ ni como fila propia dentro de la plantilla.
+  var _miDiaLocalHLTimeline=(typeof _miCalendarioDiaLocal==='function')?_miCalendarioDiaLocal(target):null;
+  var _myDayTimelineAjustado=(typeof _ajustarTurnoConHLPersonal==='function')?_ajustarTurnoConHLPersonal(myDay,_miDiaLocalHLTimeline):myDay;
+  if(_myDayTimelineAjustado!==undefined)myDay=_myDayTimelineAjustado;
   var myE1=myDay&&myDay.e1?toMinG(myDay.e1):null;
   var myS1=myDay&&myDay.s1?toMinG(myDay.s1):null;
   var myE2=myDay&&myDay.e2?toMinG(myDay.e2):null;
@@ -8786,10 +8791,12 @@ function _buildCompanerosTimelineData(offsetDias){
   empleados.forEach(function(emp){
     var turno=emp.dias[day];
     var cambioDia=(typeof _getCambioCompartidoEmpleado==='function')?_getCambioCompartidoEmpleado(emp,target):null;
-    var puedeVerHLDia=!!(cambioDia&&typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(cambioDia)&&typeof _usuarioPuedeVerHLCompartido==='function'&&_usuarioPuedeVerHLCompartido());
+    var esMiFilaGrupo=!!(typeof _esFilaPropiaParaHL==='function'&&_esFilaPropiaParaHL(emp,target));
+    var puedeVerHLDia=!!(!esMiFilaGrupo&&cambioDia&&typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(cambioDia)&&typeof _usuarioPuedeVerHLCompartido==='function'&&_usuarioPuedeVerHLCompartido());
     var labelHLDia=puedeVerHLDia?_labelHLCompartido(cambioDia):'';
     turno=_turnoGrupoConCambioCompartido(emp,target,turno);
     turno=_aplicarHLPersonalLocalAEmpleado(emp,target,turno);
+    if(esMiFilaGrupo&&turno){turno=Object.assign({},turno,{hlVisible:false,hlLabel:'',etiquetaCambio:''});}
     if(_turnoGrupoOperativo(turno)){
       var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
