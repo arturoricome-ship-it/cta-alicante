@@ -8270,7 +8270,7 @@ function _esLibreRealCambio(t){
   if(t.e1&&t.s1)return false;
   return !tipo||tipo==='libre'||tipo==='dl'||tipo==='descanso';
 }
-function _cambioToTurno(c,turnoBase){
+function _cambioToTurno(c,turnoBase,ocultarHLPropia){
   if(!c)return null;
   var tipo=String(c.tipo||'').toLowerCase();
   var base=turnoBase||{};
@@ -8278,8 +8278,8 @@ function _cambioToTurno(c,turnoBase){
   var baseE2=c.e2||base.e2||'',baseS2=c.s2||base.s2||'';
   var esHL=(typeof _cambioCompartidoEsHL==='function')?_cambioCompartidoEsHL(c):(tipo==='hl'||tipo==='hlp'||(c.hlIni&&c.hlFin));
   var esHLParcial=!!(esHL&&c.hlIni&&c.hlFin&&baseE1&&baseS1);
-  var puedeVerHL=(typeof _usuarioPuedeVerHLCompartido==='function')?_usuarioPuedeVerHLCompartido():false;
-  var etiqueta=esHL?(puedeVerHL?_labelHLCompartido(c):'Libre'):String(c.tipo||'Libre').toUpperCase();
+  var puedeVerHL=(!ocultarHLPropia&&(typeof _usuarioPuedeVerHLCompartido==='function'))?_usuarioPuedeVerHLCompartido():false;
+  var etiqueta=esHL?(puedeVerHL?_labelHLCompartido(c):''):String(c.tipo||'Libre').toUpperCase();
 
   // Importante: HL/HLP suele estar en la lista de tipos "libres".
   // Pero si trae hlIni/hlFin, aunque Sheets no devuelva e1/s1, usamos el turno
@@ -8297,7 +8297,10 @@ function _cambioToTurno(c,turnoBase){
 function _turnoGrupoConCambioCompartido(emp,dateObj,turnoOriginal){
   var c=_getCambioCompartidoEmpleado(emp,dateObj);
   if(!c)return turnoOriginal;
-  return _cambioToTurno(c,turnoOriginal);
+  // Si el cambio HL es del propio usuario, en compañeros se muestra solo el tramo trabajado,
+  // sin etiqueta HL ni color morado. Arturo podrá ver HL de otros delegados, pero no se marca a sí mismo.
+  var ocultarHLPropia=!!(typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(c)&&typeof _empleadoEsUsuarioActual==='function'&&_empleadoEsUsuarioActual(emp,dateObj));
+  return _cambioToTurno(c,turnoOriginal,ocultarHLPropia);
 }
 function _turnoMatchKey(t){
   if(!t)return '';
@@ -8482,6 +8485,11 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   var myData={};
   try{myData=JSON.parse(localStorage.getItem('cta_ed_'+target.getFullYear())||'{}')}catch(e){}
   var myDay=(myData[monthKey]||{})[day];
+  // Si mi propio calendario tiene HL parcial, en compañeros se usa solo el tramo real de trabajo.
+  // No debe mostrarse ni contar el tramo HL dentro del turno propio.
+  var _miEmpGrupoParaHL=(typeof _getMiEmpleadoGrupoActual==='function')?_getMiEmpleadoGrupoActual(target.getFullYear(),monthKey,day):null;
+  var _myDayAjustado=(typeof _ajustarTurnoConHLPersonal==='function')?_ajustarTurnoConHLPersonal(_miEmpGrupoParaHL||{},target,myDay):myDay;
+  if(_myDayAjustado!==undefined)myDay=_myDayAjustado;
   var myE1=myDay&&myDay.e1?toMinG(myDay.e1):null;
   var myS1=myDay&&myDay.s1?toMinG(myDay.s1):null;
   var myE2=myDay&&myDay.e2?toMinG(myDay.e2):null;
@@ -8513,7 +8521,8 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     // Today's shift
     var turno=emp.dias[day];
     var cambioDia=(typeof _getCambioCompartidoEmpleado==='function')?_getCambioCompartidoEmpleado(emp,target):null;
-    var puedeVerHLDia=!!(cambioDia&&typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(cambioDia)&&typeof _usuarioPuedeVerHLCompartido==='function'&&_usuarioPuedeVerHLCompartido());
+    var esMiFilaGrupo=!!(typeof _empleadoEsUsuarioActual==='function'&&_empleadoEsUsuarioActual(emp,target));
+    var puedeVerHLDia=!!(!esMiFilaGrupo&&cambioDia&&typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(cambioDia)&&typeof _usuarioPuedeVerHLCompartido==='function'&&_usuarioPuedeVerHLCompartido());
     var labelHLDia=puedeVerHLDia?_labelHLCompartido(cambioDia):'';
     turno=_turnoGrupoConCambioCompartido(emp,target,turno);
     // Si es Arturo y su calendario personal marca HL ese día, se ajusta su turno:
