@@ -8238,6 +8238,10 @@ function _dedupeCompanerosDia(lista){
 function _turnoGrupoTieneMarcaNoOperativa(t){
   if(!t)return false;
   if(t.ausencia)return true;
+  // HL parcial no debe bloquear el turno restante.
+  // Si Arturo puede ver la etiqueta "HL 12:00–15:00", antes el token HL hacía
+  // que el empleado desapareciera completo aunque quedara tramo operativo.
+  if(t.hlParcialRecortada&&t.e1&&t.s1)return false;
   var up=_textoMarcaCambioTurno(t).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   var tokens=up.replace(/[^A-Z0-9]+/g,' ').trim().split(/\s+/).filter(Boolean);
   var bloquea={
@@ -8266,31 +8270,34 @@ function _esLibreRealCambio(t){
   if(t.e1&&t.s1)return false;
   return !tipo||tipo==='libre'||tipo==='dl'||tipo==='descanso';
 }
-function _cambioToTurno(c){
+function _cambioToTurno(c,turnoBase){
   if(!c)return null;
   var tipo=String(c.tipo||'').toLowerCase();
+  var base=turnoBase||{};
+  var baseE1=c.e1||base.e1||'',baseS1=c.s1||base.s1||'';
+  var baseE2=c.e2||base.e2||'',baseS2=c.s2||base.s2||'';
   var esHL=(typeof _cambioCompartidoEsHL==='function')?_cambioCompartidoEsHL(c):(tipo==='hl'||tipo==='hlp'||(c.hlIni&&c.hlFin));
-  var esHLParcial=!!(esHL&&c.hlIni&&c.hlFin&&(c.e1&&c.s1));
+  var esHLParcial=!!(esHL&&c.hlIni&&c.hlFin&&baseE1&&baseS1);
   var puedeVerHL=(typeof _usuarioPuedeVerHLCompartido==='function')?_usuarioPuedeVerHLCompartido():false;
   var etiqueta=esHL?(puedeVerHL?_labelHLCompartido(c):'Libre'):String(c.tipo||'Libre').toUpperCase();
 
   // Importante: HL/HLP suele estar en la lista de tipos "libres".
-  // Pero si trae hlIni/hlFin y también horario original, NO es día libre completo:
-  // se debe recortar solo ese tramo y mantener operativo el resto del turno.
-  if((_tipoCambioEsLibre(tipo)&&!esHLParcial)||(!c.e1&&!c.s1)){
+  // Pero si trae hlIni/hlFin, aunque Sheets no devuelva e1/s1, usamos el turno
+  // original del Excel del grupo como base y recortamos solo ese tramo.
+  if((_tipoCambioEsLibre(tipo)&&!esHLParcial)||(!esHLParcial&&!c.e1&&!c.s1)){
     var tipoLibreReal=(!tipo||tipo==='libre'||tipo==='dl'||tipo==='descanso'||(esHL&&!puedeVerHL))?'libre':tipo;
     return{tipo:tipoLibreReal,e1:'',s1:'',e2:'',s2:'',cambioCompartido:true,etiquetaCambio:etiqueta,actualizadoPor:c.actualizado_por||c.email||'',hlVisible:esHL&&puedeVerHL};
   }
-  var turno={tipo:(tipo==='curso'?'curso':'trabajado'),e1:c.e1||'',s1:c.s1||'',e2:c.e2||'',s2:c.s2||'',total:c.total||0,cambioCompartido:true,etiquetaCambio:etiqueta,actualizadoPor:c.actualizado_por||c.email||'',hlVisible:esHL&&puedeVerHL};
+  var turno={tipo:(tipo==='curso'?'curso':'trabajado'),e1:baseE1,s1:baseS1,e2:baseE2,s2:baseS2,total:c.total||base.total||0,cambioCompartido:true,etiquetaCambio:etiqueta,actualizadoPor:c.actualizado_por||c.email||'',hlVisible:esHL&&puedeVerHL};
   // HL parcial recibido de Sheets: recorta solo ese tramo. Arturo verá la etiqueta HL;
   // el resto solo verá el turno restante, sin exponer la causa sindical.
-  if(c.hlIni&&c.hlFin)turno=Object.assign({},_restarRangoDeTurno(turno,{ini:c.hlIni,fin:c.hlFin}),{cambioCompartido:true,etiquetaCambio:etiqueta,actualizadoPor:turno.actualizadoPor,hlVisible:esHL&&puedeVerHL});
+  if(c.hlIni&&c.hlFin)turno=Object.assign({},_restarRangoDeTurno(turno,{ini:c.hlIni,fin:c.hlFin}),{cambioCompartido:true,etiquetaCambio:etiqueta,actualizadoPor:turno.actualizadoPor,hlVisible:esHL&&puedeVerHL,hlParcialRecortada:true,hlIni:c.hlIni,hlFin:c.hlFin});
   return turno;
 }
 function _turnoGrupoConCambioCompartido(emp,dateObj,turnoOriginal){
   var c=_getCambioCompartidoEmpleado(emp,dateObj);
   if(!c)return turnoOriginal;
-  return _cambioToTurno(c);
+  return _cambioToTurno(c,turnoOriginal);
 }
 function _turnoMatchKey(t){
   if(!t)return '';
