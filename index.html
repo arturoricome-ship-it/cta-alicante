@@ -7997,6 +7997,13 @@ function _empleadoEsUsuarioActual(emp,dateObj){
   }
   return false;
 }
+function _esFilaPropiaParaHL(emp,dateObj){
+  // Para privacidad: el HL propio nunca debe pintarse como HL en Día a día.
+  // Aunque falle el cruce por nómina/nombre, si el usuario actual es Arturo y la fila es Arturo, cuenta como propia.
+  try{if(typeof _empleadoEsUsuarioActual==='function'&&_empleadoEsUsuarioActual(emp,dateObj))return true;}catch(e){}
+  try{if(typeof _usuarioActualEsArturo==='function'&&_usuarioActualEsArturo()&&_esArturoPlantilla((emp&&emp.nombre)||emp||''))return true;}catch(e){}
+  return false;
+}
 function _aplicarHLPersonalLocalAEmpleado(emp,dateObj,turno){
   // Arturo mantiene la protección local antigua.
   if(_esArturoPlantilla((emp&&emp.nombre)||emp||'')){
@@ -8299,8 +8306,12 @@ function _turnoGrupoConCambioCompartido(emp,dateObj,turnoOriginal){
   if(!c)return turnoOriginal;
   // Si el cambio HL es del propio usuario, en compañeros se muestra solo el tramo trabajado,
   // sin etiqueta HL ni color morado. Arturo podrá ver HL de otros delegados, pero no se marca a sí mismo.
-  var ocultarHLPropia=!!(typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(c)&&typeof _empleadoEsUsuarioActual==='function'&&_empleadoEsUsuarioActual(emp,dateObj));
-  return _cambioToTurno(c,turnoOriginal,ocultarHLPropia);
+  var ocultarHLPropia=!!(typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(c)&&typeof _esFilaPropiaParaHL==='function'&&_esFilaPropiaParaHL(emp,dateObj));
+  var t=_cambioToTurno(c,turnoOriginal,ocultarHLPropia);
+  if(ocultarHLPropia&&t){
+    t=Object.assign({},t,{hlVisible:false,hlLabel:'',etiquetaCambio:''});
+  }
+  return t;
 }
 function _turnoMatchKey(t){
   if(!t)return '';
@@ -8487,8 +8498,8 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
   var myDay=(myData[monthKey]||{})[day];
   // Si mi propio calendario tiene HL parcial, en compañeros se usa solo el tramo real de trabajo.
   // No debe mostrarse ni contar el tramo HL dentro del turno propio.
-  var _miEmpGrupoParaHL=(typeof _getMiEmpleadoGrupoActual==='function')?_getMiEmpleadoGrupoActual(target.getFullYear(),monthKey,day):null;
-  var _myDayAjustado=(typeof _ajustarTurnoConHLPersonal==='function')?_ajustarTurnoConHLPersonal(_miEmpGrupoParaHL||{},target,myDay):myDay;
+  var _miDiaLocalHL=(typeof _miCalendarioDiaLocal==='function')?_miCalendarioDiaLocal(target):null;
+  var _myDayAjustado=(typeof _ajustarTurnoConHLPersonal==='function')?_ajustarTurnoConHLPersonal(myDay,_miDiaLocalHL):myDay;
   if(_myDayAjustado!==undefined)myDay=_myDayAjustado;
   var myE1=myDay&&myDay.e1?toMinG(myDay.e1):null;
   var myS1=myDay&&myDay.s1?toMinG(myDay.s1):null;
@@ -8521,13 +8532,14 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
     // Today's shift
     var turno=emp.dias[day];
     var cambioDia=(typeof _getCambioCompartidoEmpleado==='function')?_getCambioCompartidoEmpleado(emp,target):null;
-    var esMiFilaGrupo=!!(typeof _empleadoEsUsuarioActual==='function'&&_empleadoEsUsuarioActual(emp,target));
+    var esMiFilaGrupo=!!(typeof _esFilaPropiaParaHL==='function'&&_esFilaPropiaParaHL(emp,target));
     var puedeVerHLDia=!!(!esMiFilaGrupo&&cambioDia&&typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(cambioDia)&&typeof _usuarioPuedeVerHLCompartido==='function'&&_usuarioPuedeVerHLCompartido());
     var labelHLDia=puedeVerHLDia?_labelHLCompartido(cambioDia):'';
     turno=_turnoGrupoConCambioCompartido(emp,target,turno);
     // Si es Arturo y su calendario personal marca HL ese día, se ajusta su turno:
     // día completo → sin turno; parcial → se descuenta solo ese tramo.
     turno=_aplicarHLPersonalLocalAEmpleado(emp,target,turno);
+    if(esMiFilaGrupo&&turno){turno=Object.assign({},turno,{hlVisible:false,hlLabel:'',etiquetaCambio:''});}
     if(_turnoGrupoOperativo(turno)){
       var grE1=toMinG(turno.e1),grS1=toMinG(turno.s1);
       var grE2=turno.e2?toMinG(turno.e2):null,grS2=turno.s2?toMinG(turno.s2):null;
