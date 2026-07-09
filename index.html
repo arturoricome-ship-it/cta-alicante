@@ -1495,6 +1495,19 @@ body[data-panel="afiliate"] #panel-afiliate{
   .op-turno-card.state-working.op-tc-horiz .op-tc-sub{font-size:22px!important;letter-spacing:.1px!important}
 }
 
+
+/* === Compañeros por día: dejar zona superior libre para cerrar tocando fuera === */
+#calc-panel{
+  top:max(48px, calc(env(safe-area-inset-top) + 44px))!important;
+  bottom:calc(32px + env(safe-area-inset-bottom))!important;
+}
+@media(max-height:720px){
+  #calc-panel{
+    top:max(42px, calc(env(safe-area-inset-top) + 38px))!important;
+    bottom:calc(28px + env(safe-area-inset-bottom))!important;
+  }
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -3888,7 +3901,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
     <rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/>
   </svg>
 </button>
-<div id="calc-overlay"></div>
+<div id="calc-overlay" onclick="if(typeof cerrarCompanerosPorDia==='function')cerrarCompanerosPorDia()"></div>
 <div id="calc-panel">
   <div style="display:flex;justify-content:center;padding:6px 0 4px">
     <button onclick="(typeof cerrarCompanerosPorDia==='function'?cerrarCompanerosPorDia():(document.getElementById('calc-panel').classList.remove('show'),document.getElementById('calc-overlay').classList.remove('show')))" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:20px;color:var(--gray);font-size:11px;font-weight:600;padding:4px 28px;cursor:pointer;font-family:'Outfit',sans-serif;letter-spacing:.3px">✕</button>
