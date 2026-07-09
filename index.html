@@ -8230,9 +8230,14 @@ function _cambioToTurno(c){
   if(!c)return null;
   var tipo=String(c.tipo||'').toLowerCase();
   var esHL=(typeof _cambioCompartidoEsHL==='function')?_cambioCompartidoEsHL(c):(tipo==='hl'||tipo==='hlp'||(c.hlIni&&c.hlFin));
+  var esHLParcial=!!(esHL&&c.hlIni&&c.hlFin&&(c.e1&&c.s1));
   var puedeVerHL=(typeof _usuarioPuedeVerHLCompartido==='function')?_usuarioPuedeVerHLCompartido():false;
   var etiqueta=esHL?(puedeVerHL?_labelHLCompartido(c):'Libre'):String(c.tipo||'Libre').toUpperCase();
-  if(_tipoCambioEsLibre(tipo)||(!c.e1&&!c.s1)){
+
+  // Importante: HL/HLP suele estar en la lista de tipos "libres".
+  // Pero si trae hlIni/hlFin y también horario original, NO es día libre completo:
+  // se debe recortar solo ese tramo y mantener operativo el resto del turno.
+  if((_tipoCambioEsLibre(tipo)&&!esHLParcial)||(!c.e1&&!c.s1)){
     var tipoLibreReal=(!tipo||tipo==='libre'||tipo==='dl'||tipo==='descanso'||(esHL&&!puedeVerHL))?'libre':tipo;
     return{tipo:tipoLibreReal,e1:'',s1:'',e2:'',s2:'',cambioCompartido:true,etiquetaCambio:etiqueta,actualizadoPor:c.actualizado_por||c.email||'',hlVisible:esHL&&puedeVerHL};
   }
