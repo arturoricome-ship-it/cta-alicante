@@ -10612,13 +10612,20 @@ window.renderOperativa=function(){
     if(g("op-tc-bar"))g("op-tc-bar").style.width=restRemPct+"%";
   } else if(notYet){
     card.classList.add("state-next");
-    if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
+    var minsToStart=Math.max(0,e1-nowMin);
+    // Cuando falta menos de 1h, el chip derecho no debe repetir el turno:
+    // muestra el tiempo restante en azul, como en descanso.
+    if(g("op-tc-times")){
+      g("op-tc-times").innerHTML=minsToStart<=60
+        ? '<span class="op-tc-start-count">'+fmtT(minsToStart)+'</span>'
+        : th;
+    }
     var _D3=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
     if(g("op-tc-sub"))g("op-tc-sub").textContent="Próximo turno: "+_D3[now.getDay()]+" "+now.getDate();
     var _shiftH3=d.e1+(d.s1?" → "+d.s1:"")+(d.e2&&d.s2?"  ·  "+d.e2+" → "+d.s2:"");
     if(g("op-tc-shift")){g("op-tc-shift").textContent=_shiftH3;g("op-tc-shift").style.color="var(--white)";}
     if(g("op-tc-pct"))g("op-tc-pct").textContent="0%";
-    if(g("op-tc-rem"))g("op-tc-rem").textContent="Empieza en "+fmtT(e1-nowMin);
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="Empieza en "+fmtT(minsToStart);
     if(g("op-tc-bar"))g("op-tc-bar").style.width="0%";
   }
 
@@ -13364,6 +13371,19 @@ try{
   }
   #calc-panel{
     padding-top:10px!important;
+  }
+</style>
+
+
+<style id="cta-mijornada-countdown-azul-20260709">
+  #panel-operativa.active #op-turno-card.state-next .op-tc-times span.op-tc-start-count,
+  #op-turno-card.state-next .op-tc-times span.op-tc-start-count{
+    color:#60a5fa!important;
+    font-size:22px!important; /* mismo tamaño que el % de la izquierda */
+    line-height:.9!important;
+    font-weight:800!important;
+    padding:2px 7px!important;
+    border-color:rgba(96,165,250,.35)!important;
   }
 </style>
 
