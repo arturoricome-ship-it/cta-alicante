@@ -13497,12 +13497,183 @@ try{
     white-space:nowrap!important;
     text-align:right!important;
   }
+  #panel-operativa.active #op-turno-card.state-working .op-tc-times::before,
+  #op-turno-card.state-working .op-tc-times::before{
+    content:"Tiempo restante";
+    display:block!important;
+    margin-bottom:3px!important;
+    font-size:7.5px!important;
+    line-height:1!important;
+    font-weight:800!important;
+    letter-spacing:.45px!important;
+    text-transform:uppercase!important;
+    color:var(--gray)!important;
+    white-space:nowrap!important;
+  }
   #panel-operativa.active #op-turno-card.state-working .op-tc-times span,
   #op-turno-card.state-working .op-tc-times span{
     border:0!important;
     padding:0!important;
     font-size:inherit!important;
     color:inherit!important;
+  }
+  #panel-operativa.active #op-turno-card.state-working .op-tc-row,
+  #op-turno-card.state-working .op-tc-row{
+    margin-bottom:9px!important;
+  }
+  #panel-operativa.active #op-turno-card.state-working .op-tc-bar-bg,
+  #op-turno-card.state-working .op-tc-bar-bg{
+    margin-top:7px!important;
+  }
+</style>
+
+
+<style id="cta-fix-mijornada-tiempo-restante-fit-20260709">
+  /* Corrección Mi jornada trabajando: que no se desborde ni se coma la viñeta */
+  #scroll-area,
+  #panel-operativa,
+  #panel-operativa.active #op-fit-zone,
+  #panel-operativa.active #op-turno-card{
+    max-width:100%!important;
+    overflow-x:hidden!important;
+    box-sizing:border-box!important;
+  }
+
+  #panel-operativa.active #op-turno-card.state-working .op-tc-row,
+  #op-turno-card.state-working .op-tc-row{
+    display:grid!important;
+    grid-template-columns:52px minmax(0,1fr) 78px!important;
+    width:100%!important;
+    max-width:100%!important;
+    gap:7px!important;
+    align-items:center!important;
+    margin-bottom:10px!important;
+    overflow:hidden!important;
+  }
+
+  #panel-operativa.active #op-turno-card.state-working .op-tc-col-a,
+  #panel-operativa.active #op-turno-card.state-working .op-tc-col-b,
+  #panel-operativa.active #op-turno-card.state-working .op-tc-col-c,
+  #op-turno-card.state-working .op-tc-col-a,
+  #op-turno-card.state-working .op-tc-col-b,
+  #op-turno-card.state-working .op-tc-col-c{
+    min-width:0!important;
+    width:auto!important;
+    max-width:100%!important;
+    flex:initial!important;
+    flex-basis:auto!important;
+    overflow:hidden!important;
+  }
+
+  #panel-operativa.active #op-turno-card.state-working .op-tc-col-a,
+  #op-turno-card.state-working .op-tc-col-a{
+    align-items:flex-start!important;
+    text-align:left!important;
+  }
+
+  #panel-operativa.active #op-turno-card.state-working .op-tc-pct,
+  #op-turno-card.state-working .op-tc-pct{
+    font-size:24px!important;
+    line-height:.9!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+  }
+
+  #panel-operativa.active #op-turno-card.state-working .op-tc-col-b,
+  #op-turno-card.state-working .op-tc-col-b{
+    align-items:center!important;
+    justify-content:center!important;
+    text-align:center!important;
+  }
+
+  #panel-operativa.active #op-turno-card.state-working .op-tc-shift,
+  #op-turno-card.state-working .op-tc-shift{
+    font-size:12.5px!important;
+    line-height:1.08!important;
+    font-weight:850!important;
+    color:var(--white)!important;
+    margin:0 0 3px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    max-width:100%!important;
+  }
+
+  #panel-operativa.active #op-turno-card.state-working .op-tc-sub,
+  #op-turno-card.state-working .op-tc-sub{
+    font-size:10.2px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    letter-spacing:.18px!important;
+    white-space:nowrap!important;
+    margin:0!important;
+  }
+
+  #panel-operativa.active #op-turno-card.state-working .op-tc-col-c,
+  #op-turno-card.state-working .op-tc-col-c{
+    align-items:flex-end!important;
+    text-align:right!important;
+  }
+
+  #panel-operativa.active #op-turno-card.state-working .op-tc-times,
+  #op-turno-card.state-working .op-tc-times{
+    width:100%!important;
+    max-width:100%!important;
+    display:block!important;
+    font-size:15px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    color:var(--gold)!important;
+    white-space:nowrap!important;
+    text-align:right!important;
+    overflow:hidden!important;
+    text-overflow:clip!important;
+  }
+
+  #panel-operativa.active #op-turno-card.state-working .op-tc-times::before,
+  #op-turno-card.state-working .op-tc-times::before{
+    content:"Tiempo restante";
+    display:block!important;
+    margin-bottom:3px!important;
+    font-size:6.3px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    letter-spacing:.25px!important;
+    text-transform:uppercase!important;
+    color:var(--gray)!important;
+    white-space:nowrap!important;
+  }
+
+  #panel-operativa.active #op-turno-card.state-working .op-tc-times span,
+  #op-turno-card.state-working .op-tc-times span{
+    font-size:15px!important;
+    line-height:1!important;
+    border:0!important;
+    padding:0!important;
+    color:inherit!important;
+  }
+
+  #panel-operativa.active #op-turno-card.state-working .op-tc-bar-bg,
+  #op-turno-card.state-working .op-tc-bar-bg{
+    margin-top:8px!important;
+  }
+
+  @media(max-width:360px){
+    #panel-operativa.active #op-turno-card.state-working .op-tc-row,
+    #op-turno-card.state-working .op-tc-row{
+      grid-template-columns:48px minmax(0,1fr) 72px!important;
+      gap:6px!important;
+    }
+    #panel-operativa.active #op-turno-card.state-working .op-tc-pct,
+    #op-turno-card.state-working .op-tc-pct{font-size:22px!important;}
+    #panel-operativa.active #op-turno-card.state-working .op-tc-shift,
+    #op-turno-card.state-working .op-tc-shift{font-size:11.8px!important;}
+    #panel-operativa.active #op-turno-card.state-working .op-tc-sub,
+    #op-turno-card.state-working .op-tc-sub{font-size:9.5px!important;}
+    #panel-operativa.active #op-turno-card.state-working .op-tc-times,
+    #op-turno-card.state-working .op-tc-times{font-size:14px!important;}
+    #panel-operativa.active #op-turno-card.state-working .op-tc-times::before,
+    #op-turno-card.state-working .op-tc-times::before{font-size:5.9px!important;letter-spacing:.18px!important;}
   }
 </style>
 
