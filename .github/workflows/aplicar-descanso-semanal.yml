@@ -157,3 +157,5 @@ jobs:
           git add index.html .github/workflows/aplicar-descanso-semanal.yml
           git commit -m "Corregir descanso semanal de 46 horas"
           git push origin HEAD:main
+
+# activación 2
