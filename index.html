@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <!-- CTA_OPERATIVA_V73_CAMBIO_TURNO_SIMULADO_2026-06-19 -->
-<!-- CTA_ERRORES_TURNO_SEMANAL_V2_2026-07-11 -->
+<!-- CTA_ERRORES_TURNO_SEMANAL_V3_FUSION_POR_FECHA_2026-07-11 -->
 <!-- CTA_LOGIN_RESTAURADO_IMPORTADOR_ERRORES_INDEPENDIENTE_2026-07-11 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -13889,12 +13889,16 @@ try{
 .et-import-btn{flex:0 0 auto!important;background:rgba(96,165,250,.12)!important;border-color:rgba(96,165,250,.38)!important;color:#93c5fd!important;white-space:nowrap}
 .et-files{display:flex;gap:6px;overflow-x:auto;padding:0 14px 8px;flex-shrink:0;scrollbar-width:none}
 .et-files::-webkit-scrollbar{display:none}
-.et-file-chip{display:flex;align-items:center;gap:6px;min-width:0;max-width:260px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.22);border-radius:9px;padding:5px 7px;color:#bfdbfe;font-size:9px;white-space:nowrap}
-.et-file-chip b{overflow:hidden;text-overflow:ellipsis;font-size:9.5px}
-.et-file-chip span{color:var(--gray,#8a93a8);font-size:8px}
-.et-file-chip button{border:0;background:transparent;color:#fca5a5;font-size:12px;line-height:1;cursor:pointer;padding:0 1px;flex-shrink:0}
+.et-file-chip{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 7px;min-width:220px;max-width:310px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.22);border-radius:10px;padding:7px 8px;color:#bfdbfe;font-size:9px;white-space:nowrap}
+.et-file-chip b{overflow:hidden;text-overflow:ellipsis;font-size:9.5px;line-height:1.2}
+.et-file-chip span{grid-column:1/2;color:var(--gray,#8a93a8);font-size:8px;overflow:hidden;text-overflow:ellipsis}
+.et-file-chip small{grid-column:1/2;color:#86efac;font-size:7.5px;overflow:hidden;text-overflow:ellipsis}
+.et-file-chip button{grid-column:2;grid-row:1/4;align-self:center;border:0;background:transparent;color:#fca5a5;font-size:15px;line-height:1;cursor:pointer;padding:3px;flex-shrink:0}
+.et-file-chip.et-file-old small{color:#fbbf24}
 .et-file-empty{font-size:9px;color:var(--gray,#8a93a8);padding:2px 1px}
 .et-import-status{font-size:9px;color:#93c5fd;padding:0 15px 7px;min-height:12px;flex-shrink:0}
+.et-origin{margin-top:7px;padding-top:7px;border-top:1px dashed rgba(255,255,255,.07);font-size:8.5px;color:var(--gray,#8a93a8);line-height:1.35}
+.et-origin b{color:#bfdbfe;font-weight:700}
 </style>
 <script>
 
@@ -13961,6 +13965,65 @@ function etMonthIndex(key){
 }
 function etClone(v){
   try{return JSON.parse(JSON.stringify(v));}catch(e){return v;}
+}
+function etDateTimeLabel(value){
+  var d=new Date(value);
+  if(!isFinite(d.getTime()))return 'Fecha desconocida';
+  return etFmtDate(d)+' '+(d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
+}
+function etValidTimestamp(value){
+  if(value===null||value===undefined||value==='')return 0;
+  if(value instanceof Date)return isFinite(value.getTime())?value.getTime():0;
+  if(typeof value==='number')return value>0?value:0;
+  var d=new Date(value);
+  return isFinite(d.getTime())?d.getTime():0;
+}
+function etFilenameTimestamp(name){
+  var s=String(name||'');
+  var m=s.match(/(?:^|\D)(20\d{2})[-_. ]?(0?[1-9]|1[0-2])[-_. ]?(0?[1-9]|[12]\d|3[01])(?:\D|$)/);
+  if(m)return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),12,0,0).getTime();
+  m=s.match(/(?:^|\D)(0?[1-9]|[12]\d|3[01])[-_. ](0?[1-9]|1[0-2])[-_. ](20\d{2})(?:\D|$)/);
+  if(m)return new Date(Number(m[3]),Number(m[2])-1,Number(m[1]),12,0,0).getTime();
+  m=s.match(/(?:^|\D)(20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])(?:\D|$)/);
+  if(m)return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),12,0,0).getTime();
+  return 0;
+}
+function etWorkbookInternalTimestamp(wb){
+  var p=(wb&&wb.Props)||{},c=(wb&&wb.Custprops)||{};
+  var values=[p.ModifiedDate,p.LastSavedDate,p.LastSaveDate,p.Date,c.ModifiedDate,c.LastSavedDate];
+  for(var i=0;i<values.length;i++){
+    var ts=etValidTimestamp(values[i]);
+    if(ts)return ts;
+  }
+  return 0;
+}
+function etResolveFreshness(file,wb){
+  var ts=etWorkbookInternalTimestamp(wb),source='';
+  if(ts)source='Fecha interna del Excel';
+  if(!ts&&file&&Number(file.lastModified)>0){ts=Number(file.lastModified);source='Fecha de modificación del archivo';}
+  if(!ts){ts=etFilenameTimestamp(file&&file.name);if(ts)source='Fecha incluida en el nombre';}
+  if(!ts){ts=Date.now();source='Fecha de importación (fecha real no disponible)';}
+  return{timestamp:ts,iso:new Date(ts).toISOString(),label:etDateTimeLabel(ts),source:source,reliable:source.indexOf('importación')<0};
+}
+function etSourceRank(source){
+  source=String(source||'');
+  if(source.indexOf('interna')>=0)return 4;
+  if(source.indexOf('modificación')>=0)return 3;
+  if(source.indexOf('nombre')>=0)return 2;
+  if(source.indexOf('importación')>=0)return 1;
+  return 0;
+}
+function etNormalizeFreshness(ds){
+  if(ds&&ds.freshness&&etValidTimestamp(ds.freshness.timestamp))return ds.freshness;
+  return{timestamp:0,iso:'',label:'Fecha real desconocida',source:'Importación antigua sin fecha del archivo',reliable:false};
+}
+function etCompareSource(a,b){
+  a=a||{};b=b||{};
+  var at=Number(a.timestamp)||0,bt=Number(b.timestamp)||0;
+  if(at!==bt)return at-bt;
+  var ar=etSourceRank(a.source),br=etSourceRank(b.source);
+  if(ar!==br)return ar-br;
+  return String(a.importedAt||'').localeCompare(String(b.importedAt||''));
 }
 function etReadJSON(key,fallback){
   try{
@@ -14069,30 +14132,48 @@ function etReadHoursDatasets(){
 }
 function etRawMemory(){
   var mem=etReadJSON(ET_RAW_KEY,null);
-  if(!mem||!mem.datasets)mem={version:1,updatedAt:'',datasets:{}};
+  if(!mem||!mem.datasets)mem={version:2,updatedAt:'',datasets:{}};
+  mem.version=2;
+  Object.keys(mem.datasets||{}).forEach(function(k){
+    var d=mem.datasets[k];
+    if(d&&!d.freshness)d.freshness=etNormalizeFreshness(d);
+  });
   return mem;
 }
 function etDirectId(filename,year){
   return 'directo:'+etNorm(filename||'archivo').replace(/[^a-z0-9]+/g,'-')+':'+String(year||new Date().getFullYear());
 }
 function etSaveDirectDataset(dataset){
-  if(!dataset||!dataset.employees||!Object.keys(dataset.employees).length)return false;
+  if(!dataset||!dataset.employees||!Object.keys(dataset.employees).length)return{saved:false,reason:'empty'};
   var mem=etRawMemory();
   dataset.id=dataset.id||etDirectId(dataset.filename,dataset.year);
   dataset.source='Importación directa';
   dataset.importedAt=new Date().toISOString();
+  dataset.freshness=dataset.freshness||etNormalizeFreshness(dataset);
+  dataset.freshness.importedAt=dataset.importedAt;
+  var previous=mem.datasets[dataset.id];
+  if(previous){
+    var cmp=etCompareSource(dataset.freshness,etNormalizeFreshness(previous));
+    if(cmp<0){
+      return{saved:false,reason:'older',previous:previous};
+    }
+  }
   mem.datasets[dataset.id]=dataset;
   mem.updatedAt=dataset.importedAt;
   etWriteJSON(ET_RAW_KEY,mem);
-  return true;
+  return{saved:true,replaced:!!previous,previous:previous};
 }
 function etReadDirectDatasets(){
   var mem=etRawMemory(),out=[];
   Object.keys(mem.datasets||{}).forEach(function(k){
     var d=mem.datasets[k];
-    if(d&&d.employees)out.push(d);
+    if(d&&d.employees){d.freshness=etNormalizeFreshness(d);out.push(d);}
   });
-  out.sort(function(a,b){return String(b.importedAt||'').localeCompare(String(a.importedAt||''));});
+  out.sort(function(a,b){
+    var cmp=etCompareSource(etNormalizeFreshness(b),etNormalizeFreshness(a));
+    if(cmp)return cmp;
+    return String(b.importedAt||'').localeCompare(String(a.importedAt||''));
+  });
   return out;
 }
 function etDeleteDataset(id){
@@ -14180,12 +14261,21 @@ function etImportFile(file){
   reader.onload=function(ev){
     try{
       var wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array',cellText:true,cellStyles:true});
+      var freshness=etResolveFreshness(file,wb);
       var year=etInferYear(file.name+' '+(wb.SheetNames||[]).join(' '));
       var dataset=etParseGroupWorkbook(wb,file.name,year)||etParsePersonalWorkbook(wb,file.name,year);
       if(!dataset)throw new Error('No se reconoce el formato del calendario.');
-      if(!etSaveDirectDataset(dataset))throw new Error('El archivo no contiene empleados con turnos.');
+      dataset.freshness=freshness;
+      var saved=etSaveDirectDataset(dataset);
+      if(!saved.saved&&saved.reason==='older'){
+        var oldFresh=etNormalizeFreshness(saved.previous);
+        etSetImportStatus('No se ha aplicado '+file.name+': es anterior a la versión guardada ('+oldFresh.label+').',true);
+        etRecalculate();
+        return;
+      }
+      if(!saved.saved)throw new Error('El archivo no contiene empleados con turnos.');
       var count=Object.keys(dataset.employees||{}).length;
-      etSetImportStatus('Cargado: '+file.name+' · '+count+' empleado'+(count===1?'':'s'),false);
+      etSetImportStatus((saved.replaced?'Actualizado: ':'Cargado: ')+file.name+' · '+count+' empleado'+(count===1?'':'s')+' · '+freshness.label,false);
       etRecalculate();
     }catch(err){
       etSetImportStatus('Error: '+(err&&err.message?err.message:String(err)),true);
@@ -14198,6 +14288,66 @@ function etOpenImporter(){
   var input=document.getElementById('et-file-input');
   if(input)input.click();
 }
+var ET_MERGE_INFO={contributions:{},mergedDatasets:[]};
+function etSourceForDataset(ds){
+  var f=etNormalizeFreshness(ds);
+  return{filename:ds.filename||'Excel',timestamp:Number(f.timestamp)||0,iso:f.iso||'',label:f.label||'Fecha desconocida',source:f.source||'',reliable:!!f.reliable,importedAt:ds.importedAt||''};
+}
+function etDayCandidate(value,source){
+  var day=(value&&typeof value==='object')?etClone(value):{tipo:'libre',e1:'',s1:'',e2:'',s2:'',actualizacionVacia:true};
+  day.__etSource=etClone(source);
+  return day;
+}
+function etDaysInMonth(year,monthKey){
+  var idx=etMonthIndex(monthKey);
+  return idx<0?31:new Date(Number(year)||new Date().getFullYear(),idx+1,0).getDate();
+}
+function etBuildMergedDatasets(sourceFiles){
+  var byYear={},contributions={};
+  (sourceFiles||[]).forEach(function(ds){
+    var year=Number(ds.year)||new Date().getFullYear();
+    var ykey=String(year),source=etSourceForDataset(ds);
+    if(!byYear[ykey])byYear[ykey]={id:'consolidado:'+ykey,source:'Datos consolidados',filename:'Últimas versiones por empleado y día',year:year,employees:{}};
+    var merged=byYear[ykey];
+    contributions[ds.id]=contributions[ds.id]||{days:0,employees:{}};
+    Object.keys(ds.employees||{}).forEach(function(ek){
+      var incoming=ds.employees[ek]||{};
+      if(!merged.employees[ek])merged.employees[ek]={nomina:incoming.nomina||'',nombre:incoming.nombre||'Sin nombre',categoria:incoming.categoria||'',meses:{},__etMetaSource:null};
+      var target=merged.employees[ek];
+      if(!target.__etMetaSource||etCompareSource(source,target.__etMetaSource)>=0){
+        target.nomina=incoming.nomina||target.nomina;
+        target.nombre=incoming.nombre||target.nombre;
+        target.categoria=incoming.categoria||target.categoria;
+        target.__etMetaSource=etClone(source);
+      }
+      Object.keys(incoming.meses||{}).forEach(function(mk){
+        var idx=etMonthIndex(mk);if(idx<0)return;
+        var canonical=ET_MONTHS[idx],inputDays=incoming.meses[mk]||{};
+        if(!target.meses[canonical])target.meses[canonical]={};
+        var month=target.meses[canonical],maxDay=etDaysInMonth(year,canonical);
+        // El archivo es una instantánea mensual para este empleado: también manda cuando el día viene vacío.
+        for(var d=1;d<=maxDay;d++){
+          var has=Object.prototype.hasOwnProperty.call(inputDays,d)||Object.prototype.hasOwnProperty.call(inputDays,String(d));
+          var value=has?(inputDays[d]!==undefined?inputDays[d]:inputDays[String(d)]):null;
+          var existing=month[d],existingSource=existing&&existing.__etSource;
+          if(!existingSource||etCompareSource(source,existingSource)>0){
+            if(existingSource&&existingSource.filename&&contributions[existingSource.datasetId]){
+              contributions[existingSource.datasetId].days=Math.max(0,contributions[existingSource.datasetId].days-1);
+            }
+            var src=etClone(source);src.datasetId=ds.id;
+            month[d]=etDayCandidate(value,src);
+            contributions[ds.id].days++;
+            contributions[ds.id].employees[ek]=true;
+          }
+        }
+      });
+    });
+  });
+  Object.keys(contributions).forEach(function(k){contributions[k].employeeCount=Object.keys(contributions[k].employees||{}).length;});
+  var datasets=Object.keys(byYear).sort().map(function(k){return byYear[k];});
+  ET_MERGE_INFO={contributions:contributions,mergedDatasets:datasets};
+  return datasets;
+}
 function etRenderFiles(){
   var box=document.getElementById('et-files');
   if(!box)return;
@@ -14206,7 +14356,12 @@ function etRenderFiles(){
   box.innerHTML=datasets.map(function(ds){
     var count=Object.keys(ds.employees||{}).length;
     var id=encodeURIComponent(ds.id||'');
-    return '<div class="et-file-chip"><b>'+etEsc(ds.filename||'Excel')+'</b><span>'+count+' emp.</span>'+ 
+    var f=etNormalizeFreshness(ds),c=(ET_MERGE_INFO.contributions||{})[ds.id]||{days:0,employeeCount:0};
+    var active=c.days>0;
+    var cls=active?'':' et-file-old';
+    var vig=active?(c.days+' días vigentes · '+c.employeeCount+' emp. aportados'):'Sin datos vigentes; existe una versión posterior';
+    return '<div class="et-file-chip'+cls+'"><b>'+etEsc(ds.filename||'Excel')+'</b>'+ 
+      '<span>'+etEsc(f.label)+' · '+etEsc(f.source)+'</span><small>'+etEsc(vig)+'</small>'+ 
       '<button type="button" title="Quitar archivo" onclick="borrarExcelErroresTurno(decodeURIComponent(\''+id+'\'))">×</button></div>';
   }).join('');
 }
@@ -14226,7 +14381,7 @@ function etCalendarForEmployee(ds,emp){
       coverage[key]=has?(days[d]||days[String(d)]||null):null;
       if(has&&etIsWorkDay(coverage[key])){
         var info=etShiftInfo(coverage[key],date);
-        if(info)work.push({date:date,key:key,day:coverage[key],info:info});
+        if(info)work.push({date:date,key:key,day:coverage[key],info:info,sourceMeta:(coverage[key]&&coverage[key].__etSource)||null});
       }
     }
   });
@@ -14329,7 +14484,9 @@ function etWeekly46Errors(cal,meta){
       ' de la semana alcanza 46 h. Descansos calculados: '+rests+'. La mayor es '+etFmtDur(best.rest)+'.',
       {
         previousDate:etFmtDate(best.prev.date),previousShift:best.prev.info.label,
+        previousFile:(best.prev.sourceMeta&&best.prev.sourceMeta.filename)||'',
         nextDate:etFmtDate(best.next.date),nextShift:best.next.info.label,
+        nextFile:(best.next.sourceMeta&&best.next.sourceMeta.filename)||'',
         actualMinutes:best.rest,requiredMinutes:2760,
         weekStart:etFmtDate(monday),weekEnd:etFmtDate(sunday)
       });
@@ -14339,9 +14496,9 @@ function etWeekly46Errors(cal,meta){
 function etPushError(errors,base,type,message,extra){
   var e={
     employee:base.employee,nomina:base.nomina||'',categoria:base.categoria||'',
-    source:base.source||'',filename:base.filename||'',type:type,
+    source:base.source||'',filename:base.filename||'',currentFile:base.currentFile||'',type:type,
     date:base.date,shift:base.shift,message:message,
-    previousDate:'',previousShift:'',nextDate:'',nextShift:'',actualMinutes:null,requiredMinutes:null
+    previousDate:'',previousShift:'',previousFile:'',nextDate:'',nextShift:'',nextFile:'',currentFile:'',actualMinutes:null,requiredMinutes:null
   };
   Object.keys(extra||{}).forEach(function(k){e[k]=extra[k];});
   errors.push(e);
@@ -14355,8 +14512,8 @@ function etAnalyzeDataset(ds){
       var base={
         employee:emp.nombre||emp.nomina||'Sin nombre',
         nomina:emp.nomina||'',categoria:emp.categoria||'',
-        source:ds.source||'',filename:ds.filename||'',
-        date:etFmtDate(w.date),shift:w.info.label
+        source:ds.source||'',filename:(w.sourceMeta&&w.sourceMeta.filename)||ds.filename||'',
+        date:etFmtDate(w.date),shift:w.info.label,currentFile:(w.sourceMeta&&w.sourceMeta.filename)||''
       };
       if(w.info.total>540){
         etPushError(errors,base,'turno_maximo',
@@ -14384,13 +14541,14 @@ function etAnalyzeDataset(ds){
         var base2={
           employee:emp.nombre||emp.nomina||'Sin nombre',
           nomina:emp.nomina||'',categoria:emp.categoria||'',
-          source:ds.source||'',filename:ds.filename||'',
-          date:etFmtDate(cur.date),shift:cur.info.label
+          source:ds.source||'',filename:(cur.sourceMeta&&cur.sourceMeta.filename)||ds.filename||'',
+          date:etFmtDate(cur.date),shift:cur.info.label,currentFile:(cur.sourceMeta&&cur.sourceMeta.filename)||''
         };
         etPushError(errors,base2,'descanso_10h',
           'Descanso de '+(actual<0?'turnos solapados':etFmtDur(actual))+'; el mínimo entre turnos es 10 h.',
           {
             previousDate:etFmtDate(prev.date),previousShift:prev.info.label,
+            previousFile:(prev.sourceMeta&&prev.sourceMeta.filename)||'',
             actualMinutes:actual,requiredMinutes:600
           });
       }
@@ -14424,7 +14582,8 @@ function etDedup(errors){
   return out;
 }
 function etRecalculate(){
-  var datasets=etReadDirectDatasets();
+  var sourceFiles=etReadDirectDatasets();
+  var datasets=etBuildMergedDatasets(sourceFiles);
   var all=[],employeeMap={};
   datasets.forEach(function(ds){
     Object.keys(ds.employees||{}).forEach(function(k){
@@ -14434,7 +14593,7 @@ function etRecalculate(){
   });
   ET_LAST_RESULT={
     errors:etDedup(all),employees:Object.keys(employeeMap).length,
-    datasets:datasets.length,generatedAt:new Date().toISOString()
+    datasets:sourceFiles.length,generatedAt:new Date().toISOString()
   };
   etWriteJSON(ET_RESULT_KEY,ET_LAST_RESULT);
   etRenderFiles();
@@ -14497,7 +14656,14 @@ function etRender(){
     if(e.nextDate){
       html+='<div class="et-next"><span>Turno posterior</span><b>'+etEsc(e.nextDate)+' · '+etEsc(e.nextShift)+'</b></div>';
     }
-    html+='<div class="et-message">'+etEsc(e.message)+'</div></div>';
+    html+='<div class="et-message">'+etEsc(e.message)+'</div>';
+    var origins=[];
+    if(e.previousFile)origins.push('Anterior: <b>'+etEsc(e.previousFile)+'</b>');
+    if(e.currentFile)origins.push('Turno: <b>'+etEsc(e.currentFile)+'</b>');
+    if(e.nextFile)origins.push('Posterior: <b>'+etEsc(e.nextFile)+'</b>');
+    if(!origins.length&&e.filename)origins.push('Origen: <b>'+etEsc(e.filename)+'</b>');
+    if(origins.length)html+='<div class="et-origin">'+origins.join(' · ')+'</div>';
+    html+='</div>';
   });
   body.innerHTML=html;
 }
@@ -14544,7 +14710,7 @@ function etBuildUI(){
       '</div>'+
       '<div id="et-files" class="et-files"></div>'+
       '<div id="et-import-status" class="et-import-status"></div>'+
-      '<div class="et-note">Cada semana se revisa de lunes a domingo. Se comprueban todas sus libranzas: si una sola alcanza 46 h, la semana es correcta. Solo se marca error cuando ninguna llega a 46 h. Las semanas incompletas no se valoran. Los Excel de esta pantalla no modifican Horas contador ni Analizador.</div>'+
+      '<div class="et-note">Cada semana se revisa de lunes a domingo. Se comprueban todas sus libranzas: si una sola alcanza 46 h, la semana es correcta. Solo se marca error cuando ninguna llega a 46 h. Las semanas incompletas no se valoran. Los Excel de esta pantalla no modifican Horas contador ni Analizador. Para cada empleado y día se conserva la versión con fecha de archivo más reciente; un archivo nuevo no borra empleados que no incluya.</div>'+
       '<div id="et-body"></div>'+
     '</div>';
   bg.addEventListener('click',etClose);
