@@ -1,0 +1,159 @@
+name: Aplicar descanso semanal CTA
+
+on:
+  push:
+    paths:
+      - '.github/workflows/aplicar-descanso-semanal.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Modificar index.html
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("index.html")
+          s = p.read_text(encoding="utf-8")
+
+          start_marker = "    for(var i=1;i<cal.work.length;i++){"
+          end_marker = "  });\n  return errors;"
+          fn = s.find("function etAnalyzeDataset(ds)")
+          a = s.find(start_marker, fn)
+          b = s.find(end_marker, a)
+          if fn < 0 or a < 0 or b < 0:
+              raise SystemExit("No se encontró el bloque de descansos")
+
+          new = r'''    // Descanso diario: mínimo 10 h entre jornadas consecutivas.
+    for(var i=1;i<cal.work.length;i++){
+      var prev=cal.work[i-1],cur=cal.work[i];
+      var dayDiff=Math.round((
+        new Date(cur.date.getFullYear(),cur.date.getMonth(),cur.date.getDate())-
+        new Date(prev.date.getFullYear(),prev.date.getMonth(),prev.date.getDate())
+      )/86400000);
+      if(dayDiff!==1)continue;
+      var actualDaily=cur.info.start-prev.info.end;
+      if(actualDaily<600){
+        var baseDaily={
+          employee:emp.nombre||emp.nomina||'Sin nombre',
+          nomina:emp.nomina||'',categoria:emp.categoria||'',
+          source:ds.source||'',filename:ds.filename||'',
+          date:etFmtDate(cur.date),shift:cur.info.label
+        };
+        etPushError(errors,baseDaily,'descanso_10h',
+          'Descanso de '+(actualDaily<0?'turnos solapados':etFmtDur(actualDaily))+
+          '; el mínimo es 10 h entre jornadas.',
+          {previousDate:etFmtDate(prev.date),previousShift:prev.info.label,
+           actualMinutes:actualDaily,requiredMinutes:600});
+      }
+    }
+
+    // Descanso semanal: lunes a domingo. Se revisan todas las libranzas
+    // y solo hay error cuando ninguna alcanza 46 horas.
+    function etMonday(date){
+      var d=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+      d.setDate(d.getDate()-((d.getDay()+6)%7));
+      return d;
+    }
+    var weeks={};
+    Object.keys(cal.coverage).forEach(function(key){
+      var p=key.split('-');
+      if(p.length!==3)return;
+      var d=new Date(Number(p[0]),Number(p[1])-1,Number(p[2]));
+      var monday=etMonday(d),wk=etDateKey(monday);
+      if(!weeks[wk])weeks[wk]={monday:monday,rests:{},work:[]};
+    });
+    cal.work.forEach(function(w){
+      var wk=etDateKey(etMonday(w.date));
+      if(weeks[wk])weeks[wk].work.push(w);
+    });
+    for(var r=1;r<cal.work.length;r++){
+      var rp=cal.work[r-1],rc=cal.work[r];
+      var diff=Math.round((
+        new Date(rc.date.getFullYear(),rc.date.getMonth(),rc.date.getDate())-
+        new Date(rp.date.getFullYear(),rp.date.getMonth(),rp.date.getDate())
+      )/86400000);
+      if(diff<=1)continue;
+      var free=etInterveningDaysKnownAndFree(cal.coverage,rp.date,rc.date);
+      if(!free.known||free.hasWork||free.count<1)continue;
+      var actual=rc.info.start-rp.info.end;
+      var id=rp.key+'>'+rc.key;
+      var d=new Date(rp.date.getFullYear(),rp.date.getMonth(),rp.date.getDate()+1);
+      var limit=new Date(rc.date.getFullYear(),rc.date.getMonth(),rc.date.getDate());
+      while(d<limit){
+        var wk=etDateKey(etMonday(d));
+        if(weeks[wk])weeks[wk].rests[id]={actual:actual,prev:rp,cur:rc};
+        d.setDate(d.getDate()+1);
+      }
+    }
+    Object.keys(weeks).forEach(function(wk){
+      var week=weeks[wk],m=week.monday;
+      var complete=true;
+      for(var n=-1;n<=7;n++){
+        var d=new Date(m.getFullYear(),m.getMonth(),m.getDate()+n);
+        if(!Object.prototype.hasOwnProperty.call(cal.coverage,etDateKey(d))){
+          complete=false;break;
+        }
+      }
+      if(!complete||!week.work.length)return;
+      var rests=Object.keys(week.rests).map(function(k){return week.rests[k];});
+      if(rests.some(function(x){return x.actual>=2760;}))return;
+      var largest=null;
+      rests.forEach(function(x){if(!largest||x.actual>largest.actual)largest=x;});
+      var anchor=week.work[0];
+      var sunday=new Date(m.getFullYear(),m.getMonth(),m.getDate()+6);
+      var baseWeekly={
+        employee:emp.nombre||emp.nomina||'Sin nombre',
+        nomina:emp.nomina||'',categoria:emp.categoria||'',
+        source:ds.source||'',filename:ds.filename||'',
+        date:etFmtDate(anchor.date),shift:anchor.info.label
+      };
+      var detail=rests.length
+        ?'Se revisaron '+rests.length+' libranza'+(rests.length===1?'':'s')+
+         ' y la mayor fue de '+etFmtDur(largest.actual)+'.'
+        :'No hubo ninguna libranza completa entre jornadas.';
+      etPushError(errors,baseWeekly,'descanso_46h',
+        'Semana del '+etFmtDate(m)+' al '+etFmtDate(sunday)+': '+detail+
+        ' Ninguna alcanza 46 h.',
+        largest?{previousDate:etFmtDate(largest.prev.date),
+                 previousShift:largest.prev.info.label,
+                 actualMinutes:largest.actual,requiredMinutes:2760}
+               :{actualMinutes:0,requiredMinutes:2760});
+    });
+'''
+
+          s = s[:a] + new + s[b:]
+          s = s.replace("/* CTA_ERRORES_TURNO_V1 */",
+                        "/* CTA_ERRORES_TURNO_V2_DESCANSO_SEMANAL */", 1)
+          s = s.replace("<span>10 h entre turnos</span><span>46 h con libranza</span>",
+                        "<span>10 h entre turnos</span><span>46 h en una libranza semanal</span>", 1)
+          old = "La regla de 46 h se aplica cuando existe al menos un día completo sin turno entre dos jornadas. No se comparan días o meses que no estén cargados."
+          new_note = "Cada semana completa, de lunes a domingo, se revisan todas las libranzas. Basta con que una alcance 46 h; solo se marca error si ninguna llega. Las semanas sin datos limítrofes suficientes no se evalúan."
+          if old not in s:
+              raise SystemExit("No se encontró la nota de 46 h")
+          s = s.replace(old, new_note, 1)
+
+          for check in ("CTA_ERRORES_TURNO_V2_DESCANSO_SEMANAL",
+                        "rests.some(function(x){return x.actual>=2760;})",
+                        "Basta con que una alcance 46 h"):
+              if check not in s:
+                  raise SystemExit("Falló validación: "+check)
+          p.write_text(s, encoding="utf-8")
+          PY
+
+      - name: Guardar el cambio
+        shell: bash
+        run: |
+          rm -f .github/workflows/aplicar-descanso-semanal.yml
+          git config user.name "CTA Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html .github/workflows/aplicar-descanso-semanal.yml
+          git commit -m "Corregir descanso semanal de 46 horas"
+          git push origin HEAD:main
