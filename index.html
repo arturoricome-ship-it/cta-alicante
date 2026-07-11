@@ -3,6 +3,7 @@
 <head>
 <!-- CTA_OPERATIVA_V73_CAMBIO_TURNO_SIMULADO_2026-06-19 -->
 <!-- CTA_ERRORES_TURNO_SEMANAL_V2_2026-07-11 -->
+<!-- CTA_LOGIN_RESTAURADO_IMPORTADOR_ERRORES_INDEPENDIENTE_2026-07-11 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -1512,6 +1513,7 @@ body[data-panel="afiliate"] #panel-afiliate{
 
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 </head>
 <body>
 
@@ -4116,6 +4118,11 @@ window.addEventListener("load",function(){
   // Verificar sesión guardada
   var sess=null;
   try{sess=JSON.parse(localStorage.getItem("cta_session"));}catch(e){}
+  // Eliminar cualquier sesión local creada por versiones anteriores en modo prueba.
+  if(sess&&sess.email==="prueba@cta.local"){
+    localStorage.removeItem("cta_session");
+    sess=null;
+  }
   var MAX_AGE=7*24*60*60*1000; // 7 días
   if(sess&&sess.email&&sess.ts&&(Date.now()-sess.ts)<MAX_AGE){
     // Sesión válida — entrar directamente
@@ -13877,6 +13884,17 @@ try{
   #et-panel.show{transform:translate(-50%,0)}
 }
 
+
+
+.et-import-btn{flex:0 0 auto!important;background:rgba(96,165,250,.12)!important;border-color:rgba(96,165,250,.38)!important;color:#93c5fd!important;white-space:nowrap}
+.et-files{display:flex;gap:6px;overflow-x:auto;padding:0 14px 8px;flex-shrink:0;scrollbar-width:none}
+.et-files::-webkit-scrollbar{display:none}
+.et-file-chip{display:flex;align-items:center;gap:6px;min-width:0;max-width:260px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.22);border-radius:9px;padding:5px 7px;color:#bfdbfe;font-size:9px;white-space:nowrap}
+.et-file-chip b{overflow:hidden;text-overflow:ellipsis;font-size:9.5px}
+.et-file-chip span{color:var(--gray,#8a93a8);font-size:8px}
+.et-file-chip button{border:0;background:transparent;color:#fca5a5;font-size:12px;line-height:1;cursor:pointer;padding:0 1px;flex-shrink:0}
+.et-file-empty{font-size:9px;color:var(--gray,#8a93a8);padding:2px 1px}
+.et-import-status{font-size:9px;color:#93c5fd;padding:0 15px 7px;min-height:12px;flex-shrink:0}
 </style>
 <script>
 
@@ -13886,8 +13904,8 @@ try{
 if(window.__CTA_ERRORES_TURNO_V2__)return;
 window.__CTA_ERRORES_TURNO_V2__=true;
 
-var ET_RAW_KEY='cta_turn_errors_raw_v1';
-var ET_RESULT_KEY='cta_turn_errors_result_v1';
+var ET_RAW_KEY='cta_turn_errors_direct_v1';
+var ET_RESULT_KEY='cta_turn_errors_direct_result_v1';
 var ET_MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 var ET_MONTH_LABELS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var ET_NO_WORK=['libre','vacaciones','festivo','hl','hlp','baja','rm','curso','permiso','perentorias','hfun','nh','bp','h6','excedencia'];
@@ -14054,39 +14072,143 @@ function etRawMemory(){
   if(!mem||!mem.datasets)mem={version:1,updatedAt:'',datasets:{}};
   return mem;
 }
-function etSaveRawMonth(meta,employees,monthKey){
-  var idx=etMonthIndex(monthKey);
-  if(idx<0||!employees||!employees.length)return;
-  var mem=etRawMemory();
-  var id='analizador:'+(meta.filename||'archivo')+':'+(meta.year||new Date().getFullYear());
-  if(!mem.datasets[id])mem.datasets[id]={
-    id:id,source:'Analizador',filename:meta.filename||'Excel',
-    year:meta.year||new Date().getFullYear(),employees:{}
-  };
-  var ds=mem.datasets[id];
-  employees.forEach(function(emp){
-    var ek=etEmployeeKey(emp);
-    if(!ds.employees[ek])ds.employees[ek]={
-      nomina:emp.nomina||'',nombre:emp.nombre||meta.persona||'Sin nombre',
-      categoria:emp.categoria||'',meses:{}
-    };
-    ds.employees[ek].nombre=emp.nombre||ds.employees[ek].nombre;
-    ds.employees[ek].categoria=emp.categoria||ds.employees[ek].categoria;
-    var mesPrev=ds.employees[ek].meses[ET_MONTHS[idx]]||{};
-    var mesNuevo=etClone(emp.dias||{});
-    Object.keys(mesNuevo).forEach(function(d){mesPrev[d]=mesNuevo[d];});
-    ds.employees[ek].meses[ET_MONTHS[idx]]=mesPrev;
-  });
-  mem.updatedAt=new Date().toISOString();
-  etWriteJSON(ET_RAW_KEY,mem);
+function etDirectId(filename,year){
+  return 'directo:'+etNorm(filename||'archivo').replace(/[^a-z0-9]+/g,'-')+':'+String(year||new Date().getFullYear());
 }
-function etReadAnalyzerDatasets(){
+function etSaveDirectDataset(dataset){
+  if(!dataset||!dataset.employees||!Object.keys(dataset.employees).length)return false;
+  var mem=etRawMemory();
+  dataset.id=dataset.id||etDirectId(dataset.filename,dataset.year);
+  dataset.source='Importación directa';
+  dataset.importedAt=new Date().toISOString();
+  mem.datasets[dataset.id]=dataset;
+  mem.updatedAt=dataset.importedAt;
+  etWriteJSON(ET_RAW_KEY,mem);
+  return true;
+}
+function etReadDirectDatasets(){
   var mem=etRawMemory(),out=[];
   Object.keys(mem.datasets||{}).forEach(function(k){
     var d=mem.datasets[k];
     if(d&&d.employees)out.push(d);
   });
+  out.sort(function(a,b){return String(b.importedAt||'').localeCompare(String(a.importedAt||''));});
   return out;
+}
+function etDeleteDataset(id){
+  var mem=etRawMemory();
+  if(mem.datasets&&mem.datasets[id])delete mem.datasets[id];
+  mem.updatedAt=new Date().toISOString();
+  etWriteJSON(ET_RAW_KEY,mem);
+  etRecalculate();
+}
+function etMergeEmployeeMonth(employees,emp,monthKey,days){
+  var idx=etMonthIndex(monthKey);
+  if(idx<0)return;
+  var ek=etEmployeeKey(emp);
+  if(!employees[ek])employees[ek]={
+    nomina:emp.nomina||'',nombre:emp.nombre||'Sin nombre',categoria:emp.categoria||'',meses:{}
+  };
+  var target=employees[ek];
+  target.nombre=emp.nombre||target.nombre;
+  target.categoria=emp.categoria||target.categoria;
+  var month=target.meses[ET_MONTHS[idx]]||{};
+  Object.keys(days||{}).forEach(function(d){month[d]=etClone(days[d]);});
+  target.meses[ET_MONTHS[idx]]=month;
+}
+function etParseGroupWorkbook(wb,filename,year){
+  if(typeof window.taParseGrupoSheet!=='function')return null;
+  var employees={},used=0,months={};
+  (wb.SheetNames||[]).forEach(function(sheetName){
+    var parsed=null;
+    try{parsed=window.taParseGrupoSheet(wb.Sheets[sheetName],sheetName);}catch(e){parsed=null;}
+    if(!parsed||!parsed.monthKey||!parsed.empleados||!parsed.empleados.length)return;
+    used++;months[parsed.monthKey]=true;
+    parsed.empleados.forEach(function(emp){
+      etMergeEmployeeMonth(employees,emp,parsed.monthKey,emp.dias||{});
+    });
+  });
+  if(!used||!Object.keys(employees).length)return null;
+  return{id:etDirectId(filename,year),filename:filename,year:year,employees:employees,months:Object.keys(months)};
+}
+function etParsePersonalWorkbook(wb,filename,year){
+  if(typeof window.taParseDia!=='function'||typeof window.tiCellVal!=='function')return null;
+  var sheet=wb.Sheets['Calendario empleado'];
+  if(!sheet){
+    var candidate=(wb.SheetNames||[]).filter(function(n){return etNorm(n)!=='leyenda';})[0];
+    sheet=candidate?wb.Sheets[candidate]:null;
+  }
+  if(!sheet)return null;
+  var leyenda=null;
+  try{if(typeof window._leerLeyendaTryp==='function')leyenda=window._leerLeyendaTryp(wb);}catch(e){}
+  var nombre=(leyenda&&leyenda.nombreCompleto)||'';
+  if(!nombre){
+    var title='';try{title=window.tiCellVal(sheet,1,0)||'';}catch(e){}
+    if(typeof window._extraerNombreDeTituloTryp==='function')nombre=window._extraerNombreDeTituloTryp(title);
+  }
+  nombre=nombre||filename.replace(/\.(xlsx?|xls)$/i,'')||'Calendario personal';
+  var nomina=(leyenda&&leyenda.nomina)||'',employees={},months={};
+  for(var row=3;row<=14;row++){
+    var raw=window.tiCellVal(sheet,row,0);
+    if(!raw)continue;
+    var idx=etMonthIndex(raw);
+    if(idx<0)continue;
+    var monthKey=ET_MONTHS[idx],days={};
+    for(var col=1;col<=31;col++){
+      var parsed=null;try{parsed=window.taParseDia(sheet,row,col);}catch(e){parsed=null;}
+      if(parsed)days[col]=parsed;
+    }
+    months[monthKey]=true;
+    etMergeEmployeeMonth(employees,{nomina:nomina,nombre:nombre,categoria:''},monthKey,days);
+  }
+  if(!Object.keys(months).length)return null;
+  return{id:etDirectId(filename,year),filename:filename,year:year,employees:employees,months:Object.keys(months)};
+}
+function etSetImportStatus(message,isError){
+  var el=document.getElementById('et-import-status');
+  if(!el)return;
+  el.textContent=message||'';
+  el.style.color=isError?'#fca5a5':'#93c5fd';
+}
+function etImportFile(file){
+  if(!file)return;
+  if(typeof XLSX==='undefined'){
+    etSetImportStatus('No se ha podido cargar el lector de Excel.',true);return;
+  }
+  etSetImportStatus('Procesando '+file.name+'…',false);
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array',cellText:true,cellStyles:true});
+      var year=etInferYear(file.name+' '+(wb.SheetNames||[]).join(' '));
+      var dataset=etParseGroupWorkbook(wb,file.name,year)||etParsePersonalWorkbook(wb,file.name,year);
+      if(!dataset)throw new Error('No se reconoce el formato del calendario.');
+      if(!etSaveDirectDataset(dataset))throw new Error('El archivo no contiene empleados con turnos.');
+      var count=Object.keys(dataset.employees||{}).length;
+      etSetImportStatus('Cargado: '+file.name+' · '+count+' empleado'+(count===1?'':'s'),false);
+      etRecalculate();
+    }catch(err){
+      etSetImportStatus('Error: '+(err&&err.message?err.message:String(err)),true);
+    }
+  };
+  reader.onerror=function(){etSetImportStatus('No se ha podido leer el archivo.',true);};
+  reader.readAsArrayBuffer(file);
+}
+function etOpenImporter(){
+  var input=document.getElementById('et-file-input');
+  if(input)input.click();
+}
+function etRenderFiles(){
+  var box=document.getElementById('et-files');
+  if(!box)return;
+  var datasets=etReadDirectDatasets();
+  if(!datasets.length){box.innerHTML='<div class="et-file-empty">Ningún Excel cargado en esta herramienta.</div>';return;}
+  box.innerHTML=datasets.map(function(ds){
+    var count=Object.keys(ds.employees||{}).length;
+    var id=encodeURIComponent(ds.id||'');
+    return '<div class="et-file-chip"><b>'+etEsc(ds.filename||'Excel')+'</b><span>'+count+' emp.</span>'+ 
+      '<button type="button" title="Quitar archivo" onclick="borrarExcelErroresTurno(decodeURIComponent(\''+id+'\'))">×</button></div>';
+  }).join('');
 }
 function etCalendarForEmployee(ds,emp){
   var year=Number(ds.year)||new Date().getFullYear();
@@ -14302,7 +14424,7 @@ function etDedup(errors){
   return out;
 }
 function etRecalculate(){
-  var datasets=etReadHoursDatasets().concat(etReadAnalyzerDatasets());
+  var datasets=etReadDirectDatasets();
   var all=[],employeeMap={};
   datasets.forEach(function(ds){
     Object.keys(ds.employees||{}).forEach(function(k){
@@ -14315,6 +14437,7 @@ function etRecalculate(){
     datasets:datasets.length,generatedAt:new Date().toISOString()
   };
   etWriteJSON(ET_RESULT_KEY,ET_LAST_RESULT);
+  etRenderFiles();
   etRender();
   return ET_LAST_RESULT;
 }
@@ -14345,9 +14468,9 @@ function etRender(){
   summary.innerHTML=
     '<div class="et-kpi"><b>'+errors.length+'</b><span>Errores'+(ET_FILTER?' filtrados':'')+'</span></div>'+
     '<div class="et-kpi"><b>'+Number(r.employees||0)+'</b><span>Empleados revisados</span></div>'+
-    '<div class="et-kpi"><b>'+Number(r.datasets||0)+'</b><span>Fuentes cargadas</span></div>';
+    '<div class="et-kpi"><b>'+Number(r.datasets||0)+'</b><span>Excel cargados</span></div>';
   if(!r.datasets){
-    body.innerHTML='<div class="et-empty"><b>Sin turnos para revisar</b><br>Importa un Excel en Horas plantilla o en Analizador.</div>';
+    body.innerHTML='<div class="et-empty"><b>Sin turnos para revisar</b><br>Pulsa el botón Excel y carga aquí el calendario.</div>';
     return;
   }
   if(!errors.length){
@@ -14405,7 +14528,7 @@ function etBuildUI(){
       '<div class="et-handle"></div>'+
       '<div class="et-head">'+
         '<div><div class="et-title">Errores de turno</div>'+
-        '<div class="et-sub">Comprobación automática de los turnos importados</div></div>'+
+        '<div class="et-sub">Importación propia, separada del resto de herramientas</div></div>'+
         '<button class="et-x" type="button" onclick="cerrarErroresTurno()">×</button>'+
       '</div>'+
       '<div class="et-rules">'+
@@ -14415,9 +14538,13 @@ function etBuildUI(){
       '<div id="et-summary" class="et-summary"></div>'+
       '<div class="et-tools">'+
         '<input id="et-search" type="search" placeholder="Buscar empleado, fecha o error" oninput="filtrarErroresTurno(this.value)">'+
-        '<button type="button" onclick="actualizarErroresTurno()">Actualizar</button>'+
+        '<button class="et-import-btn" type="button" onclick="abrirImportadorErroresTurno()">📥 Excel</button>'+
+        '<button type="button" onclick="actualizarErroresTurno()">↻</button>'+
+        '<input id="et-file-input" type="file" accept=".xlsx,.xls" style="display:none" onchange="importarExcelErroresTurno(this.files[0]);this.value=\'\'">'+
       '</div>'+
-      '<div class="et-note">Cada semana se revisa de lunes a domingo. Se comprueban todas sus libranzas: si una sola alcanza 46 h, la semana es correcta. Solo se marca error cuando ninguna llega a 46 h. Las semanas incompletas no se valoran.</div>'+
+      '<div id="et-files" class="et-files"></div>'+
+      '<div id="et-import-status" class="et-import-status"></div>'+
+      '<div class="et-note">Cada semana se revisa de lunes a domingo. Se comprueban todas sus libranzas: si una sola alcanza 46 h, la semana es correcta. Solo se marca error cuando ninguna llega a 46 h. Las semanas incompletas no se valoran. Los Excel de esta pantalla no modifican Horas contador ni Analizador.</div>'+
       '<div id="et-body"></div>'+
     '</div>';
   bg.addEventListener('click',etClose);
@@ -14503,15 +14630,15 @@ function etHookImports(){
 function etInit(){
   etBuildUI();
   etAddMenuButton();
-  etHookImports();
   etRecalculate();
-  setTimeout(etHookImports,1000);
-  setTimeout(etHookImports,3500);
 }
 window.abrirErroresTurno=etOpen;
 window.cerrarErroresTurno=etClose;
 window.actualizarErroresTurno=etRecalculate;
 window.filtrarErroresTurno=etSetFilter;
+window.abrirImportadorErroresTurno=etOpenImporter;
+window.importarExcelErroresTurno=etImportFile;
+window.borrarExcelErroresTurno=etDeleteDataset;
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',etInit);
 else etInit();
