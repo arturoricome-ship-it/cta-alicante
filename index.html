@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <!-- CTA_OPERATIVA_V73_CAMBIO_TURNO_SIMULADO_2026-06-19 -->
+<!-- CTA_ERRORES_TURNO_SEMANAL_V2_2026-07-11 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -13830,10 +13831,10 @@ try{
 </style>
 
 
-<!-- CTA_ERRORES_TURNO_V1 -->
+<!-- CTA_ERRORES_TURNO_V2 -->
 <style>
 
-/* CTA_ERRORES_TURNO_V1 */
+/* CTA_ERRORES_TURNO_V2 */
 #et-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:120000;backdrop-filter:blur(4px)}
 #et-bg.show{display:block}
 #et-panel{position:fixed;left:0;right:0;bottom:0;height:92vh;max-height:92vh;background:var(--bg,#0d1623);border-radius:22px 22px 0 0;border:1px solid rgba(255,255,255,.09);transform:translateY(105%);transition:transform .28s ease;display:flex;flex-direction:column;overflow:hidden;color:var(--white,#f0eee8);font-family:"Outfit",sans-serif}
@@ -13863,10 +13864,10 @@ try{
 .et-card-top b{display:block;font-size:13px;color:#fca5a5}
 .et-card-top span{display:block;font-size:9.5px;color:var(--gray,#8a93a8);margin-top:2px}
 .et-card-top strong{white-space:nowrap;font-size:12px;color:var(--gold,#c8a84b)}
-.et-shift,.et-prev{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,.06)}
-.et-shift span,.et-prev span{font-size:10px;color:var(--gray,#8a93a8)}
-.et-shift b,.et-prev b{font-size:12px;color:var(--white,#f0eee8);text-align:right}
-.et-prev b{font-size:10.5px}
+.et-shift,.et-prev,.et-next{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,.06)}
+.et-shift span,.et-prev span,.et-next span{font-size:10px;color:var(--gray,#8a93a8)}
+.et-shift b,.et-prev b,.et-next b{font-size:12px;color:var(--white,#f0eee8);text-align:right}
+.et-prev b,.et-next b{font-size:10.5px}
 .et-message{margin-top:8px;background:rgba(239,68,68,.1);border-radius:9px;padding:8px 9px;color:#fecaca;font-size:11.5px;line-height:1.35;font-weight:600}
 .et-ok,.et-empty{margin:18px 0;background:var(--card,#182135);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:24px 16px;text-align:center;color:var(--gray,#8a93a8);font-size:12px;line-height:1.5}
 .et-ok{border-color:rgba(74,222,128,.25);color:#86efac}
@@ -13879,11 +13880,11 @@ try{
 </style>
 <script>
 
-/* CTA_ERRORES_TURNO_V1 */
+/* CTA_ERRORES_TURNO_V2 */
 (function(){
 'use strict';
-if(window.__CTA_ERRORES_TURNO_V1__)return;
-window.__CTA_ERRORES_TURNO_V1__=true;
+if(window.__CTA_ERRORES_TURNO_V2__)return;
+window.__CTA_ERRORES_TURNO_V2__=true;
 
 var ET_RAW_KEY='cta_turn_errors_raw_v1';
 var ET_RESULT_KEY='cta_turn_errors_result_v1';
@@ -14110,25 +14111,115 @@ function etCalendarForEmployee(ds,emp){
   work.sort(function(a,b){return a.info.start-b.info.start;});
   return{coverage:coverage,work:work};
 }
-function etInterveningDaysKnownAndFree(coverage,prevDate,nextDate){
-  var cur=new Date(prevDate.getFullYear(),prevDate.getMonth(),prevDate.getDate()+1);
-  var end=new Date(nextDate.getFullYear(),nextDate.getMonth(),nextDate.getDate());
-  var count=0;
-  while(cur<end){
-    var key=etDateKey(cur);
-    if(!Object.prototype.hasOwnProperty.call(coverage,key))return{known:false,count:count};
-    if(etIsWorkDay(coverage[key]))return{known:true,count:count,hasWork:true};
-    count++;
-    cur.setDate(cur.getDate()+1);
+function etDayStart(date){
+  return new Date(date.getFullYear(),date.getMonth(),date.getDate());
+}
+function etAddDays(date,days){
+  return new Date(date.getFullYear(),date.getMonth(),date.getDate()+days);
+}
+function etMonday(date){
+  var d=etDayStart(date),dow=(d.getDay()+6)%7;
+  return etAddDays(d,-dow);
+}
+function etWeekLabel(monday){
+  return etFmtDate(monday)+'–'+etFmtDate(etAddDays(monday,6));
+}
+function etWeekIsComplete(coverage,monday){
+  for(var i=0;i<7;i++){
+    if(!Object.prototype.hasOwnProperty.call(coverage,etDateKey(etAddDays(monday,i))))return false;
   }
-  return{known:true,count:count,hasWork:false};
+  return true;
+}
+function etFreeBlocksForWeek(coverage,monday){
+  var blocks=[],i=0;
+  while(i<7){
+    var d=etAddDays(monday,i),day=coverage[etDateKey(d)];
+    if(etIsWorkDay(day)){i++;continue;}
+    var start=i;
+    while(i+1<7&&!etIsWorkDay(coverage[etDateKey(etAddDays(monday,i+1))]))i++;
+    blocks.push({start:etAddDays(monday,start),end:etAddDays(monday,i)});
+    i++;
+  }
+  return blocks;
+}
+function etPreviousWork(work,date){
+  var limit=etDayStart(date).getTime();
+  for(var i=work.length-1;i>=0;i--){
+    if(etDayStart(work[i].date).getTime()<limit)return work[i];
+  }
+  return null;
+}
+function etNextWork(work,date){
+  var limit=etDayStart(date).getTime();
+  for(var i=0;i<work.length;i++){
+    if(etDayStart(work[i].date).getTime()>limit)return work[i];
+  }
+  return null;
+}
+function etWeekly46Errors(cal,meta){
+  var errors=[],weeks={};
+  Object.keys(cal.coverage||{}).forEach(function(key){
+    var p=key.split('-'),date=new Date(Number(p[0]),Number(p[1])-1,Number(p[2]));
+    var monday=etMonday(date);
+    weeks[etDateKey(monday)]=monday;
+  });
+  Object.keys(weeks).sort().forEach(function(key){
+    var monday=weeks[key],sunday=etAddDays(monday,6),nextMonday=etAddDays(monday,7);
+    if(!etWeekIsComplete(cal.coverage,monday))return;
+
+    var weekWork=cal.work.filter(function(w){
+      var t=etDayStart(w.date).getTime();
+      return t>=monday.getTime()&&t<nextMonday.getTime();
+    });
+    if(weekWork.length<=1)return;
+
+    var blocks=etFreeBlocksForWeek(cal.coverage,monday);
+    var base={
+      employee:meta.employee,nomina:meta.nomina||'',categoria:meta.categoria||'',
+      source:meta.source||'',filename:meta.filename||'',
+      date:etFmtDate(monday),shift:'Semana '+etWeekLabel(monday)
+    };
+
+    if(!blocks.length){
+      etPushError(errors,base,'descanso_46h',
+        'En la semana del '+etWeekLabel(monday)+' no hay ninguna libranza; ninguna puede alcanzar las 46 h mínimas.',
+        {actualMinutes:0,requiredMinutes:2760,weekStart:etFmtDate(monday),weekEnd:etFmtDate(sunday)});
+      return;
+    }
+
+    var periods=[],unknown=false;
+    blocks.forEach(function(block){
+      var prev=etPreviousWork(cal.work,block.start);
+      var next=etNextWork(cal.work,block.end);
+      if(!prev||!next){unknown=true;return;}
+      var rest=next.info.start-prev.info.end;
+      periods.push({rest:rest,prev:prev,next:next,start:block.start,end:block.end});
+    });
+
+    if(periods.some(function(p){return p.rest>=2760;}))return;
+    if(unknown||!periods.length)return;
+
+    periods.sort(function(a,b){return b.rest-a.rest;});
+    var best=periods[0];
+    var rests=periods.map(function(p){return etFmtDur(p.rest);}).join(', ');
+    etPushError(errors,base,'descanso_46h',
+      'Ninguna de las '+periods.length+' libranza'+(periods.length===1?'':'s')+
+      ' de la semana alcanza 46 h. Descansos calculados: '+rests+'. La mayor es '+etFmtDur(best.rest)+'.',
+      {
+        previousDate:etFmtDate(best.prev.date),previousShift:best.prev.info.label,
+        nextDate:etFmtDate(best.next.date),nextShift:best.next.info.label,
+        actualMinutes:best.rest,requiredMinutes:2760,
+        weekStart:etFmtDate(monday),weekEnd:etFmtDate(sunday)
+      });
+  });
+  return errors;
 }
 function etPushError(errors,base,type,message,extra){
   var e={
     employee:base.employee,nomina:base.nomina||'',categoria:base.categoria||'',
     source:base.source||'',filename:base.filename||'',type:type,
     date:base.date,shift:base.shift,message:message,
-    previousDate:'',previousShift:'',actualMinutes:null,requiredMinutes:null
+    previousDate:'',previousShift:'',nextDate:'',nextShift:'',actualMinutes:null,requiredMinutes:null
   };
   Object.keys(extra||{}).forEach(function(k){e[k]=extra[k];});
   errors.push(e);
@@ -14163,36 +14254,33 @@ function etAnalyzeDataset(ds){
         }
       }
     });
+    // Descanso mínimo de 10 h entre cualquier par de turnos consecutivos.
     for(var i=1;i<cal.work.length;i++){
       var prev=cal.work[i-1],cur=cal.work[i];
-      var dayDiff=Math.round((
-        new Date(cur.date.getFullYear(),cur.date.getMonth(),cur.date.getDate())-
-        new Date(prev.date.getFullYear(),prev.date.getMonth(),prev.date.getDate())
-      )/86400000);
-      if(dayDiff<=0)continue;
-      var check=etInterveningDaysKnownAndFree(cal.coverage,prev.date,cur.date);
-      var required=600,rule='descanso_10h';
-      if(dayDiff>1){
-        if(!check.known||check.hasWork||check.count<1)continue;
-        required=2760;rule='descanso_46h';
-      }
       var actual=cur.info.start-prev.info.end;
-      if(actual<required){
+      if(actual<600){
         var base2={
           employee:emp.nombre||emp.nomina||'Sin nombre',
           nomina:emp.nomina||'',categoria:emp.categoria||'',
           source:ds.source||'',filename:ds.filename||'',
           date:etFmtDate(cur.date),shift:cur.info.label
         };
-        etPushError(errors,base2,rule,
-          'Descanso de '+(actual<0?'turnos solapados':etFmtDur(actual))+
-          '; el mínimo es '+(required===600?'10 h':'46 h con libranza intermedia')+'.',
+        etPushError(errors,base2,'descanso_10h',
+          'Descanso de '+(actual<0?'turnos solapados':etFmtDur(actual))+'; el mínimo entre turnos es 10 h.',
           {
             previousDate:etFmtDate(prev.date),previousShift:prev.info.label,
-            actualMinutes:actual,requiredMinutes:required
+            actualMinutes:actual,requiredMinutes:600
           });
       }
     }
+
+    // Descanso semanal: se revisa cada semana completa de lunes a domingo.
+    // Si cualquiera de sus libranzas alcanza 46 h, la semana es correcta.
+    errors=errors.concat(etWeekly46Errors(cal,{
+      employee:emp.nombre||emp.nomina||'Sin nombre',
+      nomina:emp.nomina||'',categoria:emp.categoria||'',
+      source:ds.source||'',filename:ds.filename||''
+    }));
   });
   return errors;
 }
@@ -14279,9 +14367,12 @@ function etRender(){
       '<div class="et-card-top"><div><b>'+etEsc(etRuleName(e.type))+'</b>'+
       '<span>'+etEsc(e.source)+(e.categoria?' · '+etEsc(e.categoria):'')+'</span></div>'+
       '<strong>'+etEsc(e.date)+'</strong></div>'+
-      '<div class="et-shift"><span>Turno</span><b>'+etEsc(e.shift)+'</b></div>';
+      '<div class="et-shift"><span>'+(e.type==='descanso_46h'?'Semana':'Turno')+'</span><b>'+etEsc(e.shift)+'</b></div>';
     if(e.previousDate){
       html+='<div class="et-prev"><span>Turno anterior</span><b>'+etEsc(e.previousDate)+' · '+etEsc(e.previousShift)+'</b></div>';
+    }
+    if(e.nextDate){
+      html+='<div class="et-next"><span>Turno posterior</span><b>'+etEsc(e.nextDate)+' · '+etEsc(e.nextShift)+'</b></div>';
     }
     html+='<div class="et-message">'+etEsc(e.message)+'</div></div>';
   });
@@ -14318,7 +14409,7 @@ function etBuildUI(){
         '<button class="et-x" type="button" onclick="cerrarErroresTurno()">×</button>'+
       '</div>'+
       '<div class="et-rules">'+
-        '<span>10 h entre turnos</span><span>46 h con libranza</span>'+
+        '<span>10 h entre turnos</span><span>46 h en alguna libranza semanal</span>'+
         '<span>Partido 1–5 h</span><span>Máximo 9 h</span>'+
       '</div>'+
       '<div id="et-summary" class="et-summary"></div>'+
@@ -14326,7 +14417,7 @@ function etBuildUI(){
         '<input id="et-search" type="search" placeholder="Buscar empleado, fecha o error" oninput="filtrarErroresTurno(this.value)">'+
         '<button type="button" onclick="actualizarErroresTurno()">Actualizar</button>'+
       '</div>'+
-      '<div class="et-note">La regla de 46 h se aplica cuando existe al menos un día completo sin turno entre dos jornadas. No se comparan días o meses que no estén cargados.</div>'+
+      '<div class="et-note">Cada semana se revisa de lunes a domingo. Se comprueban todas sus libranzas: si una sola alcanza 46 h, la semana es correcta. Solo se marca error cuando ninguna llega a 46 h. Las semanas incompletas no se valoran.</div>'+
       '<div id="et-body"></div>'+
     '</div>';
   bg.addEventListener('click',etClose);
@@ -14339,7 +14430,7 @@ function etAddMenuButton(){
   btn.id='cta-secret-errors';
   btn.className='cta-secret-option';
   btn.type='button';
-  btn.innerHTML='<div><b>Errores de turno</b><span>Descansos, turnos partidos y jornadas máximas.</span></div><strong>&rsaquo;</strong>';
+  btn.innerHTML='<div><b>Errores de turno</b><span>Descanso semanal, 10 h, partidos y jornadas máximas.</span></div><strong>&rsaquo;</strong>';
   btn.onclick=function(){try{cerrarMenuSecretoCta();}catch(e){}setTimeout(etOpen,60);};
   var close=menu.querySelector('.cta-secret-close');
   menu.insertBefore(btn,close||null);
