@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!-- CTA_MENU_PERENTORIAS_HFUN_V1_2026-07-12 -->
 <!-- CTA_MODAL_CODIGO_Y_CABECERA_ERROR_V1_2026-07-12 -->
 <!-- CTA_MODO_PRUEBA_EMAIL_PERSONAL_2026-07-12 -->
 <!-- CTA_OPERATIVA_V73_CAMBIO_TURNO_SIMULADO_2026-06-19 -->
@@ -292,6 +293,25 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .hp-cal-time{font-size:7.5px;color:#93c5fd;font-weight:800;line-height:1.15;word-break:break-word}
 .hp-cal-hours{font-size:7px;color:var(--gold);font-weight:800;line-height:1}
 .hp-cal-note{font-size:7px;color:#fbbf24;font-weight:800;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp-cal-day.hp-status-vacaciones{background:rgba(34,197,94,.13);border-color:rgba(74,222,128,.28)}
+.hp-cal-day.hp-status-festivo{background:rgba(251,191,36,.13);border-color:rgba(251,191,36,.30)}
+.hp-cal-day.hp-status-baja{background:rgba(239,68,68,.11);border-color:rgba(248,113,113,.28)}
+.hp-cal-day.hp-status-perentorias{background:rgba(251,146,60,.12);border-color:rgba(251,146,60,.30)}
+.hp-cal-day.hp-status-hfun,.hp-cal-day.hp-status-h6{background:rgba(99,102,241,.12);border-color:rgba(129,140,248,.28)}
+.hp-cal-day.hp-status-rm,.hp-cal-day.hp-status-bp{background:rgba(20,184,166,.10);border-color:rgba(45,212,191,.26)}
+.hp-cal-day.hp-status-curso{background:rgba(56,189,248,.10);border-color:rgba(56,189,248,.26)}
+.hp-cal-day.hp-status-permiso{background:rgba(244,114,182,.10);border-color:rgba(244,114,182,.26)}
+.hp-cal-day.hp-status-libre{background:rgba(255,255,255,.025);border-color:rgba(255,255,255,.08)}
+.hp-cal-day.hp-status-vacaciones .hp-cal-note{color:#4ade80}
+.hp-cal-day.hp-status-festivo .hp-cal-note{color:#fbbf24}
+.hp-cal-day.hp-status-baja .hp-cal-note{color:#f87171}
+.hp-cal-day.hp-status-perentorias .hp-cal-note{color:#fb923c}
+.hp-cal-day.hp-status-hfun .hp-cal-note,.hp-cal-day.hp-status-h6 .hp-cal-note{color:#a5b4fc}
+.hp-cal-day.hp-status-rm .hp-cal-note,.hp-cal-day.hp-status-bp .hp-cal-note{color:#2dd4bf}
+.hp-cal-day.hp-status-curso .hp-cal-note{color:#38bdf8}
+.hp-cal-day.hp-status-permiso .hp-cal-note{color:#f472b6}
+.hp-cal-day.hp-status-libre .hp-cal-note{color:var(--gray)}
+
 .hp-empty{font-size:12px;color:var(--gray);text-align:center;padding:28px 12px;line-height:1.6}
 #cta-secret-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:704;backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:22px}
 #cta-secret-bg.show{display:flex}
@@ -1533,6 +1553,52 @@ body[data-panel="afiliate"] #panel-afiliate{
   }
 }
 
+
+/* ── PERENTORIAS + HFUN EN MENÚ OCULTO ── */
+#perentorias-tool-bg{
+  display:none;position:fixed;inset:0;z-index:130000;
+  background:var(--bg,#0d1623);color:var(--white,#f0eee8);
+}
+#perentorias-tool-bg.show{display:flex;flex-direction:column}
+.perentorias-tool-head{
+  flex-shrink:0;display:flex;align-items:center;gap:10px;
+  min-height:54px;padding:9px 12px;
+  background:linear-gradient(160deg,#1a2a4a 0%,var(--bg,#0d1623) 100%);
+  border-bottom:1px solid rgba(200,168,75,.28);
+}
+.perentorias-tool-back{
+  width:38px;height:38px;border-radius:11px;
+  border:1px solid rgba(200,168,75,.38);
+  background:rgba(200,168,75,.11);color:var(--gold,#c8a84b);
+  font:800 19px "Outfit",sans-serif;cursor:pointer;
+}
+.perentorias-tool-info{flex:1;min-width:0}
+.perentorias-tool-title{
+  font-family:"Bebas Neue",sans-serif;font-size:20px;
+  letter-spacing:1px;color:var(--gold,#c8a84b);line-height:1;
+}
+.perentorias-tool-sub{
+  margin-top:3px;font-size:9.5px;color:var(--gray,#8a93a8);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#perentorias-tool-frame{
+  width:100%;flex:1;min-height:0;border:0;background:#0A0E12;
+}
+.perentorias-tool-missing{
+  display:none;position:absolute;inset:55px 0 0;
+  align-items:center;justify-content:center;padding:24px;text-align:center;
+  background:var(--bg,#0d1623);z-index:2;
+}
+.perentorias-tool-missing.show{display:flex}
+.perentorias-tool-missing-card{
+  max-width:380px;background:var(--card,#182135);
+  border:1px solid rgba(239,68,68,.28);border-radius:16px;
+  padding:20px;font-size:12px;line-height:1.55;color:var(--gray,#8a93a8);
+}
+.perentorias-tool-missing-card b{
+  display:block;color:#fca5a5;font-size:15px;margin-bottom:7px;
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -2161,6 +2227,10 @@ body[data-panel="afiliate"] #panel-afiliate{
     <button class="cta-secret-option" onclick="abrirOpcionSecretaCta('horas')">
       <div><b>Horas plantilla</b><span>Detalle mensual operativo: semanas, días y cambios aplicados.</span></div><strong>&rsaquo;</strong>
     </button>
+    
+    <button class="cta-secret-option" onclick="abrirOpcionSecretaCta('perentorias')">
+      <div><b>Perentorias y HFUN</b><span>Registro acumulado por trabajador, categorías, importaciones y detalle.</span></div><strong>&rsaquo;</strong>
+    </button>
     <button class="cta-secret-close" onclick="cerrarMenuSecretoCta()">Cerrar</button>
   </div>
 </div>
@@ -2175,6 +2245,29 @@ body[data-panel="afiliate"] #panel-afiliate{
     <div class="cta-code-actions">
       <button type="button" class="cta-code-btn cta-code-cancel" onclick="cerrarCodigoMenuCta()">Cancelar</button>
       <button type="button" class="cta-code-btn cta-code-enter" onclick="validarCodigoMenuCta()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="perentorias-tool-bg" aria-hidden="true">
+  <div class="perentorias-tool-head">
+    <button type="button" class="perentorias-tool-back" onclick="cerrarPerentoriasCta()" aria-label="Volver">‹</button>
+    <div class="perentorias-tool-info">
+      <div class="perentorias-tool-title">Perentorias y HFUN</div>
+      <div class="perentorias-tool-sub">Herramienta independiente de registro y acumulación</div>
+    </div>
+  </div>
+  <iframe
+    id="perentorias-tool-frame"
+    title="Registro de Perentorias y HFUN"
+    data-src="registro-perentorias-hfun.html"
+    loading="eager"
+  ></iframe>
+  <div id="perentorias-tool-missing" class="perentorias-tool-missing">
+    <div class="perentorias-tool-missing-card">
+      <b>No se ha encontrado la herramienta</b>
+      Comprueba que <strong>registro-perentorias-hfun.html</strong> esté subido en la misma carpeta que este index.
     </div>
   </div>
 </div>
@@ -2708,11 +2801,43 @@ document.addEventListener('keydown',function(ev){
   if(ev.key==='Enter'){ev.preventDefault();validarCodigoMenuCta();}
   else if(ev.key==='Escape'){ev.preventDefault();cerrarCodigoMenuCta();}
 });
+
+function abrirPerentoriasCta(){
+  var bg=document.getElementById('perentorias-tool-bg');
+  var frame=document.getElementById('perentorias-tool-frame');
+  var missing=document.getElementById('perentorias-tool-missing');
+  if(!bg||!frame)return;
+  if(missing)missing.classList.remove('show');
+  bg.classList.add('show');
+  bg.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+
+  if(!frame.getAttribute('src')){
+    var src=frame.getAttribute('data-src')||'registro-perentorias-hfun.html';
+    frame.setAttribute('src',src);
+  }
+}
+function cerrarPerentoriasCta(){
+  var bg=document.getElementById('perentorias-tool-bg');
+  if(!bg)return;
+  bg.classList.remove('show');
+  bg.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',function(ev){
+  var bg=document.getElementById('perentorias-tool-bg');
+  if(bg&&bg.classList.contains('show')&&ev.key==='Escape'){
+    ev.preventDefault();
+    cerrarPerentoriasCta();
+  }
+});
+
 function abrirOpcionSecretaCta(tipo){
   cerrarMenuSecretoCta();
   setTimeout(function(){
     if(tipo==='analizador'&&typeof abrirAnalizadorTurnos==='function')abrirAnalizadorTurnos();
     else if(tipo==='horas'&&typeof abrirHorasPlantilla==='function')abrirHorasPlantilla();
+    else if(tipo==='perentorias')abrirPerentoriasCta();
   },60);
 }
 function _hpAbrirConGestoRapido(){
@@ -2971,14 +3096,77 @@ function _hpEsEmpleadoLocal(emp,year,monthKey,day){
   }
   return false;
 }
+
+function _hpCambioCampo(c,nombres){
+  if(!c)return '';
+  for(var i=0;i<nombres.length;i++){
+    var v=c[nombres[i]];
+    if(v!==undefined&&v!==null&&String(v).trim()!=='')return String(v).trim();
+  }
+  return '';
+}
+function _hpPerenDur(c){return _hpCambioCampo(c,['perenDur','peren_dur','perentoriasDur','perentorias_dur']);}
+function _hpPerenTipo(c){return (_hpCambioCampo(c,['perenTipo','peren_tipo'])||'perentorias').toLowerCase();}
+function _hpHfunDur(c){return _hpCambioCampo(c,['hfunDur','hfun_dur']);}
+function _hpEtiquetaCambioNoHL(c){
+  if(!c)return 'Cambio';
+  var peren=_hpPerenDur(c),hfun=_hpHfunDur(c);
+  if(peren){
+    var esCp=_hpPerenTipo(c)==='cp';
+    return (esCp?'CP -':'PERENTORIAS +')+peren;
+  }
+  if(hfun)return 'HFUN +'+hfun;
+  var tipo=String(c.tipo||'cambio').toLowerCase();
+  var labels={
+    trabajado:'TURNO MODIFICADO',trabajo:'TURNO MODIFICADO',turno:'TURNO MODIFICADO',
+    vacaciones:'VACACIONES',festivo:'FESTIVO',baja:'BAJA',perentorias:'PERENTORIAS',
+    cp:'CP',h6:'ART. 6',hfun:'HFUN',rm:'R. MÉDICO',bp:'BIENESTAR',nh:'NOCHE',
+    curso:'CURSO',permiso:'PERMISO',libre:'LIBRE',dl:'LIBRE',descanso:'LIBRE'
+  };
+  return labels[tipo]||String(c.tipo||'Cambio').toUpperCase();
+}
+function _hpClaseEstadoCalendario(tipo,etiqueta){
+  var t=String(tipo||'').toLowerCase();
+  var e=String(etiqueta||'').toLowerCase();
+  if(e.indexOf('perentoria')>=0||/^cp\b/.test(e)||t==='perentorias'||t==='cp')return 'perentorias';
+  if(e.indexOf('hfun')>=0||t==='hfun')return 'hfun';
+  if(t==='vacaciones')return 'vacaciones';
+  if(t==='festivo')return 'festivo';
+  if(t==='baja')return 'baja';
+  if(t==='h6')return 'h6';
+  if(t==='rm')return 'rm';
+  if(t==='bp')return 'bp';
+  if(t==='curso')return 'curso';
+  if(t==='permiso')return 'permiso';
+  if(t==='libre'||t==='dl'||t==='descanso')return 'libre';
+  return '';
+}
 function _hpTurnoLocalPropio(emp,dateObj,monthKey,day){
   if(!_hpEsEmpleadoLocal(emp,dateObj.getFullYear(),monthKey,day))return null;
   var local=_hpDiaLocalPropio(dateObj.getFullYear(),monthKey,day);
   if(!local)return null;
-  if((local.e1&&local.s1)||parseFloat(String(local.total||'').replace(',','.'))>0){
-    return Object.assign({},local,{cambioCompartido:true,etiquetaCambio:'APP LOCAL'});
+
+  // HL conserva exactamente el tratamiento anterior: no cambiamos su privacidad,
+  // su recorte parcial ni la forma en que se muestra en Horas plantilla.
+  var esHL=(typeof _cambioCompartidoEsHL==='function')?_cambioCompartidoEsHL(local):(String(local.tipo||'').toLowerCase()==='hl'||String(local.tipo||'').toLowerCase()==='hlp'||(local.hlIni&&local.hlFin));
+  if(esHL){
+    if((local.e1&&local.s1)||parseFloat(String(local.total||'').replace(',','.'))>0){
+      return Object.assign({},local,{cambioCompartido:true,etiquetaCambio:'APP LOCAL'});
+    }
+    return null;
   }
-  return null;
+
+  // El resto de estados sí debe prevalecer aunque no tenga horas: vacaciones,
+  // festivo, baja, libre, permiso, RM, overlays de perentorias/HFUN, etc.
+  var tieneEstado=!!String(local.tipo||'').trim();
+  var tieneOverlay=!!(_hpPerenDur(local)||_hpHfunDur(local));
+  var tieneHoras=!!((local.e1&&local.s1)||parseFloat(String(local.total||'').replace(',','.'))>0);
+  if(!tieneEstado&&!tieneOverlay&&!tieneHoras)return null;
+  return Object.assign({},local,{
+    cambioCompartido:true,
+    etiquetaCambio:_hpEtiquetaCambioNoHL(local),
+    cambioLocal:true
+  });
 }
 function _hpTurnoFinal(emp,dateObj,monthKey,day){
   var dias=(emp.meses&&emp.meses[monthKey])||{};
@@ -2996,7 +3184,7 @@ function _hpCambioToTurnoHoras(c,turnoOriginal){
   var tipo=String(c.tipo||'').toLowerCase();
   var esHL=(typeof _cambioCompartidoEsHL==='function')?_cambioCompartidoEsHL(c):(tipo==='hl'||tipo==='hlp'||(c.hlIni&&c.hlFin));
   var puedeVerHL=(typeof _usuarioPuedeVerHLCompartido==='function')?_usuarioPuedeVerHLCompartido():false;
-  var etiqueta=esHL?(puedeVerHL?_labelHLCompartido(c):'Libre'):String(c.tipo||'Cambio').toUpperCase();
+  var etiqueta=esHL?(puedeVerHL?_labelHLCompartido(c):'Libre'):_hpEtiquetaCambioNoHL(c);
 
   // Protección sindical: para usuarios normales, una HL compartida no se etiqueta como HL.
   // HL completa se muestra como día no operativo; HL parcial solo recorta el tramo afectado.
@@ -3006,6 +3194,31 @@ function _hpCambioToTurnoHoras(c,turnoOriginal){
       return Object.assign({},rec,{cambioCompartido:false,etiquetaCambio:''});
     }
     return {tipo:'libre',e1:'',s1:'',e2:'',s2:'',total:0,cambioCompartido:false,etiquetaCambio:''};
+  }
+
+  // Perentorias/CP y HFUN son anotaciones adicionales: mantienen el turno y sus
+  // horas, pero deben verse claramente en el calendario y en la lista de cambios.
+  var perenDur=_hpPerenDur(c),hfunDur=_hpHfunDur(c);
+  if(perenDur||hfunDur){
+    var baseOverlay=Object.assign({},turnoOriginal||{});
+    if(c.e1&&c.s1){
+      baseOverlay.e1=c.e1;baseOverlay.s1=c.s1;
+      baseOverlay.e2=c.e2||'';baseOverlay.s2=c.s2||'';
+      if(c.total!==undefined&&c.total!==null&&c.total!=='')baseOverlay.total=c.total;
+    }
+    return Object.assign({},baseOverlay,{
+      tipo:baseOverlay.tipo||'trabajado',
+      cambioCompartido:true,
+      etiquetaCambio:etiqueta,
+      perenDur:perenDur,
+      perenTipo:_hpPerenTipo(c),
+      hfunDur:hfunDur
+    });
+  }
+
+  // Un cambio explícito a libre sí sustituye el turno anterior.
+  if((tipo==='libre'||tipo==='dl'||tipo==='descanso')&&!c.e1&&!c.s1){
+    return {tipo:'libre',e1:'',s1:'',e2:'',s2:'',total:0,cambioCompartido:true,etiquetaCambio:etiqueta};
   }
 
   if(c.e1&&c.s1){
@@ -3018,7 +3231,10 @@ function _hpCambioToTurnoHoras(c,turnoOriginal){
       total:c.total||0,
       cambioCompartido:true,
       etiquetaCambio:etiqueta,
-      hlVisible:esHL&&puedeVerHL
+      hlVisible:esHL&&puedeVerHL,
+      perenDur:_hpPerenDur(c),
+      perenTipo:_hpPerenTipo(c),
+      hfunDur:_hpHfunDur(c)
     };
     if(c.hlIni&&c.hlFin){
       turnoCambio=_restarRangoDeTurno(turnoCambio,{ini:c.hlIni,fin:c.hlFin});
@@ -3072,11 +3288,11 @@ function calcularHorasPlantilla(year){
       var turno=cambioCompartido?_hpCambioToTurnoHoras(cambioCompartido,turnoBase):turnoBase;
       var local=_hpTurnoLocalPropio(emp,fecha,monthKey,d);
       var origenCambio=(cambioCompartido&&!cambioHLProtegido)?cambioCompartido:null;
-      var etiquetaCambio=(cambioCompartido&&!cambioHLProtegido)?((typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(cambioCompartido)&&typeof _labelHLCompartido==='function')?_labelHLCompartido(cambioCompartido):String(cambioCompartido.tipo||'Cambio').toUpperCase()):'';
+      var etiquetaCambio=(cambioCompartido&&!cambioHLProtegido)?((typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(cambioCompartido)&&typeof _labelHLCompartido==='function')?_labelHLCompartido(cambioCompartido):_hpEtiquetaCambioNoHL(cambioCompartido)):'';
       if(local){
         turno=local;
-        origenCambio={tipo:'APP LOCAL',actualizado_por:'Este dispositivo'};
-        etiquetaCambio='APP LOCAL';
+        origenCambio=Object.assign({actualizado_por:'Este dispositivo'},local);
+        etiquetaCambio=local.etiquetaCambio||_hpEtiquetaCambioNoHL(local)||'APP LOCAL';
       }
       if(origenCambio){
         cambios++;
@@ -3110,6 +3326,10 @@ function calcularHorasPlantilla(year){
         s2:turno&&turno.s2||'',
         cambio:!!(turno&&turno.cambioCompartido),
         etiqueta:turno&&turno.etiquetaCambio||'',
+        tipo:turno&&turno.tipo||'',
+        perenDur:turno&&turno.perenDur||'',
+        perenTipo:turno&&turno.perenTipo||'',
+        hfunDur:turno&&turno.hfunDur||'',
         missing:!tieneDatoGuardado&&!turno,
         zero:tieneDatoGuardado&&horas<=0
       });
@@ -3356,7 +3576,11 @@ function renderHorasPlantillaCalendario(rowIdx){
     if(dia.horas>0)cls+=' work';
     else if(dia.missing)cls+=' missing';
     else cls+=' zero';
-    if(dia.cambio)cls+=' change';
+    if(dia.cambio){
+      cls+=' change';
+      var estadoClase=_hpClaseEstadoCalendario(dia.tipo,dia.etiqueta);
+      if(estadoClase)cls+=' hp-status-'+estadoClase;
+    }
     if(esMesActual&&d===hoy.getDate())cls+=' today';
     var horario=dia.horario||'Sin dato';
     var horarioHtml=escH(horario).replace(/\s\/\s/g,'<br>');
@@ -8294,6 +8518,10 @@ function _fechaISOFromParts(year,monthKey,day){
 }
 function _cacheCambioTurnoCompartido(c){
   if(!c)return;
+  c=Object.assign({},c);
+  if(!c.perenDur)c.perenDur=c.peren_dur||c.perentoriasDur||c.perentorias_dur||'';
+  if(!c.perenTipo)c.perenTipo=c.peren_tipo||'';
+  if(!c.hfunDur)c.hfunDur=c.hfun_dur||'';
   var fecha=String(c.fecha||'').trim();
   if(!fecha)return;
   var year=parseInt(c.year||fecha.slice(0,4),10)||new Date().getFullYear();
@@ -8630,7 +8858,11 @@ function guardarCambioTurnoCompartido(year,monthKey,day,dayObj){
     // contempla, las ignorará silenciosamente y el cambio compartido llegará como turno
     // completo sin recortar.
     hlIni:hlParcial?hlParcial.ini:'',
-    hlFin:hlParcial?hlParcial.fin:''
+    hlFin:hlParcial?hlParcial.fin:'',
+    // Overlays que no sustituyen el turno. El backend debe devolverlos junto al cambio.
+    perenDur:(dayObj&&dayObj.perenDur)||'',
+    perenTipo:(dayObj&&dayObj.perenTipo)||'',
+    hfunDur:(dayObj&&dayObj.hfunDur)||''
   };
   var miEmp=_getMiEmpleadoGrupoActual(year,monthKey,day);
   if(miEmp){
@@ -8648,7 +8880,7 @@ function guardarCambioTurnoCompartido(year,monthKey,day,dayObj){
     headers:{'Content-Type':'text/plain'}
   }).then(function(r){return r.json();}).then(function(data){
     if(!data||data.ok===false)throw new Error((data&&data.error)||'No se pudo guardar el cambio compartido');
-    if(data.cambio)_cacheCambioTurnoCompartido(data.cambio);
+    if(data.cambio)_cacheCambioTurnoCompartido(Object.assign({},payload,data.cambio));
     else cargarCambiosTurnosCompartidos(year,true);
     return data;
   }).catch(function(err){
