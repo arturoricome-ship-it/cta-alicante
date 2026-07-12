@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!-- CTA_BACKUP_COMPLETO_PERENTORIAS_V3_2026-07-12 -->
 <!-- CTA_MENU_PERENTORIAS_HFUN_V1_2026-07-12 -->
 <!-- CTA_MODAL_CODIGO_Y_CABECERA_ERROR_V1_2026-07-12 -->
 <!-- CTA_MODO_PRUEBA_EMAIL_PERSONAL_2026-07-12 -->
@@ -5030,7 +5031,7 @@ function tiRefreshExportSummary(){
       var k=localStorage.key(i);
       if(k==='cta_session')continue;
       if(k&&k.indexOf('cta_historial_operativa_vuelos')===0)hist=true;
-      if(k&&(k.indexOf('cta_')===0||k.indexOf('op_')===0||k==='avisos_seen'))extra++;
+      if(k&&(k.indexOf('cta_')===0||k.indexOf('op_')===0||k.indexOf('perentorias:')===0||k==='avisos_seen'))extra++;
     }
   }catch(e){}
   if(hist)lines.push('<b style="color:var(--white)">Histórico operativa local</b> — se limpiará, no se exporta');
@@ -5041,10 +5042,10 @@ function tiRefreshExportSummary(){
 
 function tiDoExport(){
   var backup={
-    _version:'cta_backup_completo_v2',
+    _version:'cta_backup_completo_v3',
     _fecha:new Date().toISOString(),
     _tipo:'backup_completo_localStorage',
-    _nota:'Incluye datos locales de la app. Por seguridad no incluye cta_session.'
+    _nota:'Incluye calendarios, configuración, Horas plantilla, Analizador, Errores de turno y Perentorias/HFUN. Por seguridad no incluye cta_session.'
   };
   var found=0;
   var skipped=[];
@@ -5057,6 +5058,8 @@ function tiDoExport(){
     // Backup completo de datos de la app.
     if(k.indexOf('cta_')===0)return true;
     if(k.indexOf('op_')===0)return true;
+    // Herramienta independiente de Perentorias/HFUN integrada en CTA.
+    if(k.indexOf('perentorias:')===0)return true;
     if(k==='avisos_seen')return true;
     return false;
   };
@@ -5123,6 +5126,7 @@ function tiLoadBackup(file){
       var nomKeys=importableKeys.filter(function(k){return k.indexOf('cta_nom_')===0;});
       var cntKeys=importableKeys.filter(function(k){return k.indexOf('cta_cnt_')===0;});
       var perenKeys=importableKeys.filter(function(k){return k.indexOf('cta_peren_carryover_')===0;});
+      var perenToolKeys=importableKeys.filter(function(k){return k.indexOf('perentorias:')===0;});
       var opKeys=importableKeys.filter(function(k){return k.indexOf('op_')===0;});
 
       if(importableKeys.length===0){
@@ -5160,7 +5164,8 @@ function tiLoadBackup(file){
         if(cfgKeys.length)parts.push('Configuración: '+cfgKeys.length);
         if(nomKeys.length)parts.push('Nóminas: '+nomKeys.length);
         if(cntKeys.length)parts.push('Contadores: '+cntKeys.length);
-        if(perenKeys.length)parts.push('Perentorias: '+perenKeys.length);
+        if(perenKeys.length)parts.push('Saldo de perentorias: '+perenKeys.length);
+        if(perenToolKeys.length)parts.push('Perentorias/HFUN: '+perenToolKeys.length+' claves');
         if(opKeys.length)parts.push('Datos operativa: '+opKeys.length);
         prev.innerHTML='<b style="color:var(--white)">Backup completo detectado</b><br>'+parts.join(' · ')+'<br><span style="color:var(--gray)">'+importableKeys.length+' claves importables</span>';
       }
@@ -5198,6 +5203,12 @@ function tiApplyBackup(){
     if(typeof initTurnoWidget==='function')initTurnoWidget();
     if(typeof opActualizarDashboard==='function')opActualizarDashboard();
     if(typeof renderDashboardOperativa==='function')renderDashboardOperativa();
+    // Si la herramienta de Perentorias/HFUN está abierta o ya se cargó,
+    // recargarla para que lea inmediatamente las claves restauradas.
+    try{
+      var pf=document.getElementById('perentorias-tool-frame');
+      if(pf&&pf.getAttribute('src')&&pf.contentWindow)pf.contentWindow.location.reload();
+    }catch(e){}
   },400);
 }
 
@@ -15305,5 +15316,322 @@ else etInit();
 })();
 
 </script>
+
+<!-- CTA_PERENTORIAS_FILTRO_ANIO_V1_2026-07-12 -->
+<script>
+(function(){
+  'use strict';
+  var MARK='CTA_PERENTORIAS_FILTRO_ANIO_V1_2026-07-12';
+
+  function codigoFiltroAnio(){
+    'use strict';
+    if(window.__CTA_PERENTORIAS_FILTRO_ANIO_V1__)return;
+    window.__CTA_PERENTORIAS_FILTRO_ANIO_V1__=true;
+
+    var yearEl=document.getElementById('yearFilter');
+    var monthEl=document.getElementById('monthFilter');
+    var employeeEl=document.getElementById('employeeFilter');
+    if(!yearEl||!monthEl||!employeeEl)return;
+
+    function aniosDisponibles(){
+      var years=new Set();
+      try{
+        getAllMonths().forEach(function(m){
+          var y=String(m||'').slice(0,4);
+          if(/^\d{4}$/.test(y))years.add(y);
+        });
+      }catch(e){}
+      try{
+        imports.forEach(function(imp){
+          if(!Array.isArray(imp.records))return;
+          imp.records.forEach(function(r){
+            var y=String(r&&r.fecha||'').slice(0,4);
+            if(/^\d{4}$/.test(y))years.add(y);
+          });
+        });
+      }catch(e){}
+      return Array.from(years).sort().reverse();
+    }
+
+    var originalGetActiveFilters=getActiveFilters;
+    getActiveFilters=function(){
+      var f=originalGetActiveFilters();
+      f.year=yearEl.value||'';
+      return f;
+    };
+
+    var originalBuildTotalsForMonth=buildTotalsForMonth;
+    buildTotalsForMonth=function(month){
+      var year=yearEl.value||'';
+      if(month||!year)return originalBuildTotalsForMonth(month);
+
+      var totals={};
+      function add(id,nombre,tipo,cantidad){
+        if(!totals[id])totals[id]={nombre:nombre||id,'7N':0,'7D':0,PERLI:0,PERCO:0,HFUN8:0};
+        totals[id].nombre=nombre||totals[id].nombre;
+        totals[id][tipo]+=Number(cantidad||0);
+      }
+
+      for(var i=0;i<imports.length;i++){
+        var imp=imports[i];
+        if(!Array.isArray(imp.records))continue;
+        for(var j=0;j<imp.records.length;j++){
+          var r=imp.records[j];
+          if(String(r.fecha||'').slice(0,4)!==year)continue;
+          if(!CATS.includes(r.tipo))continue;
+          add(String(r.id),r.nombre,r.tipo,r.cantidad);
+        }
+      }
+      return totals;
+    };
+
+    renderFilterOptions=function(){
+      var oldYear=yearEl.value;
+      var oldMonth=monthEl.value;
+      var oldEmployee=employeeEl.value;
+      var allMonths=getAllMonths();
+      var years=aniosDisponibles();
+
+      yearEl.innerHTML='<option value="">Todos los años</option>'+
+        years.map(function(y){return '<option value="'+escapeHtml(y)+'">'+escapeHtml(y)+'</option>';}).join('');
+      yearEl.value=years.indexOf(oldYear)>=0?oldYear:'';
+
+      var months=yearEl.value
+        ? allMonths.filter(function(m){return String(m).slice(0,4)===yearEl.value;})
+        : allMonths;
+
+      monthEl.innerHTML='<option value="">Todos los meses</option>'+
+        months.map(function(m){return '<option value="'+escapeHtml(m)+'">'+escapeHtml(formatMonthKey(m))+'</option>';}).join('');
+      monthEl.value=months.indexOf(oldMonth)>=0?oldMonth:'';
+
+      var all=buildTotalsForMonth('');
+      var employees=Object.entries(all)
+        .map(function(entry){return{id:entry[0],nombre:entry[1].nombre};})
+        .sort(function(a,b){return a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base'});});
+
+      employeeEl.innerHTML='<option value="">Todos los empleados</option>'+
+        employees.map(function(e){
+          return '<option value="'+escapeHtml(e.id)+'">'+escapeHtml(e.nombre)+' · '+escapeHtml(e.id)+'</option>';
+        }).join('');
+      employeeEl.value=employees.some(function(e){return e.id===oldEmployee;})?oldEmployee:'';
+    };
+
+    getVisibleRecordCount=function(rows){
+      var f=getActiveFilters();
+      var ids=new Set(rows.map(function(r){return String(r.id);}));
+      var count=0;
+      var legacyCount=0;
+
+      for(var i=0;i<imports.length;i++){
+        var imp=imports[i];
+        if(Array.isArray(imp.records)){
+          for(var j=0;j<imp.records.length;j++){
+            var r=imp.records[j];
+            if(!ids.has(String(r.id)))continue;
+            if(f.year&&String(r.fecha||'').slice(0,4)!==f.year)continue;
+            if(f.month&&String(r.fecha||'').slice(0,7)!==f.month)continue;
+            if(f.type!=='ALL'&&r.tipo!==f.type)continue;
+            count++;
+          }
+        }else if(!f.year&&!f.month&&f.type==='ALL'&&!f.employee&&!f.search){
+          legacyCount+=Number(imp.recordCount||0);
+        }
+      }
+      return count+legacyCount;
+    };
+
+    collectDetail=function(employeeId,category){
+      var f=getActiveFilters();
+      var allowedIds=new Set(getViewRows().map(function(r){return String(r.id);}));
+      var grouped=new Map();
+      var detailedTotal=0;
+
+      for(var i=0;i<imports.length;i++){
+        var imp=imports[i];
+        if(!Array.isArray(imp.records))continue;
+
+        for(var j=0;j<imp.records.length;j++){
+          var r=imp.records[j];
+          if(!allowedIds.has(String(r.id)))continue;
+          if(employeeId&&String(r.id)!==String(employeeId))continue;
+          if(f.year&&String(r.fecha||'').slice(0,4)!==f.year)continue;
+          if(f.month&&String(r.fecha||'').slice(0,7)!==f.month)continue;
+          if(category!=='ALL'&&r.tipo!==category)continue;
+
+          var raw=Number(r.cantidad||0);
+          var key=employeeId
+            ? String(r.fecha)+'|'+String(r.tipo)
+            : String(r.id)+'|'+String(r.fecha)+'|'+String(r.tipo);
+          var current=grouped.get(key)||{
+            id:String(r.id),nombre:r.nombre,fecha:r.fecha,tipo:r.tipo,
+            rawCantidad:0,cantidad:0,realCantidad:0
+          };
+          current.rawCantidad+=raw;
+          current.cantidad+=raw;
+          current.realCantidad+=r.tipo==='PERLI'?realAmount(raw):0;
+          current.nombre=r.nombre||current.nombre;
+          grouped.set(key,current);
+          detailedTotal+=raw;
+        }
+      }
+
+      var rows=Array.from(grouped.values()).sort(function(a,b){
+        return a.fecha.localeCompare(b.fecha)||
+          normalizeSearch(a.nombre).localeCompare(normalizeSearch(b.nombre),'es')||
+          CATS.indexOf(a.tipo)-CATS.indexOf(b.tipo);
+      });
+      var expectedTotal=getExpectedDetailTotal(employeeId,category);
+      return{
+        rows:rows,
+        expectedTotal:expectedTotal,
+        detailedTotal:detailedTotal,
+        legacyTotal:Math.max(0,expectedTotal-detailedTotal)
+      };
+    };
+
+    var originalOpenDetail=openDetail;
+    openDetail=function(employeeId,category){
+      originalOpenDetail(employeeId,category);
+      var f=getActiveFilters();
+      if(f.year&&!f.month){
+        var sub=document.getElementById('detailSub');
+        if(sub&&sub.textContent.indexOf(f.year)<0)sub.textContent+=' · Año '+f.year;
+      }
+    };
+
+    var originalRenderTable=renderTable;
+    renderTable=function(rowsArg){
+      originalRenderTable(rowsArg);
+      var f=getActiveFilters();
+      if(!f.year||f.month)return;
+      var note=document.getElementById('activeViewNote');
+      if(!note)return;
+      var yearText='Año '+f.year;
+      if(note.textContent.indexOf(yearText)<0){
+        if(note.classList.contains('show')&&/^Vista filtrada:/.test(note.textContent)){
+          note.textContent=note.textContent.replace(/^Vista filtrada:\s*/,'Vista filtrada: '+yearText+' · ');
+        }else{
+          note.textContent='Vista filtrada: '+yearText;
+        }
+      }
+      note.classList.add('show');
+    };
+
+    exportCSV=function(){
+      var rows=getViewRows();
+      var f=getActiveFilters();
+      var header,data;
+
+      if(f.type==='ALL'){
+        if(realMode){
+          header=['Nombre','ID','A librar','A cobrar','Sector a librar','Real Sector a librar (×1,75)','Sector a cobrar','HFUN','Total general'];
+          data=rows.map(function(r){return[r.nombre,r.id,fmt(r['7N']),fmt(r['7D']),fmt(r.PERLI),fmt(r.PERLI_REAL),fmt(r.PERCO),fmt(r.HFUN8),fmt(r.total)];});
+        }else{
+          header=['Nombre','ID','A librar','A cobrar','Sector a librar','Sector a cobrar','HFUN','Total general'];
+          data=rows.map(function(r){return[r.nombre,r.id,fmt(r['7N']),fmt(r['7D']),fmt(r.PERLI),fmt(r.PERCO),fmt(r.HFUN8),fmt(r.total)];});
+        }
+      }else if(f.type==='PERLI'&&realMode){
+        header=['Nombre','ID','Sector a librar','Real (×1,75)','Total general'];
+        data=rows.map(function(r){return[r.nombre,r.id,fmt(r.PERLI),fmt(r.PERLI_REAL),fmt(r.total)];});
+      }else{
+        header=['Nombre','ID',CAT_LABELS[f.type],'Total general'];
+        data=rows.map(function(r){return[r.nombre,r.id,fmt(r[f.type]),fmt(r.total)];});
+      }
+
+      var csv=[header].concat(data).map(function(row){
+        return row.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(';');
+      }).join('\n');
+      var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a');
+      var period=f.month||(f.year?'anio-'+f.year:'acumulado');
+      var suffix=[period,f.type==='ALL'?'todos':f.type,realMode?'real':'normal'].join('_');
+      a.href=url;
+      a.download='perentorias_'+suffix+'.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+
+    yearEl.addEventListener('change',function(){
+      monthEl.value='';
+      renderFilterOptions();
+      renderView();
+    });
+
+    var exportBtn=document.getElementById('btnExport');
+    if(exportBtn){
+      exportBtn.addEventListener('click',function(ev){
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        exportCSV();
+      },true);
+    }
+
+    var clearBtn=document.getElementById('btnClearFilters');
+    if(clearBtn){
+      clearBtn.addEventListener('click',function(){
+        yearEl.value='';
+        setTimeout(function(){
+          renderFilterOptions();
+          renderView();
+        },0);
+      },true);
+    }
+
+    renderFilterOptions();
+    renderView();
+  }
+
+  function instalar(){
+    var frame=document.getElementById('perentorias-tool-frame');
+    if(!frame)return;
+
+    var doc;
+    try{doc=frame.contentDocument;}catch(e){return;}
+    if(!doc||!doc.body)return;
+
+    var month=doc.getElementById('monthFilter');
+    if(!month){
+      setTimeout(instalar,250);
+      return;
+    }
+    if(doc.getElementById('yearFilter'))return;
+
+    var label=doc.createElement('label');
+    label.className='filter-field';
+    label.innerHTML='<span>Año</span><select class="filter-select" id="yearFilter"><option value="">Todos los años</option></select>';
+    var monthLabel=month.closest('label');
+    if(monthLabel&&monthLabel.parentNode)monthLabel.parentNode.insertBefore(label,monthLabel);
+
+    var style=doc.createElement('style');
+    style.textContent='@media (min-width:901px){.filters-grid{grid-template-columns:minmax(210px,1.45fr) repeat(5,minmax(125px,1fr))!important;}}';
+    doc.head.appendChild(style);
+
+    var script=doc.createElement('script');
+    script.setAttribute('data-cta-patch',MARK);
+    script.textContent='('+codigoFiltroAnio.toString()+')();';
+    doc.body.appendChild(script);
+  }
+
+  function preparar(){
+    var frame=document.getElementById('perentorias-tool-frame');
+    if(!frame)return;
+    if(!frame.dataset.yearFilterHook){
+      frame.dataset.yearFilterHook='1';
+      frame.addEventListener('load',function(){setTimeout(instalar,80);});
+    }
+    try{
+      if(frame.contentDocument&&frame.contentDocument.readyState!=='loading')setTimeout(instalar,80);
+    }catch(e){}
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',preparar);
+  else preparar();
+  setTimeout(preparar,500);
+})();
+</script>
+
 </body>
 </html>
