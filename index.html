@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!-- CTA_LOGIN_REACTIVADO_FINAL_V6_2026-07-16 -->
+<!-- CTA_FLECHAS_MARGEN_INFERIOR_V5_2026-07-16 -->
+<!-- CTA_FLECHAS_CON_MARGEN_INTERIOR_V4_2026-07-16 -->
+<!-- CTA_FLECHAS_SEPARADAS_HOY_FIJO_V3_2026-07-16 -->
+<!-- CTA_FLECHAS_MES_MINIMAS_V2_2026-07-16 -->
 <!-- CTA_BACKUP_COMPLETO_PERENTORIAS_V3_2026-07-12 -->
 <!-- CTA_MENU_PERENTORIAS_HFUN_V1_2026-07-12 -->
 <!-- CTA_MODAL_CODIGO_Y_CABECERA_ERROR_V1_2026-07-12 -->
@@ -1707,7 +1712,7 @@ body[data-panel="afiliate"] #panel-afiliate{
         <div>
           <div style="font-size:13.5px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:5px">Este mes</div>
           <div class="op-cal-rows" style="margin-top:0">
-            <div class="op-cal-row"><span class="op-cal-rl">Trabajados</span><span class="op-cal-rv" id="op-cal-trab">—</span></div>
+            <div class="op-cal-row op-cal-trab-row"><span class="op-cal-rl">Trabajados</span><span class="op-cal-mini-month-nav" onclick="event.stopPropagation()"><button type="button" onclick="event.stopPropagation();opCalMoverMes(-1);return false;" aria-label="Mes anterior">‹</button><button type="button" onclick="event.stopPropagation();opCalMoverMes(1);return false;" aria-label="Mes siguiente">›</button></span><span class="op-cal-rv" id="op-cal-trab">—</span></div>
             <div class="op-cal-row"><span class="op-cal-rl">Libres</span><span class="op-cal-rv" id="op-cal-lib">—</span></div>
             <div class="op-cal-row"><span class="op-cal-rl">Horas mes</span><span class="op-cal-rv" id="op-cal-hmes">—</span></div>
             <div class="op-cal-row"><span class="op-cal-rl">Unidades</span><span class="op-cal-rv" id="op-cal-unidades">—</span></div>
@@ -10134,10 +10139,22 @@ window.opCorregirVacTomadas=function(){
 
 window.renderOperativa=function(){
   var now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
-  var mK=MESES[now.getMonth()];
+  var mesVista=(window.__opCalMesVista instanceof Date&&!isNaN(window.__opCalMesVista.getTime()))
+    ?new Date(window.__opCalMesVista.getFullYear(),window.__opCalMesVista.getMonth(),1)
+    :new Date(now.getFullYear(),now.getMonth(),1);
+  window.__opCalMesVista=mesVista;
+  var vistaY=mesVista.getFullYear(),vistaM=mesVista.getMonth();
+  var mK=MESES[vistaM];
+  var mKHoy=MESES[now.getMonth()];
   var ue={};try{var r=localStorage.getItem("cta_ed_"+now.getFullYear());if(r)ue=JSON.parse(r);}catch(e){}
-  var mD=ue[mK]||{};
-  var dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  var mDHoy=ue[mKHoy]||{};
+  var ueMes=ue;
+  if(vistaY!==now.getFullYear()){
+    ueMes={};
+    try{var rm=localStorage.getItem("cta_ed_"+vistaY);if(rm)ueMes=JSON.parse(rm);}catch(e){}
+  }
+  var mD=ueMes[mK]||{};
+  var dim=new Date(vistaY,vistaM+1,0).getDate();
   var trab=0,lib=0,hMes=0,hCont=0;
   for(var di=1;di<=dim;di++){var dy=mD[di];if(!dy){lib++;continue;}if(ACTIVOS.indexOf(dy.tipo||"libre")>=0){trab++;hMes+=dy.total||0;}else lib++;}
   // Use same method as calendar: prefer e1/s1 calculated duration over stored total
@@ -10195,7 +10212,7 @@ window.renderOperativa=function(){
   var _fcoRawOp;try{_fcoRawOp=localStorage.getItem('cta_fest_carryover_'+_nowYOp);}catch(e){}
   var _fcoOp=parseInt(_fcoRawOp,10);if(isNaN(_fcoOp))_fcoOp=0;
   var festAnual=_fcoOp+festivosGenerados-festivosUsados;
-  if(g("op-cal-mes"))g("op-cal-mes").textContent=MESES_ES[now.getMonth()]+" "+now.getFullYear();
+  if(g("op-cal-mes"))g("op-cal-mes").textContent=MESES_ES[vistaM]+" "+vistaY;
   if(g("op-cal-trab"))g("op-cal-trab").textContent=trab;
   if(g("op-cal-lib"))g("op-cal-lib").textContent=lib;
   if(g("op-cal-hmes"))g("op-cal-hmes").textContent=Math.round(hMes*10)/10+"h";
@@ -10280,7 +10297,7 @@ window.renderOperativa=function(){
     g("op-cal-peren").textContent=totalPerenMin===0?"—":perenStr+(totalPerenMin<0?" comp.":"");
   }
 
-  var d=mD[now.getDate()]||null;
+  var d=mDHoy[now.getDate()]||null;
   // Si el día tiene HL parcial, Mi jornada debe mostrar solo la parte realmente trabajada.
   // Ej.: 05:00→11:00 / 12:00→15:00 con HL 12:00→15:00 queda 05:00→11:00.
   function _opDiaConHLParcial(dia){
@@ -10305,7 +10322,7 @@ window.renderOperativa=function(){
   var mE1o=d&&d.e1?toM(d.e1):null,mS1o=d&&d.s1?toM(d.s1):null;
   var mE2o=d&&d.e2?toM(d.e2):null,mS2o=d&&d.s2?toM(d.s2):null;
   Object.keys(gmap).forEach(function(nom){
-    var emp=gmap[nom],dias=(emp.meses&&emp.meses[mK])||null;
+    var emp=gmap[nom],dias=(emp.meses&&emp.meses[mKHoy])||null;
     if(_estaExcluidoPlantilla((emp&&emp.nombre)||nom,_fechaISOPlantilla(now)))return;
     if(!dias)return;
     var t=dias[todayNum];t=_turnoGrupoConCambioCompartido(emp,now,t);
@@ -15630,6 +15647,60 @@ else etInit();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',preparar);
   else preparar();
   setTimeout(preparar,500);
+})();
+</script>
+
+
+<!-- CTA_FLECHAS_MES_MINIMAS_V2_2026-07-16 -->
+<style>
+.op-cal-trab-row{position:relative}
+.op-cal-mini-month-nav{
+  position:absolute;
+  right:0;
+  top:-23px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  z-index:2;
+}
+.op-cal-mini-month-nav button{
+  width:19px;
+  height:17px;
+  min-width:19px;
+  padding:0;
+  border:0;
+  border-radius:4px;
+  background:rgba(200,168,75,.12);
+  color:var(--gold);
+  font:800 11px/11px "Outfit",sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.op-cal-mini-month-nav button:active{
+  background:rgba(200,168,75,.28);
+  transform:scale(.9);
+}
+</style>
+<script>
+(function(){
+  'use strict';
+  if(window.__CTA_FLECHAS_MES_MINIMAS_V2__)return;
+  window.__CTA_FLECHAS_MES_MINIMAS_V2__=true;
+
+  window.opCalMoverMes=function(delta){
+    var hoy=new Date();
+    var base=(window.__opCalMesVista instanceof Date&&!isNaN(window.__opCalMesVista.getTime()))
+      ?window.__opCalMesVista
+      :new Date(hoy.getFullYear(),hoy.getMonth(),1);
+    window.__opCalMesVista=new Date(
+      base.getFullYear(),
+      base.getMonth()+Number(delta||0),
+      1
+    );
+    if(typeof window.renderOperativa==='function')window.renderOperativa();
+  };
 })();
 </script>
 
