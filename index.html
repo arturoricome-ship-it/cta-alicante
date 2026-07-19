@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!-- CTA_MI_JORNADA_CUENTA_ATRAS_DESDE_00H_V1_2026-07-19 -->
 <!-- CTA_LOGIN_REACTIVADO_FINAL_V6_2026-07-16 -->
 <!-- CTA_FLECHAS_MARGEN_INFERIOR_V5_2026-07-16 -->
 <!-- CTA_FLECHAS_CON_MARGEN_INTERIOR_V4_2026-07-16 -->
@@ -11153,19 +11154,18 @@ window.renderOperativa=function(){
   } else if(notYet){
     card.classList.add("state-next");
     var minsToStart=Math.max(0,e1-nowMin);
-    // Cuando falta menos de 1h, el chip derecho no debe repetir el turno:
-    // muestra el tiempo restante en azul, como en descanso.
+    // Desde que aparece el estado azul (00:00 del día del turno),
+    // el lado derecho muestra siempre la cuenta atrás y nunca repite el turno.
     if(g("op-tc-times")){
-      g("op-tc-times").innerHTML=minsToStart<=60
-        ? '<span class="op-tc-start-count">'+fmtT(minsToStart)+'</span>'
-        : th;
+      g("op-tc-times").innerHTML='<span class="op-tc-start-count">'+fmtT(minsToStart)+'</span>';
     }
     var _D3=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
     if(g("op-tc-sub"))g("op-tc-sub").textContent="Próximo turno: "+_D3[now.getDay()]+" "+now.getDate();
     var _shiftH3=d.e1+(d.s1?" → "+d.s1:"")+(d.e2&&d.s2?"  ·  "+d.e2+" → "+d.s2:"");
     if(g("op-tc-shift")){g("op-tc-shift").textContent=_shiftH3;g("op-tc-shift").style.color="var(--white)";}
     if(g("op-tc-pct"))g("op-tc-pct").textContent="0%";
-    if(g("op-tc-rem"))g("op-tc-rem").textContent="Empieza en "+fmtT(minsToStart);
+    // La cuenta atrás ya está a la derecha; no se repite debajo del 0%.
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="";
     if(g("op-tc-bar"))g("op-tc-bar").style.width="0%";
   }
 
