@@ -1610,6 +1610,147 @@ body[data-panel="afiliate"] #panel-afiliate{
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+
+
+<!-- CTA_TURNO_PARTIDO_CUENTA_ATRAS_POR_TRAMO_2026-07-19 -->
+<style id="cta-turno-partido-cuenta-atras-20260719">
+  /* En el descanso entre E1 y E2 se conserva el modo morado y se muestra
+     la cuenta atrás hasta la entrada del segundo tramo. */
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-row,
+  #op-turno-card.state-pausa .op-tc-row{
+    display:grid!important;
+    grid-template-columns:52px minmax(0,1fr) 78px!important;
+    width:100%!important;
+    max-width:100%!important;
+    gap:7px!important;
+    align-items:center!important;
+    margin-bottom:10px!important;
+    overflow:hidden!important;
+  }
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-col-a,
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-col-b,
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-col-c,
+  #op-turno-card.state-pausa .op-tc-col-a,
+  #op-turno-card.state-pausa .op-tc-col-b,
+  #op-turno-card.state-pausa .op-tc-col-c{
+    min-width:0!important;
+    width:auto!important;
+    max-width:100%!important;
+    flex:initial!important;
+    flex-basis:auto!important;
+    overflow:hidden!important;
+  }
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-col-a,
+  #op-turno-card.state-pausa .op-tc-col-a{
+    align-items:flex-start!important;
+    text-align:left!important;
+  }
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-pct,
+  #op-turno-card.state-pausa .op-tc-pct{
+    font-size:24px!important;
+    line-height:.9!important;
+    font-weight:900!important;
+    color:#c084fc!important;
+    white-space:nowrap!important;
+  }
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-rem,
+  #op-turno-card.state-pausa .op-tc-rem{
+    display:none!important;
+  }
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-col-b,
+  #op-turno-card.state-pausa .op-tc-col-b{
+    align-items:center!important;
+    justify-content:center!important;
+    text-align:center!important;
+  }
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-shift,
+  #op-turno-card.state-pausa .op-tc-shift{
+    display:block!important;
+    order:0!important;
+    font-size:12.5px!important;
+    line-height:1.08!important;
+    font-weight:850!important;
+    color:var(--white)!important;
+    margin:0 0 3px!important;
+    max-width:100%!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-sub,
+  #op-turno-card.state-pausa .op-tc-sub{
+    display:block!important;
+    order:1!important;
+    font-size:10.2px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    letter-spacing:.18px!important;
+    text-transform:uppercase!important;
+    color:#c084fc!important;
+    white-space:nowrap!important;
+    margin:0!important;
+  }
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-col-c,
+  #op-turno-card.state-pausa .op-tc-col-c{
+    display:flex!important;
+    align-items:flex-end!important;
+    text-align:right!important;
+  }
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-times,
+  #op-turno-card.state-pausa .op-tc-times{
+    width:100%!important;
+    max-width:100%!important;
+    display:block!important;
+    font-size:15px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    color:#c084fc!important;
+    white-space:nowrap!important;
+    text-align:right!important;
+    overflow:hidden!important;
+  }
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-times::before,
+  #op-turno-card.state-pausa .op-tc-times::before{
+    content:"Hasta E2";
+    display:block!important;
+    margin-bottom:3px!important;
+    font-size:6.3px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    letter-spacing:.25px!important;
+    text-transform:uppercase!important;
+    color:var(--gray)!important;
+    white-space:nowrap!important;
+  }
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-times span,
+  #op-turno-card.state-pausa .op-tc-times span{
+    font-size:15px!important;
+    line-height:1!important;
+    border:0!important;
+    padding:0!important;
+    color:inherit!important;
+  }
+  #panel-operativa.active #op-turno-card.state-pausa .op-tc-bar-bg,
+  #op-turno-card.state-pausa .op-tc-bar-bg{
+    margin-top:8px!important;
+  }
+  @media(max-width:360px){
+    #panel-operativa.active #op-turno-card.state-pausa .op-tc-row,
+    #op-turno-card.state-pausa .op-tc-row{
+      grid-template-columns:46px minmax(0,1fr) 70px!important;
+      gap:5px!important;
+    }
+    #panel-operativa.active #op-turno-card.state-pausa .op-tc-pct,
+    #op-turno-card.state-pausa .op-tc-pct{font-size:22px!important;}
+    #panel-operativa.active #op-turno-card.state-pausa .op-tc-shift,
+    #op-turno-card.state-pausa .op-tc-shift{font-size:11.8px!important;}
+    #panel-operativa.active #op-turno-card.state-pausa .op-tc-sub,
+    #op-turno-card.state-pausa .op-tc-sub{font-size:9.5px!important;}
+    #panel-operativa.active #op-turno-card.state-pausa .op-tc-times,
+    #op-turno-card.state-pausa .op-tc-times{font-size:14px!important;}
+  }
+</style>
+
 </head>
 <body>
 
@@ -11089,7 +11230,10 @@ window.renderOperativa=function(){
     card.classList.add("state-working");
     var el2=inS1?nowMin-e1:(s1-e1)+(nowMin-e2);
     var pct=Math.min(100,Math.round(el2/totMin*100));
-    var rem=Math.max(0,shEnd-nowMin+(inS1&&e2?Math.max(0,e2-s1):0));
+    // En turno partido, la cuenta atrás corresponde solo al tramo activo:
+    // E1 -> hasta S1; E2 -> hasta S2. No se suma el descanso intermedio.
+    var finTramoActivo=inS1?s1:s2;
+    var rem=Math.max(0,finTramoActivo-nowMin);
     var turnoCentro=d.e1+" → "+d.s1+(d.e2&&d.s2?"  ·  "+d.e2+" → "+d.s2:"");
     if(g("op-tc-times"))g("op-tc-times").textContent=fmtT(rem);
     if(g("op-tc-sub"))g("op-tc-sub").textContent="Trabajando";
@@ -11103,14 +11247,16 @@ window.renderOperativa=function(){
     if(card)card.classList.toggle('saliendo',saliendoNow);
   } else if(isPausa){
     card.classList.add("state-pausa");
-    if(g("op-tc-times"))g("op-tc-times").innerHTML=th;
-    // Pausa: % descending = remaining pause time / total pause duration
-    var pausaTot=e2-s1; // total pause minutes
-    var pausaRem=e2-nowMin; // remaining pause minutes
+    // Descanso entre E1 y E2: la cifra grande de la derecha es la cuenta atrás
+    // hasta la entrada del segundo tramo.
+    var pausaTot=e2-s1; // duración total del descanso
+    var pausaRem=Math.max(0,e2-nowMin); // tiempo restante hasta E2
     var pct3=pausaTot>0?Math.round(pausaRem/pausaTot*100):0;
-    if(g("op-tc-sub"))g("op-tc-sub").textContent="Pausa · Vuelves a las "+d.e2;
+    if(g("op-tc-times"))g("op-tc-times").textContent=fmtT(pausaRem);
+    if(g("op-tc-sub"))g("op-tc-sub").textContent="Descanso · Vuelves a las "+d.e2;
+    if(g("op-tc-shift")){g("op-tc-shift").textContent=turnoCentro;g("op-tc-shift").style.color="var(--white)";}
     if(g("op-tc-pct"))g("op-tc-pct").textContent=pct3+"%";
-    if(g("op-tc-rem"))g("op-tc-rem").textContent="Vuelves en "+fmtT(pausaRem);
+    if(g("op-tc-rem"))g("op-tc-rem").textContent="";
     if(g("op-tc-bar"))g("op-tc-bar").style.width=pct3+"%";
   } else if(isDone){
     card.classList.add("state-rest");
