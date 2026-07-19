@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!-- CTA_MIJORNADA_CUENTA_ATRAS_PORCENTAJE_DESCENDENTE_V1_2026-07-19 -->
 <!-- CTA_MI_JORNADA_CUENTA_ATRAS_DESDE_00H_V1_2026-07-19 -->
 <!-- CTA_LOGIN_REACTIVADO_FINAL_V6_2026-07-16 -->
 <!-- CTA_FLECHAS_MARGEN_INFERIOR_V5_2026-07-16 -->
@@ -11163,10 +11164,14 @@ window.renderOperativa=function(){
     if(g("op-tc-sub"))g("op-tc-sub").textContent="Próximo turno: "+_D3[now.getDay()]+" "+now.getDate();
     var _shiftH3=d.e1+(d.s1?" → "+d.s1:"")+(d.e2&&d.s2?"  ·  "+d.e2+" → "+d.s2:"");
     if(g("op-tc-shift")){g("op-tc-shift").textContent=_shiftH3;g("op-tc-shift").style.color="var(--white)";}
-    if(g("op-tc-pct"))g("op-tc-pct").textContent="0%";
-    // La cuenta atrás ya está a la derecha; no se repite debajo del 0%.
+    // Porcentaje de tiempo que queda desde las 00:00 hasta la hora de entrada.
+    // Empieza en 100% a medianoche y baja progresivamente hasta 0% al comenzar.
+    var pctHastaEntrada=e1>0?Math.ceil((minsToStart/e1)*100):0;
+    pctHastaEntrada=Math.max(0,Math.min(100,pctHastaEntrada));
+    if(g("op-tc-pct"))g("op-tc-pct").textContent=pctHastaEntrada+"%";
+    // La cuenta atrás ya está a la derecha; no se repite debajo del porcentaje.
     if(g("op-tc-rem"))g("op-tc-rem").textContent="";
-    if(g("op-tc-bar"))g("op-tc-bar").style.width="0%";
+    if(g("op-tc-bar"))g("op-tc-bar").style.width=pctHastaEntrada+"%";
   }
 
   // Recalcular el alto disponible AHORA que Mi Jornada ya tiene su contenido final,
