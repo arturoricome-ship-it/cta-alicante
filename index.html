@@ -1,3 +1,9 @@
+<!-- CTA_MEDIA_VACACIONES_DISFRUTADAS_REALES_PENDIENTES_8H_2026-07-28 -->
+<!-- CTA_ERRORES_SOLO_EXCEL_SIN_CAMBIOS_EMPLEADOS_V1_2026-07-28 -->
+<!-- CTA_MENU_OCULTO_CAMBIOS_HORAS_ERRORES_V1_2026-07-28 -->
+<!-- CTA_PRUEBA_MEDIA_MENSUAL_CON_Y_SIN_DESCONTAR_VACACIONES_2026-07-28 -->
+<!-- CTA_MEDIA_EQUIVALENTE_VACACIONES_8H_1541_1712_PRUEBA_2026-07-28 -->
+<!-- CTA_MEDIA_BASE_TOTAL_REAL_Y_CONTADOR_VACACIONES_8H_2026-07-28 -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1748,6 +1754,33 @@ body[data-panel="afiliate"] #panel-afiliate{
     #op-turno-card.state-pausa .op-tc-sub{font-size:9.5px!important;}
     #panel-operativa.active #op-turno-card.state-pausa .op-tc-times,
     #op-turno-card.state-pausa .op-tc-times{font-size:14px!important;}
+  }
+</style>
+
+
+<style id="cta-media-con-sin-vac-compacta-20260728">
+  #op-cal-media-mes{
+    display:inline-flex!important;
+    align-items:baseline!important;
+    justify-content:flex-end!important;
+    gap:3px!important;
+    font-size:15px!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+  }
+  #op-cal-media-mes .op-media-trabajo{color:#60a5fa;font-weight:800}
+  #op-cal-media-mes .op-media-sep{color:var(--gray);font-size:.8em;font-weight:700}
+  #op-cal-media-mes .op-media-equivalente{color:#a5b4fc;font-weight:800}
+  #op-cal-media-mes-sub{
+    width:100%!important;
+    max-width:100%!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    font-size:7.6px!important;
+    margin-top:2px!important;
+    line-height:1!important;
+    text-align:right!important;
   }
 </style>
 
@@ -4508,7 +4541,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 <script>
 var CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
 var SHEETS_URL="https://script.google.com/macros/s/AKfycby_IIimYE_dL1BolZrPdGdmslVW1gV-Ivj9E7H3jaJgxd4ZJq7IEcFEjBuVj3iy0qQo/exec";
-var CTA_LOGIN_DISABLED_FOR_TESTS=false;
+var CTA_LOGIN_DISABLED_FOR_TESTS=true;
 
 function parseJwt(token){
   try{var b=token.split(".")[1];var d=atob(b.replace(/-/g,"+").replace(/_/g,"/"));return JSON.parse(decodeURIComponent(escape(d)));}
@@ -6539,6 +6572,8 @@ function taParseGrupoSheet(ws,sheetName){
   var empleados=[],gruposDetectados=[];
   if(formato==='SINGLE'){
     var row2=String(rows[1]&&rows[1][0]||'');
+    var grupoUAR=_hpGrupoUARDesdeTexto([sheetName,row2].join(' '));
+    var esFIJI=!!grupoUAR;
     var categoria='General';
     var row2clean=row2.replace(/\d{1,2}\s*(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)[\s\S]*/i,'').trim();
     var dashParts=row2clean.split('-');
@@ -6560,12 +6595,12 @@ function taParseGrupoSheet(ws,sheetName){
       if(nomina.toLowerCase().indexOf('calendario')>=0||nomina.toLowerCase().indexOf('fecha')>=0)continue;
       var nombre=(typeof formatNombre==='function')?formatNombre(nombreFull):nombreFull;
       if(typeof _esNombreBasuraGrupo==='function'&&_esNombreBasuraGrupo(nombre))continue;
-      lastEmpSingle={nomina:nomina,nombre:nombre,categoria:categoria,dias:_extraerDiasGrupoDeFila(row,rowRaw,dayColMap)};
+      lastEmpSingle={nomina:nomina,nombre:nombre,categoria:categoria,grupoUAR:grupoUAR,esFIJI:esFIJI,dias:_extraerDiasGrupoDeFila(row,rowRaw,dayColMap)};
       empleados.push(lastEmpSingle);
     }
     gruposDetectados.push(categoria);
   } else {
-    var currentCategoria='FIJO OPERARIO',lastEmpMulti=null;
+    var currentCategoria='FIJO OPERARIO',currentGrupoUAR='',currentEsFIJI=false,lastEmpMulti=null;
     for(var r2=hIdx+1;r2<rows.length;r2++){
       var rowM=rows[r2]||[],rowMRaw=rowsRaw[r2]||[];
       var cellA=String(rowM[empCol]||'').trim();
@@ -6579,6 +6614,7 @@ function taParseGrupoSheet(ws,sheetName){
       if(cellA.indexOf(',')<0){
         if(/^\d{1,2}\s/.test(cellA)){
           currentCategoria=(typeof _categoriaDesdeTextoGrupo==='function')?_categoriaDesdeTextoGrupo(cellA):cellA;
+          currentGrupoUAR=_hpGrupoUARDesdeTexto(cellA);currentEsFIJI=!!currentGrupoUAR;
           if(gruposDetectados.indexOf(currentCategoria)<0)gruposDetectados.push(currentCategoria);
           lastEmpMulti=null;
         } else if(lastEmpMulti){
@@ -6591,7 +6627,7 @@ function taParseGrupoSheet(ws,sheetName){
       var nomina2=(typeof _nominaSinteticaDesdeNombre==='function')?_nominaSinteticaDesdeNombre(nombreFull2):nombreFull2;
       var nombre2=(typeof formatNombre==='function')?formatNombre(nombreFull2):nombreFull2;
       if(typeof _esNombreBasuraGrupo==='function'&&_esNombreBasuraGrupo(nombre2))continue;
-      lastEmpMulti={nomina:nomina2,nombre:nombre2,categoria:currentCategoria,dias:_extraerDiasGrupoDeFila(rowM,rowMRaw,dayColMap)};
+      lastEmpMulti={nomina:nomina2,nombre:nombre2,categoria:currentCategoria,grupoUAR:currentGrupoUAR,esFIJI:currentEsFIJI,dias:_extraerDiasGrupoDeFila(rowM,rowMRaw,dayColMap)};
       empleados.push(lastEmpMulti);
     }
   }
@@ -8161,6 +8197,8 @@ function procesarGrupoXlsx(file,destino){
       if(formato==='SINGLE'){
         // ── Excel de una sola categoría (con columna Nómina, categoría en la fila 2) ──
         var row2=String(rows[1]&&rows[1][0]||'');
+        var grupoUAR=_hpGrupoUARDesdeTexto([file&&file.name||'',wb.SheetNames[0]||'',row2].join(' '));
+        var esFIJI=!!grupoUAR;
         var categoria='General';
         var row2clean=row2.replace(/\d{1,2}\s*(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)[\s\S]*/i,'').trim();
         var dashParts=row2clean.split('-');
@@ -8190,7 +8228,7 @@ function procesarGrupoXlsx(file,destino){
           var nombre=formatNombre(nombreFull);
           if(_esNombreBasuraGrupo(nombre))continue; // p.ej. "(EXC)" colado como nombre, no es una persona
           var diasMes=_extraerDiasGrupoDeFila(row,rowRaw,dayColMap);
-          lastEmpSingle={nomina:nomina,nombre:nombre,categoria:categoria,dias:diasMes};
+          lastEmpSingle={nomina:nomina,nombre:nombre,categoria:categoria,grupoUAR:grupoUAR,esFIJI:esFIJI,dias:diasMes};
           empleados.push(lastEmpSingle);
         }
         gruposDetectados.push(categoria);
@@ -8198,6 +8236,7 @@ function procesarGrupoXlsx(file,destino){
         // ── Excel "todos los grupos" (varias categorías en la misma hoja, separadas por
         //    filas tipo "09 UAR-Ftp-Supervisores" que solo tienen texto en la columna A) ──
         var currentCategoria='FIJO OPERARIO';
+        var currentGrupoUAR='',currentEsFIJI=false;
         var lastEmpMulti=null;
         for(var r2=hIdx+1;r2<rows.length;r2++){
           var rowM=rows[r2];
@@ -8219,6 +8258,7 @@ function procesarGrupoXlsx(file,destino){
           if(cellA.indexOf(',')<0){
             if(/^\d{1,2}\s/.test(cellA)){
               currentCategoria=_categoriaDesdeTextoGrupo(cellA);
+              currentGrupoUAR=_hpGrupoUARDesdeTexto(cellA);currentEsFIJI=!!currentGrupoUAR;
               if(gruposDetectados.indexOf(currentCategoria)<0)gruposDetectados.push(currentCategoria);
               lastEmpMulti=null;
             } else if(lastEmpMulti){
@@ -8233,7 +8273,7 @@ function procesarGrupoXlsx(file,destino){
           var nombre2=formatNombre(nombreFull2);
           if(_esNombreBasuraGrupo(nombre2))continue; // p.ej. "(EXC)" colado como nombre, no es una persona
           var diasMes2=_extraerDiasGrupoDeFila(rowM,rowMRaw,dayColMap);
-          lastEmpMulti={nomina:nomina2,nombre:nombre2,categoria:currentCategoria,dias:diasMes2};
+          lastEmpMulti={nomina:nomina2,nombre:nombre2,categoria:currentCategoria,grupoUAR:currentGrupoUAR,esFIJI:currentEsFIJI,dias:diasMes2};
           empleados.push(lastEmpMulti);
         }
       }
@@ -8272,6 +8312,8 @@ function procesarGrupoXlsx(file,destino){
           nomina:key,
           nombre:emp.nombre,
           categoria:emp.categoria,
+          grupoUAR:emp.grupoUAR||prev.grupoUAR||'',
+          esFIJI:!!(emp.esFIJI||prev.esFIJI),
           meses:meses
         };
         _porNombreExistente[_normNombreGrupo(emp.nombre)]=key;
@@ -10415,22 +10457,30 @@ window.renderOperativa=function(){
     var hoy0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
     var finAno=new Date(now.getFullYear(),11,31);
     var diasCalRestantes=Math.round((finAno-hoy0)/86400000)+1; // incluye hoy
-    var diasEfectivos=Math.max(1,diasCalRestantes-vacPendientes);
-    var mesesEfectivos=diasEfectivos/30.4368;
+    // Las dos medias se reparten entre el mismo tiempo natural restante:
+    // 1) CONTADOR: tope contractual menos las horas reales de contador.
+    // 2) TOTAL EQUIVALENTE: horas de contador todavía pendientes + 8 h por cada
+    //    día de vacaciones que aún no se ha disfrutado. Las vacaciones ya
+    //    disfrutadas quedan cerradas con las horas reales que marque el calendario:
+    //    si un día de vacaciones tuvo 6 h, no deja 2 h pendientes hasta llegar a 8.
+    var mesesNaturalesRestantes=Math.max(1/30.4368,diasCalRestantes/30.4368);
+    var HORAS_POR_DIA_VACACIONES_MEDIA=8;
+    var restanteTotalEquivalente=Math.max(0,restanteH)+(vacPendientes*HORAS_POR_DIA_VACACIONES_MEDIA);
     var elMedia=g('op-cal-media-mes'),elMediaSub=g('op-cal-media-mes-sub');
     if(elMedia){
-      if(restanteH<=0){
+      if(restanteH<=0&&restanteTotalEquivalente<=0){
         elMedia.textContent='0h — ya cumplido';
         elMedia.style.color='#4ade80';
       } else {
-        var mediaMes=restanteH/mesesEfectivos;
-        elMedia.textContent=(Math.round(mediaMes*10)/10)+'h/mes';
+        var mediaMesContador=Math.max(0,restanteH)/mesesNaturalesRestantes;
+        var mediaMesTotal=Math.max(0,restanteTotalEquivalente)/mesesNaturalesRestantes;
+        elMedia.innerHTML='<span class="op-media-trabajo">'+(Math.round(mediaMesContador*10)/10)+'</span><span class="op-media-sep">/</span><span class="op-media-equivalente">'+(Math.round(mediaMesTotal*10)/10)+'h/mes</span>';
         elMedia.style.color='#60a5fa';
       }
     }
     if(elMediaSub){
-      var _vacTxt=vacPendientes+' días vac. pendientes de 30'+(_vacOverrideRaw!==null&&_vacOverrideRaw!==''?' (manual, tocar para editar)':' (tocar para corregir)');
-      elMediaSub.textContent='('+(Math.round(mesesEfectivos*10)/10)+' meses efectivos · '+_vacTxt+')';
+      var _vacModo=_vacOverrideRaw!==null&&_vacOverrideRaw!==''?'manual · tocar':'tocar';
+      elMediaSub.textContent='contador / con vac. pendientes a 8h · '+vacPendientes+'d pend. ('+_vacModo+')';
     }
   }
   if(g("op-cal-peren")){
@@ -14567,6 +14617,10 @@ function etEmailErrorSummary(e){
     var shift=Number(e.actualMinutes);
     return isFinite(shift)&&shift>=0?'La jornada es de '+etFmtDur(shift)+', superando el máximo de 9 h.':(e.message||'La jornada supera el máximo de 9 horas.');
   }
+  if(e.type==='horas_semanales'){
+    var weekly=Number(e.actualMinutes);
+    return isFinite(weekly)&&weekly>=0?'La semana suma '+etFmtDur(weekly)+', superando el máximo de 36 h.':(e.message||'La semana supera el máximo de 36 horas.');
+  }
   if(e.type==='partido_minimo'||e.type==='partido_maximo'){
     var gap=Number(e.actualMinutes);
     return isFinite(gap)&&gap>=0?'La interrupción del turno partido es de '+etFmtDur(gap)+', fuera del intervalo permitido de 1 a 5 h.':(e.message||'El turno partido está fuera del intervalo permitido de 1 a 5 horas.');
@@ -14852,11 +14906,13 @@ function etMergeEmployeeMonth(employees,emp,monthKey,days){
   if(idx<0)return;
   var ek=etEmployeeKey(emp);
   if(!employees[ek])employees[ek]={
-    nomina:emp.nomina||'',nombre:emp.nombre||'Sin nombre',categoria:emp.categoria||'',meses:{}
+    nomina:emp.nomina||'',nombre:emp.nombre||'Sin nombre',categoria:emp.categoria||'',grupoUAR:emp.grupoUAR||'',esFIJI:!!emp.esFIJI,meses:{}
   };
   var target=employees[ek];
   target.nombre=emp.nombre||target.nombre;
   target.categoria=emp.categoria||target.categoria;
+  target.grupoUAR=emp.grupoUAR||target.grupoUAR||'';
+  target.esFIJI=!!(emp.esFIJI||target.esFIJI);
   var month=target.meses[ET_MONTHS[idx]]||{};
   Object.keys(days||{}).forEach(function(d){month[d]=etClone(days[d]);});
   target.meses[ET_MONTHS[idx]]=month;
@@ -14976,12 +15032,14 @@ function etBuildMergedDatasets(sourceFiles){
     contributions[ds.id]=contributions[ds.id]||{days:0,employees:{}};
     Object.keys(ds.employees||{}).forEach(function(ek){
       var incoming=ds.employees[ek]||{};
-      if(!merged.employees[ek])merged.employees[ek]={nomina:incoming.nomina||'',nombre:incoming.nombre||'Sin nombre',categoria:incoming.categoria||'',meses:{},__etMetaSource:null};
+      if(!merged.employees[ek])merged.employees[ek]={nomina:incoming.nomina||'',nombre:incoming.nombre||'Sin nombre',categoria:incoming.categoria||'',grupoUAR:incoming.grupoUAR||'',esFIJI:!!incoming.esFIJI,meses:{},__etMetaSource:null};
       var target=merged.employees[ek];
       if(!target.__etMetaSource||etCompareSource(source,target.__etMetaSource)>=0){
         target.nomina=incoming.nomina||target.nomina;
         target.nombre=incoming.nombre||target.nombre;
         target.categoria=incoming.categoria||target.categoria;
+        target.grupoUAR=incoming.grupoUAR||target.grupoUAR||'';
+        target.esFIJI=!!(incoming.esFIJI||target.esFIJI);
         target.__etMetaSource=etClone(source);
       }
       Object.keys(incoming.meses||{}).forEach(function(mk){
@@ -15027,6 +15085,38 @@ function etRenderFiles(){
       '<span>'+etEsc(f.label)+' · '+etEsc(f.source)+'</span>'+ 
       '<button type="button" title="Quitar archivo" onclick="borrarExcelErroresTurno(decodeURIComponent(\''+id+'\'))">×</button></div>';
   }).join('');
+}
+function etApplyCurrentChangesToDataset(ds){
+  var out=etClone(ds);
+  Object.keys(out.employees||{}).forEach(function(ek){
+    var emp=out.employees[ek]||{},year=Number(out.year)||new Date().getFullYear();
+    Object.keys(emp.meses||{}).forEach(function(mk){
+      var mi=etMonthIndex(mk);if(mi<0)return;
+      var days=emp.meses[mk]||{},maxDay=new Date(year,mi+1,0).getDate();
+      for(var d=1;d<=maxDay;d++){
+        var date=new Date(year,mi,d),base=days[d]||days[String(d)]||null,cambio=null;
+        try{if(typeof _getCambioCompartidoEmpleado==='function')cambio=_getCambioCompartidoEmpleado(emp,date);}catch(e){cambio=null;}
+        var finalDay=base;
+        if(cambio){
+          if(typeof _hpCambioToTurnoHoras==='function')finalDay=_hpCambioToTurnoHoras(cambio,base);
+          else if(typeof _cambioToTurno==='function')finalDay=_cambioToTurno(cambio,base,false);
+        }
+        try{
+          if(typeof _hpTurnoLocalPropio==='function'){
+            var local=_hpTurnoLocalPropio(emp,date,mk,d);
+            if(local)finalDay=_hpNormalizarCambioLocal(local,base);
+          }
+        }catch(e){}
+        if(finalDay!==base){
+          finalDay=etClone(finalDay||{tipo:'libre',e1:'',s1:'',e2:'',s2:'',total:0});
+          finalDay.__etSource={filename:'Cambio aplicado desde Horas plantilla',timestamp:Date.now(),source:'Cambio aplicado'};
+          days[d]=finalDay;
+        }
+      }
+      emp.meses[mk]=days;
+    });
+  });
+  return out;
 }
 function etCalendarForEmployee(ds,emp){
   var year=Number(ds.year)||new Date().getFullYear();
@@ -15157,6 +15247,23 @@ function etWeekly46Errors(cal,meta){
   });
   return errors;
 }
+function etWeeklyHoursErrors(cal,meta){
+  var errors=[],weeks={};
+  Object.keys(cal.coverage||{}).forEach(function(key){
+    var p=key.split('-'),date=new Date(Number(p[0]),Number(p[1])-1,Number(p[2])),monday=etMonday(date);
+    weeks[etDateKey(monday)]=monday;
+  });
+  if(meta&&meta.esFIJI)return errors;
+  Object.keys(weeks).sort().forEach(function(key){
+    var monday=weeks[key],nextMonday=etAddDays(monday,7);
+    if(!etWeekIsComplete(cal.coverage,monday))return;
+    var total=cal.work.reduce(function(acc,w){var t=etDayStart(w.date).getTime();return acc+(t>=monday.getTime()&&t<nextMonday.getTime()?w.info.total:0);},0);
+    if(total<=2160)return;
+    var base={employee:meta.employee,nomina:meta.nomina||'',categoria:meta.categoria||'',source:meta.source||'',filename:meta.filename||'',date:etFmtDate(monday),shift:'Semana '+etWeekLabel(monday)};
+    etPushError(errors,base,'horas_semanales','La semana suma '+etFmtDur(total)+'; el máximo es 36 h.',{actualMinutes:total,requiredMinutes:2160,weekStart:etFmtDate(monday),weekEnd:etFmtDate(etAddDays(monday,6))});
+  });
+  return errors;
+}
 function etPushError(errors,base,type,message,extra){
   var e={
     employee:base.employee,nomina:base.nomina||'',categoria:base.categoria||'',
@@ -15220,11 +15327,13 @@ function etAnalyzeDataset(ds){
 
     // Descanso semanal: se revisa cada semana completa de lunes a domingo.
     // Si cualquiera de sus libranzas alcanza 46 h, la semana es correcta.
-    errors=errors.concat(etWeekly46Errors(cal,{
+    var metaSemanal={
       employee:emp.nombre||emp.nomina||'Sin nombre',
-      nomina:emp.nomina||'',categoria:emp.categoria||'',
+      nomina:emp.nomina||'',categoria:emp.categoria||'',grupoUAR:emp.grupoUAR||'',esFIJI:!!emp.esFIJI,
       source:ds.source||'',filename:ds.filename||''
-    }));
+    };
+    errors=errors.concat(etWeekly46Errors(cal,metaSemanal));
+    errors=errors.concat(etWeeklyHoursErrors(cal,metaSemanal));
   });
   return errors;
 }
@@ -15246,6 +15355,10 @@ function etDedup(errors){
   return out;
 }
 function etRecalculate(){
+  // En la web CTA, Errores de turno analiza exclusivamente los Excel
+  // cargados dentro de esta herramienta. Los cambios nuevos realizados
+  // por empleados no se incorporan ni modifican estos cálculos.
+  // Al quitar el último Excel desaparecen también sus empleados y errores.
   var sourceFiles=etReadDirectDatasets();
   var datasets=etBuildMergedDatasets(sourceFiles);
   var all=[],employeeMap={};
@@ -15273,6 +15386,7 @@ function etRuleName(type){
   if(type==='descanso_46h')return 'Descanso con libranza';
   if(type==='partido_minimo'||type==='partido_maximo')return 'Turno partido';
   if(type==='turno_maximo')return 'Jornada máxima';
+  if(type==='horas_semanales')return 'Horas semanales';
   return 'Error de turno';
 }
 function etRender(){
@@ -15350,6 +15464,8 @@ function etOpen(){
   bg.classList.add('show');panel.classList.add('show');
   var input=document.getElementById('et-search');
   if(input){input.value='';ET_FILTER='';}
+  // No cargar cambios compartidos de empleados al abrir esta herramienta.
+  // Errores de turno se recalcula únicamente con sus Excel importados.
   etRecalculate();
   try{if(typeof logActividad==='function')logActividad('abrirErroresTurno','Errores de turno');}catch(e){}
 }
@@ -15372,7 +15488,7 @@ function etBuildUI(){
       '</div>'+
       '<div class="et-rules">'+
         '<span>10 h entre turnos</span><span>46 h en alguna libranza semanal</span>'+
-        '<span>Partido 1–5 h</span><span>Máximo 9 h</span>'+
+        '<span>Partido 1–5 h</span><span>Máximo 9 h</span><span>Máximo 36 h semanales</span>'+
       '</div>'+
       '<div id="et-summary" class="et-summary"></div>'+
       '<div class="et-tools">'+
@@ -15852,6 +15968,159 @@ else etInit();
     );
     if(typeof window.renderOperativa==='function')window.renderOperativa();
   };
+})();
+</script>
+
+
+<style id="cta-hp-cambios-detalle-style">
+.hp-cal-day.change{cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:rgba(200,168,75,.18)}
+.hp-cal-day.change:active{transform:scale(.97);background:rgba(200,168,75,.10)}
+#hp-change-detail-bg{display:none;position:fixed;inset:0;z-index:120500;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:18px}
+#hp-change-detail-bg.show{display:flex}
+.hp-change-detail-card{width:100%;max-width:390px;background:#111b2b;border:1px solid rgba(200,168,75,.38);border-radius:18px;padding:16px;box-shadow:0 22px 70px rgba(0,0,0,.58)}
+.hp-change-detail-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
+.hp-change-detail-title{font-family:"Bebas Neue",sans-serif;font-size:23px;letter-spacing:1px;color:var(--gold)}
+.hp-change-detail-sub{font-size:10px;color:var(--gray);margin-top:3px}
+.hp-change-detail-x{width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--gray);font-size:20px;cursor:pointer}
+.hp-change-detail-row{display:grid;grid-template-columns:88px 1fr;gap:9px;padding:9px 0;border-top:1px solid rgba(255,255,255,.07);font-size:11px}
+.hp-change-detail-row span{color:var(--gray)}
+.hp-change-detail-row b{color:var(--white);text-align:right;line-height:1.35}
+.hp-change-detail-current b{color:#86efac}
+</style>
+<script>
+(function(){
+  'use strict';
+  if(window.__CTA_HP_CAMBIOS_ERRORES_V1__)return;
+  window.__CTA_HP_CAMBIOS_ERRORES_V1__=true;
+
+  window._hpGrupoUARDesdeTexto=function(texto){
+    var m=String(texto||'').toUpperCase().match(/\b(01|02|03)\s*UAR\b/);
+    return m?(m[1]+' UAR'):'';
+  };
+  window._hpEsGrupoFIJITexto=function(texto){return !!window._hpGrupoUARDesdeTexto(texto);};
+
+  window._hpCambioSustituyePorNoTrabajo=function(tipo){
+    tipo=String(tipo||'').toLowerCase();
+    return ['libre','dl','descanso','vacaciones','festivo','baja','permiso','rm','bp','nh','h6','excedencia'].indexOf(tipo)>=0;
+  };
+  window._hpNormalizarCambioLocal=function(local,turnoOriginal){
+    if(!local)return null;
+    var tipo=String(local.tipo||'').toLowerCase();
+    var esHL=(typeof _cambioCompartidoEsHL==='function')?_cambioCompartidoEsHL(local):(tipo==='hl'||tipo==='hlp'||(local.hlIni&&local.hlFin));
+    if(!esHL&&_hpCambioSustituyePorNoTrabajo(tipo)&&!_hpPerenDur(local)&&!_hpHfunDur(local)){
+      return Object.assign({},local,{e1:'',s1:'',e2:'',s2:'',total:0,cambioCompartido:true,etiquetaCambio:_hpEtiquetaCambioNoHL(local)});
+    }
+    return local;
+  };
+
+  var originalCambio=window._hpCambioToTurnoHoras;
+  if(typeof originalCambio==='function'&&!originalCambio.__ctaCambioSustituye){
+    var cambioEnvuelto=function(c,turnoOriginal){
+      if(c){
+        var tipo=String(c.tipo||'').toLowerCase();
+        var esOverlay=!!(_hpPerenDur(c)||_hpHfunDur(c));
+        var esHL=(typeof _cambioCompartidoEsHL==='function')?_cambioCompartidoEsHL(c):(tipo==='hl'||tipo==='hlp'||(c.hlIni&&c.hlFin));
+        if(!esOverlay&&!esHL&&_hpCambioSustituyePorNoTrabajo(tipo)){
+          return {tipo:(tipo==='dl'||tipo==='descanso'?'libre':tipo),e1:'',s1:'',e2:'',s2:'',total:0,cambioCompartido:true,etiquetaCambio:_hpEtiquetaCambioNoHL(c),actualizadoPor:c.actualizado_por||c.email||''};
+        }
+      }
+      return originalCambio.apply(this,arguments);
+    };
+    cambioEnvuelto.__ctaCambioSustituye=true;
+    window._hpCambioToTurnoHoras=cambioEnvuelto;
+  }
+
+  var originalLocal=window._hpTurnoLocalPropio;
+  if(typeof originalLocal==='function'&&!originalLocal.__ctaCambioSustituye){
+    var localEnvuelto=function(){
+      var local=originalLocal.apply(this,arguments);
+      return _hpNormalizarCambioLocal(local,null);
+    };
+    localEnvuelto.__ctaCambioSustituye=true;
+    window._hpTurnoLocalPropio=localEnvuelto;
+  }
+
+  function normEmp(v){return String(v||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]/g,'');}
+  window.cerrarDetalleCambioHorasPlantilla=function(){
+    var bg=document.getElementById('hp-change-detail-bg');
+    if(bg)bg.classList.remove('show');
+  };
+  window._hpObtenerDetalleCambioCalendario=function(rowIdx,monthKey,day){
+    var data=window._hpData,r=data&&data.rows&&data.rows[rowIdx];
+    if(!r)return null;
+    var lista=(data&&data.cambiosDetalle)||[],rn=normEmp(r.nombre),rnom=String(r.nomina||'').trim();
+    for(var j=0;j<lista.length;j++){
+      var x=lista[j];
+      if(Number(x.dia)!==Number(day))continue;
+      var mismo=(rnom&&String(x.nomina||'').trim()===rnom)||(!rnom&&normEmp(x.nombre)===rn);
+      if(mismo)return x;
+    }
+    var map={};try{map=(typeof _hpLeerMapaGrupo==='function'?_hpLeerMapaGrupo():{})||{};}catch(e){map={};}
+    var emp=null;
+    Object.keys(map).some(function(k){
+      var e=map[k]||{};
+      var coincide=(rnom&&String(e.nomina||'').trim()===rnom)||(!rnom&&normEmp(e.nombre||k)===rn);
+      if(coincide){emp=e;return true;}return false;
+    });
+    if(!emp)return null;
+    var months=_hpGrupoMonths(),mi=months.indexOf(monthKey||data.monthKey);if(mi<0)mi=data.monthIdx;
+    var fecha=new Date(Number(data.year)||new Date().getFullYear(),mi,Number(day));
+    var mk=months[mi],mes=(emp.meses&&emp.meses[mk])||{},base=mes[day]||mes[String(day)]||null;
+    var actual=base,origen=null,etiqueta='';
+    try{
+      if(typeof _getCambioCompartidoEmpleado==='function'){
+        var compartido=_getCambioCompartidoEmpleado(emp,fecha);
+        var protegido=!!(compartido&&typeof _cambioCompartidoEsHL==='function'&&_cambioCompartidoEsHL(compartido)&&!(typeof _usuarioPuedeVerHLCompartido==='function'&&_usuarioPuedeVerHLCompartido()));
+        if(compartido&&!protegido){actual=_hpCambioToTurnoHoras(compartido,base);origen=compartido;etiqueta=_hpEtiquetaCambioNoHL(compartido);}
+      }
+      var local=_hpTurnoLocalPropio(emp,fecha,mk,day);
+      if(local){actual=_hpNormalizarCambioLocal(local,base);origen=Object.assign({actualizado_por:'Este dispositivo'},local);etiqueta=local.etiquetaCambio||_hpEtiquetaCambioNoHL(local)||'APP LOCAL';}
+    }catch(e){}
+    if(!origen)return null;
+    var ha=_hpTurnoHoras(base),hd=_hpTurnoHoras(actual);
+    return {nombre:r.nombre||emp.nombre||'Empleado',categoria:r.categoria||emp.categoria||'General',nomina:r.nomina||emp.nomina||'',dia:Number(day),fecha:_hpFechaISO(fecha),antes:_hpTurnoHorario(base),despues:_hpTurnoHorario(actual),horasAntes:ha,horasDespues:hd,delta:hd-ha,tipo:etiqueta||'Cambio',por:(origen.actualizado_por||origen.email||origen.nombre||'')};
+  };
+  window.mostrarDetalleCambioHorasPlantilla=function(rowIdx,monthKey,day){
+    var c=_hpObtenerDetalleCambioCalendario(rowIdx,monthKey,day);if(!c)return false;
+    var bg=document.getElementById('hp-change-detail-bg');
+    if(!bg){
+      bg=document.createElement('div');bg.id='hp-change-detail-bg';
+      bg.addEventListener('click',cerrarDetalleCambioHorasPlantilla);
+      bg.innerHTML='<div class="hp-change-detail-card" onclick="event.stopPropagation()"><div class="hp-change-detail-head"><div><div class="hp-change-detail-title" id="hp-change-detail-title"></div><div class="hp-change-detail-sub" id="hp-change-detail-sub"></div></div><button type="button" class="hp-change-detail-x" onclick="cerrarDetalleCambioHorasPlantilla()">×</button></div><div id="hp-change-detail-body"></div></div>';
+      document.body.appendChild(bg);
+    }
+    var title=document.getElementById('hp-change-detail-title'),sub=document.getElementById('hp-change-detail-sub'),body=document.getElementById('hp-change-detail-body');
+    if(title)title.textContent='Cambio del día '+c.dia;
+    if(sub)sub.textContent=(c.nombre||'Empleado')+' · '+(c.fecha||'');
+    if(body)body.innerHTML='<div class="hp-change-detail-row"><span>Tipo</span><b>'+escH(c.tipo||'Cambio')+'</b></div><div class="hp-change-detail-row"><span>Turno anterior</span><b>'+escH(c.antes||'Sin turno')+' · '+_hpFmtHoras(c.horasAntes)+'</b></div><div class="hp-change-detail-row hp-change-detail-current"><span>Turno actual</span><b>'+escH(c.despues||'Sin turno')+' · '+_hpFmtHoras(c.horasDespues)+'</b></div><div class="hp-change-detail-row"><span>Diferencia</span><b>'+escH(_hpFmtDelta(c.delta))+'</b></div>'+(c.por?'<div class="hp-change-detail-row"><span>Guardado por</span><b>'+escH(c.por)+'</b></div>':'');
+    bg.classList.add('show');return false;
+  };
+
+  var originalRender=window.renderHorasPlantillaCalendario;
+  if(typeof originalRender==='function'&&!originalRender.__ctaDetalleCambio){
+    var renderEnvuelto=function(rowIdx){
+      var result=originalRender.apply(this,arguments);
+      var grid=document.querySelector('#hp-body .hp-cal-grid');
+      if(!grid)return result;
+      var monthKey=(_hpData&&_hpData.monthKey)||(_hpGrupoMonths()[_hpData&&_hpData.monthIdx||0]);
+      Array.prototype.forEach.call(grid.querySelectorAll('.hp-cal-day.change:not(.empty)'),function(cell){
+        var num=cell.querySelector('.hp-cal-num'),day=num?parseInt(num.textContent,10):0;
+        if(!day)return;
+        cell.setAttribute('role','button');cell.setAttribute('tabindex','0');
+        cell.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}return mostrarDetalleCambioHorasPlantilla(rowIdx,monthKey,day);};
+        cell.onkeydown=function(ev){if(ev&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();return mostrarDetalleCambioHorasPlantilla(rowIdx,monthKey,day);}};
+      });
+      return result;
+    };
+    renderEnvuelto.__ctaDetalleCambio=true;
+    window.renderHorasPlantillaCalendario=renderEnvuelto;
+  }
+
+  var originalCerrar=window.cerrarHorasPlantilla;
+  if(typeof originalCerrar==='function'&&!originalCerrar.__ctaDetalleCambio){
+    var cerrarEnvuelto=function(){cerrarDetalleCambioHorasPlantilla();return originalCerrar.apply(this,arguments);};
+    cerrarEnvuelto.__ctaDetalleCambio=true;window.cerrarHorasPlantilla=cerrarEnvuelto;
+  }
 })();
 </script>
 
