@@ -8,6 +8,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!-- CTA_CAMBIO_TURNO_SUSTITUYE_COMPLETO_SIN_MEZCLAR_V1_2026-08-01 -->
+
 <!-- CTA_MIJORNADA_CUENTA_ATRAS_PORCENTAJE_DESCENDENTE_V1_2026-07-19 -->
 <!-- CTA_MI_JORNADA_CUENTA_ATRAS_DESDE_00H_V1_2026-07-19 -->
 <!-- CTA_LOGIN_REACTIVADO_FINAL_V6_2026-07-16 -->
@@ -8915,8 +8917,15 @@ function _cambioToTurno(c,turnoBase,ocultarHLPropia){
   if(!c)return null;
   var tipo=String(c.tipo||'').toLowerCase();
   var base=turnoBase||{};
-  var baseE1=c.e1||base.e1||'',baseS1=c.s1||base.s1||'';
-  var baseE2=c.e2||base.e2||'',baseS2=c.s2||base.s2||'';
+  // Un horario cambiado sustituye el turno original completo. Si el cambio trae
+  // un único tramo, el segundo tramo anterior debe desaparecer y no mezclarse.
+  // Solo recurrimos al turno base cuando el registro no contiene un horario nuevo
+  // (por ejemplo, una HL parcial que recorta el turno existente).
+  var tieneHorarioNuevo=!!(c.e1&&c.s1);
+  var baseE1=tieneHorarioNuevo?(c.e1||''):(c.e1||base.e1||'');
+  var baseS1=tieneHorarioNuevo?(c.s1||''):(c.s1||base.s1||'');
+  var baseE2=tieneHorarioNuevo?(c.e2||''):(c.e2||base.e2||'');
+  var baseS2=tieneHorarioNuevo?(c.s2||''):(c.s2||base.s2||'');
   var esHL=(typeof _cambioCompartidoEsHL==='function')?_cambioCompartidoEsHL(c):(tipo==='hl'||tipo==='hlp'||(c.hlIni&&c.hlFin));
   var esHLParcial=!!(esHL&&c.hlIni&&c.hlFin&&baseE1&&baseS1);
   var puedeVerHL=(!ocultarHLPropia&&(typeof _usuarioPuedeVerHLCompartido==='function'))?_usuarioPuedeVerHLCompartido():false;
