@@ -10464,9 +10464,26 @@ window.renderOperativa=function(){
     var vacTomadasAuto=vacTomadas;
     if(_vacOverrideRaw!==null&&_vacOverrideRaw!==''){var _vo=parseInt(_vacOverrideRaw,10);if(!isNaN(_vo))vacTomadas=_vo;}
     var vacPendientes=Math.max(0,30-vacTomadas);
-    var hoy0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    // La media restante debe quedar fijada por los datos importados, no por
+    // la fecha real de hoy. Buscamos el último día presente en el calendario
+    // importado y empezamos a repartir las horas desde el día siguiente.
+    var ultimaFechaImportada=null;
+    MESES.forEach(function(m,mIdx){
+      var mdImp=ue[m]||{};
+      Object.keys(mdImp).forEach(function(dd){
+        var diaImp=parseInt(dd,10),datoImp=mdImp[dd];
+        if(!datoImp||typeof datoImp!=='object'||isNaN(diaImp))return;
+        var fechaImp=new Date(now.getFullYear(),mIdx,diaImp);
+        // Evita aceptar fechas imposibles como 31 de febrero.
+        if(fechaImp.getFullYear()!==now.getFullYear()||fechaImp.getMonth()!==mIdx||fechaImp.getDate()!==diaImp)return;
+        if(!ultimaFechaImportada||fechaImp>ultimaFechaImportada)ultimaFechaImportada=fechaImp;
+      });
+    });
+    var inicioRestante=ultimaFechaImportada
+      ?new Date(ultimaFechaImportada.getFullYear(),ultimaFechaImportada.getMonth(),ultimaFechaImportada.getDate()+1)
+      :new Date(now.getFullYear(),now.getMonth(),now.getDate()); // solo si todavía no hay calendario importado
     var finAno=new Date(now.getFullYear(),11,31);
-    var diasCalRestantes=Math.round((finAno-hoy0)/86400000)+1; // incluye hoy
+    var diasCalRestantes=Math.max(0,Math.round((finAno-inicioRestante)/86400000)+1);
     // Las dos medias se reparten entre el mismo tiempo natural restante:
     // 1) CONTADOR: tope contractual menos las horas reales de contador.
     // 2) TOTAL EQUIVALENTE: horas de contador todavía pendientes + 8 h por cada
