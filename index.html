@@ -10464,9 +10464,41 @@ window.renderOperativa=function(){
     var vacTomadasAuto=vacTomadas;
     if(_vacOverrideRaw!==null&&_vacOverrideRaw!==''){var _vo=parseInt(_vacOverrideRaw,10);if(!isNaN(_vo))vacTomadas=_vo;}
     var vacPendientes=Math.max(0,30-vacTomadas);
-    var hoy0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    // La media restante debe quedar fijada por los turnos importados, no por
+    // la fecha real de hoy. No podemos usar simplemente la última casilla del
+    // calendario, porque puede haber vacaciones u otras anotaciones futuras
+    // hasta diciembre. Primero localizamos el último MES que contiene al menos
+    // un turno real con horas; después tomamos el último día cargado de ese mes.
+    var ultimoMesConTurnos=-1;
+    MESES.forEach(function(m,mIdx){
+      var mdImp=ue[m]||{};
+      var tieneTurnoReal=Object.keys(mdImp).some(function(dd){
+        var datoImp=mdImp[dd];
+        if(!datoImp||typeof datoImp!=='object')return false;
+        return (mcMinOp2(datoImp.e1,datoImp.s1)+mcMinOp2(datoImp.e2,datoImp.s2))>0;
+      });
+      if(tieneTurnoReal)ultimoMesConTurnos=mIdx;
+    });
+    var ultimaFechaImportada=null;
+    if(ultimoMesConTurnos>=0){
+      var mdUltimo=ue[MESES[ultimoMesConTurnos]]||{};
+      Object.keys(mdUltimo).forEach(function(dd){
+        var diaImp=parseInt(dd,10),datoImp=mdUltimo[dd];
+        if(!datoImp||typeof datoImp!=='object'||isNaN(diaImp))return;
+        var fechaImp=new Date(now.getFullYear(),ultimoMesConTurnos,diaImp);
+        if(fechaImp.getFullYear()!==now.getFullYear()||fechaImp.getMonth()!==ultimoMesConTurnos||fechaImp.getDate()!==diaImp)return;
+        if(!ultimaFechaImportada||fechaImp>ultimaFechaImportada)ultimaFechaImportada=fechaImp;
+      });
+      // Si por algún motivo el mes solo conserva los turnos y no las casillas
+      // libres, usamos al menos el final de ese mes importado.
+      var finUltimoMes=new Date(now.getFullYear(),ultimoMesConTurnos+1,0);
+      if(!ultimaFechaImportada||finUltimoMes>ultimaFechaImportada)ultimaFechaImportada=finUltimoMes;
+    }
+    var inicioRestante=ultimaFechaImportada
+      ?new Date(ultimaFechaImportada.getFullYear(),ultimaFechaImportada.getMonth(),ultimaFechaImportada.getDate()+1)
+      :new Date(now.getFullYear(),now.getMonth(),now.getDate()); // solo si todavía no hay turnos importados
     var finAno=new Date(now.getFullYear(),11,31);
-    var diasCalRestantes=Math.round((finAno-hoy0)/86400000)+1; // incluye hoy
+    var diasCalRestantes=Math.max(0,Math.round((finAno-inicioRestante)/86400000)+1);
     // Las dos medias se reparten entre el mismo tiempo natural restante:
     // 1) CONTADOR: tope contractual menos las horas reales de contador.
     // 2) TOTAL EQUIVALENTE: horas de contador todavía pendientes + 8 h por cada
