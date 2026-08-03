@@ -4042,8 +4042,114 @@ var AVIATION_KEY="c69da0d719ab8a9787dc0c391ae414e2";
 var liveMode="llegadas";
 var liveFiltro=true;
 var liveLoaded=false;
-var liveData={sal:[],lle:[]};
+var liveData={sal:[],lle:[]}; // respuesta actual del servidor: panel Live y Operativa
+var liveTimelineData={sal:[],lle:[]}; // memoria del día: conserva vuelos ya pasados para Vista por horas
 var liveLastServerEmpty=false;
+var liveLoadingPromise=null;
+var liveLastLoadedAt=0;
+var LIVE_TIMELINE_CACHE_KEY='cta_live_timeline_cache_v2';
+
+function _liveFechaClave(d){
+  d=d||new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function _liveDiasEntreClaves(a,b){
+  var pa=String(a||'').split('-').map(Number),pb=String(b||'').split('-').map(Number);
+  if(pa.length!==3||pb.length!==3||pa.some(isNaN)||pb.some(isNaN))return 999;
+  return Math.round((Date.UTC(pb[0],pb[1]-1,pb[2])-Date.UTC(pa[0],pa[1]-1,pa[2]))/86400000);
+}
+function _liveOrdenarVuelos(arr){
+  return (arr||[]).slice().sort(function(a,b){
+    var da=(a&&a.esManana)?1:0,db=(b&&b.esManana)?1:0;
+    if(da!==db)return da-db;
+    var ta=hToMin((a&&(a.horaReal||a.horaProg))||'');
+    var tb=hToMin((b&&(b.horaReal||b.horaProg))||'');
+    if(ta===null)ta=9999;if(tb===null)tb=9999;
+    return ta-tb;
+  });
+}
+function _liveVueloBaseKey(v,tipo){
+  v=v||{};
+  var numero=String(v.numero||v.vuelo||v.flightNumber||'').toUpperCase().replace(/\s+/g,'');
+  var ruta=String(tipo==='llegadas'?(v.origen||''):(v.destino||'')).toUpperCase().trim();
+  var hp=String(v.horaProg||v.hora||v.horaReal||'').trim();
+  var extra=String(v.aerolinea||v.compania||'').toUpperCase().trim();
+  return [tipo,numero,ruta,hp,extra].join('|');
+}
+function _liveVueloKey(v,tipo){
+  return _liveVueloBaseKey(v,tipo)+'|'+((v&&v.esManana)?'M':'H');
+}
+function _liveFusionarLista(historial,nuevos,tipo){
+  var map={};
+  (historial||[]).forEach(function(v){
+    if(!v)return;
+    map[_liveVueloKey(v,tipo)]=v;
+  });
+  (nuevos||[]).forEach(function(v){
+    if(!v)return;
+    var key=_liveVueloKey(v,tipo);
+    var base=_liveVueloBaseKey(v,tipo);
+    // Si AENA corrige un vuelo de 00:xx de mañana a 23:xx de hoy, elimina
+    // la copia antigua con la marca de día opuesta para evitar duplicados.
+    var opp=base+'|'+(v.esManana?'H':'M');
+    var prog=hToMin(v.horaProg||''),real=hToMin(v.horaReal||'');
+    if(map[opp]&&prog!==null&&real!==null&&((prog<240&&real>=1140)||(prog>=1140&&real<240)))delete map[opp];
+    map[key]=Object.assign({},map[key]||{},v);
+  });
+  return _liveOrdenarVuelos(Object.keys(map).map(function(k){return map[k];}));
+}
+function _liveGuardarTimelineCache(){
+  try{
+    localStorage.setItem(LIVE_TIMELINE_CACHE_KEY,JSON.stringify({
+      baseDate:_liveFechaClave(),
+      savedAt:Date.now(),
+      lle:liveTimelineData.lle||[],
+      sal:liveTimelineData.sal||[]
+    }));
+  }catch(e){}
+}
+function _liveAsegurarDiaCache(){
+  var hoy=_liveFechaClave();
+  var raw=null,obj=null;
+  try{raw=localStorage.getItem(LIVE_TIMELINE_CACHE_KEY);}catch(e){}
+  if(raw){try{obj=JSON.parse(raw);}catch(e){obj=null;}}
+  if(!obj||!Array.isArray(obj.lle)||!Array.isArray(obj.sal)){
+    liveTimelineData={lle:[],sal:[]};
+    return;
+  }
+  var salto=_liveDiasEntreClaves(obj.baseDate,hoy);
+  if(salto===0){
+    liveTimelineData={lle:_liveOrdenarVuelos(obj.lle),sal:_liveOrdenarVuelos(obj.sal)};
+    return;
+  }
+  if(salto===1){
+    // Al pasar medianoche, los vuelos que ayer eran "mañana" pasan a ser los de hoy.
+    liveTimelineData={
+      lle:_liveOrdenarVuelos(obj.lle.filter(function(v){return!!v.esManana;}).map(function(v){return Object.assign({},v,{esManana:false});})),
+      sal:_liveOrdenarVuelos(obj.sal.filter(function(v){return!!v.esManana;}).map(function(v){return Object.assign({},v,{esManana:false});}))
+    };
+    _liveGuardarTimelineCache();
+    return;
+  }
+  liveTimelineData={lle:[],sal:[]};
+  _liveGuardarTimelineCache();
+}
+function _liveFusionarTimeline(nuevasLle,nuevasSal){
+  _liveAsegurarDiaCache();
+  liveTimelineData.lle=_liveFusionarLista(liveTimelineData.lle,nuevasLle,'llegadas');
+  liveTimelineData.sal=_liveFusionarLista(liveTimelineData.sal,nuevasSal,'salidas');
+  _liveGuardarTimelineCache();
+}
+function _liveEnsureFresh(maxAgeMs){
+  maxAgeMs=typeof maxAgeMs==='number'?maxAgeMs:90000;
+  if(liveLoadingPromise)return liveLoadingPromise;
+  var vacio=!(liveData.lle||[]).length&&!(liveData.sal||[]).length;
+  if(!liveLoaded||vacio||!liveLastLoadedAt||(Date.now()-liveLastLoadedAt)>=maxAgeMs){
+    return loadLive({silent:true});
+  }
+  return Promise.resolve(liveData);
+}
+_liveAsegurarDiaCache();
 
 var CIUDADES={"ALC":"Alicante","BCN":"Barcelona","MAD":"Madrid","VLC":"Valencia","SVQ":"Sevilla","BIO":"Bilbao","PMI":"Palma","IBZ":"Ibiza","MAH":"Menorca","TFN":"Tenerife Norte","TFS":"Tenerife Sur","LPA":"Gran Canaria","ACE":"Lanzarote","FUE":"Fuerteventura","LCG":"A Coruña","SCQ":"Santiago","OVD":"Asturias","VGO":"Vigo","ZAZ":"Zaragoza","GRX":"Granada","AGP":"Málaga","XRY":"Jerez","CDG":"París","ORY":"París Orly","LHR":"Londres","LGW":"Londres","STN":"Londres","AMS":"Ámsterdam","FCO":"Roma","MXP":"Milán","VCE":"Venecia","NCE":"Niza","DUB":"Dublín","LIS":"Lisboa","OPO":"Oporto","ATH":"Atenas","IST":"Estambul","BRU":"Bruselas","FRA":"Fráncfort","MUC":"Múnich","VIE":"Viena","WAW":"Varsovia","PRG":"Praga","BUD":"Budapest","GVA":"Ginebra","ZRH":"Zúrich","CPH":"Copenhague","ARN":"Estocolmo","HEL":"Helsinki","OSL":"Oslo","TLV":"Tel Aviv","CMN":"Casablanca","RAK":"Marrakech","TNG":"Tánger","TUN":"Túnez","ALG":"Argel","ORN":"Orán","BOD":"Burdeos","NTE":"Nantes","TLS":"Toulouse","MPL":"Montpellier","REU":"Reus","GRO":"Gerona","SDR":"Santander","LEI":"Almería","RMU":"Murcia","CWL":"Cardiff"};
 
@@ -4396,26 +4502,42 @@ function normalizarVueloAenaCliente(v,tipo){
   }
   return v;
 }
-function loadLive(){
-  liveLoaded=true;
-  var spinner="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label' style='font-size:11px'>Cargando...</div></div>";
-  var lleC=document.getElementById('live-container-lle');
-  var salC=document.getElementById('live-container-sal');
-  if(lleC)lleC.innerHTML=spinner;
-  if(salC)salC.innerHTML=spinner;
-  var pad=function(n){return String(n).padStart(2,"0");};
-  // Peticiones secuenciales para evitar bloqueo de AENA
-  fetch(RAILWAY+"/vuelos?tipo=llegadas")
-    .then(function(r){return r.json();})
+function loadLive(options){
+  options=options||{};
+  if(liveLoadingPromise)return liveLoadingPromise;
+
+  var hayDatosActuales=((liveData.lle||[]).length+(liveData.sal||[]).length)>0;
+  if(!options.silent&&!hayDatosActuales){
+    var spinner="<div class='spinner-wrap'><div class='spinner'></div><div class='spinner-label' style='font-size:11px'>Cargando...</div></div>";
+    var lleC=document.getElementById('live-container-lle');
+    var salC=document.getElementById('live-container-sal');
+    if(lleC)lleC.innerHTML=spinner;
+    if(salC)salC.innerHTML=spinner;
+  }
+
+  var pad=function(n){return String(n).padStart(2,'0');};
+  var nuevasLle=[];
+  // Peticiones secuenciales para evitar bloqueo de AENA. liveLoaded solo pasa
+  // a true cuando ambas respuestas han terminado correctamente.
+  liveLoadingPromise=fetch(RAILWAY+'/vuelos?tipo=llegadas',{cache:'no-store'})
+    .then(function(r){if(!r.ok)throw new Error('Llegadas HTTP '+r.status);return r.json();})
     .then(function(resLle){
-      liveData.lle=extractLiveVuelos(resLle,"llegadas");
-      return fetch(RAILWAY+"/vuelos?tipo=salidas").then(function(r){return r.json();});
+      nuevasLle=extractLiveVuelos(resLle,'llegadas');
+      return fetch(RAILWAY+'/vuelos?tipo=salidas',{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('Salidas HTTP '+r.status);return r.json();});
     })
     .then(function(resSal){
-      liveData.sal=extractLiveVuelos(resSal,"salidas");
-      liveLastServerEmpty=((liveData.lle||[]).length===0&&(liveData.sal||[]).length===0);
+      var nuevasSal=extractLiveVuelos(resSal,'salidas');
+      // El panel Live y Operativa usan solo la respuesta actual. La línea de
+      // tiempo usa una copia fusionada que conserva los vuelos vistos hoy.
+      liveData.lle=nuevasLle;
+      liveData.sal=nuevasSal;
+      _liveFusionarTimeline(nuevasLle,nuevasSal);
+      liveLastServerEmpty=(nuevasLle.length===0&&nuevasSal.length===0);
+      liveLoaded=true;
+      liveLastLoadedAt=Date.now();
       var hNow=new Date();
-      document.getElementById("live-hora").textContent="Actualizado: "+pad(hNow.getHours())+":"+pad(hNow.getMinutes());
+      var horaEl=document.getElementById('live-hora');
+      if(horaEl)horaEl.textContent='Actualizado: '+pad(hNow.getHours())+':'+pad(hNow.getMinutes());
       renderLive();
       if(window._grupoVistaHoras)refrescarCompanerosPanel(window._grupoOffsetDias||0,false);
       if(typeof window.renderOperativa==='function'){
@@ -4423,19 +4545,25 @@ function loadLive(){
         setTimeout(window.renderOperativa,500);
       }
       setTimeout(updateFlightCountdowns,100);
+      return liveData;
     })
-    .catch(function(){
-      liveData.lle=[];
-      liveData.sal=[];
-      liveLastServerEmpty=true;
+    .catch(function(err){
+      console.warn('No se pudieron actualizar los vuelos:',err);
+      // No se borra lo ya cargado ni el histórico del día por un fallo temporal.
+      liveLoaded=hayDatosActuales;
       var lleC=document.getElementById('live-container-lle');
       var salC=document.getElementById('live-container-sal');
-      if(lleC)lleC.innerHTML="<div class='error-box' style='font-size:11px;padding:14px'>Error al cargar vuelos.<br>Pulsa \u21bb para reintentar.</div>";
-      if(salC)salC.innerHTML='';
-      liveLoaded=false;
+      if(!hayDatosActuales&&!options.silent){
+        if(lleC)lleC.innerHTML="<div class='error-box' style='font-size:11px;padding:14px'>Error al cargar vuelos.<br>Pulsa \u21bb para reintentar.</div>";
+        if(salC)salC.innerHTML='';
+      }
       if(typeof window.renderOperativa==='function')setTimeout(window.renderOperativa,100);
-    });
+      return liveData;
+    })
+    .finally(function(){liveLoadingPromise=null;});
+  return liveLoadingPromise;
 }
+
 
 
 document.getElementById("btn-live").addEventListener("click",function(){
@@ -4456,11 +4584,11 @@ document.getElementById("live-refresh").addEventListener("click",function(){
   var timeout=setTimeout(function(){
     btn.style.opacity="1";btn.style.pointerEvents="auto";
   }, 10000);
-  fetch(RAILWAY+"/refresh").finally(function(){
+  fetch(RAILWAY+"/refresh").catch(function(){}).finally(function(){
     clearTimeout(timeout);
-    liveLoaded=false;
-    loadLive();
-    btn.style.opacity="1";btn.style.pointerEvents="auto";
+    loadLive({force:true}).finally(function(){
+      btn.style.opacity="1";btn.style.pointerEvents="auto";
+    });
   });
 });
 document.getElementById("live-filtro").addEventListener("click",function(){
@@ -9565,8 +9693,9 @@ function _tlFilaHtml(segs,extraClass,esDiaActual,nowMin){
 }
 
 // ─── Carril de llegadas (✈️) dentro de la vista por horas ──────────────
-// Reutiliza liveData.lle (el mismo array que ya rellena el panel "Live
-// vuelos"), así que no se vuelve a pedir nada a AENA aparte. Se muestra
+// Reutiliza liveTimelineData, una memoria local del día que se actualiza con
+// el panel Live pero conserva los vuelos ya pasados aunque el servidor deje
+// de devolverlos. La petición se lanza automáticamente desde esta vista. Se muestra
 // para HOY (offsetDias=0, vuelos con esManana=false) y para MAÑANA
 // (offsetDias=1, vuelos con esManana=true). No hay ningún umbral de hora
 // fijo aquí en el frontend: si liveData.lle ya trae vuelos marcados como
@@ -9721,23 +9850,25 @@ function _tlOrigenCorto(origenStr){
 // y limitado a 1 vez por minuto para no machacar el backend.
 var _tlUltimoForzadoManana=0;
 function _tlAsegurarDatosManana(){
-  if(typeof liveData==='undefined'||!liveData)return;
-  var hayManana=(liveData.lle||[]).concat(liveData.sal||[]).some(function(v){return!!v.esManana;});
+  var fuente=(typeof liveTimelineData!=='undefined'&&liveTimelineData)?liveTimelineData:liveData;
+  if(!fuente)return;
+  var hayManana=(fuente.lle||[]).concat(fuente.sal||[]).some(function(v){return!!v.esManana;});
   if(hayManana)return;
   var ahora=Date.now();
   if(ahora-_tlUltimoForzadoManana<60000)return;
   _tlUltimoForzadoManana=ahora;
   if(typeof RAILWAY==='undefined'||typeof fetch!=='function')return;
   fetch(RAILWAY+"/refresh").catch(function(){}).finally(function(){
-    liveLoaded=false;
-    if(typeof loadLive==='function')loadLive();
+    if(typeof loadLive==='function')loadLive({force:true,silent:true});
   });
 }
 
 function _tlLlegadasDelDia(offsetDias){
-  if(typeof liveData==='undefined'||!liveData||!liveData.lle)return[];
+  _liveAsegurarDiaCache();
+  var fuente=(typeof liveTimelineData!=='undefined'&&liveTimelineData)?liveTimelineData:liveData;
+  if(!fuente||!fuente.lle)return[];
   var quiereManana=offsetDias===1; // mañana solo tiene datos si el backend ya los incluye con esManana=true (no hay umbral de hora fijo aquí)
-  var propios=liveData.lle
+  var propios=fuente.lle
     .filter(function(v){return(!!v.esManana===quiereManana)&&v.estadoClass!=='e-cancelled';})
     .map(function(v){
       var start=hToMin(v.horaReal||v.horaProg||'');
@@ -9754,7 +9885,7 @@ function _tlLlegadasDelDia(offsetDias){
     // Llegadas de HOY cuyo bloque de 45 min cruza la medianoche: el
     // trocito que sobra (desde las 00:00) tiene que verse al principio de
     // la franja de mañana, no quedarse cortado ni desaparecer.
-    entrantes=liveData.lle
+    entrantes=fuente.lle
       .filter(function(v){return!v.esManana&&v.estadoClass!=='e-cancelled';})
       .map(function(v){
         var start=hToMin(v.horaReal||v.horaProg||'');
@@ -9774,9 +9905,11 @@ function _tlLlegadasDelDia(offsetDias){
 // rojo, con un bloque que arranca 45 min antes de la hora de salida (real
 // si la hay, programada si no) y termina justo en la hora de salida.
 function _tlSalidasTempranasDelDia(offsetDias){
-  if(typeof liveData==='undefined'||!liveData||!liveData.sal)return[];
+  _liveAsegurarDiaCache();
+  var fuente=(typeof liveTimelineData!=='undefined'&&liveTimelineData)?liveTimelineData:liveData;
+  if(!fuente||!fuente.sal)return[];
   var quiereManana=offsetDias===1;
-  return liveData.sal
+  return fuente.sal
     .filter(function(v){return(!!v.esManana===quiereManana)&&v.estadoClass!=='e-cancelled';})
     .map(function(v){
       var dep=hToMin(v.horaReal||v.horaProg||'');
@@ -9912,12 +10045,13 @@ function renderCompanerosTimeline(offsetDias,toggleIfOpen){
   var vuelosRowHtml='';
   try{
     if(offsetDias===0||offsetDias===1){
+      // Carga real desde aquí: no hace falta abrir antes "Vuelos en directo".
+      // Mientras llega la respuesta, se pinta inmediatamente la memoria local del día.
+      if(typeof _liveEnsureFresh==='function')_liveEnsureFresh(90000);
       var combinado=_tlLlegadasDelDia(offsetDias).concat(_tlSalidasTempranasDelDia(offsetDias));
       llegadasConPista=_tlAsignarPistasVuelos(combinado);
-      if(!liveLoaded&&typeof loadLive==='function'){
-        loadLive(); // dispara la carga si aún no se había abierto el panel Live
-      }else if(offsetDias===1&&typeof _tlAsegurarDatosManana==='function'){
-        _tlAsegurarDatosManana(); // ya había datos, pero sin vuelos de mañana: fuerza refresco real
+      if(offsetDias===1&&typeof _tlAsegurarDatosManana==='function'){
+        _tlAsegurarDatosManana();
       }
     }
     window._tlLlegadasConPistaActual=llegadasConPista;
@@ -10096,7 +10230,10 @@ setInterval(_tlActualizarLineaAhora,15000);
 setInterval(function(){
   if(!window._grupoVistaHoras)return;
   var tl=document.getElementById('grupo-timeline');
-  if(tl&&tl.classList.contains('open'))renderCompanerosTimeline(window._grupoOffsetDias||0,false);
+  if(tl&&tl.classList.contains('open')){
+    if(typeof _liveEnsureFresh==='function')_liveEnsureFresh(90000);
+    renderCompanerosTimeline(window._grupoOffsetDias||0,false);
+  }
 },120000);
 
 // Decide qué vista (lista o línea de tiempo) hay que refrescar/abrir.
@@ -11429,7 +11566,8 @@ window.initTurnoWidget=function(){
   if(typeof _iw==="function")_iw();
   setTimeout(function(){
     window.renderOperativa();
-    if(typeof loadLive==="function"&&typeof liveData!=="undefined"&&liveData.lle.length===0)loadLive();
+    if(typeof _liveEnsureFresh==="function")_liveEnsureFresh(90000);
+    else if(typeof loadLive==="function")loadLive({silent:true});
     setTimeout(window.renderOperativa,3500);
     setInterval(window.renderOperativa,60000);
   },200);
@@ -11448,9 +11586,8 @@ window.initTurnoWidget=function(){
 (function(){
   function kickOperativaData(){
     try{
-      if(typeof loadLive==='function' && typeof liveData!=='undefined' && !(liveData.lle||[]).length && !(liveData.sal||[]).length){
-        loadLive();
-      }
+      if(typeof _liveEnsureFresh==='function')_liveEnsureFresh(90000);
+      else if(typeof loadLive==='function')loadLive({silent:true});
     }catch(e){}
     try{ if(typeof window.renderOperativa==='function') window.renderOperativa(); }catch(e){ console.warn('renderOperativa error',e); }
   }
