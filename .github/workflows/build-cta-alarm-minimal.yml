@@ -1,0 +1,28 @@
+name: Build CTA alarm minimal
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'cta-alarm-minimal-project.b64'
+      - '.github/workflows/build-cta-alarm-minimal.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore Android project
+        run: |
+          base64 -d cta-alarm-minimal-project.b64 > cta-alarm-minimal-project.zip
+          unzip -q cta-alarm-minimal-project.zip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - run: gradle -p android/cta-alarm-minimal assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CTA-Alarma-Minima
+          path: android/cta-alarm-minimal/app/build/outputs/apk/debug/app-debug.apk
