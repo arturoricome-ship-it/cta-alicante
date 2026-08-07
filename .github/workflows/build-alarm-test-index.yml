@@ -1,0 +1,25 @@
+name: Build CTA alarm test index
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build test index
+        run: python scripts/build_alarm_test_index.py
+      - name: Validate alarm script
+        run: node --check /tmp/cta-alarm-test.js
+      - name: Upload test index
+        uses: actions/upload-artifact@v4
+        with:
+          name: CTA-index-alarmas-prueba
+          path: index-cta-alarmas-prueba.html
+          retention-days: 2
