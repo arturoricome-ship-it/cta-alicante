@@ -3,17 +3,13 @@ on:
   pull_request:
     branches: [ main ]
     paths:
-      - 'cta-alarm-minimal-project.b64'
+      - 'android/cta-alarm-minimal/**'
       - '.github/workflows/build-cta-alarm-minimal.yml'
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Restore Android project
-        run: |
-          base64 -d cta-alarm-minimal-project.b64 > cta-alarm-minimal-project.zip
-          unzip -q cta-alarm-minimal-project.zip
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
