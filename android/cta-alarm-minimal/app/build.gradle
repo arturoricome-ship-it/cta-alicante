@@ -3,11 +3,11 @@ android {
     namespace 'com.cta.alarm.minimal'
     compileSdk 35
     defaultConfig {
-        applicationId 'com.cta.alarm.minimal'
+        applicationId 'com.cta.alarm.configtest'
         minSdk 26
         targetSdk 35
-        versionCode 1
-        versionName '1.0-test'
+        versionCode 2
+        versionName '2.0-config-test'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
