@@ -6,8 +6,8 @@ android {
         applicationId 'com.cta.alarm.configtest'
         minSdk 26
         targetSdk 35
-        versionCode 2
-        versionName '2.0-config-test'
+        versionCode 3
+        versionName '3.0-method-test'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
