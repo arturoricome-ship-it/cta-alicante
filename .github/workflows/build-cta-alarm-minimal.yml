@@ -20,5 +20,5 @@ jobs:
       - run: gradle -p android/cta-alarm-minimal assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: CTA-Alarma-Minima
+          name: CTA-Alarma-Metodos
           path: android/cta-alarm-minimal/app/build/outputs/apk/debug/app-debug.apk
