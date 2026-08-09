@@ -14,8 +14,11 @@ import java.text.DateFormat;
 import java.util.Date;
 
 public class AlarmActivity extends Activity {
+    private static final String SHIFT_SEP="|||CTA_SHIFT|||";
     private long originalAt;
+    private String rawLabel;
     private String label;
+    private String shiftReminder="";
 
     @Override protected void onCreate(Bundle b){
         super.onCreate(b);
@@ -24,18 +27,30 @@ public class AlarmActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         originalAt=getIntent().getLongExtra(AlarmScheduler.EXTRA_AT,System.currentTimeMillis());
-        label=getIntent().getStringExtra(AlarmScheduler.EXTRA_LABEL);
-        if(label==null||label.trim().isEmpty())label="Turno CTA";
+        rawLabel=getIntent().getStringExtra(AlarmScheduler.EXTRA_LABEL);
+        if(rawLabel==null||rawLabel.trim().isEmpty())rawLabel="Turno CTA";
+        parseLabel();
         setContentView(buildView());
+    }
+
+    private void parseLabel(){
+        int p=rawLabel.indexOf(SHIFT_SEP);
+        if(p>=0){
+            label=rawLabel.substring(0,p).trim();
+            shiftReminder=rawLabel.substring(p+SHIFT_SEP.length()).trim();
+        }else label=rawLabel.trim();
+        if(label.isEmpty())label="Turno CTA";
     }
 
     private LinearLayout buildView(){
         int pad=dp(24);
         LinearLayout root=new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setGravity(Gravity.CENTER);
+        root.setGravity(Gravity.CENTER_HORIZONTAL);
         root.setPadding(pad,pad,pad,pad);
         root.setBackgroundColor(Color.rgb(10,20,33));
+
+        root.addView(new LinearLayout(this),new LinearLayout.LayoutParams(1,0,0.78f));
 
         TextView title=text("CTA · DESPERTADOR",20,Color.rgb(218,186,77));
         title.setGravity(Gravity.CENTER); root.addView(title,wrap());
@@ -51,6 +66,18 @@ public class AlarmActivity extends Activity {
 
         Button snooze=new Button(this); snooze.setText("POSPONER 5 MIN"); snooze.setTextSize(15); snooze.setTextColor(Color.WHITE); snooze.setBackgroundColor(Color.rgb(42,91,145));
         LinearLayout.LayoutParams slp=new LinearLayout.LayoutParams(-1,dp(54)); slp.topMargin=dp(14); root.addView(snooze,slp); snooze.setOnClickListener(v->snooze());
+
+        root.addView(new LinearLayout(this),new LinearLayout.LayoutParams(1,0,1f));
+
+        if(!shiftReminder.isEmpty()){
+            TextView reminderTitle=text("RECUERDA TU TURNO DE HOY",13,Color.rgb(218,186,77));
+            reminderTitle.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams rtp=wrap(); rtp.bottomMargin=dp(7); root.addView(reminderTitle,rtp);
+
+            TextView reminder=text(shiftReminder,21,Color.WHITE);
+            reminder.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams rlp=wrap(); rlp.bottomMargin=dp(8); root.addView(reminder,rlp);
+        }
         return root;
     }
 
@@ -61,7 +88,7 @@ public class AlarmActivity extends Activity {
 
     private void snooze(){
         sendStop();
-        try{AlarmScheduler.schedule(this,System.currentTimeMillis()+300000L,label+" · Pospuesta 5 min");}catch(Exception ignored){}
+        try{AlarmScheduler.schedule(this,System.currentTimeMillis()+300000L,rawLabel);}catch(Exception ignored){}
         finishAndRemoveTask();
     }
 
