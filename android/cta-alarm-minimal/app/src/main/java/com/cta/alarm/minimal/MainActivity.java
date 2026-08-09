@@ -192,6 +192,38 @@ public class MainActivity extends Activity {
         attemptSchedule(false);
     }
 
+    private void showFullScreenPermissionRequired(){
+        showingConfig=false;
+        root.removeAllViews();
+
+        TextView title=text("Permiso necesario",24,Color.WHITE);
+        title.setGravity(Gravity.CENTER);
+        root.addView(title,wrap());
+
+        status=text("Activa “Alertas a pantalla completa” para CTA Alarma. Es lo que permite encender la pantalla bloqueada y mostrar DETENER / POSPONER cuando suene.",15,Color.rgb(225,230,238));
+        status.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams stlp=wrap(); stlp.topMargin=dp(16); stlp.bottomMargin=dp(24);
+        root.addView(status,stlp);
+
+        Button allow=button("ACTIVAR PANTALLA COMPLETA",Color.rgb(218,186,77));
+        allow.setTextColor(Color.rgb(20,32,45));
+        root.addView(allow,new LinearLayout.LayoutParams(-1,dp(58)));
+        allow.setOnClickListener(v->openFullScreenSettings());
+
+        Button cancel=button("CANCELAR ALARMA",Color.rgb(55,65,78));
+        LinearLayout.LayoutParams clp=new LinearLayout.LayoutParams(-1,dp(52)); clp.topMargin=dp(12);
+        root.addView(cancel,clp);
+        cancel.setOnClickListener(v->{clearPending();finishAndRemoveTask();});
+    }
+
+    private void openFullScreenSettings(){
+        try{
+            startActivity(new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,Uri.parse("package:"+getPackageName())));
+        }catch(Exception e){
+            try{startActivity(new Intent(Settings.ACTION_SETTINGS));}catch(Exception ignored){}
+        }
+    }
+
     private void previewVolume(int pct){
         final AudioManager am=(AudioManager)getSystemService(AUDIO_SERVICE);
         if(am==null)return;
@@ -241,13 +273,16 @@ public class MainActivity extends Activity {
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.UPSIDE_DOWN_CAKE){
             NotificationManager nm=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
             boolean allowed=nm!=null&&nm.canUseFullScreenIntent();
-            boolean asked=prefs.getBoolean(KEY_FSI,false);
-            if(!allowed&&(force||!asked)){
-                prefs.edit().putBoolean(KEY_FSI,true).apply();
-                status("Permite la alarma a pantalla completa una sola vez");
-                try{startActivity(new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,Uri.parse("package:"+getPackageName())));return;}
-                catch(Exception ignored){}
+            if(!allowed){
+                boolean asked=prefs.getBoolean(KEY_FSI,false);
+                showFullScreenPermissionRequired();
+                if(force||!asked){
+                    prefs.edit().putBoolean(KEY_FSI,true).apply();
+                    openFullScreenSettings();
+                }
+                return;
             }
+            prefs.edit().putBoolean(KEY_FSI,false).apply();
         }
 
         try{
