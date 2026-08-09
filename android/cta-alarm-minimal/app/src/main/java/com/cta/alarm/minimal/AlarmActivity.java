@@ -3,6 +3,7 @@ package com.cta.alarm.minimal;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -46,11 +47,9 @@ public class AlarmActivity extends Activity {
         int pad=dp(24);
         LinearLayout root=new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setGravity(Gravity.CENTER_HORIZONTAL);
+        root.setGravity(Gravity.CENTER);
         root.setPadding(pad,pad,pad,pad);
         root.setBackgroundColor(Color.rgb(10,20,33));
-
-        root.addView(new LinearLayout(this),new LinearLayout.LayoutParams(1,0,0.78f));
 
         TextView title=text("CTA · DESPERTADOR",20,Color.rgb(218,186,77));
         title.setGravity(Gravity.CENTER); root.addView(title,wrap());
@@ -67,16 +66,35 @@ public class AlarmActivity extends Activity {
         Button snooze=new Button(this); snooze.setText("POSPONER 5 MIN"); snooze.setTextSize(15); snooze.setTextColor(Color.WHITE); snooze.setBackgroundColor(Color.rgb(42,91,145));
         LinearLayout.LayoutParams slp=new LinearLayout.LayoutParams(-1,dp(54)); slp.topMargin=dp(14); root.addView(snooze,slp); snooze.setOnClickListener(v->snooze());
 
-        root.addView(new LinearLayout(this),new LinearLayout.LayoutParams(1,0,1f));
-
         if(!shiftReminder.isEmpty()){
-            TextView reminderTitle=text("RECUERDA TU TURNO DE HOY",13,Color.rgb(218,186,77));
-            reminderTitle.setGravity(Gravity.CENTER);
-            LinearLayout.LayoutParams rtp=wrap(); rtp.bottomMargin=dp(7); root.addView(reminderTitle,rtp);
+            LinearLayout card=new LinearLayout(this);
+            card.setOrientation(LinearLayout.VERTICAL);
+            card.setGravity(Gravity.CENTER);
+            card.setPadding(dp(18),dp(15),dp(18),dp(15));
+            GradientDrawable bg=new GradientDrawable();
+            bg.setColor(Color.rgb(15,31,48));
+            bg.setCornerRadius(dp(16));
+            bg.setStroke(dp(1),Color.rgb(48,70,92));
+            card.setBackground(bg);
 
-            TextView reminder=text(shiftReminder,21,Color.WHITE);
+            TextView reminderTitle=text("TU TURNO DE HOY",12,Color.rgb(218,186,77));
+            reminderTitle.setGravity(Gravity.CENTER);
+            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.LOLLIPOP)reminderTitle.setLetterSpacing(.08f);
+            card.addView(reminderTitle,wrap());
+
+            String pretty=shiftReminder.replace(" · ","\n");
+            TextView reminder=text(pretty,21,Color.WHITE);
             reminder.setGravity(Gravity.CENTER);
-            LinearLayout.LayoutParams rlp=wrap(); rlp.bottomMargin=dp(8); root.addView(reminder,rlp);
+            reminder.setLineSpacing(0,1.08f);
+            LinearLayout.LayoutParams rlp=wrap(); rlp.topMargin=dp(7); card.addView(reminder,rlp);
+
+            TextView hint=text("Comprueba el horario antes de salir",12,Color.rgb(145,164,184));
+            hint.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams hlp=wrap(); hlp.topMargin=dp(7); card.addView(hint,hlp);
+
+            LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);
+            cp.topMargin=dp(24);
+            root.addView(card,cp);
         }
         return root;
     }
