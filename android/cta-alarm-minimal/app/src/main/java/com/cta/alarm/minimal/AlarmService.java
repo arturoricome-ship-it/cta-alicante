@@ -25,6 +25,7 @@ public class AlarmService extends Service {
     public static final String ACTION_START="com.cta.alarm.minimal.START_ALARM";
     public static final String ACTION_STOP="com.cta.alarm.minimal.STOP_ALARM";
     private static final String CHANNEL_ID="cta_alarm_engine_v2";
+    private static final String SHIFT_SEP="|||CTA_SHIFT|||";
 
     private MediaPlayer player;
     private AudioManager audio;
@@ -49,20 +50,24 @@ public class AlarmService extends Service {
         }
 
         long at=intent==null?System.currentTimeMillis():intent.getLongExtra(AlarmScheduler.EXTRA_AT,System.currentTimeMillis());
-        String label=intent==null?"Turno CTA":intent.getStringExtra(AlarmScheduler.EXTRA_LABEL);
-        if(label==null||label.trim().isEmpty())label="Turno CTA";
+        String rawLabel=intent==null?"Turno CTA":intent.getStringExtra(AlarmScheduler.EXTRA_LABEL);
+        if(rawLabel==null||rawLabel.trim().isEmpty())rawLabel="Turno CTA";
+        String visibleLabel=rawLabel;
+        int sep=rawLabel.indexOf(SHIFT_SEP);
+        if(sep>=0)visibleLabel=rawLabel.substring(0,sep).trim();
+        if(visibleLabel.isEmpty())visibleLabel="Turno CTA";
         notificationId=AlarmReceiver.notificationId(at);
 
         Intent screen=new Intent(this,AlarmActivity.class)
                 .putExtra(AlarmScheduler.EXTRA_AT,at)
-                .putExtra(AlarmScheduler.EXTRA_LABEL,label)
+                .putExtra(AlarmScheduler.EXTRA_LABEL,rawLabel)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent full=PendingIntent.getActivity(this,notificationId,screen,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
 
         Notification n=new Notification.Builder(this,CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
                 .setContentTitle("CTA · Hora de levantarse")
-                .setContentText(label)
+                .setContentText(visibleLabel)
                 .setCategory(Notification.CATEGORY_ALARM)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setPriority(Notification.PRIORITY_MAX)
