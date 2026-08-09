@@ -6,8 +6,24 @@ android {
         applicationId 'com.cta.alarm.configtest'
         minSdk 26
         targetSdk 35
-        versionCode 7
-        versionName '7.0-shift-reminder'
+        versionCode 8
+        versionName '8.0-shift-card-stable'
+    }
+    signingConfigs {
+        ctaStable {
+            storeFile file('../.signing/cta.keystore')
+            storePassword 'ctaAlarmStable2026'
+            keyAlias 'cta_alarm'
+            keyPassword 'ctaAlarmStable2026'
+            enableV1Signing true
+            enableV2Signing true
+            enableV3Signing true
+        }
+    }
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.ctaStable
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
