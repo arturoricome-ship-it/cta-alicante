@@ -14,6 +14,24 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Restaurar firma estable CTA
+        uses: actions/cache@v4
+        with:
+          path: android/cta-alarm-minimal/.signing/cta.keystore
+          key: cta-alarm-signing-v1
+      - name: Crear firma estable la primera vez
+        shell: bash
+        run: |
+          if [ ! -f android/cta-alarm-minimal/.signing/cta.keystore ]; then
+            mkdir -p android/cta-alarm-minimal/.signing
+            keytool -genkeypair -noprompt \
+              -keystore android/cta-alarm-minimal/.signing/cta.keystore \
+              -storepass ctaAlarmStable2026 \
+              -keypass ctaAlarmStable2026 \
+              -alias cta_alarm \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=CTA Alarm, OU=CTA, O=CTA, L=Alicante, ST=Alicante, C=ES"
+          fi
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
