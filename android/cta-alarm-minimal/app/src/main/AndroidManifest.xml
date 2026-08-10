@@ -25,16 +25,24 @@
             android:turnScreenOn="true" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".SetAlarmActivity"
             android:excludeFromRecents="true"
             android:exported="true"
-            android:launchMode="singleTop">
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:host="set" android:scheme="ctaalarm3" />
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".MainActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
