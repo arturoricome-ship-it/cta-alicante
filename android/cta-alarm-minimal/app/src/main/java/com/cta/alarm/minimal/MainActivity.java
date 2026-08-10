@@ -24,8 +24,6 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.text.DateFormat;
-import java.util.Date;
 
 public class MainActivity extends Activity {
     public static final String PREFS="cta_alarm_prefs";
@@ -288,8 +286,6 @@ public class MainActivity extends Activity {
         try{
             AlarmScheduler.schedule(this,at,label);
             clearPending();
-            String hh=DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(at));
-            toast("⏰ Alarma "+hh+" creada");
             finishAndRemoveTask();
         }catch(Exception e){fail("No se pudo crear la alarma");}
     }
