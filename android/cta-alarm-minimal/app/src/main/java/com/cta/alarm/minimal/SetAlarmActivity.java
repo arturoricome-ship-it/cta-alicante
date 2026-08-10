@@ -43,6 +43,7 @@ public class SetAlarmActivity extends Activity {
                 AlarmScheduler.schedule(this,at,label);
                 prefs.edit().remove("pending_at").remove("pending_label").apply();
                 finish();
+                overridePendingTransition(0,0);
                 return;
             }catch(Exception ignored){
                 // Si por cualquier motivo no se puede programar silenciosamente,
