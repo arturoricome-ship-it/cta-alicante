@@ -6,8 +6,8 @@ android {
         applicationId 'com.cta.alarm.configtest'
         minSdk 26
         targetSdk 35
-        versionCode 10
-        versionName '10.0-silent-schedule-final'
+        versionCode 11
+        versionName '11.0-reliable-route'
     }
     signingConfigs {
         ctaStable {
