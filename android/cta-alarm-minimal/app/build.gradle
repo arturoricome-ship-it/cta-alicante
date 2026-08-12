@@ -6,8 +6,8 @@ android {
         applicationId 'com.cta.alarm.configtest'
         minSdk 26
         targetSdk 35
-        versionCode 11
-        versionName '11.0-reliable-route'
+        versionCode 12
+        versionName '12.0-no-white-flash'
     }
     signingConfigs {
         ctaStable {
