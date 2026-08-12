@@ -25,24 +25,16 @@
             android:turnScreenOn="true" />
 
         <activity
-            android:name=".SetAlarmActivity"
+            android:name=".MainActivity"
             android:excludeFromRecents="true"
             android:exported="true"
-            android:noHistory="true"
-            android:theme="@android:style/Theme.NoDisplay">
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:host="set" android:scheme="ctaalarm3" />
             </intent-filter>
-        </activity>
-
-        <activity
-            android:name=".MainActivity"
-            android:excludeFromRecents="true"
-            android:exported="true"
-            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -61,19 +53,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:host="cancel" android:scheme="ctaalarm3" />
-            </intent-filter>
-        </activity>
-
-        <activity
-            android:name=".UninstallActivity"
-            android:excludeFromRecents="true"
-            android:exported="true"
-            android:noHistory="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:host="uninstall" android:scheme="ctaalarm3" />
             </intent-filter>
         </activity>
 
