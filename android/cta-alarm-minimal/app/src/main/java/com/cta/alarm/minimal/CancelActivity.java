@@ -8,6 +8,7 @@ import android.widget.Toast;
 public class CancelActivity extends Activity {
     @Override protected void onCreate(Bundle b){
         super.onCreate(b);
+        overridePendingTransition(0,0);
         Uri d=getIntent()==null?null:getIntent().getData();
         long at=0L;
         try{at=Long.parseLong(d==null?"0":String.valueOf(d.getQueryParameter("at")));}catch(Exception ignored){}
@@ -16,5 +17,6 @@ public class CancelActivity extends Activity {
             Toast.makeText(this,"Alarma CTA cancelada",Toast.LENGTH_SHORT).show();
         }
         finishAndRemoveTask();
+        overridePendingTransition(0,0);
     }
 }
