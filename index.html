@@ -5,6 +5,8 @@
 <!-- CTA_PRUEBA_MEDIA_MENSUAL_CON_Y_SIN_DESCONTAR_VACACIONES_2026-07-28 -->
 <!-- CTA_MEDIA_EQUIVALENTE_VACACIONES_8H_1541_1712_PRUEBA_2026-07-28 -->
 <!-- CTA_MEDIA_BASE_TOTAL_REAL_Y_CONTADOR_VACACIONES_8H_2026-07-28 -->
+<!-- CTA_HERRAMIENTAS_BUSCADOR_CAMBIOS_POR_EMPLEADO_SHEETS_V1_2026-08-08 -->
+<!-- CTA_ALARMA_PRUEBA_REAL_1_MINUTO_V1_2026-08-08 -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -630,6 +632,46 @@ body{font-family:"Outfit",sans-serif;background:var(--bg);color:var(--white);dis
 .cambio-empty{text-align:center;padding:30px 16px;font-size:13px;color:var(--gray)}
 .cambio-seccion{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid rgba(200,168,75,.2)}
 #cambio-close-btn{width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--gray);cursor:pointer;margin-top:8px}
+.cambio-quick{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px;scrollbar-width:none}
+.cambio-quick::-webkit-scrollbar{display:none}
+.cambio-quick-btn{flex:0 0 auto;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.11);border-radius:999px;padding:6px 9px;color:var(--gray);font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap}
+.cambio-quick-btn:active{transform:scale(.97);background:rgba(200,168,75,.13);border-color:rgba(200,168,75,.3);color:var(--gold)}
+.cambio-gift-toggle{margin-top:9px;display:flex;align-items:flex-start;gap:9px;padding:9px 10px;border:1px solid rgba(255,255,255,.10);border-radius:12px;background:rgba(255,255,255,.035);cursor:pointer;transition:border-color .15s ease,background .15s ease}
+.cambio-gift-toggle.active{border-color:rgba(244,114,182,.35);background:rgba(244,114,182,.075)}
+.cambio-gift-toggle input{width:17px;height:17px;margin:1px 0 0;accent-color:#f472b6;flex:0 0 auto;cursor:pointer}
+.cambio-gift-copy{min-width:0;display:flex;flex-direction:column;gap:2px}
+.cambio-gift-title{font-size:11px;font-weight:900;color:var(--white);letter-spacing:.15px}
+.cambio-gift-desc{font-size:9px;line-height:1.3;color:var(--gray)}
+.cambio-gift-toggle.active .cambio-gift-title{color:#f9a8d4}
+.cambio-gift-card{background:linear-gradient(135deg,rgba(244,114,182,.075),rgba(255,255,255,.025));border:1px solid rgba(244,114,182,.25);border-radius:14px;padding:12px 13px;margin-bottom:10px}
+.cambio-gift-card.partial{border-color:rgba(251,191,36,.30);background:linear-gradient(135deg,rgba(251,191,36,.065),rgba(255,255,255,.02))}
+.cambio-gift-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.cambio-gift-plan{font-size:13px;font-weight:900;color:var(--white)}
+.cambio-gift-chip{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.4px;padding:3px 7px;border-radius:999px;color:#f9a8d4;background:rgba(244,114,182,.12);border:1px solid rgba(244,114,182,.25)}
+.cambio-gift-card.partial .cambio-gift-chip{color:#fbbf24;background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.22)}
+.cambio-gift-target{font-size:11px;color:var(--gray);padding:8px 9px;border-radius:10px;background:rgba(96,165,250,.055);border:1px solid rgba(96,165,250,.14);margin-bottom:8px}
+.cambio-gift-target b{color:#93c5fd}
+.cambio-gift-progress{font-size:10px;color:var(--gray);margin-bottom:8px}
+.cambio-gift-progress b{color:var(--white)}
+.cambio-gift-rec{padding:8px 0;border-top:1px solid rgba(255,255,255,.065)}
+.cambio-gift-rec:first-of-type{border-top:0}
+.cambio-gift-rec-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.cambio-gift-rec-name{font-size:11px;font-weight:900;color:#86efac;min-width:0}
+.cambio-gift-rec-cat{font-size:8px;color:var(--gray);font-weight:500;margin-left:5px}
+.cambio-gift-hours{font-size:11px;font-weight:900;color:var(--gold);white-space:nowrap}
+.cambio-gift-rec-detail{font-size:9px;line-height:1.35;color:var(--gray);margin-top:3px}
+.cambio-gift-rec-detail strong{color:var(--white);font-weight:800}
+.cambio-gift-missing{margin-top:8px;padding:8px 9px;border-radius:10px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.17);font-size:10px;color:#fca5a5}
+.hp-cal-day.cambio-selectable{cursor:pointer;transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease,background .12s ease}
+.hp-cal-day.cambio-selectable:active{transform:scale(.96)}
+.hp-cal-day.cambio-selected{border-color:#60a5fa!important;box-shadow:0 0 0 2px rgba(96,165,250,.18) inset,0 0 14px rgba(96,165,250,.12);background:rgba(96,165,250,.10)!important}
+.hp-cambio-action{margin:10px 0 12px;padding:11px 12px;border:1px solid rgba(96,165,250,.25);border-radius:13px;background:rgba(96,165,250,.075)}
+.hp-cambio-action-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.hp-cambio-action-name{font-size:12px;font-weight:800;color:var(--white)}
+.hp-cambio-action-day{font-size:10px;color:#93c5fd;font-weight:700;white-space:nowrap}
+.hp-cambio-action-btn{width:100%;border:1px solid rgba(200,168,75,.32);border-radius:11px;padding:10px 12px;background:linear-gradient(135deg,rgba(200,168,75,.16),rgba(200,168,75,.07));color:var(--gold);font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;cursor:pointer}
+.hp-cambio-action-btn:active{transform:scale(.985)}
+
 
 /* ─── Monthly summary stats ──────────────────────────────── */
 .mc-stat{background:var(--card2);border-radius:10px;padding:10px 12px;border:1px solid var(--border)}
@@ -2149,6 +2191,7 @@ body[data-panel="afiliate"] #panel-afiliate{
       <div class="mc-month" id="mc-title">—</div>
       <button class="mc-nav" ontouchstart="mcNext();event.preventDefault()" onclick="if(!event.defaultPrevented)mcNext()">›</button>
     </div>
+    <button id="ctaWebAlarmListBtn" type="button" style="width:100%;margin:0 0 10px;padding:10px 12px;border-radius:11px;border:1px solid rgba(200,168,75,.38);background:rgba(200,168,75,.12);color:var(--gold);font:700 12px 'Outfit',sans-serif;cursor:pointer">⏰ Alarmas activas <b>(0)</b></button>
     <div class="mc-mode-toggle">
       <button class="mc-mode-btn on" id="mc-btn-mes" onclick="mcSetMode('mes')">📅 Mes</button>
       <button class="mc-mode-btn" id="mc-btn-sem" onclick="mcSetMode('sem')">📊 Semanas</button>
@@ -3751,13 +3794,14 @@ function renderHorasPlantillaCalendario(rowIdx){
         +'<div class="hp-kpi"><div class="hp-kpi-v">'+data.monthLabel.split(' ')[0]+'</div><div class="hp-kpi-l">'+data.year+'</div></div>'
       +'</div>'
     +'</div>'
+    +'<div id="hp-cambio-action" class="hp-cambio-action" style="display:none"></div>'
     +'<div class="hp-cal-head">';
   ['L','M','X','J','V','S','D'].forEach(function(d){html+='<div class="hp-cal-dow">'+d+'</div>';});
   html+='</div><div class="hp-cal-grid">';
   for(var i=0;i<offset;i++)html+='<div class="hp-cal-day empty"></div>';
   for(var d=1;d<=lastDay;d++){
     var dia=dias[d-1]||{dia:d,horas:0,horario:'Sin dato',missing:true};
-    var cls='hp-cal-day';
+    var cls='hp-cal-day cambio-selectable';
     if(dia.horas>0)cls+=' work';
     else if(dia.missing)cls+=' missing';
     else cls+=' zero';
@@ -3769,14 +3813,14 @@ function renderHorasPlantillaCalendario(rowIdx){
     if(esMesActual&&d===hoy.getDate())cls+=' today';
     var horario=dia.horario||'Sin dato';
     var horarioHtml=escH(horario).replace(/\s\/\s/g,'<br>');
-    html+='<div class="'+cls+'">'
+    html+='<div class="'+cls+'" role="button" tabindex="0" onclick="hpSeleccionarDiaParaCambio('+rowIdx+','+d+',this)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();hpSeleccionarDiaParaCambio('+rowIdx+','+d+',this)}">'
       +'<div class="hp-cal-num">'+d+'</div>'
       +'<div class="hp-cal-time">'+horarioHtml+'</div>'
       +(dia.horas>0?'<div class="hp-cal-hours">'+_hpFmtHoras(dia.horas)+'</div>':'')
       +(dia.cambio?'<div class="hp-cal-note">'+escH(dia.etiqueta||'Cambio')+'</div>':'')
       +'</div>';
   }
-  html+='</div><div class="hp-empty" style="padding:12px 4px 0">Los días con línea dorada tienen cambios aplicados. El borde dorado marca hoy.</div>';
+  html+='</div><div class="hp-empty" style="padding:12px 4px 0">Toca un día para buscar cambios disponibles. Los días con línea dorada tienen cambios aplicados. El borde dorado marca hoy.</div>';
   body.innerHTML=html;
   body.scrollTop=0;
 }
@@ -4672,7 +4716,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 <script>
 var CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
 var SHEETS_URL="https://script.google.com/macros/s/AKfycby_IIimYE_dL1BolZrPdGdmslVW1gV-Ivj9E7H3jaJgxd4ZJq7IEcFEjBuVj3iy0qQo/exec";
-var CTA_LOGIN_DISABLED_FOR_TESTS=false;
+var CTA_LOGIN_DISABLED_FOR_TESTS=true;
 
 function parseJwt(token){
   try{var b=token.split(".")[1];var d=atob(b.replace(/-/g,"+").replace(/_/g,"/"));return JSON.parse(decodeURIComponent(escape(d)));}
@@ -7710,6 +7754,10 @@ document.addEventListener('DOMContentLoaded',function(){
 <div id="mc-edit-panel">
   <div class="mc-edit-handle"></div>
   <div class="mc-edit-title-bar" id="mc-edit-title">Editar día</div>
+  <div id="ctaWebSelectedAlarmBox" style="display:none;margin:0 0 10px;padding:10px 11px;border:1px solid rgba(200,168,75,.38);background:rgba(200,168,75,.10);border-radius:11px">
+    <div id="ctaWebSelectedAlarmText" style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:7px">⏰ Alarma activa</div>
+    <button id="ctaWebSelectedAlarmCancel" type="button" style="width:100%;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#f87171;border-radius:9px;padding:8px 10px;font:700 11px 'Outfit',sans-serif;cursor:pointer">Cancelar alarma</button>
+  </div>
   <button id="btn-buscar-cambio" onclick="abrirBuscadorCambio()" style="width:100%;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.4);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:#60a5fa;cursor:pointer;margin-bottom:10px;display:block">🔄 Buscar cambio de turno</button>
   <div class="mc-tipo-grid" id="mc-tipo-grid">
     <button class="mc-tipo-btn" data-tipo="trabajado" onclick="mcTipoSel(this)"><span class="t-ico">⚙️</span><span class="t-lbl">Trabajado</span></button>
@@ -7782,16 +7830,31 @@ document.addEventListener('DOMContentLoaded',function(){
     <div class="cambio-title">🔄 Buscar cambio de turno</div>
     <div class="cambio-sub" id="cambio-sub-txt">Calculando opciones...</div>
     <button id="cambio-modo-btn" onclick="toggleModoCambioCategorias()" style="margin-top:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 10px;color:var(--gray);font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer">🔒 Solo mi categoría</button>
-    <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
-      <div style="flex:1;position:relative">
-        <input id="cambio-ia-input" type="text" placeholder="Ej: tarde el lunes, salir antes d las 9:30..." 
-          style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:var(--white);font-family:'Outfit',sans-serif;font-size:12px;padding:10px 40px 10px 12px;outline:none"
-          onkeydown="if(event.key==='Enter')filtrarConIA()">
-        <button onclick="filtrarConIA()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;padding:0;line-height:1" id="cambio-ia-btn">✨</button>
+    <label class="cambio-gift-toggle" id="cambio-gift-toggle">
+      <input id="cambio-regalar-check" type="checkbox" onchange="toggleRegalarTurnoCompleto()">
+      <span class="cambio-gift-copy">
+        <span class="cambio-gift-title">🎁 Regalar turno completo</span>
+        <span class="cambio-gift-desc" id="cambio-gift-desc">Deja libre al empleado y reparte todas sus horas entre uno o varios compañeros válidos.</span>
+      </span>
+    </label>
+    <div id="cambio-filtros-wrap">
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+        <div style="flex:1;position:relative">
+          <input id="cambio-ia-input" type="text" placeholder="Ej: tarde el lunes, salir antes d las 9:30..." 
+            style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:var(--white);font-family:'Outfit',sans-serif;font-size:12px;padding:10px 40px 10px 12px;outline:none"
+            onkeydown="if(event.key==='Enter')filtrarConIA()">
+          <button onclick="filtrarConIA()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;padding:0;line-height:1" id="cambio-ia-btn">✨</button>
+        </div>
+        <button onclick="limpiarFiltroIA()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 10px;color:var(--gray);font-family:'Outfit',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">↺ Todo</button>
       </div>
-      <button onclick="limpiarFiltroIA()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 10px;color:var(--gray);font-family:'Outfit',sans-serif;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">↺ Todo</button>
+      <div class="cambio-quick" aria-label="Filtros rápidos">
+        <button class="cambio-quick-btn" onclick="aplicarFiltroRapidoCambio('día libre')">Día libre</button>
+        <button class="cambio-quick-btn" onclick="aplicarFiltroRapidoCambio('mañana')">Mañana</button>
+        <button class="cambio-quick-btn" onclick="aplicarFiltroRapidoCambio('tarde')">Tarde</button>
+        <button class="cambio-quick-btn" onclick="aplicarFiltroRapidoCambio('salir antes de las 13:00')">Salir ≤ 13h</button>
+      </div>
+      <div id="cambio-ia-estado" style="font-size:10px;color:var(--gold);margin-top:6px;min-height:14px"></div>
     </div>
-    <div id="cambio-ia-estado" style="font-size:10px;color:var(--gold);margin-top:6px;min-height:14px"></div>
   </div>
   <div id="cambio-body"></div>
 </div>
@@ -8061,26 +8124,68 @@ function _leerLeyendaTryp(wb){
 // Solo asigna una identidad si hay UN ÚNICO candidato sin ambigüedad: si dos personas
 // del roster podrían coincidir, prefiere no identificar a nadie antes que arriesgarse
 // a identificar a la persona equivocada.
-function _identificarMiEmpleadoGrupo(nominaMap,sess){
-  var nombreParaBuscar='';
-  var tryp=null;try{tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){}
-  if(tryp&&tryp.nombre&&tryp.email&&sess&&sess.email&&tryp.email===sess.email){
-    nombreParaBuscar=tryp.nombre;
-  } else if(sess&&sess.nombre){
-    nombreParaBuscar=sess.nombre;
-  }
-  if(!nombreParaBuscar)return null;
-  var sessWords=_normNombreGrupo(nombreParaBuscar).split(' ').filter(Boolean);
-  if(!sessWords.length)return null;
-  var candidatos=[];
-  Object.keys(nominaMap).forEach(function(k){
-    var emp=nominaMap[k];
-    var empWords=_normNombreGrupo(emp&&emp.nombre||'').split(' ').filter(Boolean);
-    if(!empWords.length)return;
-    var todasPresentes=empWords.every(function(w){return sessWords.indexOf(w)>=0;});
-    if(todasPresentes)candidatos.push(k);
+function _normNominaGrupo(v){
+  return String(v===undefined||v===null?'':v).trim().replace(/\.0+$/,'').replace(/^0+(?=\d)/,'');
+}
+function _buscarEmpleadoPorNominaGrupo(nominaMap,nomina){
+  var n=_normNominaGrupo(nomina);if(!n)return null;
+  var hits=[];
+  Object.keys(nominaMap||{}).forEach(function(k){
+    var emp=nominaMap[k]||{};
+    var kn=_normNominaGrupo(k),en=_normNominaGrupo(emp.nomina||'');
+    if(kn===n||en===n)hits.push(k);
+  });
+  return hits.length===1?hits[0]:null;
+}
+function _buscarEmpleadoPorNombreGrupo(nominaMap,nombre){
+  var buscado=_normNombreGrupo(nombre);if(!buscado)return null;
+  var exactos=[];
+  Object.keys(nominaMap||{}).forEach(function(k){
+    var en=_normNombreGrupo((nominaMap[k]&&nominaMap[k].nombre)||'');
+    if(en&&en===buscado)exactos.push(k);
+  });
+  if(exactos.length===1)return exactos[0];
+  if(exactos.length>1)return null;
+
+  // Respaldo tolerante solo si el resultado sigue siendo único. Nunca se usan horarios.
+  var bw=buscado.split(' ').filter(Boolean),candidatos=[];
+  if(bw.length<2)return null;
+  Object.keys(nominaMap||{}).forEach(function(k){
+    var en=_normNombreGrupo((nominaMap[k]&&nominaMap[k].nombre)||'');
+    var ew=en.split(' ').filter(Boolean);if(ew.length<2)return;
+    var empDentro=ew.every(function(w){return bw.indexOf(w)>=0;});
+    var userDentro=bw.every(function(w){return ew.indexOf(w)>=0;});
+    if(empDentro||userDentro)candidatos.push(k);
   });
   return candidatos.length===1?candidatos[0]:null;
+}
+function _cacheMiEmpleadoGrupoSeguro(key,emp){
+  if(!key||!emp)return;
+  var res={nomina:String(emp.nomina||key||'').trim(),nombre:String(emp.nombre||'').trim(),categoria:emp.categoria||''};
+  try{localStorage.setItem('cta_mi_empleado',JSON.stringify(res));}catch(e){}
+}
+// Identifica al usuario solo mediante datos de identidad estables.
+// Prioridad: nómina del Tryp personal > nombre oficial del Tryp > nombre de sesión.
+// IMPORTANTE: jamás se deduce la identidad por tener el mismo turno que otra persona.
+function _identificarMiEmpleadoGrupo(nominaMap,sess){
+  nominaMap=nominaMap||{};
+  var tryp=null;try{tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){}
+  var trypPerteneceSesion=!!(tryp&&(!tryp.email||!sess||!sess.email||tryp.email===sess.email));
+  var key=null;
+
+  if(trypPerteneceSesion&&tryp.nomina){
+    key=_buscarEmpleadoPorNominaGrupo(nominaMap,tryp.nomina);
+    if(key){_cacheMiEmpleadoGrupoSeguro(key,nominaMap[key]);return key;}
+  }
+  if(trypPerteneceSesion&&tryp.nombre){
+    key=_buscarEmpleadoPorNombreGrupo(nominaMap,tryp.nombre);
+    if(key){_cacheMiEmpleadoGrupoSeguro(key,nominaMap[key]);return key;}
+  }
+  if(sess&&sess.nombre&&_normNombreGrupo(sess.nombre)!==_normNombreGrupo('Modo prueba')){
+    key=_buscarEmpleadoPorNombreGrupo(nominaMap,sess.nombre);
+    if(key){_cacheMiEmpleadoGrupoSeguro(key,nominaMap[key]);return key;}
+  }
+  return null;
 }
 function _totalDiasEmpGrupo(emp){
   var t=0;var meses=(emp&&emp.meses)||{};
@@ -9093,84 +9198,15 @@ function _turnoMatchKey(t){
   return '';
 }
 function _getMiEmpleadoGrupoActual(year,monthKey,day){
-  var cached=null;
-  try{cached=JSON.parse(localStorage.getItem('cta_mi_empleado')||'null');}catch(e){cached=null;}
   var nominaMap={};
   try{nominaMap=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')||{};}catch(e){nominaMap={};}
-  if(cached&&cached.nomina&&nominaMap[cached.nomina])return {nomina:cached.nomina,nombre:nominaMap[cached.nomina].nombre||cached.nombre||'',categoria:nominaMap[cached.nomina].categoria||cached.categoria||''};
-
-  // Identidad oficial extraída del Tryp personal. Es la vía más fiable para que
-  // cualquier delegado que marque HL en su propio calendario quede protegido para todos.
-  var sessTryp=_ctaSession();
-  var trypId=null;try{trypId=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){trypId=null;}
-  if(trypId&&trypId.nombre&&(!trypId.email||!sessTryp.email||trypId.email===sessTryp.email)){
-    if(trypId.nomina&&nominaMap[trypId.nomina]){
-      var empNom=nominaMap[trypId.nomina];
-      var resNom={nomina:trypId.nomina,nombre:empNom.nombre||trypId.nombre||'',categoria:empNom.categoria||''};
-      try{localStorage.setItem('cta_mi_empleado',JSON.stringify(resNom));}catch(e){}
-      return resNom;
-    }
-    var trypNorm=_normPlantillaNombre(trypId.nombre);
-    var foundKey='',foundCount=0;
-    Object.keys(nominaMap).forEach(function(k){
-      var en=_normPlantillaNombre((nominaMap[k]&&nominaMap[k].nombre)||'');
-      if(en&&(en===trypNorm||en.indexOf(trypNorm)>=0||trypNorm.indexOf(en)>=0)){foundKey=k;foundCount++;}
-    });
-    if(foundCount===1&&foundKey){
-      var empTryp=nominaMap[foundKey];
-      var resTryp={nomina:empTryp.nomina||foundKey,nombre:empTryp.nombre||trypId.nombre||'',categoria:empTryp.categoria||''};
-      try{localStorage.setItem('cta_mi_empleado',JSON.stringify(resTryp));}catch(e){}
-      return resTryp;
-    }
-  }
-
-  var personal={};
-  try{personal=JSON.parse(localStorage.getItem('cta_ed_'+year)||'{}')||{};}catch(e){personal={};}
-  var best=null,bestScore=0;
-
-  for(var nk in nominaMap){
-    if(!nominaMap.hasOwnProperty(nk))continue;
-    var emp=nominaMap[nk];
-    var score=0,comparables=0;
-    for(var mk in personal){
-      if(!personal.hasOwnProperty(mk))continue;
-      var misDias=personal[mk]||{};
-      var empDias=(emp.meses&&emp.meses[mk])||{};
-      for(var d in misDias){
-        if(!misDias.hasOwnProperty(d))continue;
-        var mi=misDias[d], el=empDias[d];
-        var kMi=_turnoMatchKey(mi), kEl=_turnoMatchKey(el);
-        if(!kMi)continue;
-        comparables++;
-        if(kMi&&kEl&&kMi===kEl){
-          score += (kMi==='LIBRE'?0.4:3);
-        }
-      }
-    }
-    if(score>bestScore){bestScore=score;best=emp;}
-  }
-
-  if(best&&bestScore>=6){
-    var res={nomina:best.nomina||'',nombre:best.nombre||'',categoria:best.categoria||''};
-    try{localStorage.setItem('cta_mi_empleado',JSON.stringify(res));}catch(e){}
-    return res;
-  }
-
-  var sess=_ctaSession();
-  var sn=_normPlantillaNombre(sess.nombre||'');
-  if(sn){
-    for(var nk2 in nominaMap){
-      if(!nominaMap.hasOwnProperty(nk2))continue;
-      var emp2=nominaMap[nk2];
-      var en=_normPlantillaNombre(emp2.nombre||'');
-      if(en&&(en===sn||en.indexOf(sn)>=0||sn.indexOf(en)>=0)){
-        var res2={nomina:emp2.nomina||'',nombre:emp2.nombre||'',categoria:emp2.categoria||''};
-        try{localStorage.setItem('cta_mi_empleado',JSON.stringify(res2));}catch(e){}
-        return res2;
-      }
-    }
-  }
-  return null;
+  var sess=(typeof _ctaSession==='function')?_ctaSession():null;
+  var key=_identificarMiEmpleadoGrupo(nominaMap,sess);
+  if(!key||!nominaMap[key])return null;
+  var emp=nominaMap[key];
+  var res={nomina:String(emp.nomina||key||'').trim(),nombre:emp.nombre||'',categoria:emp.categoria||''};
+  try{localStorage.setItem('cta_mi_empleado',JSON.stringify(res));}catch(e){}
+  return res;
 }
 function guardarCambioTurnoCompartido(year,monthKey,day,dayObj){
   var sess=_ctaSession();
@@ -11808,7 +11844,43 @@ function initLiveViewMode(){
 // ============================================================
 
 var _cambioDay=null, _cambioMonth=null, _cambioYear=null;
+var _cambioEmpleadoObjetivo=null; // null = usuario actual; objeto = empleado elegido desde Herramientas > Horas plantilla
+var _hpCambioSeleccion=null;
 var _cambioModoTodas=false; // false = solo mi rol (por defecto) · true = todas las categorías excepto Agente Jefe
+var _cambioRegalarCompleto=false; // true = dejar libre al empleado y repartir TODAS sus horas entre receptores válidos
+
+function _syncModoRegaloCambio(){
+  var chk=document.getElementById('cambio-regalar-check');
+  var box=document.getElementById('cambio-gift-toggle');
+  var filtros=document.getElementById('cambio-filtros-wrap');
+  var desc=document.getElementById('cambio-gift-desc');
+  if(chk)chk.checked=!!_cambioRegalarCompleto;
+  if(box)box.classList.toggle('active',!!_cambioRegalarCompleto);
+  if(filtros)filtros.style.display=_cambioRegalarCompleto?'none':'block';
+  if(desc){
+    var nom=_cambioEmpleadoObjetivo?_cambioEtiquetaObjetivo():'el empleado';
+    desc.textContent=_cambioRegalarCompleto
+      ?('Objetivo: '+nom+' queda libre y se cubre el 100% de sus horas, aunque haya que repartirlas.')
+      :'Deja libre al empleado y reparte todas sus horas entre uno o varios compañeros válidos.';
+  }
+}
+function toggleRegalarTurnoCompleto(){
+  var chk=document.getElementById('cambio-regalar-check');
+  _cambioRegalarCompleto=!!(chk&&chk.checked);
+  _filtroIA=null;
+  var input=document.getElementById('cambio-ia-input'),estado=document.getElementById('cambio-ia-estado');
+  if(input)input.value='';
+  if(estado)estado.textContent='';
+  _syncModoRegaloCambio();
+  if(_cambioRegalarCompleto&&typeof cargarCambiosTurnosCompartidos==='function'){
+    var body=document.getElementById('cambio-body'),sub=document.getElementById('cambio-sub-txt');
+    if(body)body.innerHTML='<div class="cambio-empty">⏳ Actualizando cambios de Sheets y buscando repartos…</div>';
+    if(sub)sub.textContent='Actualizando cambios compartidos de Sheets…';
+    Promise.resolve(cargarCambiosTurnosCompartidos(_cambioYear,true)).catch(function(){return null;}).then(function(){calcularCambios();});
+    return;
+  }
+  calcularCambios();
+}
 
 // Compatibilidad ampliada para el modo "todas las categorías": mezcla Operarios,
 // Supervisores y FD de cualquier contrato. Agente Jefe queda SIEMPRE aislado, incluso
@@ -11836,10 +11908,14 @@ var _todosNoImportados=[];
 var _filtroIA=null;
 
 function abrirBuscadorCambio(){
+  _cambioEmpleadoObjetivo=null;
+  _hpCambioSeleccion=null;
   _cambioDay=_mcEditDay;
   _cambioMonth=_mcEditMonth;
   _cambioYear=_mcEditYear;
   _cambioModoTodas=false;
+  _cambioRegalarCompleto=false;
+  _syncModoRegaloCambio();
   if(_cambioDay===null||_cambioDay===undefined){alert('Error: no hay día seleccionado');return;}
   // Cerrar panel edición
   var ep=document.getElementById('mc-edit-panel');
@@ -11862,6 +11938,134 @@ function abrirBuscadorCambio(){
 function cerrarBuscadorCambio(){
   document.getElementById('cambio-panel').classList.remove('open');
   setTimeout(function(){document.getElementById('cambio-bg').style.display='none';},280);
+}
+
+
+function _cambioNormIdentidad(v){
+  return String(v||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+}
+function _cambioResolverEmpleadoEnMapa(map,obj){
+  map=map||{};obj=obj||{};
+  var nomina=_cambioNormIdentidad(obj.nomina||'');
+  var normGuardado=_cambioNormIdentidad(obj.empleado_norm||obj.norm||'');
+  var nombre=_cambioNormIdentidad(obj.nombre||obj.empleado||'');
+  var keys=Object.keys(map);
+  for(var i=0;i<keys.length;i++){
+    var e=map[keys[i]]||{};
+    if(nomina&&_cambioNormIdentidad(e.nomina||'')===nomina)return{key:keys[i],emp:e};
+  }
+  for(var j=0;j<keys.length;j++){
+    var e2=map[keys[j]]||{};
+    var eNorm=_cambioNormIdentidad(e2.empleado_norm||e2.norm||'');
+    if(normGuardado&&eNorm&&eNorm===normGuardado)return{key:keys[j],emp:e2};
+  }
+  for(var k=0;k<keys.length;k++){
+    var e3=map[keys[k]]||{};
+    var n=_cambioNormIdentidad(e3.nombre||e3.empleado||'');
+    if(nombre&&n&&(n===nombre||n.indexOf(nombre)>=0||nombre.indexOf(n)>=0))return{key:keys[k],emp:e3};
+  }
+  return null;
+}
+function _cambioDiasEfectivosEmpleado(emp,monthKey,year){
+  var raw=(emp&&emp.meses&&emp.meses[monthKey])||{};
+  var out={};
+  var idx=_GRUPO_MONTHS.indexOf(monthKey);
+  if(idx<0)return raw;
+  var lastDay=new Date(year,idx+1,0).getDate();
+  for(var d=1;d<=lastDay;d++){
+    var tiene=Object.prototype.hasOwnProperty.call(raw,String(d))||Object.prototype.hasOwnProperty.call(raw,d);
+    var base=tiene?(raw[d]||raw[String(d)]||null):null;
+    var cambio=(typeof _getCambioCompartidoEmpleado==='function')?_getCambioCompartidoEmpleado(emp,new Date(year,idx,d)):null;
+    if(!tiene&&!cambio)continue; // importante para FD: "sin importar" no se convierte en libre
+    out[d]=(typeof _turnoGrupoConCambioCompartido==='function')?_turnoGrupoConCambioCompartido(emp,new Date(year,idx,d),base):base;
+  }
+  return out;
+}
+function _cambioTurnoObjetivoActual(){
+  var monthKey=_MC_MONTHS[_cambioMonth];
+  if(_cambioEmpleadoObjetivo){
+    var dias=_cambioDiasEfectivosEmpleado(_cambioEmpleadoObjetivo,monthKey,_cambioYear);
+    return dias[_cambioDay]||null;
+  }
+  try{
+    var r=JSON.parse(localStorage.getItem('cta_ed_'+_cambioYear)||'{}');
+    var t=(r[monthKey]||{})[_cambioDay]||null;
+    return _ajustarTurnoConHLPersonal(t,t);
+  }catch(e){return null;}
+}
+function _cambioEtiquetaObjetivo(){
+  var n='';
+  if(_cambioEmpleadoObjetivo){
+    n=String(_cambioEmpleadoObjetivo.nombre||_cambioEmpleadoObjetivo.empleado||'Empleado').trim();
+    return n.split(/\s+/)[0]||'Empleado';
+  }
+  var sess=null,tryp=null;
+  try{sess=JSON.parse(localStorage.getItem('cta_session')||'null');}catch(e){}
+  try{tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){}
+  if(tryp&&tryp.nombre&&(!tryp.email||!sess||!sess.email||tryp.email===sess.email))n=String(tryp.nombre).trim();
+  if(!n&&sess&&sess.nombre&&_normNombreGrupo(sess.nombre)!==_normNombreGrupo('Modo prueba'))n=String(sess.nombre).trim();
+  return n?(n.split(/\s+/)[0]||'Tú'):'Tú';
+}
+function aplicarFiltroRapidoCambio(texto){
+  var input=document.getElementById('cambio-ia-input');
+  var estado=document.getElementById('cambio-ia-estado');
+  if(input)input.value=texto;
+  var t=_cambioTurnoObjetivoActual();
+  var s1=t&&t.s1?_toMin(t.e2&&t.s2?t.s2:t.s1):null;
+  var e1=t&&t.e1?_toMin(t.e1):null;
+  var filtro=_interpretarLocal(texto,s1,e1);
+  _aplicarFiltro(filtro,texto,estado);
+}
+
+function _hpResolverEmpleadoCambio(row){
+  if(!row)return null;
+  var map=(typeof _hpLeerMapaGrupo==='function')?_hpLeerMapaGrupo():{};
+  var found=_cambioResolverEmpleadoEnMapa(map,row);
+  return found?found.emp:null;
+}
+function hpSeleccionarDiaParaCambio(rowIdx,dia,el){
+  if(!_hpData||!_hpData.rows||!_hpData.rows[rowIdx])return;
+  var row=_hpData.rows[rowIdx];
+  if(row.privado||_hpEsEmpleadoPrivado(row))return;
+  _hpCambioSeleccion={rowIdx:rowIdx,dia:Number(dia)};
+  var body=document.getElementById('hp-body');
+  if(body)body.querySelectorAll('.hp-cal-day.cambio-selected').forEach(function(x){x.classList.remove('cambio-selected');});
+  if(el)el.classList.add('cambio-selected');
+  var box=document.getElementById('hp-cambio-action');
+  if(!box)return;
+  var nc=_hpNombreCategoriaLimpio(row),nombre=nc.nombre||row.nombre||'Empleado';
+  var fecha=new Date(_hpData.year,_hpData.monthIdx,Number(dia));
+  var dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  box.innerHTML='<div class="hp-cambio-action-top"><div class="hp-cambio-action-name">'+escH(nombre)+'</div><div class="hp-cambio-action-day">'+dias[fecha.getDay()]+' '+dia+' · '+escH(_hpData.monthLabel.split(' ')[0])+'</div></div>'
+    +'<button type="button" class="hp-cambio-action-btn" onclick="abrirBuscadorCambioEmpleadoSeleccionado()">🔄 Buscar cambios disponibles</button>';
+  box.style.display='block';
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function abrirBuscadorCambioEmpleadoSeleccionado(){
+  if(!_hpCambioSeleccion||!_hpData||!_hpData.rows)return;
+  var row=_hpData.rows[_hpCambioSeleccion.rowIdx];
+  var emp=_hpResolverEmpleadoCambio(row);
+  if(!emp){alert('No encuentro a este empleado en el grupo importado. Actualiza o importa de nuevo el Excel del grupo.');return;}
+  _cambioEmpleadoObjetivo=emp;
+  _cambioDay=Number(_hpCambioSeleccion.dia);
+  _cambioMonth=_hpData.monthIdx;
+  _cambioYear=_hpData.year;
+  _cambioModoTodas=false;
+  _cambioRegalarCompleto=false;
+  _filtroIA=null;
+  _syncModoRegaloCambio();
+  var bg=document.getElementById('cambio-bg'),panel=document.getElementById('cambio-panel');
+  var body=document.getElementById('cambio-body'),sub=document.getElementById('cambio-sub-txt');
+  var modoBtn=document.getElementById('cambio-modo-btn');
+  if(modoBtn){modoBtn.textContent='🔒 Solo mi categoría';modoBtn.classList.remove('cambio-modo-activo');}
+  var input=document.getElementById('cambio-ia-input'),estado=document.getElementById('cambio-ia-estado');
+  if(input)input.value='';if(estado)estado.textContent='';
+  if(sub)sub.textContent='Actualizando cambios compartidos de Sheets…';
+  if(body)body.innerHTML='<div class="cambio-empty">⏳ Actualizando cambios y calculando opciones…</div>';
+  if(bg)bg.style.display='block';
+  if(panel)setTimeout(function(){panel.classList.add('open');},10);
+  var p=(typeof cargarCambiosTurnosCompartidos==='function')?cargarCambiosTurnosCompartidos(_cambioYear,true):Promise.resolve(null);
+  Promise.resolve(p).catch(function(){return null;}).then(function(){calcularCambios();});
 }
 
 function _toMin(t){if(!t)return null;var p=String(t).split(':');return +p[0]*60+ +p[1];}
@@ -12286,6 +12490,314 @@ function _crearNoImportadoCambio(comp,labelDia){
   };
 }
 
+
+// ============================================================
+// MODO REGALAR TURNO COMPLETO
+// - El empleado objetivo queda libre ese día.
+// - Todas sus horas deben ser absorbidas por uno o varios compañeros.
+// - Cada receptor puede recibir un tramo continuo del turno; para turnos partidos
+//   también se prueba la cesión completa de todos los tramos a una sola persona.
+// - Se validan sobre el calendario resultante las mismas reglas del buscador:
+//   9h, 10h entre jornadas, límite semanal, día libre, 36h de descanso semanal,
+//   partido válido y compatibilidad de categoría seleccionada.
+// ============================================================
+function _giftSegmentosTurno(t){
+  if(!_esTurnoNormalCambio(t))return[];
+  var out=[];
+  function add(eTxt,sTxt,refStart){
+    if(!eTxt||!sTxt)return;
+    var e=_toMin(eTxt),s=_toMin(sTxt);
+    if(e===null||s===null)return;
+    if(refStart!==undefined&&refStart!==null){while(e<refStart)e+=1440;}
+    while(s<e)s+=1440;
+    if(s>e)out.push({start:e,end:s});
+  }
+  add(t.e1,t.s1,null);
+  if(t.e2&&t.s2){
+    var ref=out.length?out[0].start:null;
+    add(t.e2,t.s2,ref);
+  }
+  out.sort(function(a,b){return a.start-b.start;});
+  return out;
+}
+function _giftFmtAbs(m){return _fmtMin(((m%1440)+1440)%1440);}
+function _giftFmtTramo(a,b){return _giftFmtAbs(a)+'→'+_giftFmtAbs(b);}
+function _giftFmtMinutos(min){
+  min=Math.max(0,Math.round(Number(min)||0));
+  var h=Math.floor(min/60),m=min%60;
+  if(!h)return m+' min';
+  return h+'h'+(m?(' '+m+'m'):'');
+}
+function _giftEtiquetaTurnoObj(t){
+  if(!_esTurnoNormalCambio(t))return'Libre';
+  return _fmtTurno(_toMin(t.e1),_toMin(t.s1),t.e2?_toMin(t.e2):null,t.s2?_toMin(t.s2):null);
+}
+function _giftTramosSolapan(a,b){return Math.max(a.start,b.start)<Math.min(a.end,b.end);}
+function _giftCombinarTurnoConTramos(turno,tramosRegalo){
+  var base=_giftSegmentosTurno(turno);
+  var regalo=(tramosRegalo||[]).map(function(x){return{start:x.start,end:x.end};});
+  for(var i=0;i<regalo.length;i++){
+    for(var j=0;j<base.length;j++){
+      // El compañero no puede cubrir dos puestos a la vez: si ya trabaja en ese minuto,
+      // ese tramo no sirve como sustitución del empleado que queremos liberar.
+      if(_giftTramosSolapan(regalo[i],base[j]))return null;
+    }
+  }
+  var all=base.concat(regalo).sort(function(a,b){return a.start-b.start;});
+  var merged=[];
+  all.forEach(function(seg){
+    if(!merged.length||seg.start>merged[merged.length-1].end){merged.push({start:seg.start,end:seg.end});}
+    else if(seg.end>merged[merged.length-1].end){merged[merged.length-1].end=seg.end;}
+  });
+  // El modelo de turnos de CTA admite como máximo dos tramos (turno partido).
+  if(merged.length>2)return null;
+  if(!merged.length)return{e1:null,s1:null,e2:null,s2:null,segments:[],totalMin:0};
+  var a=merged[0],b=merged[1]||null;
+  var total=merged.reduce(function(acc,x){return acc+(x.end-x.start);},0);
+  return{
+    e1:((a.start%1440)+1440)%1440,
+    s1:((a.end%1440)+1440)%1440,
+    e2:b?(((b.start%1440)+1440)%1440):null,
+    s2:b?(((b.end%1440)+1440)%1440):null,
+    segments:merged,
+    totalMin:total
+  };
+}
+function _giftGridSegmento(seg){
+  // Un tramo que cruza medianoche se mantiene entero: dividirlo después de las 00:00
+  // obligaría a escribir en el día siguiente y este buscador trabaja sobre una fecha seleccionada.
+  if(seg.start<1440&&seg.end>1440)return[seg.start,seg.end];
+  var arr=[seg.start],g=15;
+  var x=Math.ceil(seg.start/g)*g;
+  if(x<=seg.start)x+=g;
+  while(x<seg.end){arr.push(x);x+=g;}
+  arr.push(seg.end);
+  return arr;
+}
+function _giftFirmaPlan(plan){
+  return(plan.assignments||[]).map(function(a){
+    return a.key+':'+(a.tramos||[]).map(function(t){return t.start+'-'+t.end;}).join(',');
+  }).sort().join('|');
+}
+function _giftEvaluarReceptor(rec,tramos,ctx,memo){
+  if(!tramos||!tramos.length)return null;
+  var key=rec.key+'|'+tramos.map(function(t){return t.start+'-'+t.end;}).join(',');
+  if(Object.prototype.hasOwnProperty.call(memo,key))return memo[key];
+  var finalT=_giftCombinarTurnoConTramos(rec.turno,tramos);
+  if(!finalT){memo[key]=null;return null;}
+  var sim=_clonarDiasCambio(rec.dias);
+  _aplicarTurnoSimCambio(sim,ctx.day,finalT.e1,finalT.s1,finalT.e2,finalT.s2);
+  var errs=_validarCalendarioSimCambio(sim,ctx.monthKey,[ctx.day],rec.cat,rec.nombreCorto);
+  if(errs.length){memo[key]=null;return null;}
+  var mins=tramos.reduce(function(a,t){return a+(t.end-t.start);},0);
+  var partido=finalT.e2!==null&&finalT.s2!==null;
+  var penalty=rec.libre?0:2;
+  if(partido)penalty+=2;
+  if(mins<60)penalty+=4;else if(mins<120)penalty+=1;
+  var out={
+    key:rec.key,nombre:rec.nombre,cat:rec.cat,
+    tramos:tramos.map(function(t){return{start:t.start,end:t.end};}),
+    minutos:mins,
+    antes:rec.libre?'Libre':_giftEtiquetaTurnoObj(rec.turno),
+    despues:_fmtTurno(finalT.e1,finalT.s1,finalT.e2,finalT.s2),
+    libreAntes:rec.libre,
+    partidoDespues:partido,
+    penalty:penalty
+  };
+  memo[key]=out;
+  return out;
+}
+function _giftRestanteDesde(state,segments){
+  var out=[];
+  if(!segments.length)return out;
+  var si=state.segIdx,pos=state.pos;
+  if(si>=segments.length)return out;
+  if(pos<segments[si].end)out.push({start:pos,end:segments[si].end});
+  for(var i=si+1;i<segments.length;i++)out.push({start:segments[i].start,end:segments[i].end});
+  return out;
+}
+function _giftAvanzar(segIdx,pos,segments){
+  var i=segIdx,p=pos;
+  while(i<segments.length&&p>=segments[i].end){i++;if(i<segments.length)p=segments[i].start;}
+  return{segIdx:i,pos:p};
+}
+function _giftRenderPlan(plan,idx,ctx,totalMin,partial){
+  var n=(plan.assignments||[]).length;
+  var html='<div class="cambio-gift-card'+(partial?' partial':'')+'">';
+  html+='<div class="cambio-gift-head"><div class="cambio-gift-plan">'+(partial?'Mejor reparto parcial':'Reparto '+(idx+1))+' · '+n+' empleado'+(n===1?'':'s')+'</div><span class="cambio-gift-chip">'+(partial?'Parcial':'Completo')+'</span></div>';
+  html+='<div class="cambio-gift-target"><b>'+escH(ctx.myNombre||_cambioEtiquetaObjetivo())+'</b>: '+escH(_giftEtiquetaTurnoObj(ctx.myDayObj))+' → <b>Libre</b></div>';
+  html+='<div class="cambio-gift-progress">Cubierto: <b>'+_giftFmtMinutos(plan.covered||0)+' de '+_giftFmtMinutos(totalMin)+'</b></div>';
+  (plan.assignments||[]).forEach(function(a){
+    var horas=(a.tramos||[]).map(function(t){return _giftFmtTramo(t.start,t.end);}).join(' + ');
+    html+='<div class="cambio-gift-rec">';
+    html+='<div class="cambio-gift-rec-top"><div class="cambio-gift-rec-name">'+escH(a.nombre)+'<span class="cambio-gift-rec-cat">'+escH(a.cat||'')+'</span></div><div class="cambio-gift-hours">'+escH(horas)+'</div></div>';
+    html+='<div class="cambio-gift-rec-detail">Antes: <strong>'+escH(a.antes)+'</strong> · Después: <strong>'+escH(a.despues)+'</strong>'+(a.partidoDespues?' · queda partido':'')+'</div>';
+    html+='</div>';
+  });
+  if(partial){
+    var rest=plan.remaining||[];
+    html+='<div class="cambio-gift-missing">Queda sin cubrir: <b>'+escH(rest.map(function(t){return _giftFmtTramo(t.start,t.end);}).join(' + ')||'—')+'</b></div>';
+  }
+  html+='</div>';
+  return html;
+}
+function _calcularRegaloTurnoCompleto(ctx){
+  var body=ctx.body,subTxt=ctx.subTxt;
+  _filtroIA=null;_todosResultados=[];_todosParciales=[];_todosNoImportados=[];
+  _syncModoRegaloCambio();
+  if(!_esTurnoNormalCambio(ctx.myDayObj)){
+    subTxt.textContent='No hay turno que regalar · '+ctx.titleDia;
+    body.innerHTML='<div class="cambio-empty">🎁 Este modo necesita que el empleado tenga un turno normal ese día.<br><small style="font-size:10px">El objetivo es dejarlo completamente libre y repartir sus horas reales de trabajo.</small></div>';
+    return;
+  }
+  if(ctx.esPasado){
+    subTxt.textContent='Día pasado · '+ctx.titleDia;
+    body.innerHTML='<div class="cambio-empty">No se calculan repartos de un turno que ya ha pasado.</div>';
+    return;
+  }
+  var segments=_giftSegmentosTurno(ctx.myDayObj);
+  var totalMin=segments.reduce(function(a,x){return a+(x.end-x.start);},0);
+  if(!segments.length||!totalMin){
+    subTxt.textContent='Sin horas que repartir';
+    body.innerHTML='<div class="cambio-empty">No encuentro horas reales en ese turno.</div>';
+    return;
+  }
+
+  // Preparar receptores: se admiten compañeros libres o que ya trabajan ese día,
+  // siempre que el tramo regalado NO se solape con su trabajo actual y el calendario final sea válido.
+  var receptores=[];
+  (ctx.empleados||[]).forEach(function(comp){
+    if(ctx.miKey?comp._key===ctx.miKey:(ctx.myNombre&&comp.nombre===ctx.myNombre))return;
+    if(!_cambioEsCompatible(ctx.myCat,comp.categoria||''))return;
+    if(!_empleadoTieneTurnosRealesMesCambio(comp,ctx.monthKey,ctx.year))return;
+    if(!_diaImportadoCambio(comp,ctx.monthKey,ctx.year,ctx.day))return;
+    var dias=_cambioDiasEfectivosEmpleado(comp,ctx.monthKey,ctx.year);
+    var t=dias[ctx.day]||null;
+    var normal=_esTurnoNormalCambio(t),libre=_esLibreRealCambio(t);
+    if(!normal&&!libre)return; // vacaciones, bajas, HL, cursos, permisos... quedan fuera
+    receptores.push({
+      key:String(comp._key||comp.nomina||comp.nombre),
+      nombre:comp.nombre||'Empleado',
+      nombreCorto:String(comp.nombre||'Empleado').split(/\s+/)[0],
+      cat:comp.categoria||'',dias:dias,turno:t,libre:libre
+    });
+  });
+
+  if(!receptores.length){
+    subTxt.textContent='Sin receptores válidos · '+ctx.titleDia;
+    body.innerHTML='<div class="cambio-empty">No hay compañeros utilizables para ese día con la categoría seleccionada.</div>';
+    return;
+  }
+
+  var memo={};
+  var fullPlans=[];
+  var signatures={};
+  function addFull(assigns){
+    var p={assignments:assigns,covered:totalMin,remaining:[],penalty:assigns.reduce(function(a,x){return a+(x.penalty||0);},0)};
+    var sig=_giftFirmaPlan(p);if(signatures[sig])return;signatures[sig]=true;fullPlans.push(p);
+  }
+
+  // Alternativa de una sola persona: importante cuando el turno objetivo es partido.
+  receptores.forEach(function(rec){
+    var a=_giftEvaluarReceptor(rec,segments,ctx,memo);
+    if(a)addFull([a]);
+  });
+
+  // Búsqueda por reparto. La unidad es de 15 minutos (respetando inicio/fin exactos),
+  // pero se penalizan tramos diminutos para priorizar propuestas operativas y con poca gente.
+  var initial={segIdx:0,pos:segments[0].start,assignments:[],used:{},covered:0,penalty:0};
+  var states=[initial],bestPartial=initial;
+  var maxRecipients=Math.min(receptores.length,Math.max(1,Math.ceil(totalMin/30)+segments.length));
+  var grids=segments.map(_giftGridSegmento);
+  for(var depth=0;depth<maxRecipients&&states.length;depth++){
+    var next=[];
+    states.forEach(function(st){
+      var cur=_giftAvanzar(st.segIdx,st.pos,segments);
+      if(cur.segIdx>=segments.length)return;
+      var seg=segments[cur.segIdx],grid=grids[cur.segIdx];
+      var endpoints=grid.filter(function(x){return x>cur.pos;}).sort(function(a,b){return b-a;});
+      var opts=[];
+      receptores.forEach(function(rec){
+        if(st.used[rec.key])return;
+        var found=0;
+        for(var ei=0;ei<endpoints.length;ei++){
+          var en=endpoints[ei];
+          // Evitar propuestas absurdamente pequeñas salvo que sea el último resto disponible.
+          if(en-cur.pos<30&&en<seg.end)continue;
+          var a=_giftEvaluarReceptor(rec,[{start:cur.pos,end:en}],ctx,memo);
+          if(!a)continue;
+          opts.push({assignment:a,end:en,score:(en-cur.pos)*10-(a.penalty||0)*12});
+          found++;
+          if(found>=6)break; // conservar varios cortes por persona; no solo el más largo
+        }
+      });
+      opts.sort(function(a,b){return b.score-a.score;});
+      // Diversidad suficiente sin disparar el coste en móvil.
+      opts.slice(0,80).forEach(function(op){
+        var used={};for(var k in st.used)if(Object.prototype.hasOwnProperty.call(st.used,k))used[k]=true;used[op.assignment.key]=true;
+        var adv=_giftAvanzar(cur.segIdx,op.end,segments);
+        var ns={
+          segIdx:adv.segIdx,pos:adv.pos,
+          assignments:st.assignments.concat([op.assignment]),used:used,
+          covered:st.covered+op.assignment.minutos,
+          penalty:st.penalty+(op.assignment.penalty||0)
+        };
+        if(ns.segIdx>=segments.length){addFull(ns.assignments);}
+        else next.push(ns);
+        if(ns.covered>bestPartial.covered||(ns.covered===bestPartial.covered&&ns.assignments.length<bestPartial.assignments.length)||(ns.covered===bestPartial.covered&&ns.assignments.length===bestPartial.assignments.length&&ns.penalty<bestPartial.penalty))bestPartial=ns;
+      });
+    });
+    // Dedupe + beam: priorizar más cobertura, menos receptores y menor impacto en sus turnos.
+    var uniq={};
+    next.forEach(function(st){
+      var u=Object.keys(st.used).sort().join(',');
+      var key=st.segIdx+'|'+st.pos+'|'+u;
+      if(!uniq[key]||st.penalty<uniq[key].penalty)uniq[key]=st;
+    });
+    states=Object.keys(uniq).map(function(k){return uniq[k];}).sort(function(a,b){
+      if(b.covered!==a.covered)return b.covered-a.covered;
+      if(a.assignments.length!==b.assignments.length)return a.assignments.length-b.assignments.length;
+      return a.penalty-b.penalty;
+    }).slice(0,140);
+    // Ya hay bastantes alternativas completas y no aporta mucho fragmentar más de 5 personas.
+    if(fullPlans.length>=18&&depth>=4)break;
+  }
+
+  fullPlans.sort(function(a,b){
+    if(a.assignments.length!==b.assignments.length)return a.assignments.length-b.assignments.length;
+    return a.penalty-b.penalty;
+  });
+  // Mostrar variedad: no dejar que 8 cesiones a una sola persona oculten los repartos de 2/3.
+  var mostrados=[],porN={};
+  fullPlans.forEach(function(p){
+    var n=p.assignments.length,lim=n===1?3:(n===2?4:3);
+    porN[n]=porN[n]||0;
+    if(porN[n]>=lim||mostrados.length>=10)return;
+    porN[n]++;mostrados.push(p);
+  });
+
+  if(mostrados.length){
+    subTxt.textContent=mostrados.length+' repartos completos · '+(_cambioEmpleadoObjetivo?(_cambioEtiquetaObjetivo()+' · '):'')+ctx.titleDia;
+    var html='<div class="cambio-seccion">🎁 Turno completo cubierto</div>';
+    html+='<div style="font-size:10px;color:var(--gray);line-height:1.4;margin:-2px 0 10px">El empleado queda libre. Cada reparto cubre el 100% de sus '+_giftFmtMinutos(totalMin)+' y ya está validado con las reglas del calendario.</div>';
+    mostrados.forEach(function(p,i){html+=_giftRenderPlan(p,i,ctx,totalMin,false);});
+    html+='<button onclick="cerrarBuscadorCambio()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;font-family:Outfit,sans-serif;font-size:13px;color:var(--gray);cursor:pointer;margin-top:8px">Cerrar</button>';
+    body.innerHTML=html;
+    return;
+  }
+
+  // No existe cobertura 100%: enseñar el mejor prefijo viable y exactamente qué falta.
+  var partial={assignments:bestPartial.assignments||[],covered:bestPartial.covered||0,penalty:bestPartial.penalty||0};
+  partial.remaining=_giftRestanteDesde(bestPartial,segments);
+  subTxt.textContent='No hay reparto completo · '+ctx.titleDia;
+  var html2='<div class="cambio-seccion" style="color:#fbbf24">⚠️ No se puede regalar entero</div>';
+  html2+='<div style="font-size:10px;color:var(--gray);line-height:1.4;margin:-2px 0 10px">Con los turnos y límites actuales no encuentro una combinación que cubra el 100%. Muestro la mejor cobertura encontrada.</div>';
+  if(partial.assignments.length)html2+=_giftRenderPlan(partial,0,ctx,totalMin,true);
+  else html2+='<div class="cambio-empty">Ningún compañero puede asumir ni el primer tramo sin incumplir alguna condición.</div>';
+  html2+='<button onclick="cerrarBuscadorCambio()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;font-family:Outfit,sans-serif;font-size:13px;color:var(--gray);cursor:pointer;margin-top:8px">Cerrar</button>';
+  body.innerHTML=html2;
+}
+
 function calcularCambios(){
   var body=document.getElementById('cambio-body');
   var subTxt=document.getElementById('cambio-sub-txt');
@@ -12301,55 +12813,62 @@ function calcularCambios(){
     return f<_hoy;
   }
 
-  // Mi turno ese día
-  var myRaw;try{myRaw=JSON.parse(localStorage.getItem('cta_ed_'+year)||'{}')}catch(e){myRaw={};}
-  var myDayObjOriginal=(myRaw[monthKey]||{})[day]||null;
-  // Si ese día tengo HL, ajusto mi disponibilidad: día completo → sin turno;
-  // parcial → se descuenta solo el tramo marcado, el resto sigue contando como trabajo.
-  var myDayObj=_ajustarTurnoConHLPersonal(myDayObjOriginal,myDayObjOriginal);
+  // En Herramientas puede buscarse el cambio para CUALQUIER empleado elegido.
+  // Si no hay empleado objetivo, se conserva exactamente el comportamiento del usuario actual.
+  var nominaMap={};
+  if(_cambioEmpleadoObjetivo&&typeof _hpLeerMapaGrupo==='function'){
+    try{nominaMap=_hpLeerMapaGrupo()||{};}catch(e){nominaMap={};}
+  }else{
+    try{nominaMap=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){nominaMap={};}
+  }
+
+  var myCat='FTP-Operarios',myNombre='',miKey=null,targetEmp=null;
+  var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
+  if(_cambioEmpleadoObjetivo){
+    var targetFound=_cambioResolverEmpleadoEnMapa(nominaMap,_cambioEmpleadoObjetivo);
+    if(!targetFound){
+      body.innerHTML='<div class="cambio-empty">No encuentro al empleado seleccionado en los datos importados.</div>';
+      subTxt.textContent='Empleado no encontrado';
+      return;
+    }
+    miKey=targetFound.key;targetEmp=targetFound.emp;
+    _cambioEmpleadoObjetivo=targetEmp;
+    myCat=targetEmp.categoria||myCat;
+    myNombre=targetEmp.nombre||targetEmp.empleado||'';
+  }else{
+    miKey=_identificarMiEmpleadoGrupo(nominaMap,sess);
+    if(miKey){myCat=nominaMap[miKey].categoria||myCat;myNombre=nominaMap[miKey].nombre||'';}
+  }
+
+  var myRaw={},myDayObjOriginal=null,myDayObj=null;
+  if(targetEmp){
+    myRaw[monthKey]=_cambioDiasEfectivosEmpleado(targetEmp,monthKey,year);
+    myDayObjOriginal=(myRaw[monthKey]||{})[day]||null;
+    myDayObj=myDayObjOriginal;
+  }else{
+    try{myRaw=JSON.parse(localStorage.getItem('cta_ed_'+year)||'{}')}catch(e){myRaw={};}
+    myDayObjOriginal=(myRaw[monthKey]||{})[day]||null;
+    // HL personal del usuario actual: día completo → sin turno; parcial → se descuenta su tramo.
+    myDayObj=_ajustarTurnoConHLPersonal(myDayObjOriginal,myDayObjOriginal);
+    if(!miKey){
+      body.innerHTML='<div class="cambio-empty">No puedo identificar de forma segura tu fila en el Excel del grupo.<br><br>Para evitar hacerte pasar por otro compañero, no voy a deducir quién eres por coincidir en el mismo turno. Importa tu Tryp personal o revisa que tu nombre/nómina coincidan con el Excel del grupo.</div>';
+      subTxt.textContent='Identidad no confirmada';
+      return;
+    }
+  }
+
   var yoTrabajaDia=_esTurnoNormalCambio(myDayObj);
   var esLibre=_esLibreRealCambio(myDayObj);
   var myE1=yoTrabajaDia?_toMin(myDayObj.e1):null;
   var myS1=yoTrabajaDia?_toMin(myDayObj.s1):null;
   var myE2=yoTrabajaDia&&myDayObj.e2?_toMin(myDayObj.e2):null;
   var myS2=yoTrabajaDia&&myDayObj.s2?_toMin(myDayObj.s2):null;
+  var myLabel=_cambioEmpleadoObjetivo?((myNombre||'Empleado').split(/\s+/)[0]||'Empleado'):_cambioEtiquetaObjetivo();
   if(!yoTrabajaDia&&!esLibre){
-    _todosResultados=[];
-    _todosParciales=[];
-    _todosNoImportados=[];
-    _filtroIA=null;
+    _todosResultados=[];_todosParciales=[];_todosNoImportados=[];_filtroIA=null;
     subTxt.textContent='Día bloqueado para cambios';
     body.innerHTML='<div class="cambio-empty">Ese día no es un turno normal ni un libre real.<br><small style="font-size:10px">Vacaciones, baja, HL, festivo, MA, curso, permiso y similares no se ofrecen para cambios.</small></div><button onclick="cerrarBuscadorCambio()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;font-family:Outfit,sans-serif;font-size:13px;color:var(--gray);cursor:pointer;margin-top:8px">Cerrar</button>';
     return;
-  }
-
-  // Mi categoría
-  var nominaMap;try{nominaMap=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){nominaMap={};}
-
-  // Buscar mi propio empleado en el mapa: PRIMERO por nombre de sesión (fiable),
-  // y solo si no hay match claro, caer en la antigua heurística por coincidencia de
-  // horario (no fiable: si otra persona tiene el mismo turno ese día, identificaba
-  // mal quién era "yo", mostrando categorías ajenas o a mí mismo como opción de cambio).
-  var myCat='FTP-Operarios'; // fallback
-  var myNombre='';
-  var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
-  var miKey=_identificarMiEmpleadoGrupo(nominaMap,sess);
-  if(miKey){
-    myCat=nominaMap[miKey].categoria||myCat;
-    myNombre=nominaMap[miKey].nombre||'';
-  } else {
-    for(var nk in nominaMap){
-      if(!nominaMap.hasOwnProperty(nk))continue;
-      var emp=nominaMap[nk];
-      var meses=emp.meses||{};
-      var empDias=meses[monthKey]||{};
-      var empT=empDias[day];
-      if(empT&&myDayObj&&empT.e1===myDayObj.e1&&empT.s1===myDayObj.s1){
-        myCat=emp.categoria||myCat;
-        myNombre=emp.nombre||'';
-        break;
-      }
-    }
   }
 
   var dname=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][(new Date(year,_cambioMonth,day).getDay()+6)%7];
@@ -12369,6 +12888,16 @@ function calcularCambios(){
     return;
   }
 
+  if(_cambioRegalarCompleto){
+    _calcularRegaloTurnoCompleto({
+      body:body,subTxt:subTxt,day:day,monthKey:monthKey,year:year,
+      myCat:myCat,myNombre:myNombre||_cambioEtiquetaObjetivo(),myLabel:myLabel,miKey:miKey,
+      myDias:myRaw[monthKey]||{},myDayObj:myDayObj,empleados:empleados,titleDia:titleDia,
+      esPasado:_esPasado(day,monthKey,year)
+    });
+    return;
+  }
+
   // Para cada compañero, buscar en todo el mes pares de días válidos
   var resultados=[];
   var noImportados=[];
@@ -12382,14 +12911,13 @@ function calcularCambios(){
 
   empleados.forEach(function(comp){
     if(miKey?comp._key===miKey:(comp.nombre===myNombre&&myNombre))return; // saltar si soy yo
-    var compDias=comp.meses&&comp.meses[monthKey]?comp.meses[monthKey]:{};
+    var compDias=_cambioDiasEfectivosEmpleado(comp,monthKey,year);
     if(!_cambioEsCompatible(myCat,comp.categoria||''))return;
     if(!_empleadoTieneTurnosRealesMesCambio(comp,monthKey,year))return; // baja/excedencia: no ofrecer para cambios
     if(!_diaImportadoCambio(comp,monthKey,year,day)){marcarNoImportado(comp);return;}
 
     // El compañero ese día
     var compTurnoMiDia=compDias[day]||null;
-    compTurnoMiDia=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compTurnoMiDia);
     var compTrabajaMiDia=_esTurnoNormalCambio(compTurnoMiDia);
     var compLibreMiDia=_esLibreRealCambio(compTurnoMiDia);
     if(!compTrabajaMiDia&&!compLibreMiDia)return;
@@ -12404,7 +12932,7 @@ function calcularCambios(){
       errA=errA.concat(_validarTurno(compE1,compS1,compE2,compS2).errores);
       errA=errA.concat(_validarTurno(myE1,myS1,myE2,myS2).errores);
       var myCatA=_parseCategoria(myCat),ccA=_parseCategoria(comp.categoria||'');
-      var limA=myCatA.tipo==='FIJO'?3000:2160;var hA=_horasLVSemana(myRaw[monthKey]||{},monthKey,day,compE1,compS1,compE2,compS2);if(hA>limA)errA.push('Yo supero '+(myCatA.tipo==='FIJO'?'50':'36')+'h semana ('+(hA/60).toFixed(1)+'h)');
+      var limA=myCatA.tipo==='FIJO'?3000:2160;var hA=_horasLVSemana(myRaw[monthKey]||{},monthKey,day,compE1,compS1,compE2,compS2);if(hA>limA)errA.push(myLabel+' supera '+(myCatA.tipo==='FIJO'?'50':'36')+'h semana ('+(hA/60).toFixed(1)+'h)');
       var limAc=ccA.tipo==='FIJO'?3000:2160;var hAc=_horasLVSemana(compDias,monthKey,day,myE1,myS1,myE2,myS2);if(hAc>limAc)errA.push(comp.nombre.split(' ')[0]+' supera '+(ccA.tipo==='FIJO'?'50':'36')+'h semana ('+(hAc/60).toFixed(1)+'h)');
       // Descanso 10h: yo hago turno del comp ese dia; comp hace el mio
       errA=errA.concat(_validarDescanso10h(myRaw[monthKey]||{},monthKey,day,compE1,compS1,compE2,compS2,''));
@@ -12437,7 +12965,6 @@ function calcularCambios(){
         // Yo debo librar ese día de verdad. Vacaciones/baja/HL/etc. no cuentan como hueco para cambios.
         if(!_esLibreRealCambio(myT2))continue;
         var cT2=compDias[d2];
-        cT2=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,d2),cT2);
         // Comp debe tener un turno normal ese día.
         if(!_esTurnoNormalCambio(cT2))continue;
         var cE1=_toMin(cT2.e1),cS1=_toMin(cT2.s1),cE2=cT2.e2?_toMin(cT2.e2):null,cS2=cT2.s2?_toMin(cT2.s2):null;
@@ -12455,7 +12982,7 @@ function calcularCambios(){
         _aplicarTurnoSimCambio(compSimB,d2,null,null,null,null);
 
         var errB=[];
-        errB=errB.concat(_validarCalendarioSimCambio(mySimB,monthKey,[day,d2],myCat,'Yo'));
+        errB=errB.concat(_validarCalendarioSimCambio(mySimB,monthKey,[day,d2],myCat,myLabel));
         errB=errB.concat(_validarCalendarioSimCambio(compSimB,monthKey,[day,d2],comp.categoria||'',nombreCortoB));
 
         var dn2=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][(new Date(year,_cambioMonth,d2).getDay()+6)%7];
@@ -12474,7 +13001,7 @@ function calcularCambios(){
       _aplicarTurnoSimCambio(mySimCes,day,null,null,null,null);
       _aplicarTurnoSimCambio(compSimCes,day,myE1,myS1,myE2,myS2);
       var errCesion=[];
-      errCesion=errCesion.concat(_validarCalendarioSimCambio(mySimCes,monthKey,[day],myCat,'Yo'));
+      errCesion=errCesion.concat(_validarCalendarioSimCambio(mySimCes,monthKey,[day],myCat,myLabel));
       errCesion=errCesion.concat(_validarCalendarioSimCambio(compSimCes,monthKey,[day],comp.categoria||'',nombreCortoB));
       resultados.push({
         nombre:comp.nombre,cat:comp.categoria||'',tipo:'cesion_total',
@@ -12499,7 +13026,6 @@ function calcularCambios(){
         if(!_esTurnoNormalCambio(myT3))continue;
         if(!_diaImportadoCambio(comp,monthKey,year,d3))continue;
         var cT3=compDias[d3];
-        cT3=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,d3),cT3);
         // Comp debe librar de verdad ese día; vacaciones/baja/HL/etc. bloquean el cambio.
         if(!_esLibreRealCambio(cT3))continue;
         var mE1=_toMin(myT3.e1),mS1=_toMin(myT3.s1),mE2=myT3.e2?_toMin(myT3.e2):null,mS2=myT3.s2?_toMin(myT3.s2):null;
@@ -12517,7 +13043,7 @@ function calcularCambios(){
         _aplicarTurnoSimCambio(compSimC,d3,mE1,mS1,mE2,mS2);
 
         var errC=[];
-        errC=errC.concat(_validarCalendarioSimCambio(mySimC,monthKey,[day,d3],myCat,'Yo'));
+        errC=errC.concat(_validarCalendarioSimCambio(mySimC,monthKey,[day,d3],myCat,myLabel));
         errC=errC.concat(_validarCalendarioSimCambio(compSimC,monthKey,[day,d3],comp.categoria||'',nombreCortoC));
 
         var dn3=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'][(new Date(year,_cambioMonth,d3).getDay()+6)%7];
@@ -12539,9 +13065,8 @@ function calcularCambios(){
     if(!_cambioEsCompatible(myCat,comp.categoria||''))return;
     if(!_empleadoTieneTurnosRealesMesCambio(comp,monthKey,year))return; // baja/excedencia: no ofrecer para cambios
     if(!_diaImportadoCambio(comp,monthKey,year,day)){marcarNoImportado(comp);return;}
-    var compDias=(comp.meses&&comp.meses[monthKey])||{};
+    var compDias=_cambioDiasEfectivosEmpleado(comp,monthKey,year);
     var compT=compDias[day]||null;
-    compT=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compT);
     var compTNormal=_esTurnoNormalCambio(compT);
     var compE1=compTNormal?_toMin(compT.e1):null;
     var compS1=compTNormal?_toMin(compT.s1):null;
@@ -12625,7 +13150,7 @@ function calcularCambios(){
         errP=errP.concat(validarResultante(compRes.e1,compRes.s1,compRes.e2,compRes.s2,compDias,comp.nombre.split(' ')[0]+': '));
         // 36h semanales
         var myCatP2=_parseCategoria(myCat),ccP=_parseCategoria(comp.categoria||'');
-        var limP=myCatP2.tipo==='FIJO'?3000:2160;var hP=_horasLVSemana(myRaw[monthKey]||{},monthKey,day,miRes.e1,miRes.s1,miRes.e2,miRes.s2);if(hP>limP)errP.push('Yo supero '+(myCatP2.tipo==='FIJO'?'50':'36')+'h semana ('+(hP/60).toFixed(1)+'h)');
+        var limP=myCatP2.tipo==='FIJO'?3000:2160;var hP=_horasLVSemana(myRaw[monthKey]||{},monthKey,day,miRes.e1,miRes.s1,miRes.e2,miRes.s2);if(hP>limP)errP.push(myLabel+' supera '+(myCatP2.tipo==='FIJO'?'50':'36')+'h semana ('+(hP/60).toFixed(1)+'h)');
         var limPc=ccP.tipo==='FIJO'?3000:2160;var hPc=_horasLVSemana(compDias,monthKey,day,compRes.e1,compRes.s1,compRes.e2,compRes.s2);if(hPc>limPc)errP.push(comp.nombre.split(' ')[0]+' supera '+(ccP.tipo==='FIJO'?'50':'36')+'h semana ('+(hPc/60).toFixed(1)+'h)');
 
         errP=errP.concat(_validarLibreSemana(myRaw[monthKey]||{},monthKey,day,miRes.e1,''));
@@ -12653,9 +13178,8 @@ function calcularCambios(){
     if(!_empleadoTieneTurnosRealesMesCambio(comp,monthKey,year))return; // baja/excedencia: no ofrecer para cambios
     if(!_diaImportadoCambio(comp,monthKey,year,day)){marcarNoImportado(comp);return;}
     if(esLibre||_esPasado(day,monthKey,year))return;
-    var compDias2=(comp.meses&&comp.meses[monthKey])||{};
+    var compDias2=_cambioDiasEfectivosEmpleado(comp,monthKey,year);
     var compT2c=compDias2[day]||null;
-    compT2c=_turnoGrupoConCambioCompartido(comp,new Date(year,_cambioMonth,day),compT2c);
     var compLibre2=_esLibreRealCambio(compT2c);
     if(!compLibre2)return; // solo si el comp libra ese día
     if(myE2===null||myS2===null)return; // solo si mi turno es partido
@@ -12716,7 +13240,7 @@ function renderResultadosCambio(resultados, titleDia){
   var validos=resultados.filter(function(r){return r.ok;});
   var invalidos=resultados.filter(function(r){return!r.ok;});
 
-  subTxt.textContent=validos.length+' opciones válidas · '+titleDia+(_filtroIA?' · Filtro activo':'');
+  subTxt.textContent=validos.length+' opciones válidas · '+(_cambioEmpleadoObjetivo?(_cambioEtiquetaObjetivo()+' · '):'')+titleDia+(_filtroIA?' · Filtro activo':'');
 
   if(!resultados.length){
     body.innerHTML='<div class="cambio-empty">😕 No hay opciones'+((_filtroIA)?' con ese criterio':' en este mes')+'<br><small style="font-size:10px">'+(_filtroIA?'Prueba con otra búsqueda':'Comprueba que tienes el Excel del grupo importado')+'</small></div><button onclick="cerrarBuscadorCambio()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;font-family:Outfit,sans-serif;font-size:13px;color:var(--gray);cursor:pointer;margin-top:8px">Cerrar</button>';
@@ -12880,6 +13404,16 @@ async function filtrarConIA(){
 
   if(estado)estado.textContent='\u2728 Interpretando...';
 
+  // En Herramientas no dependemos de una API externa: estas búsquedas se interpretan localmente
+  // (día libre, mañana, tarde, salir antes de X, entrar después de X, nombre, día, etc.).
+  if(_cambioEmpleadoObjetivo){
+    var objetivoDia=_cambioTurnoObjetivoActual();
+    var objetivoS1=objetivoDia&&objetivoDia.s1?_toMin(objetivoDia.e2&&objetivoDia.s2?objetivoDia.s2:objetivoDia.s1):null;
+    var objetivoE1=objetivoDia&&objetivoDia.e1?_toMin(objetivoDia.e1):null;
+    _aplicarFiltro(_interpretarLocal(texto,objetivoS1,objetivoE1),texto,estado);
+    return;
+  }
+
   var prompt=[
     'Eres un filtro de turnos de trabajo. El usuario quiere encontrar un cambio de turno.',
     'Definiciones: MANANA=entrada antes de 12:00 y salida antes de 15:00. TARDE=salida hasta las 20:00. NOCHE=resto hasta las 03:00.',
@@ -12905,8 +13439,8 @@ async function filtrarConIA(){
   }catch(err){
     // Si la API falla, usar interprete local con contexto de mi turno actual
     console.warn('IA no disponible, usando interprete local:',err);
-    var myDayObj2=(function(){try{var r=JSON.parse(localStorage.getItem('cta_ed_'+_cambioYear)||'{}');return(r[_MC_MONTHS[_cambioMonth]]||{})[_cambioDay]||null;}catch(e){return null;}})();
-    var myS1ref2=myDayObj2&&myDayObj2.s1?_toMin(myDayObj2.s1):null;
+    var myDayObj2=_cambioTurnoObjetivoActual();
+    var myS1ref2=myDayObj2&&myDayObj2.s1?_toMin(myDayObj2.e2&&myDayObj2.s2?myDayObj2.s2:myDayObj2.s1):null;
     var myE1ref2=myDayObj2&&myDayObj2.e1?_toMin(myDayObj2.e1):null;
     var filtroLocal=_interpretarLocal(texto,myS1ref2,myE1ref2);
     _aplicarFiltro(filtroLocal,texto,estado);
@@ -12965,12 +13499,12 @@ function _renderCambioCard(r,ok){
   } else if(r.tipo==='mismo_dia'){
     html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+escH(r.labelDia)+'</span></div>';
     html+='<div class="cambio-columns">';
-    html+=_cambioPersonaCol('me','Tú',[['Turno actual',r.turnoYo],['Se quedaría',r.turnoComp]]);
+    html+=_cambioPersonaCol('me',_cambioEtiquetaObjetivo(),[['Turno actual',r.turnoYo],['Se quedaría',r.turnoComp]]);
     html+=_cambioPersonaCol('other',nom,[['Turno actual',r.turnoComp],['Se quedaría',r.turnoYo]]);
     html+='</div>';
   } else if(r.tipo==='yo_libro'){
     html+='<div class="cambio-columns">';
-    html+=_cambioPersonaCol('me','Tú',[
+    html+=_cambioPersonaCol('me',_cambioEtiquetaObjetivo(),[
       ['Turno actual',_cambioValorDias([{dia:r.labelDia,turno:r.turnoYo}])],
       ['Se quedaría',_cambioValorDias([{dia:r.labelDia,turno:'Libre'},{dia:r.labelComp,turno:r.turnoComp}])]
     ]);
@@ -12981,7 +13515,7 @@ function _renderCambioCard(r,ok){
     html+='</div>';
   } else if(r.tipo==='comp_libro'){
     html+='<div class="cambio-columns">';
-    html+=_cambioPersonaCol('me','Tú',[
+    html+=_cambioPersonaCol('me',_cambioEtiquetaObjetivo(),[
       ['Turno actual',_cambioValorDias([{dia:r.labelDia,turno:'Libre'},{dia:r.labelComp,turno:r.turnoComp}])],
       ['Se quedaría',_cambioValorDias([{dia:r.labelDia,turno:r.turnoYo},{dia:r.labelComp,turno:'Libre'}])]
     ]);
@@ -12993,19 +13527,19 @@ function _renderCambioCard(r,ok){
   } else if(r.tipo==='parcial'){
     html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+escH(r.labelDia)+'</span></div>';
     html+='<div class="cambio-columns">';
-    html+=_cambioPersonaCol('me','Tú',[['Cedes ahora',r.pMiaLabel],['Se quedaría',r.turnoYoRes]]);
+    html+=_cambioPersonaCol('me',_cambioEtiquetaObjetivo(),[['Cedes ahora',r.pMiaLabel],['Se quedaría',r.turnoYoRes]]);
     html+=_cambioPersonaCol('other',nom,[['Cede ahora',r.pCompLabel],['Se quedaría',r.turnoCompRes]]);
     html+='</div>';
   } else if(r.tipo==='cesion_total'){
     html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+escH(r.labelDia)+'</span></div>';
     html+='<div class="cambio-columns">';
-    html+=_cambioPersonaCol('me','Tú',[['Turno actual',r.turnoYo],['Se quedaría','Libre']]);
+    html+=_cambioPersonaCol('me',_cambioEtiquetaObjetivo(),[['Turno actual',r.turnoYo],['Se quedaría','Libre']]);
     html+=_cambioPersonaCol('other',nom,[['Turno actual','Libre'],['Se quedaría',r.turnoYo]]);
     html+='</div><div class="cambio-mini-note">Cesión sin contrapartida.</div>';
   } else if(r.tipo==='cesion_parcial'){
     html+='<div class="cambio-card-row"><span class="cambio-card-lbl">Día:</span><span class="cambio-card-val">'+escH(r.labelDia)+'</span></div>';
     html+='<div class="cambio-columns">';
-    html+=_cambioPersonaCol('me','Tú',[['Cedes ahora',r.pMiaLabel],['Se quedaría',r.turnoYoRes]]);
+    html+=_cambioPersonaCol('me',_cambioEtiquetaObjetivo(),[['Cedes ahora',r.pMiaLabel],['Se quedaría',r.turnoYoRes]]);
     html+=_cambioPersonaCol('other',nom,[['Turno actual','Libre'],['Se quedaría',r.turnoCompRes]]);
     html+='</div><div class="cambio-mini-note">Cesión sin contrapartida.</div>';
   }
@@ -16303,5 +16837,1281 @@ else etInit();
 })();
 </script>
 
+<!-- CTA_ALARMA_MINIMA_PRUEBA_V3 -->
+<style>
+#login-screen,#btn-logout{display:none!important}
+#op-turno-card{position:relative}
+.cta-alarm-one{width:29px;height:29px;padding:0;border-radius:9px;border:1px solid rgba(200,168,75,.35);background:rgba(200,168,75,.09);color:var(--gold,#c8a84b);font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:none}
+.cta-alarm-one:active{transform:scale(.94);background:rgba(200,168,75,.18)}
+#ctaAlarmNextOne{position:absolute;right:8px;top:8px;z-index:5}
+#ctaAlarmDayOne{float:right;margin:-4px 0 7px 9px}
+.cta-alarm-toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(12px);z-index:2147483000;background:#111827;color:#fff;border:1px solid rgba(200,168,75,.35);border-radius:12px;padding:9px 12px;font:600 12px 'Outfit',sans-serif;box-shadow:0 8px 25px #0008;opacity:0;pointer-events:none;transition:.2s;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+.cta-alarm-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+<div id="ctaAlarmOneToast" class="cta-alarm-toast"></div>
+<script>
+(function(){
+  var MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  var NO_WORK=['libre','vacaciones','festivo','hl','hlp','baja','permiso','rm','bp','nh','h6','excedencia'];
+  var FALLBACK='https://raw.githubusercontent.com/arturoricome-ship-it/cta-alicante/agent/alarma-minima-prueba/downloads/CTA-Alarma-Minima.apk';
+  var $=function(id){return document.getElementById(id)};
+  var pad=function(n){return String(n).padStart(2,'0')};
+  function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+  function readOffset(){var n=70;try{n=parseInt(localStorage.getItem('cta_alarm_offset_min')||'70',10)}catch(e){}return Number.isFinite(n)&&n>=0&&n<=720?n:70}
+  function toast(t){var e=$('ctaAlarmOneToast');if(!e)return;e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show')},2200)}
+  function configureOffset(){var cur=readOffset();var v=prompt('¿Cuántos minutos antes del turno quieres la alarma?',String(cur));if(v===null)return;var n=parseInt(v,10);if(!Number.isFinite(n)||n<0||n>720){alert('Pon un valor entre 0 y 720 minutos.');return}try{localStorage.setItem('cta_alarm_offset_min',String(n))}catch(e){}toast('⏰ Alarmas: '+n+' min antes');updateTitles()}
+  function parseDayStore(d){var raw=null,obj={};try{raw=localStorage.getItem('cta_ed_'+d.getFullYear())}catch(e){}try{obj=raw?JSON.parse(raw):{}}catch(e){obj={}}return ((obj[MONTHS[d.getMonth()]]||{})[d.getDate()])||null}
+  function nextShift(){var now=new Date();for(var i=0;i<=90;i++){var d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i);var day=parseDayStore(d);if(!day||!day.e1||NO_WORK.indexOf(String(day.tipo||'').toLowerCase())>=0)continue;var p=String(day.e1).split(':');var start=new Date(d.getFullYear(),d.getMonth(),d.getDate(),+(p[0]||0),+(p[1]||0),0,0);if(start.getTime()<=now.getTime())continue;return{date:ymd(d),entry:day.e1,label:'Próximo turno'}}return null}
+  function launchAlarm(ds,ts,label){if(!ds||!ts){alert('Ese día no tiene hora de entrada.');return false}var start=new Date(ds+'T'+ts+':00');if(Number.isNaN(start.getTime())){alert('No puedo leer la hora de ese turno.');return false}var mins=readOffset();var alarm=new Date(start.getTime()-mins*60000);if(alarm.getTime()<=Date.now()){alert('La hora de alarma calculada ya ha pasado.');return false}var alarmText=pad(alarm.getHours())+':'+pad(alarm.getMinutes());var appLabel=encodeURIComponent('CTA · Entrada '+ts);var intent='ctaalarm3://set?at='+alarm.getTime()+'&label='+appLabel;toast('⏰ '+alarmText+' · abriendo alarma');try{window.location.href=intent}catch(e){alert('No se pudo abrir CTA Alarma. Comprueba que esté instalada.')}return false}
+  function selectedDay(){var y=window._mcEditYear,m=window._mcEditMonth,d=window._mcEditDay;if(y==null||m==null||d==null)return null;var e1=$('mc-edit-e1')&&$('mc-edit-e1').value;if(!e1){var obj=parseDayStore(new Date(y,m,d));e1=obj&&obj.e1||''}return e1?{date:ymd(new Date(y,m,d)),entry:e1,label:'Turno seleccionado'}:null}
+  function onCalendar(ev){if(ev){ev.preventDefault();ev.stopPropagation()}var x=selectedDay();if(!x){alert('Ese día no tiene turno con hora de entrada.');return false}return launchAlarm(x.date,x.entry,x.label)}
+  function onNext(ev){if(ev){ev.preventDefault();ev.stopPropagation()}var x=nextShift();if(!x){alert('No encuentro un próximo turno.');return false}return launchAlarm(x.date,x.entry,x.label)}
+  function bindPress(btn,action){if(!btn||btn.__ctaBound)return;btn.__ctaBound=true;var timer=null,held=false;btn.addEventListener('pointerdown',function(){held=false;clearTimeout(timer);timer=setTimeout(function(){held=true;configureOffset()},650)});['pointerup','pointercancel','pointerleave'].forEach(function(k){btn.addEventListener(k,function(){clearTimeout(timer)})});btn.addEventListener('contextmenu',function(e){e.preventDefault()});btn.addEventListener('click',function(e){if(held){e.preventDefault();e.stopPropagation();held=false;return}action(e)})}
+  function updateTitles(){var n=readOffset(),txt='Crear alarma '+n+' min antes · Mantén pulsado para cambiar';['ctaAlarmNextOne','ctaAlarmDayOne'].forEach(function(id){var b=$(id);if(b){b.title=txt;b.setAttribute('aria-label',txt)}})}
+  function addButtons(){var card=$('op-turno-card'),next=nextShift();if(card&&!$('ctaAlarmNextOne')){var b=document.createElement('button');b.id='ctaAlarmNextOne';b.type='button';b.className='cta-alarm-one';b.textContent='⏰';card.appendChild(b);bindPress(b,onNext)}var nb=$('ctaAlarmNextOne');if(nb)nb.style.display=next?'flex':'none';var title=$('mc-edit-title');if(title&&!$('ctaAlarmDayOne')){var c=document.createElement('button');c.id='ctaAlarmDayOne';c.type='button';c.className='cta-alarm-one';c.textContent='⏰';title.parentNode.insertBefore(c,title.nextSibling);bindPress(c,onCalendar)}var cb=$('ctaAlarmDayOne');if(cb)cb.style.display=selectedDay()?'flex':'none';updateTitles()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addButtons);else addButtons();
+  setInterval(addButtons,900);
+})();
+</script>
+
+<!-- CTA_ALARMA_WEB_V4_SOBRE_INDEX_ESTABLE -->
+<style>
+/* Oculta los botones antiguos de prueba APK sin tocar su código */
+#ctaAlarmNextOne,#ctaAlarmDayOne{display:none!important}
+
+/* Nuevo reloj de alarma web */
+#ctaWebAlarmDay{
+  width:32px;height:32px;padding:0;border-radius:10px;
+  border:1px solid rgba(200,168,75,.38);
+  background:rgba(200,168,75,.10);
+  color:var(--gold,#c8a84b);font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  margin:-4px 0 9px auto;-webkit-tap-highlight-color:transparent
+}
+#ctaWebAlarmDay:active{transform:scale(.94);background:rgba(200,168,75,.20)}
+
+#ctaWebAlarmCfgBg{
+  display:none;position:fixed;inset:0;z-index:2147482000;
+  background:rgba(0,0,0,.72);backdrop-filter:blur(5px);
+  align-items:center;justify-content:center;padding:18px
+}
+#ctaWebAlarmCfgBg.show{display:flex}
+.cta-wa-card{
+  width:100%;max-width:390px;background:#142033;
+  border:1px solid rgba(200,168,75,.38);border-radius:20px;
+  padding:18px;box-shadow:0 22px 70px rgba(0,0,0,.6)
+}
+.cta-wa-title{font-family:"Bebas Neue",sans-serif;font-size:25px;letter-spacing:1px;color:var(--gold,#c8a84b);margin-bottom:8px}
+.cta-wa-text{font-size:13px;line-height:1.5;color:#d9e2ef;margin-bottom:14px}
+.cta-wa-label{font-size:11px;font-weight:700;color:var(--gray,#8a93a8);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+#ctaWebAlarmOffset{
+  width:100%;height:48px;border-radius:12px;border:1px solid rgba(255,255,255,.14);
+  background:#0d1724;color:#fff;padding:0 14px;font:700 20px "Outfit",sans-serif;text-align:center
+}
+.cta-wa-help{font-size:11px;line-height:1.45;color:var(--gray,#8a93a8);margin-top:9px}
+.cta-wa-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:8px;margin-top:14px}
+.cta-wa-actions button{border:0;border-radius:12px;padding:12px 10px;font:700 13px "Outfit",sans-serif;cursor:pointer}
+#ctaWebAlarmCancel{background:rgba(255,255,255,.07);color:#cbd5e1}
+#ctaWebAlarmSave{background:linear-gradient(135deg,var(--gold,#c8a84b),#e8c96a);color:#142033}
+
+#ctaWebAlarmRing{
+  display:none;position:fixed;inset:0;z-index:2147483000;
+  background:linear-gradient(160deg,#0b1523,#17263d);
+  color:#fff;align-items:center;justify-content:center;padding:24px;text-align:center
+}
+#ctaWebAlarmRing.show{display:flex}
+.cta-wa-ring-inner{width:100%;max-width:420px}
+.cta-wa-kicker{font-size:13px;color:var(--gold);letter-spacing:1.5px;font-weight:800}
+#ctaWebRingTime{font-family:"Bebas Neue",sans-serif;font-size:68px;letter-spacing:2px;margin:12px 0 3px}
+#ctaWebRingLabel{font-size:17px;color:#dbe4ef;margin-bottom:24px}
+#ctaWebRingActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
+#ctaWebRingStop,#ctaWebRingSnooze{width:100%;border:0;border-radius:16px;padding:17px;color:#fff;font:800 15px "Outfit",sans-serif;cursor:pointer}
+#ctaWebRingStop{background:#b73333}
+#ctaWebRingSnooze{background:#355f91}
+#ctaWebRingMeter{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin:18px 0}
+#ctaWebRingMeter>div{height:100%;width:0;background:var(--gold);transition:width .25s linear}
+#ctaWebAlarmToast{
+  position:fixed;left:50%;bottom:calc(var(--cta-alarm-toast-bottom, 88px) + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(12px);z-index:2147483100;
+  background:#111827;color:#fff;border:1px solid rgba(200,168,75,.35);
+  border-radius:12px;padding:10px 13px;font:600 12px "Outfit",sans-serif;
+  box-shadow:0 8px 25px #0008;opacity:0;pointer-events:none;transition:.2s;
+  max-width:92vw;text-align:center
+}
+
+#ctaWebAlarmToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+#ctaWebAlarmListBtn{
+  width:100%;margin:0 0 10px;padding:9px 11px;border-radius:11px;
+  border:1px solid rgba(200,168,75,.30);background:rgba(200,168,75,.08);
+  color:var(--gold,#c8a84b);font:700 12px "Outfit",sans-serif;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px
+}
+#ctaWebAlarmListBtn:active{background:rgba(200,168,75,.16)}
+.mc-day{position:relative}
+.cta-wa-day-mark{
+  position:absolute;right:2px;top:2px;font-size:9px;line-height:1;
+  filter:drop-shadow(0 1px 2px #000);z-index:2
+}
+.mc-day.cta-wa-has-alarm{box-shadow:inset 0 0 0 1px rgba(200,168,75,.65)!important}
+
+#ctaWebAlarmListBg{
+  display:none;position:fixed;inset:0;z-index:2147482500;background:rgba(0,0,0,.72);
+  backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:18px
+}
+#ctaWebAlarmListBg.show{display:flex}
+.cta-wa-list-card{
+  width:100%;max-width:410px;max-height:78vh;overflow:auto;background:#142033;
+  border:1px solid rgba(200,168,75,.38);border-radius:20px;padding:18px;
+  box-shadow:0 22px 70px rgba(0,0,0,.6)
+}
+.cta-wa-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.cta-wa-list-close{
+  width:32px;height:32px;border-radius:10px;border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.06);color:#fff;font-size:18px;cursor:pointer
+}
+.cta-wa-empty{padding:20px 6px;text-align:center;color:var(--gray);font-size:12px}
+.cta-wa-row{
+  border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);
+  border-radius:13px;padding:11px;margin-bottom:8px
+}
+.cta-wa-row-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.cta-wa-row-date{font-size:13px;font-weight:800;color:#fff}
+.cta-wa-row-turn{font-size:11px;color:var(--gray);margin-top:2px}
+.cta-wa-row-alarm{font-size:18px;font-weight:800;color:var(--gold);white-space:nowrap}
+.cta-wa-row-actions{display:flex;justify-content:flex-end;margin-top:9px}
+.cta-wa-delete{
+  border:1px solid rgba(239,68,68,.32);background:rgba(239,68,68,.10);
+  color:#f87171;border-radius:9px;padding:7px 10px;font:700 11px "Outfit",sans-serif;cursor:pointer
+}
+#ctaWebAlarmDay.cta-wa-active{
+  background:rgba(200,168,75,.25);
+  box-shadow:0 0 0 1px rgba(200,168,75,.28),0 0 12px rgba(200,168,75,.18)
+}
+</style>
+
+<div id="ctaWebAlarmCfgBg">
+  <div class="cta-wa-card" onclick="event.stopPropagation()">
+    <div class="cta-wa-title">ALARMA CTA</div>
+    <div class="cta-wa-text" id="ctaWebAlarmIntro">
+      Esta alarma sonará antes de la hora de entrada de tu turno y aumentará de intensidad progresivamente.
+    </div>
+    <div class="cta-wa-label">¿Cuánto antes de tu turno?</div>
+    <input id="ctaWebAlarmOffset" type="time" value="01:10" step="60">
+    <div class="cta-wa-help">
+      Formato HH:mm. Ejemplo: <b>01:10</b> = 1 h 10 min antes.<br>
+      Después bastará con tocar ⏰. <b>Mantén pulsado el reloj</b> para volver a configurarlo.
+    </div>
+    <div class="cta-wa-actions">
+      <button id="ctaWebAlarmCancel" type="button">Cancelar</button>
+      <button id="ctaWebAlarmSave" type="button">Guardar y crear</button>
+    </div>
+  </div>
+</div>
+
+<div id="ctaWebAlarmRing">
+  <div class="cta-wa-ring-inner">
+    <div class="cta-wa-kicker">CTA · HORA DE LEVANTARSE</div>
+    <div id="ctaWebRingTime">--:--</div>
+    <div id="ctaWebRingLabel">Turno CTA</div>
+    <div id="ctaWebRingMeter"><div></div></div>
+    <div id="ctaWebRingActions">
+      <button id="ctaWebRingStop" type="button">DETENER ALARMA</button>
+      <button id="ctaWebRingSnooze" type="button">POSPONER 5 MIN</button>
+    </div>
+  </div>
+</div>
+<div id="ctaWebAlarmToast"></div>
+
+<div id="ctaWebAlarmListBg">
+  <div class="cta-wa-list-card" onclick="event.stopPropagation()">
+    <div class="cta-wa-list-head">
+      <div class="cta-wa-title" style="margin:0">ALARMAS ACTIVAS</div>
+      <button class="cta-wa-list-close" id="ctaWebAlarmListClose" type="button">×</button>
+    </div>
+    <div id="ctaWebAlarmListBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  var CFG_KEY='cta_web_alarm_offset_hhmm';
+  var SEEN_KEY='cta_web_alarm_intro_seen';
+  var ALARMS_KEY='cta_web_alarms_v1';
+  var $=function(id){return document.getElementById(id)};
+  var pad=function(n){return String(n).padStart(2,'0')};
+  var audioCtx=null,master=null,ringLoop=null,meterLoop=null,ringing=false,ringStart=0,ringingAlarm=null;
+  var alarmTimers={},pendingSelected=null,longTimer=null,longPressed=false;
+
+  function toast(t){
+    var e=$('ctaWebAlarmToast');if(!e)return;
+    e.textContent=t;e.classList.add('show');
+    clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show')},2600);
+  }
+  function parseDayStore(d){
+    var raw=null,obj={};
+    try{raw=localStorage.getItem('cta_ed_'+d.getFullYear())}catch(e){}
+    try{obj=raw?JSON.parse(raw):{}}catch(e){obj={}}
+    return ((obj[MONTHS[d.getMonth()]]||{})[d.getDate()])||null;
+  }
+  function selectedDay(){
+    var y=window._mcEditYear,m=window._mcEditMonth,d=window._mcEditDay;
+    if(y==null||m==null||d==null)return null;
+    var e1=$('mc-edit-e1')&&$('mc-edit-e1').value;
+    if(!e1){var o=parseDayStore(new Date(y,m,d));e1=o&&o.e1||''}
+    if(!e1)return null;
+    return {date:new Date(y,m,d),entry:String(e1),label:'Turno CTA · entrada '+String(e1)};
+  }
+  function getOffset(){
+    var v='01:10';try{v=localStorage.getItem(CFG_KEY)||v}catch(e){}
+    return /^\d{2}:\d{2}$/.test(v)?v:'01:10';
+  }
+  function offsetMinutes(v){
+    var p=String(v||'').split(':'),h=parseInt(p[0],10),m=parseInt(p[1],10);
+    if(!Number.isFinite(h)||!Number.isFinite(m)||h<0||h>23||m<0||m>59)return null;
+    return h*60+m;
+  }
+  function seen(){try{return localStorage.getItem(SEEN_KEY)==='1'}catch(e){return false}}
+
+  async function ensureAudio(){
+    try{
+      if(!audioCtx){
+        audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+        master=audioCtx.createGain();master.gain.value=.02;master.connect(audioCtx.destination);
+      }
+      if(audioCtx.state==='suspended')await audioCtx.resume();
+      var o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.frequency.value=650;g.gain.value=.0001;o.connect(g);g.connect(master);o.start();o.stop(audioCtx.currentTime+.03);
+    }catch(e){}
+  }
+  async function askNotif(){
+    try{if('Notification' in window&&Notification.permission==='default')await Notification.requestPermission()}catch(e){}
+  }
+  function loadAlarms(){try{var a=JSON.parse(localStorage.getItem(ALARMS_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+  function saveAlarms(a){try{localStorage.setItem(ALARMS_KEY,JSON.stringify(a))}catch(e){}}
+  function aid(d,e){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'_'+e}
+
+  function alarmDateParts(a){
+    var m=String(a&&a.id||'').match(/^(\d{4})-(\d{2})-(\d{2})_/);
+    return m?{y:+m[1],m:+m[2]-1,d:+m[3]}:null;
+  }
+  function futureAlarms(){
+    var now=Date.now();
+    return loadAlarms().filter(function(a){return a&&a.at>now-60000}).sort(function(a,b){return a.at-b.at});
+  }
+  function alarmForSelected(sel){
+    if(!sel)return null;
+    var id=aid(sel.date,sel.entry);
+    return futureAlarms().find(function(a){return a.id===id})||null;
+  }
+  function fmtDate(a){
+    var p=alarmDateParts(a);if(!p)return 'Día';
+    var d=new Date(p.y,p.m,p.d);
+    var wd=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][d.getDay()];
+    var mn=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][d.getMonth()];
+    return wd+' '+d.getDate()+' '+mn;
+  }
+  function fmtAlarmTime(a){
+    var d=new Date(a.at);return pad(d.getHours())+':'+pad(d.getMinutes());
+  }
+  function cancelAlarm(id){
+    var target=loadAlarms().find(function(a){return a.id===id});
+    if(target&&target.method==='app'&&target.at){
+      try{window.location.href='ctaalarm3://cancel?at='+encodeURIComponent(String(target.at))}catch(e){}
+    }
+    if(alarmTimers[id]){clearTimeout(alarmTimers[id]);delete alarmTimers[id]}
+    saveAlarms(loadAlarms().filter(function(a){return a.id!==id}));
+    refreshAlarmUI();
+    renderAlarmList();
+    toast(target&&target.method==='app'?'Alarma cancelada en CTA Alarma':'Alarma cancelada');
+  }
+  function renderAlarmList(){
+    var body=$('ctaWebAlarmListBody');if(!body)return;
+    var arr=futureAlarms();
+    if(!arr.length){
+      body.innerHTML='<div class="cta-wa-empty">No tienes ninguna alarma activa.</div>';
+      return;
+    }
+    body.innerHTML=arr.map(function(a){
+      return '<div class="cta-wa-row">'+
+        '<div class="cta-wa-row-top">'+
+          '<div><div class="cta-wa-row-date">'+fmtDate(a)+'</div>'+
+          '<div class="cta-wa-row-turn">Turno · entrada '+String(a.entry||'—')+' · '+(a.method==='app'?'App Android':'Navegador')+'</div></div>'+
+          '<div class="cta-wa-row-alarm">⏰ '+fmtAlarmTime(a)+'</div>'+
+        '</div>'+
+        '<div class="cta-wa-row-actions"><button type="button" class="cta-wa-delete" data-alarm-id="'+String(a.id).replace(/"/g,'&quot;')+'">Cancelar alarma</button></div>'+
+      '</div>';
+    }).join('');
+    body.querySelectorAll('.cta-wa-delete').forEach(function(b){
+      b.addEventListener('click',function(){cancelAlarm(this.getAttribute('data-alarm-id'))});
+    });
+  }
+  function openAlarmList(){
+    renderAlarmList();
+    $('ctaWebAlarmListBg').classList.add('show');
+  }
+  function closeAlarmList(){$('ctaWebAlarmListBg').classList.remove('show')}
+
+  function ensureAlarmListButton(){
+    var cal=$('mini-cal');if(!cal)return;
+    var btn=$('ctaWebAlarmListBtn');
+    if(!btn){
+      btn=document.createElement('button');
+      btn.type='button';btn.id='ctaWebAlarmListBtn';
+      var mode=cal.querySelector('.mc-mode-toggle');
+      if(mode)cal.insertBefore(btn,mode);else cal.appendChild(btn);
+    }
+    if(!btn.__waListBound){btn.__waListBound=true;btn.addEventListener('click',openAlarmList);}
+    var n=futureAlarms().length;
+    btn.innerHTML='⏰ Alarmas activas <b>('+n+')</b>';
+  }
+  function decorateCalendarAlarms(){
+    var grid=$('mc-grid');if(!grid)return;
+    var y=window._mcYear,m=window._mcMonth;
+    if(y==null||m==null)return;
+    var active={};
+    futureAlarms().forEach(function(a){
+      var p=alarmDateParts(a);
+      if(p&&p.y===y&&p.m===m)active[p.d]=true;
+    });
+    grid.querySelectorAll('.mc-day:not(.empty)').forEach(function(cell){
+      var num=cell.querySelector('.mc-day-num');
+      var d=num?parseInt(num.textContent,10):0;
+      var mark=cell.querySelector('.cta-wa-day-mark');
+      if(active[d]){
+        cell.classList.add('cta-wa-has-alarm');
+        if(!mark){mark=document.createElement('span');mark.className='cta-wa-day-mark';mark.textContent='⏰';cell.appendChild(mark)}
+      }else{
+        cell.classList.remove('cta-wa-has-alarm');
+        if(mark)mark.remove();
+      }
+    });
+  }
+  function refreshAlarmUI(){
+    ensureAlarmListButton();
+    decorateCalendarAlarms();
+    var sel=selectedDay(),active=alarmForSelected(sel);
+    var b=$('ctaWebAlarmDay');
+    if(b)b.classList.toggle('cta-wa-active',!!active);
+    var box=$('ctaWebSelectedAlarmBox'),txt=$('ctaWebSelectedAlarmText'),cancel=$('ctaWebSelectedAlarmCancel');
+    if(box){
+      if(active){
+        box.style.display='block';
+        if(txt)txt.textContent='⏰ Alarma activa a las '+fmtAlarmTime(active)+' · turno '+String(active.entry||'—');
+        if(cancel){cancel.onclick=function(ev){if(ev){ev.preventDefault();ev.stopPropagation()}cancelAlarm(active.id);};}
+      }else{
+        box.style.display='none';
+        if(cancel)cancel.onclick=null;
+      }
+    }
+  }
+
+  function arm(a){
+    if(!a||!a.id||!a.at||a.method==='app')return;
+    if(alarmTimers[a.id])clearTimeout(alarmTimers[a.id]);
+    var delay=a.at-Date.now();
+    if(delay<=0&&delay>-120000){fire(a);return}
+    if(delay<=0)return;
+    var step=Math.min(delay,20*24*60*60*1000);
+    alarmTimers[a.id]=setTimeout(function(){if(a.at-Date.now()>1000)arm(a);else fire(a)},step);
+  }
+  function restore(){
+    var now=Date.now(),arr=loadAlarms().filter(function(a){return a&&a.at>now-120000});
+    saveAlarms(arr);arr.forEach(function(a){if(!a.method||a.method==='browser')arm(a)});refreshAlarmUI();
+  }
+  function create(sel){
+    if(!sel){alert('Ese día no tiene turno con hora de entrada.');return}
+    var mins=offsetMinutes(getOffset()),p=sel.entry.split(':');
+    if(mins===null){openCfg(sel,false);return}
+    var start=new Date(sel.date.getFullYear(),sel.date.getMonth(),sel.date.getDate(),parseInt(p[0],10)||0,parseInt(p[1],10)||0,0,0);
+    var at=start.getTime()-mins*60000;
+    if(at<=Date.now()){alert('La hora calculada para esa alarma ya ha pasado.');return}
+    var id=aid(sel.date,sel.entry);
+    var arr=loadAlarms().filter(function(a){return a.id!==id&&a.at>Date.now()-60000});
+    var a={id:id,at:at,entry:sel.entry,label:sel.label,method:'browser'};arr.push(a);saveAlarms(arr);arm(a);refreshAlarmUI();
+    var d=new Date(at);toast('⏰ Alarma '+pad(d.getHours())+':'+pad(d.getMinutes())+' · '+getOffset()+' antes');
+  }
+  function tone(freq,start,dur,gain){
+    if(!audioCtx||!master)return;
+    var o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type='square';o.frequency.setValueAtTime(freq,start);
+    g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(Math.max(.001,gain),start+.025);
+    g.gain.setValueAtTime(Math.max(.001,gain),start+dur-.05);g.gain.exponentialRampToValueAtTime(.0001,start+dur);
+    o.connect(g);g.connect(master);o.start(start);o.stop(start+dur+.02);
+  }
+  function phrase(){
+    if(!ringing||!audioCtx)return;
+    var n=[523.25,659.25,783.99,1046.5,783.99,659.25],now=audioCtx.currentTime+.02;
+    n.forEach(function(f,i){tone(f,now+i*.18,.14,.75)});
+    n.forEach(function(f,i){tone(f/2,now+i*.18,.14,.35)});
+  }
+  function intensity(){
+    if(!ringing||!master||!audioCtx)return;
+    var p=Math.min(1,((Date.now()-ringStart)/1000)/20);
+    var level=.025+.90*Math.pow(p,1.7),t=audioCtx.currentTime;
+    master.gain.cancelScheduledValues(t);master.gain.setTargetAtTime(level,t,.08);
+    var m=document.querySelector('#ctaWebRingMeter>div');if(m)m.style.width=Math.round(p*100)+'%';
+    try{
+      if(navigator.vibrate){
+        if(p<.33)navigator.vibrate([180,220]);
+        else if(p<.66)navigator.vibrate([350,140,350]);
+        else navigator.vibrate([650,90,650,90,900]);
+      }
+    }catch(e){}
+  }
+  async function fire(a){
+    if(ringing)return;
+    await ensureAudio();ringing=true;ringStart=Date.now();ringingAlarm=a||null;
+    var n=new Date();$('ctaWebRingTime').textContent=pad(n.getHours())+':'+pad(n.getMinutes());
+    $('ctaWebRingLabel').textContent=(a&&a.label)||'Turno CTA';$('ctaWebAlarmRing').classList.add('show');
+    try{if('Notification' in window&&Notification.permission==='granted')new Notification('CTA · Hora de levantarse',{body:(a&&a.label)||'Turno CTA',requireInteraction:true,tag:'cta-web-alarm'})}catch(e){}
+    phrase();intensity();ringLoop=setInterval(phrase,1250);meterLoop=setInterval(intensity,250);
+    if(a&&a.id){saveAlarms(loadAlarms().filter(function(x){return x.id!==a.id}));delete alarmTimers[a.id];refreshAlarmUI()}
+  }
+  function stop(){
+    ringing=false;if(ringLoop)clearInterval(ringLoop);if(meterLoop)clearInterval(meterLoop);ringLoop=meterLoop=null;
+    if(master&&audioCtx){var t=audioCtx.currentTime;master.gain.cancelScheduledValues(t);master.gain.setTargetAtTime(.0001,t,.03)}
+    try{if(navigator.vibrate)navigator.vibrate(0)}catch(e){}
+    $('ctaWebAlarmRing').classList.remove('show');var m=document.querySelector('#ctaWebRingMeter>div');if(m)m.style.width='0%';
+    ringingAlarm=null;
+  }
+  function snooze5(){
+    var prev=ringingAlarm||{};
+    stop();
+    var at=Date.now()+5*60*1000;
+    var a={id:'snooze_'+at,at:at,entry:prev.entry||'',label:prev.label||'Turno CTA',method:'browser'};
+    var arr=loadAlarms().filter(function(x){return x.at>Date.now()-60000});arr.push(a);saveAlarms(arr);arm(a);refreshAlarmUI();
+    var d=new Date(at);toast('😴 Pospuesta hasta '+pad(d.getHours())+':'+pad(d.getMinutes()));
+  }
+
+  function openCfg(sel,first){
+    pendingSelected=sel||selectedDay();$('ctaWebAlarmOffset').value=getOffset();
+    $('ctaWebAlarmIntro').innerHTML=first
+      ?'Esta alarma sonará antes de la hora de entrada de tu turno y aumentará de intensidad progresivamente.<br><br><b>Configúrala una vez y quedará guardada.</b>'
+      :'Cambia cuánto tiempo antes de tu turno quieres que suene la alarma.';
+    $('ctaWebAlarmCfgBg').classList.add('show');
+  }
+  function closeCfg(){$('ctaWebAlarmCfgBg').classList.remove('show');pendingSelected=null}
+  async function saveCfg(){
+    var v=$('ctaWebAlarmOffset').value;
+    if(!/^\d{2}:\d{2}$/.test(v)||offsetMinutes(v)===null){alert('Introduce el tiempo en formato HH:mm, por ejemplo 01:10.');return}
+    try{localStorage.setItem(CFG_KEY,v);localStorage.setItem(SEEN_KEY,'1')}catch(e){}
+    var sel=pendingSelected;closeCfg();await ensureAudio();await askNotif();if(sel)create(sel);
+  }
+  async function normal(e){
+    if(e){e.preventDefault();e.stopPropagation()}
+    var sel=selectedDay();if(!sel){alert('Ese día no tiene turno con hora de entrada.');return}
+    await ensureAudio();if(!seen()){openCfg(sel,true);return}create(sel);
+  }
+  function held(){
+    if(typeof window.__ctaOpenAlarmMethod==='function'){window.__ctaOpenAlarmMethod();return}
+    var sel=selectedDay();if(!sel){alert('Ese día no tiene turno con hora de entrada.');return}openCfg(sel,false)
+  }
+  function bind(b){
+    if(!b||b.__wa)return;b.__wa=true;
+    b.addEventListener('pointerdown',function(){longPressed=false;clearTimeout(longTimer);longTimer=setTimeout(function(){longPressed=true;held()},650)});
+    ['pointerup','pointercancel','pointerleave'].forEach(function(k){b.addEventListener(k,function(){clearTimeout(longTimer)})});
+    b.addEventListener('contextmenu',function(e){e.preventDefault()});
+    b.addEventListener('click',function(e){if(longPressed){longPressed=false;e.preventDefault();e.stopPropagation();return}normal(e)});
+  }
+  function addClock(){
+    var title=$('mc-edit-title');if(!title)return;
+    var b=$('ctaWebAlarmDay');
+    if(!b){b=document.createElement('button');b.id='ctaWebAlarmDay';b.type='button';b.textContent='⏰';title.parentNode.insertBefore(b,title.nextSibling);bind(b)}
+    b.style.display=selectedDay()?'flex':'none';
+    b.title='Crear alarma · Mantén pulsado para configurar';refreshAlarmUI();
+  }
+
+  $('ctaWebAlarmCfgBg').addEventListener('click',closeCfg);
+  $('ctaWebAlarmCancel').addEventListener('click',closeCfg);
+  $('ctaWebAlarmSave').addEventListener('click',saveCfg);
+  $('ctaWebRingStop').addEventListener('click',stop);
+  $('ctaWebRingSnooze').addEventListener('click',snooze5);
+  $('ctaWebAlarmListBg').addEventListener('click',closeAlarmList);
+  $('ctaWebAlarmListClose').addEventListener('click',closeAlarmList);
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){restore();addClock()});
+  else{restore();addClock()}
+  setInterval(function(){addClock();refreshAlarmUI()},900);
+
+  // API interna para el selector App / Navegador. Evita depender de un segundo click.
+  window.__ctaBrowserAlarmCreate=function(sel){return create(sel||selectedDay())};
+  window.__ctaBrowserAlarmTest=async function(seconds){
+    seconds=Math.max(3,parseInt(seconds||20,10));
+    await ensureAudio();
+    try{if(navigator.vibrate)navigator.vibrate([180,120,180])}catch(e){}
+    toast('🧪 Prueba navegador en '+seconds+' s');
+    setTimeout(function(){fire({label:'Prueba alarma CTA · navegador'})},seconds*1000);
+  };
+})();
+</script>
+
+
+<!-- CTA_ALARMA_METODO_APP_NAVEGADOR_V2 -->
+<style>
+#ctaAlarmMethodBg{display:none;position:fixed;inset:0;z-index:2147483600;background:rgba(0,0,0,.76);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:18px}
+#ctaAlarmMethodBg.show{display:flex}
+.cta-am-card{width:100%;max-width:410px;max-height:88vh;overflow:auto;background:#142033;border:1px solid rgba(200,168,75,.42);border-radius:21px;padding:18px;box-shadow:0 24px 70px #000a}
+.cta-am-title{font-family:"Bebas Neue",sans-serif;font-size:27px;letter-spacing:1px;color:var(--gold,#c8a84b);margin-bottom:5px}
+.cta-am-sub{font-size:13px;line-height:1.5;color:#d7e0ec;margin-bottom:15px}
+.cta-am-option{border:1px solid rgba(255,255,255,.10);border-radius:15px;background:#0d1928;padding:13px;margin-top:10px}
+.cta-am-option.recommended{border-color:rgba(200,168,75,.42);background:rgba(200,168,75,.07)}
+.cta-am-badge{display:inline-block;font-size:9px;font-weight:900;letter-spacing:.7px;text-transform:uppercase;color:#142033;background:var(--gold,#c8a84b);border-radius:99px;padding:4px 7px;margin-bottom:7px}
+.cta-am-name{font-size:15px;font-weight:800;color:#fff;margin-bottom:4px}
+.cta-am-desc{font-size:11.5px;line-height:1.45;color:#aebbd0}
+.cta-am-label{font-size:10px;font-weight:800;color:#8f9db1;text-transform:uppercase;letter-spacing:.55px;margin:16px 0 6px}
+#ctaAlarmMethodOffset{width:100%;height:46px;border-radius:11px;border:1px solid rgba(255,255,255,.14);background:#0d1724;color:#fff;text-align:center;font:800 19px "Outfit",sans-serif}
+.cta-am-btn{width:100%;border:0;border-radius:12px;padding:12px 10px;margin-top:9px;font:800 13px "Outfit",sans-serif;cursor:pointer}
+.cta-am-primary{background:linear-gradient(135deg,var(--gold,#c8a84b),#e8c96a);color:#142033}
+.cta-am-blue{background:#294b70;color:#fff}
+.cta-am-ghost{background:rgba(255,255,255,.07);color:#d7e0ec}
+.cta-am-danger{background:rgba(190,55,55,.16);color:#ffb3b3;border:1px solid rgba(255,90,90,.25)}
+.cta-am-note{font-size:10.5px;line-height:1.45;color:#8291a6;margin-top:9px}
+.cta-am-current{font-size:11px;color:#aab7c9;background:rgba(255,255,255,.05);padding:8px 10px;border-radius:10px;margin-bottom:10px}
+.cta-am-platform{border-radius:14px;padding:11px 12px;margin:10px 0 4px;border:1px solid rgba(255,255,255,.10);background:#0b1725}
+.cta-am-platform strong{display:block;font-size:12px;color:#fff;margin-bottom:4px}
+.cta-am-platform span{display:block;font-size:10.8px;line-height:1.45;color:#9eacc0}
+.cta-am-platform.android{border-color:rgba(200,168,75,.38);background:rgba(200,168,75,.065)}
+.cta-am-platform.ios{border-color:rgba(86,156,214,.35);background:rgba(58,112,160,.08)}
+.cta-am-howto{margin-top:12px;padding:10px 11px;border-radius:12px;background:rgba(255,255,255,.045);font-size:10.5px;line-height:1.55;color:#93a2b6}
+.cta-am-howto b{color:#d7e0ec}
+#ctaAlarmUseInstalled.selected,#ctaAlarmUseBrowser.selected{background:#183d35;color:#a8e7d3;border:1px solid rgba(118,219,184,.26)}
+</style>
+<div id="ctaAlarmMethodBg">
+  <div class="cta-am-card" onclick="event.stopPropagation()">
+    <div class="cta-am-title">ALARMAS CTA</div>
+    <div class="cta-am-sub" id="ctaAlarmMethodIntro">Elige una vez cómo quieres recibir las alarmas.</div>
+    <div id="ctaAlarmPlatform" class="cta-am-platform"></div>
+    <div class="cta-am-current" id="ctaAlarmMethodCurrent" style="display:none"></div>
+
+    <div class="cta-am-label">¿Cuánto antes de tu turno?</div>
+    <input id="ctaAlarmMethodOffset" type="time" value="01:10" step="60">
+    <div class="cta-am-note">Ejemplo: <b>01:10</b> = sonará 1 h 10 min antes de la entrada. Esta antelación queda guardada.</div>
+
+    <div id="ctaAlarmAndroidOptions">
+      <div class="cta-am-option recommended">
+        <span class="cta-am-badge">RECOMENDADA EN ANDROID</span>
+        <div class="cta-am-name">CTA Alarma</div>
+        <div class="cta-am-desc">Funciona como una alarma real del móvil. Es la opción indicada si quieres que suene con el teléfono bloqueado, encienda la pantalla y muestre <b>DETENER</b>, <b>POSPONER 5 MIN</b> y tu turno del día.</div>
+        <button class="cta-am-btn cta-am-primary" id="ctaAlarmDownloadApp" type="button">Instalar / actualizar CTA Alarma</button>
+        <button class="cta-am-btn cta-am-blue" id="ctaAlarmUseInstalled" type="button">Ya la tengo instalada</button>
+        <div class="cta-am-note">Si ya la instalaste, pulsa el botón anterior para elegirla como método. <b>No crea ninguna alarma en ese momento.</b></div>
+        <button class="cta-am-btn cta-am-ghost" id="ctaAlarmOpenAppConfig" type="button" style="display:none">⚙️ Configurar volumen y pantalla de bloqueo</button>
+        <button class="cta-am-btn cta-am-blue" id="ctaAlarmTestReal" type="button" style="display:none">🧪 Probar CTA Alarma en 1 minuto</button>
+        <div class="cta-am-note" id="ctaAlarmTestRealNote" style="display:none">Esta prueba sí crea una alarma para dentro de 1 minuto. Bloquea el móvil y comprueba que se encienda la pantalla.</div>
+
+      </div>
+    </div>
+
+    <div class="cta-am-option" id="ctaAlarmBrowserOption">
+      <span class="cta-am-badge" id="ctaAlarmBrowserBadge" style="display:none"></span>
+      <div class="cta-am-name" id="ctaAlarmBrowserTitle">Alarma desde el navegador</div>
+      <div class="cta-am-desc" id="ctaAlarmBrowserDesc">No necesita instalar nada. Es una alternativa menos fiable con el móvil bloqueado.</div>
+      <button class="cta-am-btn cta-am-ghost" id="ctaAlarmUseBrowser" type="button">Usar alarma del navegador</button>
+      <button class="cta-am-btn cta-am-blue" id="ctaAlarmTestBrowser" type="button">🧪 Probar navegador en 20 segundos</button>
+    </div>
+
+    <div class="cta-am-howto">
+      <b>Uso normal:</b> toque corto en el reloj = crear la alarma del día.<br>
+      <b>Ajustes:</b> mantener pulsado el reloj = abrir esta pantalla.
+    </div>
+
+    <button class="cta-am-btn cta-am-danger" id="ctaAlarmMethodClose" type="button">Cerrar</button>
+  </div>
+</div>
+<script>
+(function(){
+  var METHOD_KEY='cta_alarm_method_v1';
+  var OFFSET_KEY='cta_web_alarm_offset_hhmm';
+  var SEEN_KEY='cta_web_alarm_intro_seen';
+  var ALARMS_KEY='cta_web_alarms_v1';
+  var APK_B64='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AwEAAb4DAAAAAAAAd2VyQgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPgPAAAAAAAAQVBLIFNpZyBCbG9jayA0MlBLAQIAAwAAAAAIACEIIQIFRwgrNAAAADgAAAA5AAAAAAAAAAAAAACkgQAAAABNRVRBLUlORi9jb20vYW5kcm9pZC9idWlsZC9ncmFkbGUvYXBwLW1ldGFkYXRhLnByb3BlcnRpZXNQSwECAAMAAAAACAAhCCECur2iqnkCAABEBAAACwAAAAAAAAAAAAAApIGLAAAAY2xhc3Nlcy5kZXhQSwECAAMAAAAACAAhCCECF+9+W8dBAADUegAADAAAAAAAAAAAAAAApIEtAwAAY2xhc3NlczIuZGV4UEsBAgAAAAAAAAgAIQghAl/hmmd9BgAAVBcAABMAAAAAAAAAAAAAAAAAHkUAAEFuZHJvaWRNYW5pZmVzdC54bWxQSwECAAAAAAAAAAAhCCECClcRmnACAABwAgAADgAAAAAAAAAAAAAAAADMSwAAcmVzb3VyY2VzLmFyc2NQSwECAAMAAAAACAAhCCECyvmUn6EBAAB4AgAAEAAAAAAAAAAAAAAApIFoTgAATUVUQS1JTkYvQ0VSVC5TRlBLAQIAAwAAAAAIACEIIQLlKojvSAQAAEkFAAARAAAAAAAAAAAAAACkgTdQAABNRVRBLUlORi9DRVJULlJTQVBLAQIAAwAAAAAIACEIIQIIdITXcgEAACsCAAAUAAAAAAAAAAAAAACkga5UAABNRVRBLUlORi9NQU5JRkVTVC5NRlBLBQYAAAAACAAIABYCAABSZgAAAAA=';
+  var longTimer=null,longFired=false;
+  var $=function(id){return document.getElementById(id)};
+  var pad=function(n){return String(n).padStart(2,'0')};
+  function method(){try{return localStorage.getItem(METHOD_KEY)||''}catch(e){return ''}}
+  function setMethod(v){try{localStorage.setItem(METHOD_KEY,v)}catch(e){}}
+  function getOffset(){var v='01:10';try{v=localStorage.getItem(OFFSET_KEY)||v}catch(e){}return /^\d{2}:\d{2}$/.test(v)?v:'01:10'}
+  function saveOffset(){var v=$('ctaAlarmMethodOffset').value;if(!/^\d{2}:\d{2}$/.test(v)){alert('Introduce la antelación en formato HH:mm.');return false}var p=v.split(':'),h=+p[0],m=+p[1];if(h>23||m>59){alert('Antelación no válida.');return false}try{localStorage.setItem(OFFSET_KEY,v);localStorage.setItem(SEEN_KEY,'1')}catch(e){}return true}
+  function isAndroid(){return /Android/i.test(navigator.userAgent||'')}
+  function isIOS(){return /iPhone|iPad|iPod/i.test(navigator.userAgent||'')}
+  function selectedDay(){
+    var y=window._mcEditYear,m=window._mcEditMonth,d=window._mcEditDay;if(y==null||m==null||d==null)return null;
+    var e1=$('mc-edit-e1')&&$('mc-edit-e1').value;
+    if(!e1){try{var raw=localStorage.getItem('cta_ed_'+y),obj=raw?JSON.parse(raw):{},months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];e1=((obj[months[m]]||{})[d]||{}).e1||''}catch(e){}}
+    if(!e1)return null;return {date:new Date(y,m,d),entry:String(e1),label:'Turno CTA · entrada '+String(e1)};
+  }
+  function shiftReminderFor(sel){
+    if(!sel||!sel.date)return '';
+    var y=sel.date.getFullYear(),m=sel.date.getMonth(),d=sel.date.getDate();
+    var e1='',s1='',e2='',s2='';
+    var sameEdit=(window._mcEditYear===y&&window._mcEditMonth===m&&window._mcEditDay===d);
+    if(sameEdit){
+      e1=$('mc-edit-e1')&&$('mc-edit-e1').value||'';
+      s1=$('mc-edit-s1')&&$('mc-edit-s1').value||'';
+      e2=$('mc-edit-e2')&&$('mc-edit-e2').value||'';
+      s2=$('mc-edit-s2')&&$('mc-edit-s2').value||'';
+    }
+    try{
+      var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+      var raw=localStorage.getItem('cta_ed_'+y),obj=raw?JSON.parse(raw):{},day=((obj[months[m]]||{})[d]||{});
+      if(!e1)e1=day.e1||sel.entry||'';
+      if(!s1)s1=day.s1||'';
+      if(!e2)e2=day.e2||'';
+      if(!s2)s2=day.s2||'';
+    }catch(e){if(!e1)e1=sel.entry||''}
+    var parts=[];
+    if(e1&&s1)parts.push(String(e1)+' → '+String(s1));
+    else if(e1)parts.push('Entrada '+String(e1));
+    if(e2&&s2)parts.push(String(e2)+' → '+String(s2));
+    else if(e2)parts.push('2.º tramo · '+String(e2));
+    return parts.join('  ·  ');
+  }
+  function alarmData(sel){
+    if(!sel)return null;var off=getOffset().split(':'),mins=(+off[0])*60+(+off[1]),p=sel.entry.split(':');
+    var start=new Date(sel.date.getFullYear(),sel.date.getMonth(),sel.date.getDate(),parseInt(p[0],10)||0,parseInt(p[1],10)||0,0,0),at=start.getTime()-mins*60000;
+    if(at<=Date.now())return {error:'La hora calculada para esa alarma ya ha pasado.'};
+    var id=sel.date.getFullYear()+'-'+pad(sel.date.getMonth()+1)+'-'+pad(sel.date.getDate())+'_'+sel.entry;
+    var reminder=shiftReminderFor(sel),appLabel=sel.label+(reminder?'|||CTA_SHIFT|||'+reminder:'');
+    return {id:id,at:at,entry:sel.entry,label:sel.label,appLabel:appLabel,shiftReminder:reminder,method:'app'};
+  }
+  function loadAlarms(){try{var a=JSON.parse(localStorage.getItem(ALARMS_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+  function saveNativeMeta(a){var arr=loadAlarms().filter(function(x){return x.id!==a.id&&x.at>Date.now()-60000});arr.push(a);try{localStorage.setItem(ALARMS_KEY,JSON.stringify(arr))}catch(e){}}
+  function refreshOldUI(){try{var b=$('ctaWebAlarmListBtn');if(b)b.click&&null}catch(e){}setTimeout(function(){try{window.dispatchEvent(new Event('resize'))}catch(e){}},50)}
+  function createNative(sel,suppressToast){
+    var a=alarmData(sel);
+    if(!a){alert('Ese día no tiene turno con hora de entrada.');return false}
+    if(a.error){alert(a.error);return false}
+    saveNativeMeta(a);refreshOldUI();
+    var intentUri='ctaalarm3://set?at='+encodeURIComponent(String(a.at))+'&label='+encodeURIComponent(a.appLabel||a.label);
+    try{window.location.href=intentUri}catch(e){
+      alert('No se ha podido abrir CTA Alarma. Comprueba que CTA Alarma esté instalada.');
+      return false;
+    }
+    var d=new Date(a.at),t=$('ctaWebAlarmToast');
+    if(t&&!suppressToast){
+      t.textContent='⏰ Alarma '+pad(d.getHours())+':'+pad(d.getMinutes())+' creada';
+      t.classList.add('show');clearTimeout(t._t);
+      t._t=setTimeout(function(){t.classList.remove('show')},2600);
+    }else if(t&&suppressToast){
+      t.classList.remove('show');clearTimeout(t._t);
+    }
+    return true;
+  }
+  function downloadApk(){
+    if(!saveOffset())return;setMethod('app');
+    try{var bin=atob(APK_B64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);var blob=new Blob([u],{type:'application/vnd.android.package-archive'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='CTA-Alarma.apk';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},5000)}catch(e){alert('No se pudo iniciar la descarga. Usa el APK que te he pasado junto al Index.')}
+    closeModal();setTimeout(function(){alert('Descarga iniciada. Instala CTA Alarma y después vuelve a CTA. Mantén pulsado el reloj y pulsa “Ya la tengo instalada” para seleccionarla. Si Android pide permisos de alarmas, notificaciones o pantalla completa, concédelos.')},250);
+  }
+  function refreshMethodUI(){
+    var m=method(),android=isAndroid(),ios=isIOS();
+    var cur=$('ctaAlarmMethodCurrent'),use=$('ctaAlarmUseInstalled'),browserUse=$('ctaAlarmUseBrowser');
+    if(m){
+      cur.style.display='block';
+      cur.textContent='Método seleccionado: '+(m==='app'?'CTA Alarma (Android)':'Navegador')+' · '+getOffset()+' antes';
+    }else cur.style.display='none';
+
+    if(use){
+      use.classList.toggle('selected',android&&m==='app');
+      use.textContent=(android&&m==='app')?'✓ CTA Alarma seleccionada':'Ya la tengo instalada';
+    }
+    if(browserUse){
+      browserUse.classList.toggle('selected',m==='browser');
+      browserUse.textContent=(m==='browser')?'✓ Navegador seleccionado':'Usar alarma del navegador';
+    }
+    $('ctaAlarmOpenAppConfig').style.display=(android&&m==='app')?'block':'none';
+    $('ctaAlarmTestReal').style.display=(android&&m==='app')?'block':'none';
+    $('ctaAlarmTestRealNote').style.display=(android&&m==='app')?'block':'none';
+
+    var browserOpt=$('ctaAlarmBrowserOption'),badge=$('ctaAlarmBrowserBadge');
+    if(browserOpt)browserOpt.classList.toggle('recommended',ios);
+    if(badge){
+      if(ios){badge.style.display='inline-block';badge.textContent='OPCIÓN DISPONIBLE EN iPHONE';}
+      else{badge.style.display='none';badge.textContent='';}
+    }
+  }
+  function openModal(fromLong){
+    var sel=selectedDay();if(!sel){alert('Ese día no tiene turno con hora de entrada.');return}
+    $('ctaAlarmMethodOffset').value=getOffset();
+    var ios=isIOS(),android=isAndroid(),platform=$('ctaAlarmPlatform');
+    $('ctaAlarmAndroidOptions').style.display=android?'block':'none';
+
+    if(android){
+      platform.className='cta-am-platform android';
+      platform.innerHTML='<strong>Android detectado</strong><span>Recomendamos <b>CTA Alarma</b>. Se instala una sola vez y es la opción más fiable para una alarma real con el móvil bloqueado.</span>';
+      $('ctaAlarmMethodIntro').textContent='Elige una vez el método que quieres usar. Después, un toque corto en el reloj crea la alarma.';
+      $('ctaAlarmBrowserTitle').textContent='Alternativa: alarma desde el navegador';
+      $('ctaAlarmBrowserDesc').textContent='No requiere instalar nada, pero depende del navegador del móvil y del volumen multimedia. No la recomendamos como despertador si el móvil va a estar bloqueado.';
+    }else if(ios){
+      platform.className='cta-am-platform ios';
+      platform.innerHTML='<strong>iPhone / iPad detectado</strong><span><b>CTA Alarma no puede instalarse en iOS.</b> En iPhone la opción disponible es usar la alarma desde el navegador.</span>';
+      $('ctaAlarmMethodIntro').textContent='En iPhone no hay miniapp CTA. Puedes usar el navegador, teniendo en cuenta las limitaciones de iOS con la pantalla bloqueada.';
+      $('ctaAlarmBrowserTitle').textContent='Alarma para iPhone desde el navegador';
+      $('ctaAlarmBrowserDesc').textContent='No necesita instalar nada. iOS puede suspender o limitar las páginas web cuando la pantalla está bloqueada, por lo que no podemos garantizar el mismo comportamiento que una alarma nativa.';
+    }else{
+      platform.className='cta-am-platform';
+      platform.innerHTML='<strong>Navegador detectado</strong><span>Puedes usar la alarma desde el navegador. La miniapp CTA Alarma está disponible únicamente para Android.</span>';
+      $('ctaAlarmMethodIntro').textContent='Elige cómo quieres recibir la alarma.';
+      $('ctaAlarmBrowserTitle').textContent='Alarma desde el navegador';
+      $('ctaAlarmBrowserDesc').textContent='No necesita instalar nada. Su fiabilidad depende del navegador y de que el sistema no lo suspenda.';
+    }
+    refreshMethodUI();
+    $('ctaAlarmMethodBg').classList.add('show');
+  }
+  function closeModal(){$('ctaAlarmMethodBg').classList.remove('show')}
+  window.__ctaOpenAlarmMethod=function(){openModal(true)};
+  function useBrowser(){
+    if(!saveOffset())return;
+    setMethod('browser');
+    refreshMethodUI();
+    var t=$('ctaWebAlarmToast');
+    if(t){t.textContent='✓ Navegador seleccionado';t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show')},2200)}
+  }
+  function testBrowser(){
+    if(!saveOffset())return;
+    closeModal();
+    setTimeout(function(){
+      if(typeof window.__ctaBrowserAlarmTest==='function')window.__ctaBrowserAlarmTest(20);
+      else alert('No se ha podido iniciar la prueba del navegador.');
+    },80);
+  }
+  function useInstalled(){
+    if(!saveOffset())return;
+    setMethod('app');
+    refreshMethodUI();
+    var t=$('ctaWebAlarmToast');
+    if(t){t.textContent='✓ CTA Alarma seleccionada';t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show')},2200)}
+  }
+  function testRealAlarm(ev){
+    if(ev){try{ev.preventDefault();ev.stopPropagation();}catch(e){}}
+    if(!isAndroid())return;
+    if(!saveOffset())return;
+    setMethod('app');
+
+    var btn=$('ctaAlarmTestReal');
+    var oldText=btn?btn.textContent:'';
+    var at=Date.now()+60000;
+    var sel=selectedDay(),reminder=shiftReminderFor(sel);
+    var label='PRUEBA CTA · alarma real'+(reminder?'|||CTA_SHIFT|||'+reminder:'');
+    var intentUri='ctaalarm3://set?at='+encodeURIComponent(String(at))+'&label='+encodeURIComponent(label);
+
+    if(btn){btn.textContent='🧪 Programando prueba…';btn.disabled=true;}
+
+    function restore(){
+      if(btn){btn.textContent=oldText||'🧪 Probar alarma real en 1 minuto';btn.disabled=false;}
+    }
+
+    // Una sola apertura. CTA Alarma programa la alarma y vuelve a CTA.
+    try{window.location.href=intentUri}catch(e){
+      restore();
+      alert('No se ha podido abrir CTA Alarma. Comprueba que CTA Alarma esté instalada.');
+      return;
+    }
+
+    var d=new Date(at);
+    var hh=String(d.getHours()).padStart(2,'0');
+    var mm=String(d.getMinutes()).padStart(2,'0');
+    setTimeout(function(){restore();},1500);
+    setTimeout(function(){
+      if(document.visibilityState!=='hidden'){
+        try{alert('Prueba enviada a CTA Alarma para las '+hh+':'+mm+'. Si te pide “Alertas a pantalla completa”, actívalo. Después bloquea el móvil: debe encenderse y mostrar DETENER / POSPONER.')}catch(e){}
+      }
+    },2200);
+  }
+  function openAppConfig(ev){
+    if(ev){try{ev.preventDefault();ev.stopPropagation();}catch(e){}}
+    if(!isAndroid())return;
+    saveOffset();
+    setMethod('app');
+
+    var btn=$('ctaAlarmOpenAppConfig');
+    var oldText=btn?btn.textContent:'';
+    if(btn){btn.textContent='⚙️ Abriendo configuración…';btn.disabled=true;}
+
+    var intentUri='ctaalarm3://config';
+
+    function restoreButton(){
+      if(btn){btn.textContent=oldText||'⚙️ Configurar volumen, progresivo y vibración';btn.disabled=false;}
+    }
+
+    try{window.location.href=intentUri}catch(e){
+      restoreButton();
+      alert('No se ha podido abrir CTA Alarma. Comprueba que CTA Alarma esté instalada.');
+      return;
+    }
+    setTimeout(function(){restoreButton();},1500);
+  }
+  var SPLIT_OFFSET_KEY='cta_alarm_second_offset_hhmm';
+  var SPLIT_PENDING_KEY='cta_alarm_split_pending_v1';
+  var splitCurrent=null;
+
+  function splitOffset(){
+    var v='00:30';
+    try{v=localStorage.getItem(SPLIT_OFFSET_KEY)||v}catch(e){}
+    return /^\d{2}:\d{2}$/.test(v)?v:'00:30';
+  }
+  function splitDayData(sel){
+    if(!sel||!sel.date)return null;
+    var y=sel.date.getFullYear(),m=sel.date.getMonth(),d=sel.date.getDate();
+    var e1='',s1='',e2='',s2='';
+    var same=(window._mcEditYear===y&&window._mcEditMonth===m&&window._mcEditDay===d);
+    if(same){
+      e1=$('mc-edit-e1')&&$('mc-edit-e1').value||'';
+      s1=$('mc-edit-s1')&&$('mc-edit-s1').value||'';
+      e2=$('mc-edit-e2')&&$('mc-edit-e2').value||'';
+      s2=$('mc-edit-s2')&&$('mc-edit-s2').value||'';
+    }
+    try{
+      var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+      var raw=localStorage.getItem('cta_ed_'+y),obj=raw?JSON.parse(raw):{},day=((obj[months[m]]||{})[d]||{});
+      if(!e1)e1=day.e1||sel.entry||'';
+      if(!s1)s1=day.s1||'';
+      if(!e2)e2=day.e2||'';
+      if(!s2)s2=day.s2||'';
+    }catch(e){}
+    if(!e2)return null;
+    return {
+      date:new Date(y,m,d),
+      e1:String(e1||sel.entry||''),
+      s1:String(s1||''),
+      e2:String(e2),
+      s2:String(s2||'')
+    };
+  }
+  function splitPendingSave(sel){
+    var sp=splitDayData(sel);if(!sp)return;
+    var firstAlarm='';
+    try{
+      var mins=offsetToMinutes(getOffset());
+      var p=String(sp.e1||'').split(':');
+      if(mins!==null&&p.length===2){
+        var dt=new Date(sp.date.getFullYear(),sp.date.getMonth(),sp.date.getDate(),parseInt(p[0],10)||0,parseInt(p[1],10)||0,0,0);
+        dt=new Date(dt.getTime()-mins*60000);
+        firstAlarm=pad(dt.getHours())+':'+pad(dt.getMinutes());
+      }
+    }catch(e){}
+    var obj={
+      y:sp.date.getFullYear(),m:sp.date.getMonth(),d:sp.date.getDate(),
+      e1:sp.e1,s1:sp.s1,e2:sp.e2,s2:sp.s2,
+      firstAlarm:firstAlarm,noticeShown:false,created:Date.now()
+    };
+    splitCurrent=obj;
+    try{localStorage.setItem(SPLIT_PENDING_KEY,JSON.stringify(obj))}catch(e){}
+  }
+  function splitPendingLoad(){
+    var o=null;
+    try{o=JSON.parse(localStorage.getItem(SPLIT_PENDING_KEY)||'null')}catch(e){}
+    if(!o||!o.e2||!o.created||Date.now()-o.created>20*60*1000){
+      try{localStorage.removeItem(SPLIT_PENDING_KEY)}catch(e){}
+      return null;
+    }
+    return o;
+  }
+  function resetAlarmToastHeight(){
+    try{document.documentElement.style.removeProperty('--cta-alarm-toast-bottom')}catch(e){}
+  }
+  function liftAlarmToastAboveSplit(){
+    var box=$('ctaSplitSuggest');if(!box||!box.classList.contains('show')){resetAlarmToastHeight();return}
+    requestAnimationFrame(function(){
+      var h=box.offsetHeight||0;
+      // La tarjeta queda a 18px del borde inferior. Dejamos 14px de separación.
+      var bottom=18+h+14;
+      try{document.documentElement.style.setProperty('--cta-alarm-toast-bottom',bottom+'px')}catch(e){}
+    });
+  }
+  function clearSplitPending(){
+    splitCurrent=null;
+    try{localStorage.removeItem(SPLIT_PENDING_KEY)}catch(e){}
+    var s=$('ctaSplitSuggest');if(s)s.classList.remove('show');
+    resetAlarmToastHeight();
+  }
+  function showSplitFirstAlarmNotice(o){
+    if(!o||o.noticeShown)return;
+    var t=$('ctaWebAlarmToast');
+    if(t&&o.firstAlarm){
+      t.textContent='⏰ Alarma '+o.firstAlarm+' creada';
+      t.classList.add('show');
+      clearTimeout(t._t);
+      t._t=setTimeout(function(){t.classList.remove('show')},3600);
+    }
+    o.noticeShown=true;
+    splitCurrent=o;
+    try{localStorage.setItem(SPLIT_PENDING_KEY,JSON.stringify(o))}catch(e){}
+  }
+  function showSplitSuggestion(){
+    var o=splitCurrent||splitPendingLoad();if(!o)return;
+    splitCurrent=o;
+    var title=$('ctaSplitSuggestTitle'),box=$('ctaSplitSuggest');
+    if(title)title.textContent='2.º periodo · entrada '+o.e2;
+    if(box){
+      box.classList.add('show');
+      liftAlarmToastAboveSplit();
+      showSplitFirstAlarmNotice(o);
+      setTimeout(liftAlarmToastAboveSplit,30);
+    }
+  }
+  function queueSplitSuggestion(sel){
+    var sp=splitDayData(sel);if(!sp)return;
+    splitPendingSave(sel);
+    setTimeout(function(){if(document.visibilityState!=='hidden')showSplitSuggestion()},450);
+  }
+  function openSplitModal(){
+    var o=splitCurrent||splitPendingLoad();if(!o)return;
+    splitCurrent=o;
+    $('ctaSplitOffset').value=splitOffset();
+    var info='Entrada '+o.e2;
+    if(o.s2)info+=' · salida '+o.s2;
+    $('ctaSplitModalInfo').textContent=info;
+    $('ctaSplitSuggest').classList.remove('show');
+    resetAlarmToastHeight();
+    $('ctaSplitModalBg').classList.add('show');
+  }
+  function closeSplitModal(){
+    $('ctaSplitModalBg').classList.remove('show');
+    if(splitCurrent){
+      $('ctaSplitSuggest').classList.add('show');
+      liftAlarmToastAboveSplit();
+    }else{
+      resetAlarmToastHeight();
+    }
+  }
+  function offsetToMinutes(v){
+    if(!/^\d{2}:\d{2}$/.test(String(v||'')))return null;
+    var p=v.split(':'),h=+p[0],m=+p[1];
+    if(h<0||h>23||m<0||m>59)return null;
+    return h*60+m;
+  }
+  function splitSelFromPending(o){
+    return {
+      date:new Date(o.y,o.m,o.d),
+      entry:o.e2,
+      label:'Turno CTA · 2.º periodo · entrada '+o.e2
+    };
+  }
+  function createNativeWithOffset(sel,offset){
+    var mins=offsetToMinutes(offset);if(mins===null)return false;
+    var p=sel.entry.split(':');
+    var start=new Date(sel.date.getFullYear(),sel.date.getMonth(),sel.date.getDate(),parseInt(p[0],10)||0,parseInt(p[1],10)||0,0,0);
+    var at=start.getTime()-mins*60000;
+    if(at<=Date.now()){alert('La hora calculada para la segunda alarma ya ha pasado.');return false}
+    var id=sel.date.getFullYear()+'-'+pad(sel.date.getMonth()+1)+'-'+pad(sel.date.getDate())+'_'+sel.entry;
+    var reminder=shiftReminderFor(sel);
+    var appLabel=sel.label+(reminder?'|||CTA_SHIFT|||'+reminder:'');
+    var a={id:id,at:at,entry:sel.entry,label:sel.label,appLabel:appLabel,shiftReminder:reminder,method:'app'};
+    saveNativeMeta(a);refreshOldUI();
+    clearSplitPending();
+    $('ctaSplitModalBg').classList.remove('show');
+    try{window.location.href='ctaalarm3://set?at='+encodeURIComponent(String(at))+'&label='+encodeURIComponent(appLabel)}
+    catch(e){alert('No se ha podido abrir CTA Alarma.');return false}
+    return true;
+  }
+  function createBrowserWithOffset(sel,offset){
+    var prev=getOffset();
+    try{localStorage.setItem(OFFSET_KEY,offset)}catch(e){}
+    try{
+      if(typeof window.__ctaBrowserAlarmCreate==='function')window.__ctaBrowserAlarmCreate(sel);
+      else{alert('No se ha podido crear la alarma del navegador.');return false}
+    }finally{
+      try{localStorage.setItem(OFFSET_KEY,prev)}catch(e){}
+    }
+    clearSplitPending();
+    $('ctaSplitModalBg').classList.remove('show');
+    return true;
+  }
+  function createSecondPeriod(){
+    var o=splitCurrent||splitPendingLoad();if(!o)return;
+    var v=$('ctaSplitOffset').value;
+    if(offsetToMinutes(v)===null){alert('Introduce una antelación válida, por ejemplo 00:30.');return}
+    try{localStorage.setItem(SPLIT_OFFSET_KEY,v)}catch(e){}
+    var sel=splitSelFromPending(o);
+    if(method()==='app')createNativeWithOffset(sel,v);
+    else createBrowserWithOffset(sel,v);
+  }
+
+  function bindClock(){
+    var b=$('ctaWebAlarmDay');if(!b||b.__ctaMethodBound)return;b.__ctaMethodBound=true;
+    b.addEventListener('pointerdown',function(e){longFired=false;clearTimeout(longTimer);longTimer=setTimeout(function(){longFired=true;openModal(true)},650);e.stopImmediatePropagation()},true);
+    ['pointerup','pointercancel','pointerleave'].forEach(function(k){b.addEventListener(k,function(e){clearTimeout(longTimer);e.stopImmediatePropagation()},true)});
+    b.addEventListener('contextmenu',function(e){e.preventDefault();e.stopImmediatePropagation()},true);
+    b.addEventListener('click',function(e){
+      if(longFired){longFired=false;e.preventDefault();e.stopImmediatePropagation();return}
+      var m=method();if(!m){e.preventDefault();e.stopImmediatePropagation();openModal(false);return}
+      var sel=selectedDay();
+      if(m==='app'){
+        e.preventDefault();e.stopImmediatePropagation();
+        var hasSplit=!!splitDayData(sel);
+
+        // IMPORTANTE: en la web publicada (HTTPS), Android puede abrir CTA Alarma
+        // inmediatamente y pausar esta página. Guardamos ANTES el segundo periodo
+        // para que al volver siempre pueda recuperarse y mostrarse.
+        if(hasSplit)splitPendingSave(sel);
+
+        var created=createNative(sel,hasSplit);
+        if(!created){
+          if(hasSplit)clearSplitPending();
+          return;
+        }
+
+        // Si la página sigue visible (por ejemplo en archivo local), lo mostramos
+        // enseguida. Si Android la ha pausado, pageshow/visibilitychange lo mostrará
+        // al regresar leyendo SPLIT_PENDING_KEY.
+        if(hasSplit){
+          setTimeout(function(){
+            if(document.visibilityState!=='hidden')showSplitSuggestion();
+          },450);
+        }
+        return;
+      }
+      if(m==='browser'){
+        e.preventDefault();e.stopImmediatePropagation();
+        if(typeof window.__ctaBrowserAlarmCreate==='function')window.__ctaBrowserAlarmCreate(sel);
+        else{alert('No se ha podido crear la alarma del navegador.');return}
+        queueSplitSuggestion(sel);
+        return;
+      }
+    },true);
+  }
+
+  $('ctaAlarmMethodBg').addEventListener('click',closeModal);
+  $('ctaAlarmMethodClose').addEventListener('click',closeModal);
+  $('ctaAlarmDownloadApp').addEventListener('click',downloadApk);
+  $('ctaAlarmUseInstalled').addEventListener('click',useInstalled);
+  $('ctaAlarmUseBrowser').addEventListener('click',useBrowser);
+  $('ctaAlarmTestBrowser').addEventListener('click',testBrowser);
+  $('ctaAlarmOpenAppConfig').addEventListener('click',openAppConfig);
+  $('ctaAlarmTestReal').addEventListener('click',testRealAlarm);
+  function bindSplitUI(){
+    var dismiss=$('ctaSplitDismiss'),add=$('ctaSplitAdd'),bg=$('ctaSplitModalBg'),
+        cancel=$('ctaSplitCancel'),create=$('ctaSplitCreate');
+    if(!dismiss||!add||!bg||!cancel||!create)return false;
+    if(dismiss.__ctaSplitBound)return true;
+    dismiss.__ctaSplitBound=true;
+    dismiss.addEventListener('click',clearSplitPending);
+    add.addEventListener('click',openSplitModal);
+    bg.addEventListener('click',closeSplitModal);
+    cancel.addEventListener('click',closeSplitModal);
+    create.addEventListener('click',createSecondPeriod);
+    return true;
+  }
+  function initAlarmMethodUI(){
+    bindSplitUI();
+    bindClock();
+    setTimeout(showSplitSuggestion,300);
+  }
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible'){
+      setTimeout(function(){bindSplitUI();bindClock();showSplitSuggestion()},250);
+    }
+  });
+  window.addEventListener('pageshow',function(){
+    setTimeout(function(){bindSplitUI();bindClock();showSplitSuggestion()},300);
+  });
+  window.addEventListener('resize',function(){
+    if($('ctaSplitSuggest')&&$('ctaSplitSuggest').classList.contains('show'))liftAlarmToastAboveSplit();
+  });
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initAlarmMethodUI);
+  else setTimeout(initAlarmMethodUI,0);
+  setInterval(function(){bindSplitUI();bindClock()},700);
+})();
+</script>
+
+
+<!-- CTA_V7_RECORDATORIO_TURNO_EN_ALARMA_FULLSCREEN -->
+<!-- CTA_FIX_2026_08_09_V8_3_ESQUEMA_DIRECTO_SAMSUNG
+     - Todos los saltos a la miniapp usan ctaalarm3:// directamente.
+     - Sin package forzado y sin segundo intento/fallback.
+     - Evita que Chrome/Samsung derive a Google Play ("Elemento no encontrado").
+
+<!-- CTA_FIX_2026_08_09_V8_2_TODOS_LOS_BOTONES_ANDROID
+     - CANCEL, UNINSTALL y SET usan intent:// con package=com.cta.alarm.configtest.
+     - Eliminados los accesos ctaalarm3:// directos que podían abrir 'Elemento no encontrado'.
+
+<!-- CTA_FIX_2026_08_09_V8_1_INTENT_PAQUETE_REAL
+     - Fuerza package=com.cta.alarm.configtest en SET y CONFIG.
+     - Mantiene una sola apertura de la miniapp.
+
+<!-- CTA_FIX_2026_08_09_V6_1_SIN_DOBLE_APERTURA
+     - Eliminada segunda apertura/fallback que provocaba el aviso repetido de Chrome.
+     - Al programar o probar, CTA Alarma se abre una sola vez.
+
+<!-- CTA_FIX_2026_08_09_IDENTIDAD_SEGURA_ALARMA_FULLSCREEN
+     - Cambios: identidad por nómina/nombre/sesión; eliminado fallback por mismo turno.
+     - Alarma Android: apertura universal por esquema ctaalarm3, sin fijar package Android.
+     - Navegador: añadido Posponer 5 min (sin garantía de despertar pantalla bloqueada).
+-->
+
+<style>
+#ctaSplitSuggest{
+  display:none;position:fixed;left:12px;right:12px;
+  bottom:calc(18px + env(safe-area-inset-bottom));
+  z-index:2147483650;max-width:430px;margin:auto;
+  background:#142033;border:1px solid rgba(200,168,75,.45);
+  border-radius:16px;padding:12px 12px 11px;
+  box-shadow:0 16px 45px rgba(0,0,0,.58);
+}
+#ctaSplitSuggest.show{display:block}
+.cta-split-top{display:flex;align-items:flex-start;gap:10px}
+.cta-split-copy{flex:1;min-width:0}
+.cta-split-ok{font-size:11px;font-weight:800;color:#9fdfc9;margin-bottom:3px}
+.cta-split-title{font-size:14px;font-weight:800;color:#fff}
+.cta-split-sub{font-size:10.5px;color:#97a6ba;margin-top:3px;line-height:1.35}
+#ctaSplitDismiss{
+  width:28px;height:28px;flex:0 0 28px;border:0;border-radius:9px;
+  background:rgba(255,255,255,.07);color:#9aa8bb;font-size:17px;cursor:pointer
+}
+#ctaSplitAdd{
+  width:100%;border:0;border-radius:11px;padding:11px 10px;margin-top:10px;
+  background:#294b70;color:#fff;font:800 12px "Outfit",sans-serif;cursor:pointer
+}
+
+#ctaSplitModalBg{
+  display:none;position:fixed;inset:0;z-index:2147483700;
+  background:rgba(0,0,0,.76);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:18px
+}
+#ctaSplitModalBg.show{display:flex}
+.cta-split-card{
+  width:100%;max-width:380px;background:#142033;
+  border:1px solid rgba(200,168,75,.42);border-radius:19px;
+  padding:17px;box-shadow:0 24px 70px rgba(0,0,0,.65)
+}
+.cta-split-kicker{
+  font-size:9.5px;font-weight:900;letter-spacing:.75px;
+  color:var(--gold,#c8a84b);text-transform:uppercase;margin-bottom:5px
+}
+.cta-split-head{font-size:20px;font-weight:800;color:#fff;margin-bottom:4px}
+#ctaSplitModalInfo{font-size:11px;color:#98a7ba;line-height:1.4;margin-bottom:14px}
+.cta-split-label{
+  font-size:10px;font-weight:800;color:#8f9db1;
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px
+}
+#ctaSplitOffset{
+  width:100%;height:48px;border-radius:11px;
+  border:1px solid rgba(255,255,255,.14);
+  background:#0d1724;color:#fff;text-align:center;
+  font:800 20px "Outfit",sans-serif
+}
+.cta-split-help{font-size:10.5px;color:#8291a6;line-height:1.4;margin-top:8px}
+.cta-split-actions{display:grid;grid-template-columns:1fr 1.45fr;gap:8px;margin-top:14px}
+.cta-split-actions button{
+  border:0;border-radius:11px;padding:12px 8px;
+  font:800 12px "Outfit",sans-serif;cursor:pointer
+}
+#ctaSplitCancel{background:rgba(255,255,255,.07);color:#cbd5e1}
+#ctaSplitCreate{background:linear-gradient(135deg,var(--gold,#c8a84b),#e8c96a);color:#142033}
+</style>
+
+<div id="ctaSplitSuggest">
+  <div class="cta-split-top">
+    <div class="cta-split-copy">
+      <div class="cta-split-ok">✓ 1.ª ALARMA CREADA</div>
+      <div class="cta-split-title" id="ctaSplitSuggestTitle">2.º periodo</div>
+      <div class="cta-split-sub">¿Quieres crear también una alarma antes de volver al trabajo?</div>
+    </div>
+    <button id="ctaSplitDismiss" type="button" aria-label="Cerrar">×</button>
+  </div>
+  <button id="ctaSplitAdd" type="button">Añadir alarma del 2.º periodo</button>
+</div>
+
+<div id="ctaSplitModalBg">
+  <div class="cta-split-card" onclick="event.stopPropagation()">
+    <div class="cta-split-kicker">TURNO PARTIDO</div>
+    <div class="cta-split-head">Alarma del 2.º periodo</div>
+    <div id="ctaSplitModalInfo"></div>
+    <div class="cta-split-label">¿Cuánto antes?</div>
+    <input id="ctaSplitOffset" type="time" value="00:30" step="60">
+    <div class="cta-split-help">Este tiempo es independiente del de la primera entrada y quedará guardado para próximos turnos partidos.</div>
+    <div class="cta-split-actions">
+      <button id="ctaSplitCancel" type="button">Cancelar</button>
+      <button id="ctaSplitCreate" type="button">Crear alarma</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
+
+<!-- CTA_UI_ALARMAS_INTUITIVAS_V8_4
+- Android: CTA Alarma recomendada.
+- iOS: navegador como opción disponible.
+- "Ya la tengo instalada" solo selecciona método; no crea alarmas.
+- Desinstalar abre confirmación oficial de Android.
+-->
+
+<!-- CTA_ALARMA_V9
+- APK v9 integrada y firmada con la misma firma estable.
+- Desinstalar abre Ajustes > Aplicaciones > CTA Alarma para evitar el pantallazo del diálogo directo.
+-->
+
+
+<!-- CTA_ALARMA_V9_2
+- Eliminado el botón de desinstalación y toda su lógica.
+- La app se desinstala únicamente desde Ajustes > Aplicaciones del móvil.
+-->
+
+<!-- CTA_ALARMA_V9_3
+- El botón Navegador también se vuelve verde cuando es el método seleccionado.
+- Muestra "✓ Navegador seleccionado", igual que CTA Alarma.
+-->
+
+<!-- CTA_ALARMA_V9_4_PRUEBA_TURNO_PARTIDO
+- Un toque sigue creando inmediatamente la alarma de la primera entrada.
+- Si hay e2, ofrece después "Añadir alarma del 2.º periodo".
+- Antelación del segundo periodo independiente, por defecto 00:30, persistente.
+- Compatible con método CTA Alarma y Navegador.
+-->
+
+<!-- CTA_ALARMA_V9_5
+CORRECCION:
+- El script ya no falla por intentar enlazar la UI del segundo periodo antes de existir en el DOM.
+- Mantener pulsado el reloj abre siempre ALARMAS CTA (selector Android/Navegador).
+- El antiguo modal ALARMA CTA queda como respaldo interno, no como pantalla de configuración.
+- En Android solo se propone el segundo periodo si la primera alarma fue válida.
+-->
+
+<!-- CTA_ALARMA_V9_6
+- La tarjeta del segundo periodo permanece abajo.
+- El aviso flotante de "alarma creada" se eleva automáticamente justo por encima.
+- La separación se calcula según la altura real de la tarjeta para evitar solapes.
+-->
+
+<!-- CTA_ALARMA_V10_SIN_DESTELLO
+- APK v10 integrada.
+- ctaalarm3://set entra por una Activity Theme.NoDisplay.
+- Si permisos/configuración ya están OK, programa sin mostrar pantalla intermedia.
+- Eliminado el Toast nativo de éxito para no duplicar confirmaciones.
+- Turno partido: la propia tarjeta inferior es la única confirmación de la primera alarma.
+- Turno normal: se mantiene un único aviso web "Alarma HH:MM creada".
+-->
+
+<!-- CTA_ALARMA_V10_1
+- En turno partido vuelve a mostrarse "Alarma HH:MM creada".
+- Aparece una sola vez, justo encima de la tarjeta del 2.º periodo.
+- No reaparece al cambiar de pestaña o volver a la página.
+- APK v10 sin cambios.
+-->
+
+<!-- CTA_ALARMA_V10_2
+CORRECCION WEB PUBLICADA:
+- El segundo periodo se guarda ANTES de abrir ctaalarm3://set.
+- Evita perder la tarjeta cuando HTTPS entrega inmediatamente el enlace a Android.
+- Al volver, pageshow/visibilitychange recupera el pendiente desde localStorage.
+- APK v10 sin cambios.
+-->
+
+<!-- CTA_ALARMA_V11_ALARMA_FIABLE
+- Restaura ctaalarm3://set mediante MainActivity, igual que el flujo probado de v9.
+- Se elimina del recorrido la SetAlarmActivity NoDisplay de v10.
+- AlarmScheduler / AlarmReceiver / AlarmService siguen sin cambios.
+- Mantiene la lógica web de turnos partidos de v10.2.
+- Puede reaparecer un pequeño destello al crear la alarma: se prioriza fiabilidad.
+-->
+
+<!-- CTA_ALARMA_V12_SIN_DESTELLO_BLANCO
+- Mantiene íntegro el flujo fiable de programación de v11.
+- No cambia AlarmScheduler, AlarmReceiver ni AlarmService.
+- MainActivity y CancelActivity usan una ventana transparente sin preview.
+- Se eliminan las animaciones de entrada/salida en las acciones de cancelación.
+- Objetivo: quitar el destello blanco al crear/cancelar, incluida la alarma del 2.º periodo.
+-->
