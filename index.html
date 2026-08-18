@@ -12,7 +12,7 @@
 <head>
 <script id="cta-build-guard">
 (function(){
-  var BUILD="20260818-login-v13-3";
+  var BUILD="20260818-login-v13-4";
   try{
     var u=new URL(location.href);
     if((location.protocol==="https:"||location.protocol==="http:") &&
@@ -4051,7 +4051,7 @@ function renderAvisosDefault(container){
 }
 
 // PWA
-var manifest={name:"CTA Alicante",short_name:"CTA",id:"./",start_url:"./?cta_build=20260818-login-v13-3",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
+var manifest={name:"CTA Alicante",short_name:"CTA",id:"./",start_url:"./?cta_build=20260818-login-v13-4",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
 var ml=document.createElement("link");ml.rel="manifest";ml.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/json"}));document.head.appendChild(ml);
 var dp;
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;setTimeout(function(){document.getElementById("install-banner").classList.add("show");},4000);});
@@ -18131,6 +18131,25 @@ body:has(#login-screen[style*="display: flex"]) #bottom-nav{
 }
 </style>
 
+
+<style id="cta-v13-4-gap-cards">
+/* Un poco más de aire entre las viñetas principales del inicio */
+.op-comp-card[onclick*="abrirCompanerosPorDia"],
+#op-cal-card,
+#op-turno-card,
+#panel-operativa .op-vuelos-card,
+#panel-operativa .op-live-card,
+#panel-operativa .op-turno-card.op-tc-horiz,
+#panel-operativa .op-cal-card{
+  margin-bottom:12px!important;
+}
+
+/* Un poco más de aire entre encabezado de sección y la siguiente viñeta */
+#panel-operativa .dash-section-title{
+  margin:18px 0 12px!important;
+}
+</style>
+
 </body>
 </html>
 
@@ -18260,4 +18279,10 @@ CORRECCION WEB PUBLICADA:
 - Menos margen superior para que no sobre tanto aire arriba.
 - Mantiene login limpio, enlaces nuevos, APK v12 y alarmas.
 - PWA versionada como 20260818-login-v13-3.
+-->
+
+<!-- CTA_V13_4_MAS_SEPARACION_VINETAS_2026-08-18
+- Añadido un poco más de separación vertical entre las viñetas principales.
+- Mantiene login limpio, enlaces nuevos, APK v12 y alarmas.
+- PWA versionada como 20260818-login-v13-4.
 -->
