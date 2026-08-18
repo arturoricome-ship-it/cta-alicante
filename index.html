@@ -10,6 +10,23 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script id="cta-build-guard">
+(function(){
+  var BUILD="20260818-login-v13";
+  try{
+    var u=new URL(location.href);
+    if((location.protocol==="https:"||location.protocol==="http:") &&
+       u.searchParams.get("cta_build")!==BUILD){
+      u.searchParams.set("cta_build",BUILD);
+      location.replace(u.toString());
+      return;
+    }
+    window.addEventListener("pageshow",function(e){
+      if(e.persisted) location.reload();
+    });
+  }catch(e){}
+})();
+</script>
 <!-- CTA_CAMBIO_TURNO_SUSTITUYE_COMPLETO_SIN_MEZCLAR_V1_2026-08-01 -->
 
 <!-- CTA_MIJORNADA_CUENTA_ATRAS_PORCENTAJE_DESCENDENTE_V1_2026-07-19 -->
@@ -2420,12 +2437,12 @@ body[data-panel="afiliate"] #panel-afiliate{
       <div class="ai-info"><div class="ai-nombre">Grupo de trabajo</div><div class="ai-desc">Calendario de tu grupo</div></div>
       <div class="ai-arrow">&#8250;</div>
     </a>
-    <a class="acceso-item" href="https://soegs.sharepoint.com/sites/intranet/SitePages/Nominas-empleados.aspx" target="_blank">
+    <a class="acceso-item" href="https://besouth.southeu.com/nominas" target="_blank">
       <div class="ai-ico" style="background:rgba(100,200,100,.15)">&#128176;</div>
       <div class="ai-info"><div class="ai-nombre">Nóminas</div><div class="ai-desc">Consulta y descarga tus nóminas</div></div>
       <div class="ai-arrow">&#8250;</div>
     </a>
-    <a class="acceso-item" href="https://soegs.sharepoint.com/sites/intranet/SitePages/ContentsMap.aspx" target="_blank">
+    <a class="acceso-item" href="https://besouth.southeu.com/" target="_blank">
       <div class="ai-ico" style="background:rgba(100,160,240,.15)">&#127970;</div>
       <div class="ai-info"><div class="ai-nombre">Intranet corporativa</div><div class="ai-desc">Página principal de la intranet</div></div>
       <div class="ai-arrow">&#8250;</div>
@@ -4034,7 +4051,7 @@ function renderAvisosDefault(container){
 }
 
 // PWA
-var manifest={name:"CTA Alicante",short_name:"CTA",start_url:".",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
+var manifest={name:"CTA Alicante",short_name:"CTA",id:"./",start_url:"./?cta_build=20260818-login-v13",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
 var ml=document.createElement("link");ml.rel="manifest";ml.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/json"}));document.head.appendChild(ml);
 var dp;
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;setTimeout(function(){document.getElementById("install-banner").classList.add("show");},4000);});
@@ -18029,6 +18046,35 @@ else etInit();
   </div>
 </div>
 
+
+<style id="cta-spacing-balance-v13-1">
+/* Ajuste visual: bajar ligeramente el bloque superior y reducir hueco inferior
+   para que la pantalla quede más centrada en la app instalada */
+#app-header{
+  padding-top:calc(env(safe-area-inset-top) + 16px)!important;
+  padding-bottom:2px!important;
+}
+#app-header::after{
+  margin-top:10px!important;
+}
+#scroll-area{
+  padding-top:14px!important;
+  padding-bottom:calc(80px + env(safe-area-inset-bottom))!important;
+}
+#live-body{
+  padding-bottom:calc(84px + env(safe-area-inset-bottom))!important;
+}
+@media (max-width: 640px){
+  #app-header{
+    padding-top:calc(env(safe-area-inset-top) + 18px)!important;
+  }
+  #scroll-area{
+    padding-top:16px!important;
+    padding-bottom:calc(78px + env(safe-area-inset-bottom))!important;
+  }
+}
+</style>
+
 </body>
 </html>
 
@@ -18129,4 +18175,19 @@ CORRECCION WEB PUBLICADA:
 - Sesión real sigue recordándose 7 días.
 - Las sesiones antiguas prueba@cta.local se eliminan al cargar.
 - APK v12 y alarmas sin cambios.
+-->
+
+<!-- CTA_LOGIN_V13_ENLACES_Y_ANTICACHE_2026-08-18
+- Login real activo.
+- APK v12 y motor de alarmas sin cambios.
+- Intranet -> https://besouth.southeu.com/
+- Nóminas -> https://besouth.southeu.com/nominas
+- start_url PWA versionada para evitar reapertura de copias antiguas.
+- recarga si Android restaura la página mediante BFCache.
+-->
+
+<!-- CTA_SPACING_V13_1_2026-08-18
+- Más margen superior en el header para separarlo del borde.
+- Menos padding inferior del área de scroll.
+- No cambia login, APK v12 ni alarmas.
 -->
