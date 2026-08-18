@@ -16839,7 +16839,7 @@ else etInit();
 
 <!-- CTA_ALARMA_MINIMA_PRUEBA_V3 -->
 <style>
-#login-screen,#btn-logout{display:none!important}
+/* Login real activo: no ocultar login ni botón Salir */
 #op-turno-card{position:relative}
 .cta-alarm-one{width:29px;height:29px;padding:0;border-radius:9px;border:1px solid rgba(200,168,75,.35);background:rgba(200,168,75,.09);color:var(--gold,#c8a84b);font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:none}
 .cta-alarm-one:active{transform:scale(.94);background:rgba(200,168,75,.18)}
@@ -18121,4 +18121,12 @@ CORRECCION WEB PUBLICADA:
 - Se conserva APK v12 integrada.
 - Se conserva turno partido y alarmas.
 - Se mantiene limpieza automática de sesiones antiguas prueba@cta.local.
+-->
+
+<!-- CTA_LOGIN_REAL_CORREGIDO_2026-08-18
+- Eliminada regla CSS heredada que ocultaba login y botón Salir con !important.
+- CTA_LOGIN_DISABLED_FOR_TESTS=false.
+- Sesión real sigue recordándose 7 días.
+- Las sesiones antiguas prueba@cta.local se eliminan al cargar.
+- APK v12 y alarmas sin cambios.
 -->
