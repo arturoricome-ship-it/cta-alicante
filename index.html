@@ -4716,7 +4716,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 <script>
 var CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
 var SHEETS_URL="https://script.google.com/macros/s/AKfycby_IIimYE_dL1BolZrPdGdmslVW1gV-Ivj9E7H3jaJgxd4ZJq7IEcFEjBuVj3iy0qQo/exec";
-var CTA_LOGIN_DISABLED_FOR_TESTS=true;
+var CTA_LOGIN_DISABLED_FOR_TESTS=false;
 
 function parseJwt(token){
   try{var b=token.split(".")[1];var d=atob(b.replace(/-/g,"+").replace(/_/g,"/"));return JSON.parse(decodeURIComponent(escape(d)));}
@@ -18114,4 +18114,11 @@ CORRECCION WEB PUBLICADA:
 - MainActivity y CancelActivity usan una ventana transparente sin preview.
 - Se eliminan las animaciones de entrada/salida en las acciones de cancelación.
 - Objetivo: quitar el destello blanco al crear/cancelar, incluida la alarma del 2.º periodo.
+-->
+
+<!-- CTA_LOGIN_REACTIVADO_SOBRE_V12_2026-08-18
+- Login Google activo.
+- Se conserva APK v12 integrada.
+- Se conserva turno partido y alarmas.
+- Se mantiene limpieza automática de sesiones antiguas prueba@cta.local.
 -->
