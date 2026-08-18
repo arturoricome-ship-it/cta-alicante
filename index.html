@@ -12,7 +12,7 @@
 <head>
 <script id="cta-build-guard">
 (function(){
-  var BUILD="20260818-login-v13";
+  var BUILD="20260818-login-v13-3";
   try{
     var u=new URL(location.href);
     if((location.protocol==="https:"||location.protocol==="http:") &&
@@ -4051,7 +4051,7 @@ function renderAvisosDefault(container){
 }
 
 // PWA
-var manifest={name:"CTA Alicante",short_name:"CTA",id:"./",start_url:"./?cta_build=20260818-login-v13",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
+var manifest={name:"CTA Alicante",short_name:"CTA",id:"./",start_url:"./?cta_build=20260818-login-v13-3",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
 var ml=document.createElement("link");ml.rel="manifest";ml.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/json"}));document.head.appendChild(ml);
 var dp;
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;setTimeout(function(){document.getElementById("install-banner").classList.add("show");},4000);});
@@ -11631,7 +11631,32 @@ window.initTurnoWidget=function(){
 
 
 <script>
-(function(){function forceBottomNav(){var n=document.getElementById('bottom-nav');if(!n)return;n.style.setProperty('display','flex','important');n.style.setProperty('visibility','visible','important');n.style.setProperty('opacity','1','important');n.style.setProperty('position','fixed','important');n.style.setProperty('bottom','0','important');n.style.setProperty('z-index','99999','important');}forceBottomNav();setInterval(forceBottomNav,1200);document.addEventListener('DOMContentLoaded',forceBottomNav);})();
+(function(){
+function forceBottomNav(){
+  var n=document.getElementById('bottom-nav');
+  if(!n)return;
+  var l=document.getElementById('login-screen');
+  var loginVisible=!!(l&&getComputedStyle(l).display!=='none');
+  if(loginVisible){
+    n.style.setProperty('display','none','important');
+    n.style.setProperty('visibility','hidden','important');
+    n.style.setProperty('opacity','0','important');
+    n.style.setProperty('pointer-events','none','important');
+    return;
+  }
+  n.style.setProperty('display','flex','important');
+  n.style.setProperty('visibility','visible','important');
+  n.style.setProperty('opacity','1','important');
+  n.style.setProperty('position','fixed','important');
+  n.style.setProperty('bottom','0','important');
+  n.style.setProperty('z-index','99999','important');
+  n.style.setProperty('pointer-events','auto','important');
+}
+forceBottomNav();
+setInterval(forceBottomNav,350);
+document.addEventListener('DOMContentLoaded',forceBottomNav);
+window.addEventListener('load',forceBottomNav);
+})();
 </script>
 
 <script>
@@ -18075,6 +18100,37 @@ else etInit();
 }
 </style>
 
+
+<style id="cta-v13-2-login-spacing-fix">
+/* LOGIN: siempre por encima de la navegación inferior */
+#login-screen{
+  z-index:2147483646!important;
+}
+
+/* Centrado visual más evidente en la app */
+#app-header{
+  padding-top:14px!important;
+}
+#app-header::after{
+  margin-top:10px!important;
+}
+#scroll-area{
+  padding-top:8px!important;
+  padding-bottom:calc(74px + env(safe-area-inset-bottom))!important;
+}
+
+/* Mientras está visible el login, ni barra inferior ni contenido de app asoman */
+body:has(#login-screen[style*="display: flex"]) #bottom-nav{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+@media(max-height:760px){
+  #app-header{padding-top:12px!important;}
+}
+</style>
+
 </body>
 </html>
 
@@ -18190,4 +18246,18 @@ CORRECCION WEB PUBLICADA:
 - Más margen superior en el header para separarlo del borde.
 - Menos padding inferior del área de scroll.
 - No cambia login, APK v12 ni alarmas.
+-->
+
+<!-- CTA_V13_2_LOGIN_Y_CENTRADO_2026-08-18
+- PWA versionada como 20260818-login-v13-2 para evitar reutilizar la URL cacheada anterior.
+- Cabecera bajada de forma visible.
+- Barra inferior oculta mientras el login está visible.
+- Login elevado por encima de cualquier navegación fija.
+- APK v12, alarmas y enlaces directos sin cambios.
+-->
+
+<!-- CTA_V13_3_CENTRADO_FINO_2026-08-18
+- Menos margen superior para que no sobre tanto aire arriba.
+- Mantiene login limpio, enlaces nuevos, APK v12 y alarmas.
+- PWA versionada como 20260818-login-v13-3.
 -->
