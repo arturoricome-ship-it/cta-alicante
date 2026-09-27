@@ -10,9 +10,155 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script id="cta-storage-v1">
+/* CTA storage v1: synchronous reads of a hydrated snapshot; durable async writes.
+   Only imported/bulk data lives in IndexedDB. Preferences and login stay local.
+   A small marker replaces legacy data ONLY after commit and exact read-back.
+   Never fall back to a stale legacy copy after IndexedDB became authoritative. */
+(function () {
+  'use strict';
+  var MARKER='__CTA_INDEXEDDB_V1__', ACTIVE='__cta_idb_active_v1', DB='cta_employee_data_v1', STORE='values';
+  var cache=Object.create(null), records=Object.create(null), db=null;
+  var initialized=false, pending=0, queue=Promise.resolve(), stale=false;
+  var channel=typeof BroadcastChannel==='function'?new BroadcastChannel(DB):null;
+  function managed(k){return /^(cta_(?:hp_)?grupo_\d{4}_map(?:_backup)?|cta_ed_\d{4}|cta_ta_memory_v1(?:_backup)?|cta_turn_errors_(?:direct_v1|direct_result_v1|resolved_employees_v1)|cta_live_timeline_cache_v2)$/.test(k);}
+  function localKeys(){var a=[];try{for(var i=0;i<localStorage.length;i++)a.push(localStorage.key(i));}catch(e){}return a;}
+  function localGet(k){return localStorage.getItem(k);}
+  function owns(o,k){return Object.prototype.hasOwnProperty.call(o,k);}
+  function derived(k){return k==='cta_live_timeline_cache_v2'||k==='cta_turn_errors_direct_result_v1';}
+  function open(){return new Promise(function(resolve,reject){
+    if(!window.indexedDB){reject(new Error('IndexedDB no está disponible'));return;}
+    var done=false, req=indexedDB.open(DB,1);
+    var timer=setTimeout(function(){done=true;reject(new Error('El almacenamiento no responde'));},10000);
+    req.onupgradeneeded=function(){if(!req.result.objectStoreNames.contains(STORE))req.result.createObjectStore(STORE);};
+    req.onerror=function(){clearTimeout(timer);reject(req.error);};
+    req.onblocked=function(){clearTimeout(timer);done=true;reject(new Error('Cierra las otras pestañas de CTA y vuelve a intentarlo'));};
+    req.onsuccess=function(){clearTimeout(timer);if(done){req.result.close();return;}resolve(req.result);};
+  });}
+  function readAll(){return new Promise(function(resolve,reject){
+    var result=Object.create(null),tx=db.transaction(STORE,'readonly');
+    var r=tx.objectStore(STORE).openCursor();
+    r.onsuccess=function(){var c=r.result;if(c){result[c.key]=c.value;c.continue();}};
+    tx.oncomplete=function(){resolve(result);};
+    tx.onabort=tx.onerror=function(){reject(tx.error||new Error('No se pueden leer los datos guardados'));};
+  });}
+  function read(k){return new Promise(function(resolve,reject){
+    var tx=db.transaction(STORE,'readonly'),r=tx.objectStore(STORE).get(k);
+    tx.oncomplete=function(){resolve(r.result);};
+    tx.onabort=tx.onerror=function(){reject(tx.error||new Error('No se pudo verificar el guardado'));};
+  });}
+  function commit(k,value,expected,overwrite){return new Promise(function(resolve,reject){
+    var tx=db.transaction(STORE,'readwrite'),store=tx.objectStore(STORE),reason;
+    var r=store.get(k);
+    r.onsuccess=function(){
+      if(!overwrite&&r.result!==expected){reason=new Error('Los datos han cambiado en otra pestaña. Recarga CTA antes de guardar.');tx.abort();return;}
+      store.put(value,k);
+    };
+    tx.oncomplete=resolve;
+    tx.onabort=tx.onerror=function(){reject(reason||tx.error||new Error('No se ha guardado el cambio'));};
+  });}
+  function mark(k){
+    // Failure to write a marker is safe: the original remains and DB takes precedence.
+    try{localStorage.setItem(k,MARKER);}catch(e){}
+  }
+  function protect(){
+    // Before accepting NEW data, retain a durable indication that IDB owns it.
+    // This also covers new installs whose preference storage was already full.
+    try{localStorage.setItem(ACTIVE,'1');return;}catch(e){}
+    if(localKeys().some(function(k){return managed(k)&&localGet(k)===MARKER;}))return;
+    throw new Error('No se puede registrar el uso de la nueva memoria. No se ha aplicado el cambio.');
+  }
+  function notice(message){
+    var el=document.getElementById('cta-storage-notice');
+    if(!el){el=document.createElement('div');el.id='cta-storage-notice';el.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#472019;color:white;padding:16px;font:14px sans-serif';document.body.appendChild(el);}
+    el.textContent=message;
+  }
+  function persist(){
+    try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});}catch(e){}
+  }
+  async function init(){
+    var legacy=Object.create(null);
+    localKeys().filter(managed).forEach(function(k){legacy[k]=localGet(k);});
+    try{db=await open();records=await readAll();}
+    catch(e){if(db)db.close();db=null;
+      if(localGet(ACTIVE)==='1'||Object.keys(legacy).some(function(k){return legacy[k]===MARKER;}))throw new Error('No se puede abrir la memoria de CTA. Tus datos no se han borrado. Cierra otras pestañas y vuelve a intentarlo.');
+      Object.keys(legacy).forEach(function(k){cache[k]=legacy[k];});
+      initialized=true;return 'fallback';
+    }
+    db.onversionchange=function(){db.close();stale=true;notice('Recarga CTA para continuar con la nueva versión de la memoria.');};
+    Object.keys(records).filter(managed).forEach(function(k){cache[k]=records[k];});
+    for(var k of Object.keys(legacy)){
+      if(owns(records,k)){mark(k);continue;}
+      if(legacy[k]===MARKER)throw new Error('No se encuentra un dato migrado. No importes encima: conserva tu copia de seguridad y revisa este dispositivo.');
+      if(legacy[k]===null)continue;
+      // Validate without reserializing: preserve the exact existing content.
+      JSON.parse(legacy[k]);
+      try{
+        await commit(k,legacy[k],undefined);
+        if(await read(k)!==legacy[k])throw new Error('La verificación de la migración no coincide');
+      }catch(e){
+        // Do not overwrite a record if another tab migrated while we were opening.
+        throw new Error('No se ha completado la migración. Conservamos el dato antiguo. Recarga CTA para volver a intentarlo.');
+      }
+      cache[k]=legacy[k];records[k]=legacy[k];mark(k);
+    }
+    Object.keys(records).filter(managed).forEach(mark);
+    try{protect();}catch(e){} // Legacy values are still safe; writes retry protection.
+    initialized=true;persist();return 'indexeddb';
+  }
+  function keys(){
+    var all=new Set(localKeys().filter(function(k){return k!==ACTIVE&&!managed(k);}));
+    Object.keys(cache).forEach(function(k){if(cache[k]!==null)all.add(k);});
+    return Array.from(all);
+  }
+  function getItem(k){
+    if(!managed(k))return localGet(k);
+    if(!initialized)throw new Error('La memoria todavía se está abriendo');
+    return owns(cache,k)?cache[k]:null;
+  }
+  function write(k,value,previous,checked){
+    if(!managed(k)){if(value===null)localStorage.removeItem(k);else localStorage.setItem(k,value);return;}
+    var expected=records[k],expectedCache=cache[k];pending++;
+    var operation=queue.then(async function(){
+      if(!initialized||stale)throw new Error('Recarga CTA antes de guardar. El cambio no se ha aplicado.');
+      if(!derived(k)&&(cache[k]!==expectedCache||(checked&&getItem(k)!==previous)))throw new Error('Otro guardado acaba de cambiar estos datos. Repite la operación.');
+      if(!db){
+        if(localGet(k)===MARKER||owns(records,k))throw new Error('No se puede usar una copia antigua de los datos');
+        if(value===null)localStorage.removeItem(k);else localStorage.setItem(k,value);
+        cache[k]=value;return;
+      }
+      protect();
+      await commit(k,value,expected,derived(k));
+      // A new transaction verifies committed data, not just a successful put request.
+      var verified=await read(k);
+      if(verified!==value){
+        if(derived(k)){records[k]=verified;cache[k]=verified;return;}
+        stale=true;throw new Error('No se pudo verificar el guardado. Recarga CTA antes de continuar.');
+      }
+      records[k]=value;cache[k]=value;mark(k);
+      if(channel&&!derived(k))channel.postMessage({changed:k});
+    });
+    queue=operation.catch(function(e){notice('No se ha confirmado el guardado: '+e.message);}).finally(function(){pending--;});
+    return operation;
+  }
+  if(channel)channel.onmessage=function(){stale=true;notice('Los datos han cambiado en otra pestaña. Recarga CTA para verlos y seguir guardando.');};
+  window.addEventListener('beforeunload',function(e){if(pending){e.preventDefault();e.returnValue='';}});
+  window.CTAStorage={
+    ready:null,booting:true,getItem:getItem,setItem:function(k,v,previous){return write(String(k),String(v),previous,arguments.length>2);},
+    removeItem:function(k){return write(String(k),null);},keys:keys,key:function(i){return keys()[i]||null;},
+    get length(){return keys().length;},managed:managed,
+    onDOMReady:function(fn){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fn);else setTimeout(fn,0);},
+    onLoad:function(fn){if(document.readyState==='complete')setTimeout(fn,0);else window.addEventListener('load',fn);},
+    notice:notice
+  };
+  // Start from the footer, once an error can be displayed and handled.
+  CTAStorage.start=function(){if(!CTAStorage.ready)CTAStorage.ready=init();return CTAStorage.ready;};
+})();
+
+</script>
 <script id="cta-build-guard">
 (function(){
-  var BUILD="20260818-login-v13-4";
+  var BUILD="20260927-login-v13-4-idb1";
   try{
     var u=new URL(location.href);
     if((location.protocol==="https:"||location.protocol==="http:") &&
@@ -2568,7 +2714,7 @@ body[data-panel="afiliate"] #panel-afiliate{
   <button class="ib-no" onclick="document.getElementById('install-banner').classList.remove('show')">X</button>
 </div>
 
-<script>
+<script type="text/cta-deferred">
 // CTA V60: histórico de vuelos solo desde Sheets. Borra histórico local, pero NO filtra ni borra datos que vienen de Sheets.
 // Borra siempre el histórico local antiguo y evita mezclarlo con datos remotos.
 function ctaClearLocalFlightHistory(){
@@ -2976,11 +3122,11 @@ function borrarDatosAntiguosPlantilla(){
   if(!confirm('¿Borrar los grupos importados en este dispositivo?\\n\\nNo borra los cambios compartidos de Sheets. Después tendrás que importar de nuevo el Excel del grupo.'))return;
   _hpBorrarDatosImportados();
 }
-function _hpBorrarDatosImportados(){
+async function _hpBorrarDatosImportados(){
   var key=(typeof _HP_GRUPO_KEY!=='undefined'?_HP_GRUPO_KEY:'cta_hp_grupo_2026');
   try{
-    localStorage.removeItem(key+'_map');
-  }catch(e){}
+    await CTAStorage.removeItem(key+'_map');
+  }catch(e){alert('No se han borrado los datos: '+e.message);return;}
   _hpData={rows:[],weeks:[],totalHoras:0,totalCambios:0,monthLabel:'sin datos'};
   var body=document.getElementById('hp-body');
   var sub=document.getElementById('hp-sub');
@@ -2995,7 +3141,7 @@ var _hpLogoTapTs=0,_hpCasaGestoBloqueadoHasta=0;
 var CTA_MENU_SECRETO_CODIGO='29';
 var CTA_MENU_SECRETO_CLAVE='cta_menu_secreto_codigo_validado';
 function _ctaMenuSecretoAutorizado(){
-  try{return localStorage.getItem(CTA_MENU_SECRETO_CLAVE)===CTA_MENU_SECRETO_CODIGO;}catch(e){return false;}
+  try{return CTAStorage.getItem(CTA_MENU_SECRETO_CLAVE)===CTA_MENU_SECRETO_CODIGO;}catch(e){return false;}
 }
 function _ctaAbrirMenuSecretoDirecto(){
   var bg=document.getElementById('cta-secret-bg');
@@ -3124,7 +3270,7 @@ function registrarGestoRapidoPlantilla(){
     home.addEventListener('click',function(ev){_hpCasaGestoRapido(ev);},true);
   }
 }
-document.addEventListener('DOMContentLoaded',registrarGestoRapidoPlantilla);
+CTAStorage.onDOMReady(registrarGestoRapidoPlantilla);
 setTimeout(registrarGestoRapidoPlantilla,300);
 function _hpFmtHoras(h){
   var totalMin=Math.round((Number(h)||0)*60);
@@ -3232,7 +3378,7 @@ function _hpGrupoMonths(){
 }
 function _hpLeerMapaGrupo(){
   var key=(typeof _HP_GRUPO_KEY!=='undefined'?_HP_GRUPO_KEY:'cta_hp_grupo_2026')+'_map';
-  try{return JSON.parse(localStorage.getItem(key)||'{}')||{};}catch(e){return {};}
+  try{return JSON.parse(CTAStorage.getItem(key)||'{}')||{};}catch(e){return {};}
 }
 function _hpElegirMes(nominaMap){
   var months=_hpGrupoMonths(),actual=new Date().getMonth(),tieneActual=false,maxIdx=-1;
@@ -3312,7 +3458,7 @@ function _hpFechaISO(d){
 }
 function _hpDiaLocalPropio(year,monthKey,day){
   var data={};
-  try{data=JSON.parse(localStorage.getItem('cta_ed_'+year)||'{}')||{};}catch(e){data={};}
+  try{data=JSON.parse(CTAStorage.getItem('cta_ed_'+year)||'{}')||{};}catch(e){data={};}
   return ((data[monthKey]||{})[day]||(data[monthKey]||{})[String(day)]||null);
 }
 function _hpMismoEmpleado(a,b){
@@ -3324,7 +3470,7 @@ function _hpMismoEmpleado(a,b){
 }
 function _hpEsEmpleadoLocal(emp,year,monthKey,day){
   var cached=null;
-  try{cached=JSON.parse(localStorage.getItem('cta_mi_empleado')||'null');}catch(e){cached=null;}
+  try{cached=JSON.parse(CTAStorage.getItem('cta_mi_empleado')||'null');}catch(e){cached=null;}
   if(_hpMismoEmpleado(emp,cached))return true;
 
   var mi=null;
@@ -3332,7 +3478,7 @@ function _hpEsEmpleadoLocal(emp,year,monthKey,day){
   if(_hpMismoEmpleado(emp,mi))return true;
 
   var tryp=null;
-  try{tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){tryp=null;}
+  try{tryp=JSON.parse(CTAStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){tryp=null;}
   if(_hpMismoEmpleado(emp,tryp))return true;
 
   var sess=(typeof _ctaSession==='function')?_ctaSession():{};
@@ -3907,7 +4053,7 @@ function loadAvisos(){
     if(!files.length){renderAvisosDefault(container);return;}
     avisosHash=files[0].modifiedTime||"";
     // Mostrar badge si hay avisos nuevos no vistos
-    var seen=localStorage.getItem("avisos_seen");
+    var seen=CTAStorage.getItem("avisos_seen");
     if(seen!==avisosHash){
       var b=document.getElementById("badge-avisos");
       var bn=document.getElementById("badge-avisos-nav");
@@ -3928,7 +4074,7 @@ driveList({q:"'"+ROOT_ID+"' in parents and trashed=false and name='avisos.txt'",
   var files=data.files||[];
   if(!files.length)return;
   avisosHash=files[0].modifiedTime||"";
-  var seen=localStorage.getItem("avisos_seen");
+  var seen=CTAStorage.getItem("avisos_seen");
   if(seen!==avisosHash){
     var b=document.getElementById("badge-avisos");
     var bn=document.getElementById("badge-avisos-nav");
@@ -4013,7 +4159,7 @@ function parseAvisos(container,txt){
   container.innerHTML="";
   var bloques=txt.split("---").map(function(b){return b.trim();}).filter(function(b){return b.length>0;});
   if(!bloques.length){renderAvisosDefault(container);return;}
-  var hayNuevos=localStorage.getItem("avisos_seen")!==avisosHash;
+  var hayNuevos=CTAStorage.getItem("avisos_seen")!==avisosHash;
   // Solo el primer aviso se marca como nuevo
   var primerNuevo=true;
   bloques.forEach(function(bloque){
@@ -4051,7 +4197,7 @@ function renderAvisosDefault(container){
 }
 
 // PWA
-var manifest={name:"CTA Alicante",short_name:"CTA",id:"./",start_url:"./?cta_build=20260818-login-v13-4",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
+var manifest={name:"CTA Alicante",short_name:"CTA",id:"./",start_url:"./?cta_build=20260927-login-v13-4-idb1",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
 var ml=document.createElement("link");ml.rel="manifest";ml.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/json"}));document.head.appendChild(ml);
 var dp;
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;setTimeout(function(){document.getElementById("install-banner").classList.add("show");},4000);});
@@ -4159,9 +4305,9 @@ function _liveFusionarLista(historial,nuevos,tipo){
   });
   return _liveOrdenarVuelos(Object.keys(map).map(function(k){return map[k];}));
 }
-function _liveGuardarTimelineCache(){
+async function _liveGuardarTimelineCache(){
   try{
-    localStorage.setItem(LIVE_TIMELINE_CACHE_KEY,JSON.stringify({
+    await CTAStorage.setItem(LIVE_TIMELINE_CACHE_KEY,JSON.stringify({
       baseDate:_liveFechaClave(),
       savedAt:Date.now(),
       lle:liveTimelineData.lle||[],
@@ -4172,7 +4318,7 @@ function _liveGuardarTimelineCache(){
 function _liveAsegurarDiaCache(){
   var hoy=_liveFechaClave();
   var raw=null,obj=null;
-  try{raw=localStorage.getItem(LIVE_TIMELINE_CACHE_KEY);}catch(e){}
+  try{raw=CTAStorage.getItem(LIVE_TIMELINE_CACHE_KEY);}catch(e){}
   if(raw){try{obj=JSON.parse(raw);}catch(e){obj=null;}}
   if(!obj||!Array.isArray(obj.lle)||!Array.isArray(obj.sal)){
     liveTimelineData={lle:[],sal:[]};
@@ -4271,7 +4417,7 @@ function getLiveCutoffsFromTurnoHoy(){
   var now=new Date();
   var meses=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
   var raw;
-  try{raw=localStorage.getItem("cta_ed_"+now.getFullYear());}catch(e){return {s:[],e:[],windows:[]};}
+  try{raw=CTAStorage.getItem("cta_ed_"+now.getFullYear());}catch(e){return {s:[],e:[],windows:[]};}
   if(!raw)return {s:[],e:[],windows:[]};
   var data;
   try{data=JSON.parse(raw);}catch(e){return {s:[],e:[],windows:[]};}
@@ -4730,7 +4876,7 @@ document.getElementById("btn-logout").addEventListener("click",function(){
 
 
 <script src="https://accounts.google.com/gsi/client" async></script>
-<script>
+<script type="text/cta-deferred">
 var CLIENT_ID="791335664842-8qor3a81pfbdd9cioqf8fdvnb3bilj9h.apps.googleusercontent.com";
 var SHEETS_URL="https://script.google.com/macros/s/AKfycby_IIimYE_dL1BolZrPdGdmslVW1gV-Ivj9E7H3jaJgxd4ZJq7IEcFEjBuVj3iy0qQo/exec";
 var CTA_LOGIN_DISABLED_FOR_TESTS=false;
@@ -4771,7 +4917,7 @@ function handleCredentialResponse(response){
   // "nombre" (el que queda guardado como sesión y se usa en el resto de la app) no se toca.
   var nombreParaLog=nombre;
   try{
-    var trypLogin=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');
+    var trypLogin=JSON.parse(CTAStorage.getItem('cta_mi_nombre_tryp')||'null');
     if(trypLogin&&trypLogin.email&&trypLogin.nombre&&trypLogin.email===email){
       nombreParaLog=trypLogin.nombre+(trypLogin.nomina?' ('+trypLogin.nomina+')':'');
     }
@@ -4794,7 +4940,7 @@ function handleCredentialResponse(response){
   });
 }
 
-window.addEventListener("load",function(){
+CTAStorage.onLoad(function(){
   if(CTA_LOGIN_DISABLED_FOR_TESTS){
     var testSession={email:"prueba@cta.local",nombre:"Prueba",ts:Date.now(),modoPrueba:true};
     try{localStorage.setItem("cta_session",JSON.stringify(testSession));}catch(e){}
@@ -4807,7 +4953,7 @@ window.addEventListener("load",function(){
   }
   // Verificar sesión guardada
   var sess=null;
-  try{sess=JSON.parse(localStorage.getItem("cta_session"));}catch(e){}
+  try{sess=JSON.parse(CTAStorage.getItem("cta_session"));}catch(e){}
   // Eliminar cualquier sesión local creada por versiones anteriores en modo prueba.
   if(sess&&sess.email==="prueba@cta.local"){
     localStorage.removeItem("cta_session");
@@ -4820,7 +4966,7 @@ window.addEventListener("load",function(){
     setWelcome(sess.nombre||sess.email);
     // Verificar con script al entrar y echar si bloqueado
     function verificarAcceso(){
-      var s=null;try{s=JSON.parse(localStorage.getItem("cta_session"));}catch(e){}
+      var s=null;try{s=JSON.parse(CTAStorage.getItem("cta_session"));}catch(e){}
       if(!s||!s.email) return;
       fetch(SHEETS_URL,{method:"POST",body:JSON.stringify({accion:"verificar_acceso",email:s.email}),headers:{"Content-Type":"text/plain"}})
       .then(function(r){return r.json();})
@@ -4849,7 +4995,7 @@ function openDashModal(){switchTab("dashboard",null,null);}
 function descargarDashboard(){
   // Registrar descarga en Sheets
   var sess=null;
-  try{sess=JSON.parse(localStorage.getItem("cta_session"));}catch(e){}
+  try{sess=JSON.parse(CTAStorage.getItem("cta_session"));}catch(e){}
   var email=(sess&&sess.email)||"desconocido";
   var nombre=(sess&&sess.nombre)||email;
   var ts=new Date().toLocaleString("es-ES",{timeZone:"Europe/Madrid"});
@@ -4890,7 +5036,7 @@ function initGoogleWhenReady(intentos){
   if(intentos<30)setTimeout(function(){initGoogleWhenReady(intentos+1);},200);
 }
 </script>
-<script>
+<script type="text/cta-deferred">
 // ═══════════════════════════════════════════════════════════════════
 // TURNO WIDGET — lee cta_ed_YYYY del dashboard de nóminas
 // ═══════════════════════════════════════════════════════════════════
@@ -4905,7 +5051,7 @@ function initGoogleWhenReady(intentos){
   function fmtHM(min){var h=Math.floor(min/60),m=min%60;return h+'h'+(m?' '+m+'m':'');}
 
   function getDay(year,monthIdx,day){
-    var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(e){return null;}
+    var raw;try{raw=CTAStorage.getItem('cta_ed_'+year);}catch(e){return null;}
     if(!raw)return null;
     var data;try{data=JSON.parse(raw);}catch(e){return null;}
     var m=data[_MONTHS[monthIdx]];
@@ -5187,8 +5333,8 @@ function initGoogleWhenReady(intentos){
   };
 
   // Auto-init (si ya hay sesión, no espera a login)
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',window.initTurnoWidget);
+  if((CTAStorage.booting||document.readyState==='loading')){
+    CTAStorage.onDOMReady(window.initTurnoWidget);
   } else {
     window.initTurnoWidget();
   }
@@ -5342,7 +5488,7 @@ function initGoogleWhenReady(intentos){
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
+<script type="text/cta-deferred">
 
 
 function tiSwitchTab(tab){
@@ -5390,7 +5536,7 @@ function tiRefreshExportSummary(){
   var lines=[];
   var year=new Date().getFullYear();
   [year-1,year,year+1].forEach(function(y){
-    var raw;try{raw=localStorage.getItem('cta_ed_'+y);}catch(e){return;}
+    var raw;try{raw=CTAStorage.getItem('cta_ed_'+y);}catch(e){return;}
     if(!raw)return;
     var data;try{data=JSON.parse(raw);}catch(e){return;}
     var found=months.filter(function(m){return data[m]&&Object.keys(data[m]).length>0;});
@@ -5400,8 +5546,8 @@ function tiRefreshExportSummary(){
   });
   var extra=0,hist=false;
   try{
-    for(var i=0;i<localStorage.length;i++){
-      var k=localStorage.key(i);
+    for(var i=0;i<CTAStorage.length;i++){
+      var k=CTAStorage.key(i);
       if(k==='cta_session')continue;
       if(k&&k.indexOf('cta_historial_operativa_vuelos')===0)hist=true;
       if(k&&(k.indexOf('cta_')===0||k.indexOf('op_')===0||k.indexOf('perentorias:')===0||k==='avisos_seen'))extra++;
@@ -5437,10 +5583,10 @@ function tiDoExport(){
     return false;
   };
   try{
-    for(var i=0;i<localStorage.length;i++){
-      var k=localStorage.key(i);
+    for(var i=0;i<CTAStorage.length;i++){
+      var k=CTAStorage.key(i);
       if(includeKey(k)){
-        try{backup[k]=localStorage.getItem(k);found++;}catch(e){}
+        try{backup[k]=CTAStorage.getItem(k);found++;}catch(e){}
       }else if(k==='cta_session'){
         skipped.push(k);
       }
@@ -5460,13 +5606,13 @@ function tiDoExport(){
   document.body.appendChild(a);a.click();
   setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},1000);
 }
-function tiResetData(){
+async function tiResetData(){
   if(!confirm('¿Seguro que quieres borrar TODOS los turnos importados? Esta acción no se puede deshacer.'))return;
   var year=new Date().getFullYear();
   // Remove current year and adjacent years
-  [year-1,year,year+1].forEach(function(y){
-    try{localStorage.removeItem('cta_ed_'+y);}catch(e){}
-  });
+  for(var y of [year-1,year,year+1]){
+    try{await CTAStorage.removeItem('cta_ed_'+y);}catch(e){alert('No se han borrado todos los turnos: '+e.message);return;}
+  }
   closeTrypImport();
   setTimeout(function(){
     if(typeof mcRender==='function')mcRender();
@@ -5484,7 +5630,7 @@ var _tiBackupRaw=null; // full parsed top-level backup object
 function tiLoadBackup(file){
   if(!file)return;
   var reader=new FileReader();
-  reader.onload=function(ev){
+  reader.onload=async function(ev){
     try{
       var raw=ev.target.result;
       if(raw.charCodeAt(0)===0xFEFF)raw=raw.slice(1); // strip BOM
@@ -5551,22 +5697,22 @@ function tiLoadBackup(file){
   reader.readAsText(file,'UTF-8');
 }
 
-function tiApplyBackup(){
+async function tiApplyBackup(){
   if(!_tiBackupRaw)return;
   var keys=Object.keys(_tiBackupRaw).filter(function(k){return k.charAt(0)!=='_';});
   var restored=0;
   var skipped=[];
-  keys.forEach(function(k){
+  for(var k of keys){
     // No restaurar sesión/login ni histórico local de vuelos desde un JSON.
-    if(k==='cta_session'){skipped.push(k);return;}
-    if(k.indexOf('cta_historial_operativa_vuelos')===0){skipped.push(k);return;}
+    if(k==='cta_session'){skipped.push(k);continue;}
+    if(k.indexOf('cta_historial_operativa_vuelos')===0){skipped.push(k);continue;}
     try{
       var v=_tiBackupRaw[k];
-      if(typeof v==='undefined' || v===null)return;
-      localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));
+      if(typeof v==='undefined' || v===null)continue;
+      await CTAStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));
       restored++;
     }catch(e){skipped.push(k);}
-  });
+  }
   if(!restored){alert('No se pudo restaurar ningún dato del backup.');return;}
   closeTrypImport();
   setTimeout(function(){
@@ -5675,14 +5821,14 @@ function _ctaLogHumanizar(tipo,detalle){
   return{tipo:accion||'Acción',detalle:detalleLimpio};
 }
 function logActividad(tipo, detalle){
-  var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
+  var sess=null;try{sess=JSON.parse(CTAStorage.getItem('cta_session'));}catch(e){}
   if(!sess||!sess.email){console.warn('logActividad: no session for',tipo);return;}
   // Si ya se ha importado el Tryp personal, se manda el nombre real sin nómina en vez del
   // nombre de Google (que puede no coincidir con el oficial). Hasta que se importe,
   // se sigue mandando el nombre de Google como hasta ahora.
   var nombreLog=sess.nombre||'';
   try{
-    var tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');
+    var tryp=JSON.parse(CTAStorage.getItem('cta_mi_nombre_tryp')||'null');
     if(tryp&&tryp.email&&tryp.nombre&&tryp.email===sess.email){
       nombreLog=tryp.nombre;
     }
@@ -5743,7 +5889,7 @@ function positionImportPanel(){
   panel.style.maxHeight=(window.innerHeight-navH)+'px';
 }
 window.addEventListener('resize',positionImportPanel);
-document.addEventListener('DOMContentLoaded',positionImportPanel);
+CTAStorage.onDOMReady(positionImportPanel);
 setTimeout(positionImportPanel,300);
 
 // ═══════════════════════════════════════════════════════════════
@@ -5755,7 +5901,7 @@ function abrirSelectorMesesICS(){
   var MESES=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
   var MESES_ES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
-  var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(e){}
+  var raw;try{raw=CTAStorage.getItem('cta_ed_'+year);}catch(e){}
   if(!raw){alert('No tienes turnos importados.');return;}
   var ue;try{ue=JSON.parse(raw);}catch(e){alert('Error leyendo turnos.');return;}
 
@@ -5817,7 +5963,7 @@ function exportarICS(mesesIdx){
   var MESES=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
   var MESES_NUM=["01","02","03","04","05","06","07","08","09","10","11","12"];
 
-  var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(e){}
+  var raw;try{raw=CTAStorage.getItem('cta_ed_'+year);}catch(e){}
   if(!raw){alert('No tienes turnos importados.');return;}
   var ue;try{ue=JSON.parse(raw);}catch(e){alert('Error leyendo turnos.');return;}
 
@@ -6003,7 +6149,7 @@ function tiHandleFile(file){
   if(!file)return;
   document.getElementById('ti-drop-txt').textContent='Procesando: '+file.name+'...';
   var reader=new FileReader();
-  reader.onload=function(ev){
+  reader.onload=async function(ev){
     try{
       var data=new Uint8Array(ev.target.result);
       var wb=XLSX.read(data,{type:'array',cellText:true,cellStyles:true});
@@ -6164,7 +6310,7 @@ var _TA_STATS_KEYS=['turnos','partidos','madrugas','nocturnas','noches','horasTu
 var _TA_DETAIL_KEYS=['turnos','partidos','madrugas','nocturnas','noches','horasTurnoMin','horasContadorMin'];
 function taLeerModoHorasAnalizador(){
   var v='contador';
-  try{v=localStorage.getItem(_TA_HORAS_MODO_KEY)||'contador';}catch(e){}
+  try{v=CTAStorage.getItem(_TA_HORAS_MODO_KEY)||'contador';}catch(e){}
   return v==='totales'?'totales':'contador';
 }
 function taGuardarModoHorasAnalizador(){
@@ -6227,28 +6373,28 @@ function taCrearMemoria(){
 }
 function taCargarMemoria(){
   var raw=null,mem=null;
-  try{raw=localStorage.getItem(_TA_MEMORY_KEY);}catch(e){raw=null;}
+  try{raw=CTAStorage.getItem(_TA_MEMORY_KEY);}catch(e){raw=null;}
   if(raw){
     try{mem=JSON.parse(raw);}catch(e){mem=null;}
   }
   if(!mem||!mem.months)mem=taCrearMemoria();
   return mem;
 }
-function taGuardarMemoria(mem){
+async function taGuardarMemoria(mem,previous){
   mem.updatedAt=new Date().toISOString();
   try{
-    localStorage.setItem(_TA_MEMORY_KEY,JSON.stringify(mem));
+    await CTAStorage.setItem(_TA_MEMORY_KEY,JSON.stringify(mem),arguments.length>1?previous:CTAStorage.getItem(_TA_MEMORY_KEY));
     return true;
   }catch(e){
     alert('No he podido guardar la memoria interna. Puede que el navegador tenga el almacenamiento lleno.');
     return false;
   }
 }
-function taGuardarBackupMemoria(rawMem,filename){
+async function taGuardarBackupMemoria(rawMem,filename){
   try{
     var before=rawMem?JSON.parse(rawMem):taCrearMemoria();
-    localStorage.setItem(_TA_MEMORY_BACKUP_KEY,JSON.stringify({ts:new Date().toISOString(),filename:String(filename||''),before:before}));
-  }catch(e){}
+    await CTAStorage.setItem(_TA_MEMORY_BACKUP_KEY,JSON.stringify({ts:new Date().toISOString(),filename:String(filename||''),before:before}));
+  }catch(e){throw new Error("No se ha podido guardar la copia anterior: "+e.message);}
 }
 function taFusionarMesGrupoAnalizador(existing,incoming){
   if(!existing||existing.kind!=='grupo')return incoming;
@@ -6493,9 +6639,10 @@ function taRenderDesdeMemoria(){
   }
   taRenderResultado(r);
 }
-function taGuardarImportacionEnMemoria(r){
+async function taGuardarImportacionEnMemoria(r){
   var rawMemPrev=null;
-  try{rawMemPrev=localStorage.getItem(_TA_MEMORY_KEY);}catch(e){rawMemPrev=null;}
+  try{rawMemPrev=CTAStorage.getItem(_TA_MEMORY_KEY);}catch(e){rawMemPrev=null;}
+  var expectedMem=rawMemPrev;
   var mem=taCargarMemoria();
   if(!rawMemPrev){try{rawMemPrev=JSON.stringify(mem);}catch(e){rawMemPrev='';}}
   var importKind=(r&&r.kind==='grupo')?'grupo':'persona';
@@ -6533,8 +6680,8 @@ function taGuardarImportacionEnMemoria(r){
     _taAvisoMemoria='No he detectado meses validos para guardar.';
     return false;
   }
-  taGuardarBackupMemoria(rawMemPrev,r&&r.filename);
-  if(!taGuardarMemoria(mem))return false;
+  await taGuardarBackupMemoria(rawMemPrev,r&&r.filename);
+  if(!await taGuardarMemoria(mem,expectedMem))return false;
   _taMesSeleccionado=mesesImportados.length===1?[mesesImportados[0]]:'ALL';
   if(importKind==='grupo'){
     _taAvisoMemoria=(changedKind?'Tipo de archivo distinto: he reiniciado la memoria del analizador. ':'')+
@@ -6545,7 +6692,7 @@ function taGuardarImportacionEnMemoria(r){
   }
   return true;
 }
-function taRestaurarMemoria(){
+async function taRestaurarMemoria(){
   var mem=taCargarMemoria();
   var keys=taMesesMemoria(mem);
   if(!keys.length){alert('No hay meses guardados para borrar.');return;}
@@ -6559,10 +6706,10 @@ function taRestaurarMemoria(){
   var upper=resp.toUpperCase();
   if(upper==='ULTIMA'||upper==='DESHACER'){
     var backup=null;
-    try{backup=JSON.parse(localStorage.getItem(_TA_MEMORY_BACKUP_KEY)||'null');}catch(e){backup=null;}
+    try{backup=JSON.parse(CTAStorage.getItem(_TA_MEMORY_BACKUP_KEY)||'null');}catch(e){backup=null;}
     if(!backup||!backup.before||!backup.before.months){alert('No hay copia anterior disponible. Se guarda a partir de las próximas importaciones.');return;}
     if(!confirm('Se restaurará el analizador al estado anterior a la última importación.\n\n¿Continuar?'))return;
-    try{localStorage.setItem(_TA_MEMORY_KEY,JSON.stringify(backup.before));localStorage.removeItem(_TA_MEMORY_BACKUP_KEY);}catch(e){alert('No he podido restaurar: '+e.message);return;}
+    try{await CTAStorage.setItem(_TA_MEMORY_KEY,JSON.stringify(backup.before));await CTAStorage.removeItem(_TA_MEMORY_BACKUP_KEY);}catch(e){alert('No he podido restaurar: '+e.message);return;}
     _taMesSeleccionado='ALL';
     _taAvisoMemoria='Restaurada la memoria anterior a la última importación.';
     taRenderDesdeMemoria();
@@ -6570,7 +6717,7 @@ function taRestaurarMemoria(){
   }
   if(upper==='TODO'||upper==='TODOS'||upper==='ALL'){
     if(!confirm('Se borraran todos los meses guardados del analizador.'))return;
-    try{localStorage.removeItem(_TA_MEMORY_KEY);}catch(e){}
+    try{await CTAStorage.removeItem(_TA_MEMORY_KEY);}catch(e){alert('No se ha podido borrar: '+e.message);return;}
     _taMesSeleccionado='ALL';
     _taAvisoMemoria='';
     taRenderDesdeMemoria();
@@ -6583,7 +6730,7 @@ function taRestaurarMemoria(){
     else if(String(part||'').trim())fallidos.push(String(part).trim());
   });
   if(!borrados.length){alert('No he encontrado esos meses guardados.');return;}
-  if(taMesesMemoria(mem).length){taGuardarMemoria(mem);}else{try{localStorage.removeItem(_TA_MEMORY_KEY);}catch(e){}}
+  if(taMesesMemoria(mem).length){if(!await taGuardarMemoria(mem))return;}else{try{await CTAStorage.removeItem(_TA_MEMORY_KEY);}catch(e){alert('No se ha podido borrar: '+e.message);return;}}
   _taMesSeleccionado='ALL';
   _taAvisoMemoria='Borrado: '+borrados.map(taMesNombre).join(', ')+(fallidos.length?' · No encontrado: '+fallidos.join(', '):'');
   taRenderDesdeMemoria();
@@ -6859,7 +7006,7 @@ function taHandleFile(file){
   if(status)status.textContent='Leyendo el Excel...';
   if(result)result.innerHTML='';
   var reader=new FileReader();
-  reader.onload=function(ev){
+  reader.onload=async function(ev){
     try{
       var data=new Uint8Array(ev.target.result);
       var wb=XLSX.read(data,{type:'array',cellText:true,cellStyles:true});
@@ -6874,7 +7021,7 @@ function taHandleFile(file){
         try{if(typeof _leerLeyendaTryp==='function')leyenda=_leerLeyendaTryp(wb);}catch(e){leyenda=null;}
         parsed=taAnalizarSheet(sheet,file.name,leyenda);
       }
-      taGuardarImportacionEnMemoria(parsed);
+      if(!await taGuardarImportacionEnMemoria(parsed))return;
       taRenderDesdeMemoria();
       if(dropTxt)dropTxt.textContent='Cargado: '+file.name;
       var input=document.getElementById('ta-file');
@@ -7132,12 +7279,12 @@ function taRenderResultado(r){
   result.innerHTML=html;
 }
 
-function tiApply(){
+async function tiApply(){
   if(!_tiParsed)return;
   var overwrite=document.getElementById('ti-overwrite').checked;
   var skip=document.getElementById('ti-skip-empty').checked;
   var year=parseInt(document.getElementById('ti-year').value)||new Date().getFullYear();
-  var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(e){raw=null;}
+  var raw;try{raw=CTAStorage.getItem('cta_ed_'+year);}catch(e){raw=null;}
   var ue;try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
   var imported=0;
   Object.keys(_tiParsed.data).forEach(function(month){
@@ -7154,7 +7301,7 @@ function tiApply(){
       ue[month][d]=obj;imported++;
     });
   });
-  try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(e){alert('Error al guardar: '+e.message);return;}
+  try{await CTAStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(e){alert('Error al guardar: '+e.message);return;}
   closeTrypImport();
   setTimeout(function(){
     logActividad('import_excel');
@@ -7190,7 +7337,7 @@ function mcRender(){
   var nodata=document.getElementById('mc-nodata');
   if(!title||!grid)return;
   title.textContent=_MC_NAMES[_mcMonth]+' '+_mcYear;
-  var raw;try{raw=localStorage.getItem('cta_ed_'+_mcYear);}catch(e){raw=null;}
+  var raw;try{raw=CTAStorage.getItem('cta_ed_'+_mcYear);}catch(e){raw=null;}
   var ue;try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
   var mData=ue[_MC_MONTHS[_mcMonth]]||{};
   var hasAnyData=Object.keys(mData).length>0;
@@ -7262,7 +7409,7 @@ function mcSetMode(mode){
 function mcRenderWeeks(){
   var wl=document.getElementById('mc-weeks-list');
   if(!wl)return;
-  var raw;try{raw=localStorage.getItem('cta_ed_'+_mcYear);}catch(e){raw=null;}
+  var raw;try{raw=CTAStorage.getItem('cta_ed_'+_mcYear);}catch(e){raw=null;}
   var ue;try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
   var DAYS_IN=['31','28','31','30','31','30','31','31','30','31','30','31'];
   // Build flat array of days in month with their data
@@ -7378,7 +7525,7 @@ function _mcFmtH(min){
 function mcRenderSummary(ue){
   var sumEl=document.getElementById('mc-summary');
   if(!sumEl)return;
-  if(!ue){var r2;try{r2=localStorage.getItem('cta_ed_'+_mcYear);}catch(e){r2=null;}try{ue=r2?JSON.parse(r2):{};}catch(e){ue={};}}
+  if(!ue){var r2;try{r2=CTAStorage.getItem('cta_ed_'+_mcYear);}catch(e){r2=null;}try{ue=r2?JSON.parse(r2):{};}catch(e){ue={};}}
   // Current month
   var mKey=_MC_MONTHS[_mcMonth];
   var mData=(ue&&ue[mKey])||{};
@@ -7466,14 +7613,14 @@ function mcRenderSummary(ue){
   if(hlAnualMin>0){var hlAnValEl=document.getElementById('mc-sum-hl-anual');if(hlAnValEl)hlAnValEl.textContent=_mcFmtH(hlAnualMin);}
   // Add carryover from previous years
   var _co=0;
-  var _coRaw;try{_coRaw=localStorage.getItem('cta_peren_carryover_'+_mcYear);}catch(e){}
+  var _coRaw;try{_coRaw=CTAStorage.getItem('cta_peren_carryover_'+_mcYear);}catch(e){}
   if(_coRaw){var _cop=_coRaw.split(':');_co=((+_cop[0]||0)*60+(+_cop[1]||0));}
   var _coEl=document.getElementById('mc-peren-carryover');
   if(_coEl&&!_coEl._focused)_coEl.value=_coRaw||'';
   var totalPerenAnual=anualPerenMin+_co;
   var apEl=document.getElementById('mc-sum-peren-anual');
   if(apEl)apEl.textContent=totalPerenAnual>0?_mcFmtH(totalPerenAnual):totalPerenAnual<0?_mcFmtH(Math.abs(totalPerenAnual))+' comp.':'—';
-  var _fcoRaw;try{_fcoRaw=localStorage.getItem('cta_fest_carryover_'+_mcYear);}catch(e){}
+  var _fcoRaw;try{_fcoRaw=CTAStorage.getItem('cta_fest_carryover_'+_mcYear);}catch(e){}
   var _fco=parseInt(_fcoRaw,10);if(isNaN(_fco))_fco=0;
   var _fcoEl=document.getElementById('mc-fest-carryover');
   if(_fcoEl&&document.activeElement!==_fcoEl)_fcoEl.value=_fcoRaw||'';
@@ -7518,7 +7665,7 @@ var _MC_TIPOS=[
 function mcEditDay(day,e){
   if(e)e.stopPropagation();
   _mcEditDay=day;_mcEditMonth=_mcMonth;_mcEditYear=_mcYear;
-  var raw;try{raw=localStorage.getItem('cta_ed_'+_mcYear);}catch(er){raw=null;}
+  var raw;try{raw=CTAStorage.getItem('cta_ed_'+_mcYear);}catch(er){raw=null;}
   var ue;try{ue=raw?JSON.parse(raw):{};}catch(er){ue={};}
   var mData=ue[_MC_MONTHS[_mcMonth]]||{};
   var dayObj=mData[day]||{tipo:'libre'};
@@ -7570,7 +7717,7 @@ function mcEditClose(){
   document.getElementById('mc-edit-panel').classList.remove('open');
   setTimeout(function(){document.getElementById('mc-edit-bg').style.display='none';},280);
 }
-function mcEditSave(){
+async function mcEditSave(){
   var tipo=document.querySelector('.mc-tipo-btn.sel');
   if(!tipo)return;
   var tipoVal=tipo.dataset.tipo;
@@ -7582,7 +7729,7 @@ function mcEditSave(){
     s2=document.getElementById('mc-edit-s2').value.trim();
   }
   var year=_mcEditYear,month=_MC_MONTHS[_mcEditMonth],day=_mcEditDay;
-  var raw;try{raw=localStorage.getItem('cta_ed_'+year);}catch(er){raw=null;}
+  var raw;try{raw=CTAStorage.getItem('cta_ed_'+year);}catch(er){raw=null;}
   var ue;try{ue=raw?JSON.parse(raw):{};}catch(er){ue={};}
   if(!ue[month])ue[month]={};
   var existingDay=ue[month][day]||{};
@@ -7675,7 +7822,7 @@ function mcEditSave(){
     delete ue[month][day].hfunDur;
     delete ue[month][day].hlParcial;
   }
-  try{localStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(er){alert('Error: '+er.message);}
+  try{await CTAStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(er){alert('Error: '+er.message);return;}
   if(typeof guardarCambioTurnoCompartido==='function')guardarCambioTurnoCompartido(year,month,day,ue[month][day]);
   mcEditClose();
   setTimeout(function(){mcRender();if(typeof initTurnoWidget==='function')initTurnoWidget();},290);
@@ -7737,7 +7884,7 @@ function mcTipoSel(btn){
 
 
 // ─── Swipe calendario ─────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded',function(){
+CTAStorage.onDOMReady(function(){
   var cal=document.getElementById('mini-cal');
   if(!cal)return;
   var _sx=0,_sy=0,_didSwipe=false;
@@ -7898,7 +8045,7 @@ document.addEventListener('DOMContentLoaded',function(){
 </div>
 
 
-<script>
+<script type="text/cta-deferred">
 
 // ─── GRUPO COMPAÑEROS ────────────────────────────────────────────
 var _GRUPO_KEY='cta_grupo_2026';
@@ -7943,10 +8090,10 @@ function _estaExcluidoPlantilla(nombre,fechaISO){
 }
 
 
-function resetGrupo(){
+async function resetGrupo(){
   if(!confirm('¿Borrar todos los datos del grupo importados?'))return;
-  localStorage.removeItem(_GRUPO_KEY+'_map');
-  localStorage.removeItem(_GRUPO_KEY+'_map_backup');
+  try{await CTAStorage.removeItem(_GRUPO_KEY+'_map');
+  await CTAStorage.removeItem(_GRUPO_KEY+'_map_backup');}catch(e){alert('No se han borrado todos los datos: '+e.message);return;}
   var btn=document.getElementById('btn-import-grupo');
   if(btn)btn.classList.remove('has-data');
   var hint=document.getElementById('grupo-import-hint');
@@ -7956,17 +8103,17 @@ function resetGrupo(){
 }
 function _grupoLeerMapCompaneros(){
   var map={};
-  try{map=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')||{};}catch(e){map={};}
+  try{map=JSON.parse(CTAStorage.getItem(_GRUPO_KEY+'_map')||'{}')||{};}catch(e){map={};}
   return map;
 }
-function _grupoGuardarMapCompaneros(map){
-  try{localStorage.setItem(_GRUPO_KEY+'_map',JSON.stringify(map||{}));return true;}catch(e){alert('No he podido guardar los cambios: '+e.message);return false;}
+async function _grupoGuardarMapCompaneros(map){
+  try{await CTAStorage.setItem(_GRUPO_KEY+'_map',JSON.stringify(map||{}));return true;}catch(e){alert('No he podido guardar los cambios: '+e.message);return false;}
 }
-function _grupoGuardarBackupCompaneros(rawMap,fileName,monthKey,etiqueta){
+async function _grupoGuardarBackupCompaneros(rawMap,fileName,monthKey,etiqueta){
   try{
     var before=JSON.parse(rawMap||'{}')||{};
-    localStorage.setItem(_GRUPO_KEY+'_map_backup',JSON.stringify({ts:new Date().toISOString(),fileName:String(fileName||''),monthKey:String(monthKey||''),etiqueta:String(etiqueta||''),before:before}));
-  }catch(e){}
+    await CTAStorage.setItem(_GRUPO_KEY+'_map_backup',JSON.stringify({ts:new Date().toISOString(),fileName:String(fileName||''),monthKey:String(monthKey||''),etiqueta:String(etiqueta||''),before:before}));
+  }catch(e){throw new Error("No se ha podido guardar la copia anterior: "+e.message);}
 }
 function _grupoNormalizarMesInput(txt){
   var s=String(txt||'').trim();
@@ -8031,7 +8178,7 @@ function _grupoRefrescarTrasGestion(){
     refrescarCompanerosPanel(window._grupoOffsetDias||0,false);
   }
 }
-function gestionarImportacionesCompaneros(){
+async function gestionarImportacionesCompaneros(){
   var map=_grupoLeerMapCompaneros();
   if(!Object.keys(map).length){alert('No hay importaciones guardadas en Compañeros por día.');return;}
   var resumen=_grupoResumenImportadosCompaneros(map);
@@ -8049,20 +8196,20 @@ function gestionarImportacionesCompaneros(){
   var up=resp.toUpperCase();
   if(up==='ULTIMA'||up==='DESHACER'){
     var backup=null;
-    try{backup=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map_backup')||'null');}catch(e){backup=null;}
+    try{backup=JSON.parse(CTAStorage.getItem(_GRUPO_KEY+'_map_backup')||'null');}catch(e){backup=null;}
     if(!backup||!backup.before){alert('No hay copia anterior disponible. La copia se guarda a partir de las próximas importaciones.');return;}
     var label=(backup.monthKey?backup.monthKey+' · ':'')+(backup.etiqueta||backup.fileName||'última importación');
     if(!confirm('Se restaurará el estado anterior a: '+label+'\n\n¿Continuar?'))return;
-    if(_grupoGuardarMapCompaneros(backup.before)){
-      try{localStorage.removeItem(_GRUPO_KEY+'_map_backup');}catch(e){}
+    if(await _grupoGuardarMapCompaneros(backup.before)){
+      try{await CTAStorage.removeItem(_GRUPO_KEY+'_map_backup');}catch(e){}
       _grupoRefrescarTrasGestion();
     }
     return;
   }
   if(up==='TODO'||up==='TODOS'||up==='ALL'){
     if(!confirm('Se borrarán todos los datos importados en Compañeros por día.'))return;
-    localStorage.removeItem(_GRUPO_KEY+'_map');
-    localStorage.removeItem(_GRUPO_KEY+'_map_backup');
+    try{await CTAStorage.removeItem(_GRUPO_KEY+'_map');
+    await CTAStorage.removeItem(_GRUPO_KEY+'_map_backup');}catch(e){alert('No se han borrado todos los datos: '+e.message);return;}
     _grupoRefrescarTrasGestion();
     return;
   }
@@ -8079,7 +8226,7 @@ function gestionarImportacionesCompaneros(){
   });
   if(!totalEmp){alert('No he encontrado coincidencias para borrar.'+(fallidos.length?'\nNo encontrado: '+fallidos.join(', '):''));return;}
   if(!confirm('Se borrarán '+totalDias+' día(s) de '+totalEmp+' empleado(s).\n\n¿Confirmas?'))return;
-  if(_grupoGuardarMapCompaneros(map)){
+  if(await _grupoGuardarMapCompaneros(map)){
     _grupoRefrescarTrasGestion();
     if(fallidos.length)alert('Borrado realizado. No encontrado: '+fallidos.join(', '));
   }
@@ -8105,7 +8252,7 @@ function _normNombreGrupo(nombre){
 function _guardarMiIdentidadTryp(nombre,nomina){
   var n=String(nombre||'').trim();
   if(!n||_esNombreBasuraGrupo(n))return;
-  var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
+  var sess=null;try{sess=JSON.parse(CTAStorage.getItem('cta_session'));}catch(e){}
   var email=(sess&&sess.email)||'';
   try{localStorage.setItem('cta_mi_nombre_tryp',JSON.stringify({email:email,nombre:n,nomina:String(nomina||'').trim()}));}catch(e){}
 }
@@ -8186,7 +8333,7 @@ function _cacheMiEmpleadoGrupoSeguro(key,emp){
 // IMPORTANTE: jamás se deduce la identidad por tener el mismo turno que otra persona.
 function _identificarMiEmpleadoGrupo(nominaMap,sess){
   nominaMap=nominaMap||{};
-  var tryp=null;try{tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){}
+  var tryp=null;try{tryp=JSON.parse(CTAStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){}
   var trypPerteneceSesion=!!(tryp&&(!tryp.email||!sess||!sess.email||tryp.email===sess.email));
   var key=null;
 
@@ -8261,7 +8408,7 @@ function _ajustarFitZoneOperativa(){
 }
 window.addEventListener('resize',function(){setTimeout(_ajustarFitZoneOperativa,80);});
 window.addEventListener('orientationchange',function(){setTimeout(_ajustarFitZoneOperativa,250);});
-document.addEventListener('DOMContentLoaded',function(){setTimeout(_ajustarFitZoneOperativa,60);setTimeout(_ajustarFitZoneOperativa,500);});
+CTAStorage.onDOMReady(function(){setTimeout(_ajustarFitZoneOperativa,60);setTimeout(_ajustarFitZoneOperativa,500);});
 setTimeout(_ajustarFitZoneOperativa,120);
 setTimeout(_ajustarFitZoneOperativa,900);
 
@@ -8413,7 +8560,7 @@ function procesarGrupoXlsx(file,destino){
   var esImportHoras=(destinoImport==='horas'||destinoImport==='plantilla'||destinoImport==='hp');
   if(typeof XLSX==='undefined'){alert('Error: librería XLSX no cargada.');return;}
   var reader=new FileReader();
-  reader.onload=function(e){
+  reader.onload=async function(e){
     try{
       var wb;try{wb=XLSX.read(e.target.result,{type:'array'});}catch(ex){alert('Error XLSX: '+ex.message);return;}
       var ws=wb.Sheets[wb.SheetNames[0]];
@@ -8536,7 +8683,7 @@ function procesarGrupoXlsx(file,destino){
       // o se actualiza con el turno nuevo cuando trae horas. No se borra el mes entero.
       var nominaMap={};
       var _storageKey=_grupoMapStorageKey(esImportHoras?'horas':'companeros');
-      var _rawMap=localStorage.getItem(_storageKey);
+      var _rawMap=CTAStorage.getItem(_storageKey);
       try{nominaMap=JSON.parse(_rawMap||'{}')}catch(ex){}
       _fusionarDuplicadosGrupoSilencioso(nominaMap);
 
@@ -8571,8 +8718,8 @@ function procesarGrupoXlsx(file,destino){
         };
         _porNombreExistente[_normNombreGrupo(emp.nombre)]=key;
       });
-      if(!esImportHoras)_grupoGuardarBackupCompaneros(_rawMap,file&&file.name,monthKey,'');
-      try{localStorage.setItem(_storageKey,JSON.stringify(nominaMap));}catch(ex){alert('Error guardando: '+ex.message);}
+      if(!esImportHoras)await _grupoGuardarBackupCompaneros(_rawMap,file&&file.name,monthKey,'');
+      try{await CTAStorage.setItem(_storageKey,JSON.stringify(nominaMap),_rawMap);}catch(ex){alert('Error guardando: '+ex.message);return;}
 
       var total=0;for(var _k2 in nominaMap){if(nominaMap.hasOwnProperty(_k2))total++;}
       var etiqueta=(formato==='MULTI')?(gruposDetectados.length+' grupos'):gruposDetectados[0];
@@ -8798,7 +8945,7 @@ function _miCalendarioDiaArturo(dateObj){
   if(!dateObj)return null;
   var meses=(typeof _MC_MONTHS!=='undefined'&&_MC_MONTHS.length)?_MC_MONTHS:((typeof _GRUPO_MONTHS!=='undefined'&&_GRUPO_MONTHS.length)?_GRUPO_MONTHS:['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE']);
   var raw=null;
-  try{raw=localStorage.getItem('cta_ed_'+dateObj.getFullYear());}catch(e){raw=null;}
+  try{raw=CTAStorage.getItem('cta_ed_'+dateObj.getFullYear());}catch(e){raw=null;}
   var ue={};
   try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
   var mData=(ue&&ue[meses[dateObj.getMonth()]])||{};
@@ -8819,11 +8966,11 @@ function _arturoDebeTratarseLibre(nombre,dateObj){
 function _usuarioActualEsArturo(){
   var textos=[];
   try{
-    var sess=(typeof _ctaSession==='function')?_ctaSession():JSON.parse(localStorage.getItem('cta_session')||'{}');
+    var sess=(typeof _ctaSession==='function')?_ctaSession():JSON.parse(CTAStorage.getItem('cta_session')||'{}');
     textos.push(sess&&sess.nombre||'',sess&&sess.email||'');
   }catch(e){}
-  try{var tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');if(tryp)textos.push(tryp.nombre||'',tryp.email||'',tryp.nomina||'');}catch(e){}
-  try{var emp=JSON.parse(localStorage.getItem('cta_mi_empleado')||'null');if(emp)textos.push(emp.nombre||'',emp.email||'',emp.nomina||'');}catch(e){}
+  try{var tryp=JSON.parse(CTAStorage.getItem('cta_mi_nombre_tryp')||'null');if(tryp)textos.push(tryp.nombre||'',tryp.email||'',tryp.nomina||'');}catch(e){}
+  try{var emp=JSON.parse(CTAStorage.getItem('cta_mi_empleado')||'null');if(emp)textos.push(emp.nombre||'',emp.email||'',emp.nomina||'');}catch(e){}
   var t=textos.join(' ');
   if(/arturoricome/i.test(t))return true;
   return _esArturoPlantilla(t);
@@ -8848,7 +8995,7 @@ function _miCalendarioDiaLocal(dateObj){
   if(!dateObj)return null;
   var meses=(typeof _MC_MONTHS!=='undefined'&&_MC_MONTHS.length)?_MC_MONTHS:((typeof _GRUPO_MONTHS!=='undefined'&&_GRUPO_MONTHS.length)?_GRUPO_MONTHS:['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE']);
   var raw=null;
-  try{raw=localStorage.getItem('cta_ed_'+dateObj.getFullYear());}catch(e){raw=null;}
+  try{raw=CTAStorage.getItem('cta_ed_'+dateObj.getFullYear());}catch(e){raw=null;}
   var ue={};
   try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
   var mData=(ue&&ue[meses[dateObj.getMonth()]])||{};
@@ -8865,9 +9012,9 @@ function _empleadoEsUsuarioActual(emp,dateObj){
   if(!emp||!dateObj)return false;
   var monthKey=(typeof _GRUPO_MONTHS!=='undefined'&&_GRUPO_MONTHS[dateObj.getMonth()])||((typeof _MC_MONTHS!=='undefined'&&_MC_MONTHS[dateObj.getMonth()])||'');
   var day=dateObj.getDate();
-  var cached=null;try{cached=JSON.parse(localStorage.getItem('cta_mi_empleado')||'null');}catch(e){cached=null;}
+  var cached=null;try{cached=JSON.parse(CTAStorage.getItem('cta_mi_empleado')||'null');}catch(e){cached=null;}
   if(_mismoEmpleadoPlantillaFlexible(emp,cached))return true;
-  var tryp=null;try{tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){tryp=null;}
+  var tryp=null;try{tryp=JSON.parse(CTAStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){tryp=null;}
   var sess=(typeof _ctaSession==='function')?_ctaSession():{};
   if(tryp&&(!tryp.email||!sess.email||tryp.email===sess.email)&&_mismoEmpleadoPlantillaFlexible(emp,{nombre:tryp.nombre,nomina:tryp.nomina}))return true;
   if(typeof _getMiEmpleadoGrupoActual==='function'){
@@ -8958,7 +9105,7 @@ var _CAMBIOS_TURNOS_CARGANDO={};
 var _CAMBIOS_TURNOS_ULTIMA_CARGA={};
 
 function _ctaSession(){
-  try{return JSON.parse(localStorage.getItem('cta_session')||'{}')||{};}catch(e){return {};}
+  try{return JSON.parse(CTAStorage.getItem('cta_session')||'{}')||{};}catch(e){return {};}
 }
 function _monthIndexFromKey(monthKey){
   var idx=_GRUPO_MONTHS.indexOf(monthKey);
@@ -9216,7 +9363,7 @@ function _turnoMatchKey(t){
 }
 function _getMiEmpleadoGrupoActual(year,monthKey,day){
   var nominaMap={};
-  try{nominaMap=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')||{};}catch(e){nominaMap={};}
+  try{nominaMap=JSON.parse(CTAStorage.getItem(_GRUPO_KEY+'_map')||'{}')||{};}catch(e){nominaMap={};}
   var sess=(typeof _ctaSession==='function')?_ctaSession():null;
   var key=_identificarMiEmpleadoGrupo(nominaMap,sess);
   if(!key||!nominaMap[key])return null;
@@ -9301,7 +9448,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
 
   // Get group data from flat map
   var nominaMapHoy={};
-  try{nominaMapHoy=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){}
+  try{nominaMapHoy=JSON.parse(CTAStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){}
   var empleados=[];
   for(var _nk in nominaMapHoy){
     if(nominaMapHoy.hasOwnProperty(_nk)){
@@ -9322,7 +9469,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
 
   // Get my shift today
   var myData={};
-  try{myData=JSON.parse(localStorage.getItem('cta_ed_'+target.getFullYear())||'{}')}catch(e){}
+  try{myData=JSON.parse(CTAStorage.getItem('cta_ed_'+target.getFullYear())||'{}')}catch(e){}
   var myDay=(myData[monthKey]||{})[day];
   // Si mi propio calendario tiene HL parcial, en compañeros se usa solo el tramo real de trabajo.
   // No debe mostrarse ni contar el tramo HL dentro del turno propio.
@@ -9546,7 +9693,7 @@ function renderCompanerosDia(offsetDias,toggleIfOpen){
 // Si se cambia una regla de turnos/HL/cambios compartidos ahí, replicar
 // el cambio aquí también.
 function _tlPrefVistaHorasLeer(){
-  try{return localStorage.getItem('cta_vista_horas')==='1';}catch(e){return false;}
+  try{return CTAStorage.getItem('cta_vista_horas')==='1';}catch(e){return false;}
 }
 function _tlPrefVistaHorasGuardar(val){
   try{localStorage.setItem('cta_vista_horas',val?'1':'0');}catch(e){}
@@ -9574,7 +9721,7 @@ function _buildCompanerosTimelineData(offsetDias){
   var day=target.getDate();
 
   var nominaMapHoy={};
-  try{nominaMapHoy=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){}
+  try{nominaMapHoy=JSON.parse(CTAStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){}
   var empleados=[];
   for(var _nk in nominaMapHoy){
     if(nominaMapHoy.hasOwnProperty(_nk)){
@@ -9591,7 +9738,7 @@ function _buildCompanerosTimelineData(offsetDias){
   if(!empleados.length) return {error:'no-excel'};
 
   var myData={};
-  try{myData=JSON.parse(localStorage.getItem('cta_ed_'+target.getFullYear())||'{}')}catch(e){}
+  try{myData=JSON.parse(CTAStorage.getItem('cta_ed_'+target.getFullYear())||'{}')}catch(e){}
   var myDay=(myData[monthKey]||{})[day];
   // Si mi propio calendario tiene HL parcial, en vista por horas se usa solo el tramo real de trabajo.
   // No debe aparecer el tramo HL ni en la fila TÚ ni como fila propia dentro de la plantilla.
@@ -9844,7 +9991,7 @@ function mostrarToastVuelo(ev,numero,cod,start,end,tipo){
 }
 
 function _tlPrefLlegadasLeer(){
-  try{var v=localStorage.getItem('cta_mostrar_llegadas');return v===null?true:v==='1';}
+  try{var v=CTAStorage.getItem('cta_mostrar_llegadas');return v===null?true:v==='1';}
   catch(e){return true;}
 }
 function _tlPrefLlegadasGuardar(val){
@@ -10310,7 +10457,7 @@ function toggleVistaHoras(){
 // Init: check if group data exists
 (function(){
   try{
-    var g=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}');
+    var g=JSON.parse(CTAStorage.getItem(_GRUPO_KEY+'_map')||'{}');
     if(Object.keys(g).length>1){
       var btn=document.getElementById('btn-import-grupo');
       if(btn)btn.classList.add('has-data');
@@ -10385,7 +10532,7 @@ function checkTurnoSalida(){
   if(!tw||tw.style.display==='none')return;
   var now=new Date(),nowMin=now.getHours()*60+now.getMinutes();
   var meses=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
-  var raw;try{raw=localStorage.getItem("cta_ed_"+now.getFullYear());}catch(e){return;}
+  var raw;try{raw=CTAStorage.getItem("cta_ed_"+now.getFullYear());}catch(e){return;}
   if(!raw)return;
   var data;try{data=JSON.parse(raw);}catch(e){return;}
   var mes=data[meses[now.getMonth()]];
@@ -10429,7 +10576,7 @@ function showDisponibilidadCartel(){
 }
 </script>
 <div id="disp-cartel">Disponibilidad no confirmada</div>
-<script>
+<script type="text/cta-deferred">
 (function(){
 var MESES=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
 var MESES_ES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
@@ -10502,11 +10649,11 @@ window.opSetTopeContrato=function(tipo){
   if(typeof window.renderOperativa==='function')window.renderOperativa();
 };
 window.opToggleTopeContrato=function(){
-  var actual=null;try{actual=localStorage.getItem('cta_tope_contrato');}catch(e){}
+  var actual=null;try{actual=CTAStorage.getItem('cta_tope_contrato');}catch(e){}
   window.opSetTopeContrato(actual==='parcial'?'fijo':'parcial');
 };
 window.opCorregirVacTomadas=function(){
-  var actualRaw=null;try{actualRaw=localStorage.getItem('cta_vac_tomadas_override');}catch(e){}
+  var actualRaw=null;try{actualRaw=CTAStorage.getItem('cta_vac_tomadas_override');}catch(e){}
   var msg='¿Cuántos días de vacaciones llevas ya disfrutados este año (de los 30 anuales)?\n\nDéjalo en blanco para que se calcule automáticamente contando los días marcados "Vacaciones" en tu calendario importado.';
   var val=prompt(msg,actualRaw!==null?actualRaw:'');
   if(val===null)return; // cancelado
@@ -10531,12 +10678,12 @@ window.renderOperativa=function(){
   var vistaY=mesVista.getFullYear(),vistaM=mesVista.getMonth();
   var mK=MESES[vistaM];
   var mKHoy=MESES[now.getMonth()];
-  var ue={};try{var r=localStorage.getItem("cta_ed_"+now.getFullYear());if(r)ue=JSON.parse(r);}catch(e){}
+  var ue={};try{var r=CTAStorage.getItem("cta_ed_"+now.getFullYear());if(r)ue=JSON.parse(r);}catch(e){}
   var mDHoy=ue[mKHoy]||{};
   var ueMes=ue;
   if(vistaY!==now.getFullYear()){
     ueMes={};
-    try{var rm=localStorage.getItem("cta_ed_"+vistaY);if(rm)ueMes=JSON.parse(rm);}catch(e){}
+    try{var rm=CTAStorage.getItem("cta_ed_"+vistaY);if(rm)ueMes=JSON.parse(rm);}catch(e){}
   }
   var mD=ueMes[mK]||{};
   var dim=new Date(vistaY,vistaM+1,0).getDate();
@@ -10560,7 +10707,7 @@ window.renderOperativa=function(){
     });
   });
   // Add carryover
-  var _coRawOp;try{_coRawOp=localStorage.getItem('cta_peren_carryover_'+now.getFullYear());}catch(e){}
+  var _coRawOp;try{_coRawOp=CTAStorage.getItem('cta_peren_carryover_'+now.getFullYear());}catch(e){}
   var _coOp=0;if(_coRawOp){var _cop=_coRawOp.split(':');_coOp=(+_cop[0]||0)*60+(+_cop[1]||0);}
   var totalPerenMin=anualPerenMin+_coOp;
   var pMes=totalPerenMin/60; // keep pMes for display compatibility
@@ -10594,7 +10741,7 @@ window.renderOperativa=function(){
     var esFuturo=mIdx>_nowMOp;
     if(!esFuturo&&diasComputablesFestivo>=24)festivosGenerados+=2;
   });
-  var _fcoRawOp;try{_fcoRawOp=localStorage.getItem('cta_fest_carryover_'+_nowYOp);}catch(e){}
+  var _fcoRawOp;try{_fcoRawOp=CTAStorage.getItem('cta_fest_carryover_'+_nowYOp);}catch(e){}
   var _fcoOp=parseInt(_fcoRawOp,10);if(isNaN(_fcoOp))_fcoOp=0;
   var festAnual=_fcoOp+festivosGenerados-festivosUsados;
   if(g("op-cal-mes"))g("op-cal-mes").textContent=MESES_ES[vistaM]+" "+vistaY;
@@ -10612,7 +10759,7 @@ window.renderOperativa=function(){
   // Tope de contador según contrato — el usuario elige una vez (se guarda) y
   // se puede cambiar tocando el botón contrario. Por defecto "Fijo" hasta
   // que elija, ya que es el colectivo más habitual.
-  var topeSel=null;try{topeSel=localStorage.getItem('cta_tope_contrato');}catch(e){}
+  var topeSel=null;try{topeSel=CTAStorage.getItem('cta_tope_contrato');}catch(e){}
   if(topeSel!=='parcial'&&topeSel!=='fijo')topeSel='fijo';
   function _opTopeBtnEstilo(btn,activo){
     if(!btn)return;
@@ -10650,7 +10797,7 @@ window.renderOperativa=function(){
     // futuras aún no introducidas), puede no coincidir con la realidad.
     // Toca el texto de abajo para corregirlo a mano; se guarda y se usa en
     // vez del conteo automático mientras no lo borres.
-    var _vacOverrideRaw=null;try{_vacOverrideRaw=localStorage.getItem('cta_vac_tomadas_override');}catch(e){}
+    var _vacOverrideRaw=null;try{_vacOverrideRaw=CTAStorage.getItem('cta_vac_tomadas_override');}catch(e){}
     var vacTomadasAuto=vacTomadas;
     if(_vacOverrideRaw!==null&&_vacOverrideRaw!==''){var _vo=parseInt(_vacOverrideRaw,10);if(!isNaN(_vo))vacTomadas=_vo;}
     var vacPendientes=Math.max(0,30-vacTomadas);
@@ -10739,7 +10886,7 @@ window.renderOperativa=function(){
   d=_opDiaConHLParcial(d);
   var card=g("op-turno-card");
   // ─ Resumen Operativo ─────────────────────────────────────
-  var gmap={};try{gmap=JSON.parse(localStorage.getItem("cta_grupo_2026_map")||"{}");}catch(e){}
+  var gmap={};try{gmap=JSON.parse(CTAStorage.getItem("cta_grupo_2026_map")||"{}");}catch(e){}
   var grupoBanner=g("op-grupo-import-banner");
   if(grupoBanner)grupoBanner.style.display=Object.keys(gmap).length===0?"block":"none";
   var todayNum=now.getDate();
@@ -10894,7 +11041,7 @@ window.renderOperativa=function(){
   var lH=aL.filter(function(v){return !v.esManana;}),sH=aS.filter(function(v){return !v.esManana;});
   var lT=aL.filter(function(v){return !!v.esManana;}),sT=aS.filter(function(v){return !!v.esManana;});
   var tStr=now.toDateString(),totH=lH.length+sH.length,cH=0;
-  try{var cv=localStorage.getItem("op_vt");if(cv){var cpo=JSON.parse(cv);if(cpo.d===tStr)cH=cpo.t;}}catch(e){}
+  try{var cv=CTAStorage.getItem("op_vt");if(cv){var cpo=JSON.parse(cv);if(cpo.d===tStr)cH=cpo.t;}}catch(e){}
   // Only update cache if new count is HIGHER — once set, never go down during the day
   if(totH>cH){cH=totH;try{localStorage.setItem("op_vt",JSON.stringify({d:tStr,t:cH}));}catch(e){}}
   function opHistKey(dateObj){return dateObj.getFullYear()+'-'+String(dateObj.getMonth()+1).padStart(2,'0')+'-'+String(dateObj.getDate()).padStart(2,'0');}
@@ -10923,7 +11070,7 @@ window.renderOperativa=function(){
   var totT=lT.length+sT.length;
   // Cache tomorrow total — same logic as today: only goes up, resets at midnight
   var tStr2=tom.toDateString(),cT=0;
-  try{var cv2=localStorage.getItem("op_vt_tom");if(cv2){var cpt=JSON.parse(cv2);if(cpt.d===tStr2)cT=cpt.t;}}catch(e){}
+  try{var cv2=CTAStorage.getItem("op_vt_tom");if(cv2){var cpt=JSON.parse(cv2);if(cpt.d===tStr2)cT=cpt.t;}}catch(e){}
   if(remoteTomTotal>cT)cT=remoteTomTotal;
   if(totT>cT){cT=totT;try{localStorage.setItem("op_vt_tom",JSON.stringify({d:tStr2,t:cT}));}catch(e){}}
   if(g("op-v-total-tom"))g("op-v-total-tom").textContent=cT>0?cT:"—";
@@ -10963,7 +11110,7 @@ window.renderOperativa=function(){
   var hourCounts=Array(24).fill(0);
   allH.forEach(function(v){var tm=flMin(v);if(tm!==null)hourCounts[Math.floor(tm/60)%24]++;});
 
-  var opDetalleSel='hoy';try{opDetalleSel=localStorage.getItem('op_detalle_dia')||'hoy';}catch(e){}
+  var opDetalleSel='hoy';try{opDetalleSel=CTAStorage.getItem('op_detalle_dia')||'hoy';}catch(e){}
   if(opDetalleSel!=='manana')opDetalleSel='hoy';
   var opBaseDate=new Date(now);if(opBaseDate.getHours()<3)opBaseDate.setDate(opBaseDate.getDate()-1);
   var opDetalleDate=new Date(opBaseDate);if(opDetalleSel==='manana')opDetalleDate.setDate(opDetalleDate.getDate()+1);
@@ -11630,7 +11777,7 @@ window.initTurnoWidget=function(){
 
 
 
-<script>
+<script type="text/cta-deferred">
 (function(){
 function forceBottomNav(){
   var n=document.getElementById('bottom-nav');
@@ -11654,12 +11801,12 @@ function forceBottomNav(){
 }
 forceBottomNav();
 setInterval(forceBottomNav,350);
-document.addEventListener('DOMContentLoaded',forceBottomNav);
-window.addEventListener('load',forceBottomNav);
+CTAStorage.onDOMReady(forceBottomNav);
+CTAStorage.onLoad(forceBottomNav);
 })();
 </script>
 
-<script>
+<script type="text/cta-deferred">
 // Arranque reforzado de Operativa: carga vuelos y repinta aunque no se abra el panel de vuelos.
 (function(){
   function kickOperativaData(){
@@ -11669,9 +11816,9 @@ window.addEventListener('load',forceBottomNav);
     }catch(e){}
     try{ if(typeof window.renderOperativa==='function') window.renderOperativa(); }catch(e){ console.warn('renderOperativa error',e); }
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',kickOperativaData);
+  if((CTAStorage.booting||document.readyState==='loading')) CTAStorage.onDOMReady(kickOperativaData);
   else kickOperativaData();
-  window.addEventListener('load',function(){
+  CTAStorage.onLoad(function(){
     setTimeout(kickOperativaData,300);
     setTimeout(kickOperativaData,1800);
     setTimeout(kickOperativaData,4500);
@@ -11680,7 +11827,7 @@ window.addEventListener('load',forceBottomNav);
 </script>
 
 
-<script>
+<script type="text/cta-deferred">
 // CTA V34: aviso contextual para detalles/historial operativo
 function opShowDataInfo(ev){
   if(ev){ ev.preventDefault(); ev.stopPropagation(); }
@@ -11697,7 +11844,7 @@ document.addEventListener('keydown',function(e){
 </script>
 
 
-<script>
+<script type="text/cta-deferred">
 // CTA V53 fallback: cualquier barra operativa deja activo solo el último valor pulsado.
 document.addEventListener('click',function(e){
   var bar=e.target&&e.target.closest?e.target.closest('.op-bars-24 .op-bar-col,.op-bars-7 .op-bar-col'):null;
@@ -11709,7 +11856,7 @@ document.addEventListener('click',function(e){
 },true);
 </script>
 
-<script>
+<script type="text/cta-deferred">
 /* === VISTAS VUELOS: tabs (llegadas|salidas separados) vs split (juntos) === */
 var LIVE_VIEW_KEY='cta_live_view_v1';
 var LIVE_TAB_KEY='cta_live_tab_v1';
@@ -11760,8 +11907,8 @@ function syncSegCounts(){
 function initLiveViewMode(){
   var savedView='tabs';
   var savedTab='lle';
-  try{savedView=localStorage.getItem(LIVE_VIEW_KEY)||'tabs';}catch(e){}
-  try{savedTab=localStorage.getItem(LIVE_TAB_KEY)||'lle';}catch(e){}
+  try{savedView=CTAStorage.getItem(LIVE_VIEW_KEY)||'tabs';}catch(e){}
+  try{savedTab=CTAStorage.getItem(LIVE_TAB_KEY)||'lle';}catch(e){}
   _liveTab=savedTab;
   setLiveViewMode(savedView);
 }
@@ -11781,7 +11928,7 @@ function initLiveViewMode(){
 })();
 </script>
 
-<script>
+<script type="text/cta-deferred">
 /* ================================================================
    CTA TRACKING v2
    Registra en Sheets > Log todos los movimientos del usuario:
@@ -11880,7 +12027,7 @@ function initLiveViewMode(){
 })();
 </script>
 
-<script>
+<script type="text/cta-deferred">
 // ============================================================
 // BUSCADOR DE CAMBIO DE TURNO
 // ============================================================
@@ -12030,7 +12177,7 @@ function _cambioTurnoObjetivoActual(){
     return dias[_cambioDay]||null;
   }
   try{
-    var r=JSON.parse(localStorage.getItem('cta_ed_'+_cambioYear)||'{}');
+    var r=JSON.parse(CTAStorage.getItem('cta_ed_'+_cambioYear)||'{}');
     var t=(r[monthKey]||{})[_cambioDay]||null;
     return _ajustarTurnoConHLPersonal(t,t);
   }catch(e){return null;}
@@ -12042,8 +12189,8 @@ function _cambioEtiquetaObjetivo(){
     return n.split(/\s+/)[0]||'Empleado';
   }
   var sess=null,tryp=null;
-  try{sess=JSON.parse(localStorage.getItem('cta_session')||'null');}catch(e){}
-  try{tryp=JSON.parse(localStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){}
+  try{sess=JSON.parse(CTAStorage.getItem('cta_session')||'null');}catch(e){}
+  try{tryp=JSON.parse(CTAStorage.getItem('cta_mi_nombre_tryp')||'null');}catch(e){}
   if(tryp&&tryp.nombre&&(!tryp.email||!sess||!sess.email||tryp.email===sess.email))n=String(tryp.nombre).trim();
   if(!n&&sess&&sess.nombre&&_normNombreGrupo(sess.nombre)!==_normNombreGrupo('Modo prueba'))n=String(sess.nombre).trim();
   return n?(n.split(/\s+/)[0]||'Tú'):'Tú';
@@ -12861,11 +13008,11 @@ function calcularCambios(){
   if(_cambioEmpleadoObjetivo&&typeof _hpLeerMapaGrupo==='function'){
     try{nominaMap=_hpLeerMapaGrupo()||{};}catch(e){nominaMap={};}
   }else{
-    try{nominaMap=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){nominaMap={};}
+    try{nominaMap=JSON.parse(CTAStorage.getItem(_GRUPO_KEY+'_map')||'{}')}catch(e){nominaMap={};}
   }
 
   var myCat='FTP-Operarios',myNombre='',miKey=null,targetEmp=null;
-  var sess=null;try{sess=JSON.parse(localStorage.getItem('cta_session'));}catch(e){}
+  var sess=null;try{sess=JSON.parse(CTAStorage.getItem('cta_session'));}catch(e){}
   if(_cambioEmpleadoObjetivo){
     var targetFound=_cambioResolverEmpleadoEnMapa(nominaMap,_cambioEmpleadoObjetivo);
     if(!targetFound){
@@ -12888,7 +13035,7 @@ function calcularCambios(){
     myDayObjOriginal=(myRaw[monthKey]||{})[day]||null;
     myDayObj=myDayObjOriginal;
   }else{
-    try{myRaw=JSON.parse(localStorage.getItem('cta_ed_'+year)||'{}')}catch(e){myRaw={};}
+    try{myRaw=JSON.parse(CTAStorage.getItem('cta_ed_'+year)||'{}')}catch(e){myRaw={};}
     myDayObjOriginal=(myRaw[monthKey]||{})[day]||null;
     // HL personal del usuario actual: día completo → sin turno; parcial → se descuenta su tramo.
     myDayObj=_ajustarTurnoConHLPersonal(myDayObjOriginal,myDayObjOriginal);
@@ -13826,7 +13973,7 @@ function evBuscar(){
   if(typeof cargarCambiosTurnosCompartidos==='function')cargarCambiosTurnosCompartidos(_evAño);
   var mes=_MC_MONTHS[_evMesSel];
 
-  var nominaMap;try{nominaMap=JSON.parse(localStorage.getItem(_GRUPO_KEY+'_map')||'{}');}catch(e){nominaMap={};}
+  var nominaMap;try{nominaMap=JSON.parse(CTAStorage.getItem(_GRUPO_KEY+'_map')||'{}');}catch(e){nominaMap={};}
   var empleados=Object.values(nominaMap).filter(function(e){return e.nombre&&e.meses;});
 
   if(!empleados.length){
@@ -14067,7 +14214,7 @@ function _evVolverForm(){
   </div>
 </div>
 
-<script>
+<script type="text/cta-deferred">
 // ═══════════════════════════════════════════════════════════════
 // REGISTRO AUTOMÁTICO DE CADA BOTÓN/ENLACE QUE SE TOCA EN LA APP
 // ═══════════════════════════════════════════════════════════════
@@ -14258,14 +14405,14 @@ try{
   /* Más sigue debajo: solo aparece al hacer scroll hacia abajo */
   #op-v2-mas{margin-top:55px!important;}
 </style>
-<script id="cta-fit-estable-sin-salto-final">
+<script type="text/cta-deferred" id="cta-fit-estable-sin-salto-final">
 (function(){
   function stableFit(){
     return; // v3: todo fluye con su alto natural; el scroll ya existente es la red de seguridad.
   }
   window._ajustarFitZoneOperativa=stableFit;
-  document.addEventListener('DOMContentLoaded',function(){stableFit();setTimeout(stableFit,80);setTimeout(stableFit,500);});
-  window.addEventListener('load',stableFit);
+  CTAStorage.onDOMReady(function(){stableFit();setTimeout(stableFit,80);setTimeout(stableFit,500);});
+  CTAStorage.onLoad(stableFit);
   window.addEventListener('resize',function(){setTimeout(stableFit,80);});
   setTimeout(stableFit,0);setTimeout(stableFit,120);setTimeout(stableFit,800);
 })();
@@ -14608,7 +14755,7 @@ try{
     padding-bottom:8px!important;
   }
 </style>
-<script id="cta-ajuste-final-calendario-mijornada-js-20260702">
+<script type="text/cta-deferred" id="cta-ajuste-final-calendario-mijornada-js-20260702">
 (function(){
   function syncCalendarioHeader(){
     var card=document.getElementById('op-cal-card');
@@ -14632,7 +14779,7 @@ try{
     setTimeout(syncCalendarioHeader,400);
     setTimeout(syncCalendarioHeader,1000);
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+  if((CTAStorage.booting||document.readyState==='loading')) CTAStorage.onDOMReady(boot); else boot();
 })();
 </script>
 <!-- === AJUSTE TOPE CONTRATO: vuelta a estética anterior + nota bajo valor azul === -->
@@ -15226,7 +15373,7 @@ try{
 .et-origin{margin-top:7px;padding-top:7px;border-top:1px dashed rgba(255,255,255,.07);font-size:8.5px;color:var(--gray,#8a93a8);line-height:1.35}
 .et-origin b{color:#bfdbfe;font-weight:700}
 </style>
-<script>
+<script type="text/cta-deferred">
 
 /* CTA_ERRORES_TURNO_V2 */
 (function(){
@@ -15305,11 +15452,11 @@ function etResolvedKey(employee,nomina){
 function etIsResolved(employee,nomina){
   return !!etResolvedMap()[etResolvedKey(employee,nomina)];
 }
-function etToggleResolved(key){
+async function etToggleResolved(key){
   var map=etResolvedMap();
   if(map[key])delete map[key];
   else map[key]={resolvedAt:new Date().toISOString()};
-  etWriteJSON(ET_RESOLVED_KEY,map);
+  if(!await etWriteJSON(ET_RESOLVED_KEY,map))return;
   etRender();
 }
 function etParseDisplayDate(value){
@@ -15500,12 +15647,12 @@ function etCompareSource(a,b){
 }
 function etReadJSON(key,fallback){
   try{
-    var raw=localStorage.getItem(key);
+    var raw=CTAStorage.getItem(key);
     return raw?JSON.parse(raw):fallback;
   }catch(e){return fallback;}
 }
-function etWriteJSON(key,value){
-  try{localStorage.setItem(key,JSON.stringify(value));return true;}catch(e){return false;}
+async function etWriteJSON(key,value){
+  try{await CTAStorage.setItem(key,JSON.stringify(value));return true;}catch(e){alert('No se ha podido guardar: '+e.message);return false;}
 }
 function etEmployeeKey(emp){
   var id=String((emp&&emp.nomina)||'').trim();
@@ -15567,8 +15714,8 @@ function etGroupStorageKeys(){
   add('cta_hp_grupo_2026_map');
   add('cta_grupo_2026_map');
   try{
-    for(var i=0;i<localStorage.length;i++){
-      var k=localStorage.key(i);
+    for(var i=0;i<CTAStorage.length;i++){
+      var k=CTAStorage.key(i);
       if(!k||!/_map$/i.test(k)||!/grupo|plantilla/i.test(k))continue;
       var parsed=etReadJSON(k,null);
       if(etLooksLikeEmployeeMap(parsed))add(k);
@@ -15616,7 +15763,7 @@ function etRawMemory(){
 function etDirectId(filename,year){
   return 'directo:'+etNorm(filename||'archivo').replace(/[^a-z0-9]+/g,'-')+':'+String(year||new Date().getFullYear());
 }
-function etSaveDirectDataset(dataset){
+async function etSaveDirectDataset(dataset){
   if(!dataset||!dataset.employees||!Object.keys(dataset.employees).length)return{saved:false,reason:'empty'};
   var mem=etRawMemory();
   dataset.id=dataset.id||etDirectId(dataset.filename,dataset.year);
@@ -15633,7 +15780,7 @@ function etSaveDirectDataset(dataset){
   }
   mem.datasets[dataset.id]=dataset;
   mem.updatedAt=dataset.importedAt;
-  etWriteJSON(ET_RAW_KEY,mem);
+  if(!await etWriteJSON(ET_RAW_KEY,mem))throw new Error("No se ha guardado el Excel");
   return{saved:true,replaced:!!previous,previous:previous};
 }
 function etReadDirectDatasets(){
@@ -15649,12 +15796,12 @@ function etReadDirectDatasets(){
   });
   return out;
 }
-function etDeleteDataset(id){
+async function etDeleteDataset(id){
   var mem=etRawMemory();
   if(mem.datasets&&mem.datasets[id])delete mem.datasets[id];
   mem.updatedAt=new Date().toISOString();
-  etWriteJSON(ET_RAW_KEY,mem);
-  etRecalculate();
+  if(!await etWriteJSON(ET_RAW_KEY,mem))return;
+  await etRecalculate();
 }
 function etMergeEmployeeMonth(employees,emp,monthKey,days){
   var idx=etMonthIndex(monthKey);
@@ -15733,7 +15880,7 @@ function etImportFile(file){
   }
   etSetImportStatus('Procesando '+file.name+'…',false);
   var reader=new FileReader();
-  reader.onload=function(ev){
+  reader.onload=async function(ev){
     try{
       var wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array',cellText:true,cellStyles:true});
       var freshness=etResolveFreshness(file,wb);
@@ -15741,7 +15888,7 @@ function etImportFile(file){
       var dataset=etParseGroupWorkbook(wb,file.name,year)||etParsePersonalWorkbook(wb,file.name,year);
       if(!dataset)throw new Error('No se reconoce el formato del calendario.');
       dataset.freshness=freshness;
-      var saved=etSaveDirectDataset(dataset);
+      var saved=await etSaveDirectDataset(dataset);
       if(!saved.saved&&saved.reason==='older'){
         var oldFresh=etNormalizeFreshness(saved.previous);
         etSetImportStatus('No se ha aplicado '+file.name+': es anterior a la versión guardada ('+oldFresh.label+').',true);
@@ -16109,7 +16256,7 @@ function etDedup(errors){
   });
   return out;
 }
-function etRecalculate(){
+async function etRecalculate(){
   // En la web CTA, Errores de turno analiza exclusivamente los Excel
   // cargados dentro de esta herramienta. Los cambios nuevos realizados
   // por empleados no se incorporan ni modifican estos cálculos.
@@ -16127,7 +16274,7 @@ function etRecalculate(){
     errors:etDedup(all),employees:Object.keys(employeeMap).length,
     datasets:sourceFiles.length,generatedAt:new Date().toISOString()
   };
-  etWriteJSON(ET_RESULT_KEY,ET_LAST_RESULT);
+  await etWriteJSON(ET_RESULT_KEY,ET_LAST_RESULT);
   etRenderFiles();
   etRender();
   return ET_LAST_RESULT;
@@ -16350,14 +16497,14 @@ window.abrirImportadorErroresTurno=etOpenImporter;
 window.importarExcelErroresTurno=etImportFile;
 window.borrarExcelErroresTurno=etDeleteDataset;
 
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',etInit);
+if((CTAStorage.booting||document.readyState==='loading'))CTAStorage.onDOMReady(etInit);
 else etInit();
 })();
 
 </script>
 
 <!-- CTA_PERENTORIAS_FILTRO_ANIO_V1_2026-07-12 -->
-<script>
+<script type="text/cta-deferred">
 (function(){
   'use strict';
   var MARK='CTA_PERENTORIAS_FILTRO_ANIO_V1_2026-07-12';
@@ -16666,7 +16813,7 @@ else etInit();
     }catch(e){}
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',preparar);
+  if((CTAStorage.booting||document.readyState==='loading'))CTAStorage.onDOMReady(preparar);
   else preparar();
   setTimeout(preparar,500);
 })();
@@ -16705,7 +16852,7 @@ else etInit();
   transform:scale(.9);
 }
 </style>
-<script>
+<script type="text/cta-deferred">
 (function(){
   'use strict';
   if(window.__CTA_FLECHAS_MES_MINIMAS_V2__)return;
@@ -16742,7 +16889,7 @@ else etInit();
 .hp-change-detail-row b{color:var(--white);text-align:right;line-height:1.35}
 .hp-change-detail-current b{color:#86efac}
 </style>
-<script>
+<script type="text/cta-deferred">
 (function(){
   'use strict';
   if(window.__CTA_HP_CAMBIOS_ERRORES_V1__)return;
@@ -16891,7 +17038,7 @@ else etInit();
 .cta-alarm-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 <div id="ctaAlarmOneToast" class="cta-alarm-toast"></div>
-<script>
+<script type="text/cta-deferred">
 (function(){
   var MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
   var NO_WORK=['libre','vacaciones','festivo','hl','hlp','baja','permiso','rm','bp','nh','h6','excedencia'];
@@ -16899,10 +17046,10 @@ else etInit();
   var $=function(id){return document.getElementById(id)};
   var pad=function(n){return String(n).padStart(2,'0')};
   function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
-  function readOffset(){var n=70;try{n=parseInt(localStorage.getItem('cta_alarm_offset_min')||'70',10)}catch(e){}return Number.isFinite(n)&&n>=0&&n<=720?n:70}
+  function readOffset(){var n=70;try{n=parseInt(CTAStorage.getItem('cta_alarm_offset_min')||'70',10)}catch(e){}return Number.isFinite(n)&&n>=0&&n<=720?n:70}
   function toast(t){var e=$('ctaAlarmOneToast');if(!e)return;e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show')},2200)}
   function configureOffset(){var cur=readOffset();var v=prompt('¿Cuántos minutos antes del turno quieres la alarma?',String(cur));if(v===null)return;var n=parseInt(v,10);if(!Number.isFinite(n)||n<0||n>720){alert('Pon un valor entre 0 y 720 minutos.');return}try{localStorage.setItem('cta_alarm_offset_min',String(n))}catch(e){}toast('⏰ Alarmas: '+n+' min antes');updateTitles()}
-  function parseDayStore(d){var raw=null,obj={};try{raw=localStorage.getItem('cta_ed_'+d.getFullYear())}catch(e){}try{obj=raw?JSON.parse(raw):{}}catch(e){obj={}}return ((obj[MONTHS[d.getMonth()]]||{})[d.getDate()])||null}
+  function parseDayStore(d){var raw=null,obj={};try{raw=CTAStorage.getItem('cta_ed_'+d.getFullYear())}catch(e){}try{obj=raw?JSON.parse(raw):{}}catch(e){obj={}}return ((obj[MONTHS[d.getMonth()]]||{})[d.getDate()])||null}
   function nextShift(){var now=new Date();for(var i=0;i<=90;i++){var d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i);var day=parseDayStore(d);if(!day||!day.e1||NO_WORK.indexOf(String(day.tipo||'').toLowerCase())>=0)continue;var p=String(day.e1).split(':');var start=new Date(d.getFullYear(),d.getMonth(),d.getDate(),+(p[0]||0),+(p[1]||0),0,0);if(start.getTime()<=now.getTime())continue;return{date:ymd(d),entry:day.e1,label:'Próximo turno'}}return null}
   function launchAlarm(ds,ts,label){if(!ds||!ts){alert('Ese día no tiene hora de entrada.');return false}var start=new Date(ds+'T'+ts+':00');if(Number.isNaN(start.getTime())){alert('No puedo leer la hora de ese turno.');return false}var mins=readOffset();var alarm=new Date(start.getTime()-mins*60000);if(alarm.getTime()<=Date.now()){alert('La hora de alarma calculada ya ha pasado.');return false}var alarmText=pad(alarm.getHours())+':'+pad(alarm.getMinutes());var appLabel=encodeURIComponent('CTA · Entrada '+ts);var intent='ctaalarm3://set?at='+alarm.getTime()+'&label='+appLabel;toast('⏰ '+alarmText+' · abriendo alarma');try{window.location.href=intent}catch(e){alert('No se pudo abrir CTA Alarma. Comprueba que esté instalada.')}return false}
   function selectedDay(){var y=window._mcEditYear,m=window._mcEditMonth,d=window._mcEditDay;if(y==null||m==null||d==null)return null;var e1=$('mc-edit-e1')&&$('mc-edit-e1').value;if(!e1){var obj=parseDayStore(new Date(y,m,d));e1=obj&&obj.e1||''}return e1?{date:ymd(new Date(y,m,d)),entry:e1,label:'Turno seleccionado'}:null}
@@ -16911,7 +17058,7 @@ else etInit();
   function bindPress(btn,action){if(!btn||btn.__ctaBound)return;btn.__ctaBound=true;var timer=null,held=false;btn.addEventListener('pointerdown',function(){held=false;clearTimeout(timer);timer=setTimeout(function(){held=true;configureOffset()},650)});['pointerup','pointercancel','pointerleave'].forEach(function(k){btn.addEventListener(k,function(){clearTimeout(timer)})});btn.addEventListener('contextmenu',function(e){e.preventDefault()});btn.addEventListener('click',function(e){if(held){e.preventDefault();e.stopPropagation();held=false;return}action(e)})}
   function updateTitles(){var n=readOffset(),txt='Crear alarma '+n+' min antes · Mantén pulsado para cambiar';['ctaAlarmNextOne','ctaAlarmDayOne'].forEach(function(id){var b=$(id);if(b){b.title=txt;b.setAttribute('aria-label',txt)}})}
   function addButtons(){var card=$('op-turno-card'),next=nextShift();if(card&&!$('ctaAlarmNextOne')){var b=document.createElement('button');b.id='ctaAlarmNextOne';b.type='button';b.className='cta-alarm-one';b.textContent='⏰';card.appendChild(b);bindPress(b,onNext)}var nb=$('ctaAlarmNextOne');if(nb)nb.style.display=next?'flex':'none';var title=$('mc-edit-title');if(title&&!$('ctaAlarmDayOne')){var c=document.createElement('button');c.id='ctaAlarmDayOne';c.type='button';c.className='cta-alarm-one';c.textContent='⏰';title.parentNode.insertBefore(c,title.nextSibling);bindPress(c,onCalendar)}var cb=$('ctaAlarmDayOne');if(cb)cb.style.display=selectedDay()?'flex':'none';updateTitles()}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addButtons);else addButtons();
+  if((CTAStorage.booting||document.readyState==='loading'))CTAStorage.onDOMReady(addButtons);else addButtons();
   setInterval(addButtons,900);
 })();
 </script>
@@ -17075,7 +17222,7 @@ else etInit();
   </div>
 </div>
 
-<script>
+<script type="text/cta-deferred">
 (function(){
   var MONTHS=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
   var CFG_KEY='cta_web_alarm_offset_hhmm';
@@ -17093,7 +17240,7 @@ else etInit();
   }
   function parseDayStore(d){
     var raw=null,obj={};
-    try{raw=localStorage.getItem('cta_ed_'+d.getFullYear())}catch(e){}
+    try{raw=CTAStorage.getItem('cta_ed_'+d.getFullYear())}catch(e){}
     try{obj=raw?JSON.parse(raw):{}}catch(e){obj={}}
     return ((obj[MONTHS[d.getMonth()]]||{})[d.getDate()])||null;
   }
@@ -17106,7 +17253,7 @@ else etInit();
     return {date:new Date(y,m,d),entry:String(e1),label:'Turno CTA · entrada '+String(e1)};
   }
   function getOffset(){
-    var v='01:10';try{v=localStorage.getItem(CFG_KEY)||v}catch(e){}
+    var v='01:10';try{v=CTAStorage.getItem(CFG_KEY)||v}catch(e){}
     return /^\d{2}:\d{2}$/.test(v)?v:'01:10';
   }
   function offsetMinutes(v){
@@ -17114,7 +17261,7 @@ else etInit();
     if(!Number.isFinite(h)||!Number.isFinite(m)||h<0||h>23||m<0||m>59)return null;
     return h*60+m;
   }
-  function seen(){try{return localStorage.getItem(SEEN_KEY)==='1'}catch(e){return false}}
+  function seen(){try{return CTAStorage.getItem(SEEN_KEY)==='1'}catch(e){return false}}
 
   async function ensureAudio(){
     try{
@@ -17130,7 +17277,7 @@ else etInit();
   async function askNotif(){
     try{if('Notification' in window&&Notification.permission==='default')await Notification.requestPermission()}catch(e){}
   }
-  function loadAlarms(){try{var a=JSON.parse(localStorage.getItem(ALARMS_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+  function loadAlarms(){try{var a=JSON.parse(CTAStorage.getItem(ALARMS_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
   function saveAlarms(a){try{localStorage.setItem(ALARMS_KEY,JSON.stringify(a))}catch(e){}}
   function aid(d,e){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'_'+e}
 
@@ -17373,7 +17520,7 @@ else etInit();
   $('ctaWebAlarmListBg').addEventListener('click',closeAlarmList);
   $('ctaWebAlarmListClose').addEventListener('click',closeAlarmList);
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){restore();addClock()});
+  if((CTAStorage.booting||document.readyState==='loading'))CTAStorage.onDOMReady(function(){restore();addClock()});
   else{restore();addClock()}
   setInterval(function(){addClock();refreshAlarmUI()},900);
 
@@ -17462,7 +17609,7 @@ else etInit();
     <button class="cta-am-btn cta-am-danger" id="ctaAlarmMethodClose" type="button">Cerrar</button>
   </div>
 </div>
-<script>
+<script type="text/cta-deferred">
 (function(){
   var METHOD_KEY='cta_alarm_method_v1';
   var OFFSET_KEY='cta_web_alarm_offset_hhmm';
@@ -17472,16 +17619,16 @@ else etInit();
   var longTimer=null,longFired=false;
   var $=function(id){return document.getElementById(id)};
   var pad=function(n){return String(n).padStart(2,'0')};
-  function method(){try{return localStorage.getItem(METHOD_KEY)||''}catch(e){return ''}}
+  function method(){try{return CTAStorage.getItem(METHOD_KEY)||''}catch(e){return ''}}
   function setMethod(v){try{localStorage.setItem(METHOD_KEY,v)}catch(e){}}
-  function getOffset(){var v='01:10';try{v=localStorage.getItem(OFFSET_KEY)||v}catch(e){}return /^\d{2}:\d{2}$/.test(v)?v:'01:10'}
+  function getOffset(){var v='01:10';try{v=CTAStorage.getItem(OFFSET_KEY)||v}catch(e){}return /^\d{2}:\d{2}$/.test(v)?v:'01:10'}
   function saveOffset(){var v=$('ctaAlarmMethodOffset').value;if(!/^\d{2}:\d{2}$/.test(v)){alert('Introduce la antelación en formato HH:mm.');return false}var p=v.split(':'),h=+p[0],m=+p[1];if(h>23||m>59){alert('Antelación no válida.');return false}try{localStorage.setItem(OFFSET_KEY,v);localStorage.setItem(SEEN_KEY,'1')}catch(e){}return true}
   function isAndroid(){return /Android/i.test(navigator.userAgent||'')}
   function isIOS(){return /iPhone|iPad|iPod/i.test(navigator.userAgent||'')}
   function selectedDay(){
     var y=window._mcEditYear,m=window._mcEditMonth,d=window._mcEditDay;if(y==null||m==null||d==null)return null;
     var e1=$('mc-edit-e1')&&$('mc-edit-e1').value;
-    if(!e1){try{var raw=localStorage.getItem('cta_ed_'+y),obj=raw?JSON.parse(raw):{},months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];e1=((obj[months[m]]||{})[d]||{}).e1||''}catch(e){}}
+    if(!e1){try{var raw=CTAStorage.getItem('cta_ed_'+y),obj=raw?JSON.parse(raw):{},months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];e1=((obj[months[m]]||{})[d]||{}).e1||''}catch(e){}}
     if(!e1)return null;return {date:new Date(y,m,d),entry:String(e1),label:'Turno CTA · entrada '+String(e1)};
   }
   function shiftReminderFor(sel){
@@ -17497,7 +17644,7 @@ else etInit();
     }
     try{
       var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-      var raw=localStorage.getItem('cta_ed_'+y),obj=raw?JSON.parse(raw):{},day=((obj[months[m]]||{})[d]||{});
+      var raw=CTAStorage.getItem('cta_ed_'+y),obj=raw?JSON.parse(raw):{},day=((obj[months[m]]||{})[d]||{});
       if(!e1)e1=day.e1||sel.entry||'';
       if(!s1)s1=day.s1||'';
       if(!e2)e2=day.e2||'';
@@ -17518,7 +17665,7 @@ else etInit();
     var reminder=shiftReminderFor(sel),appLabel=sel.label+(reminder?'|||CTA_SHIFT|||'+reminder:'');
     return {id:id,at:at,entry:sel.entry,label:sel.label,appLabel:appLabel,shiftReminder:reminder,method:'app'};
   }
-  function loadAlarms(){try{var a=JSON.parse(localStorage.getItem(ALARMS_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+  function loadAlarms(){try{var a=JSON.parse(CTAStorage.getItem(ALARMS_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
   function saveNativeMeta(a){var arr=loadAlarms().filter(function(x){return x.id!==a.id&&x.at>Date.now()-60000});arr.push(a);try{localStorage.setItem(ALARMS_KEY,JSON.stringify(arr))}catch(e){}}
   function refreshOldUI(){try{var b=$('ctaWebAlarmListBtn');if(b)b.click&&null}catch(e){}setTimeout(function(){try{window.dispatchEvent(new Event('resize'))}catch(e){}},50)}
   function createNative(sel,suppressToast){
@@ -17690,7 +17837,7 @@ else etInit();
 
   function splitOffset(){
     var v='00:30';
-    try{v=localStorage.getItem(SPLIT_OFFSET_KEY)||v}catch(e){}
+    try{v=CTAStorage.getItem(SPLIT_OFFSET_KEY)||v}catch(e){}
     return /^\d{2}:\d{2}$/.test(v)?v:'00:30';
   }
   function splitDayData(sel){
@@ -17706,7 +17853,7 @@ else etInit();
     }
     try{
       var months=['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-      var raw=localStorage.getItem('cta_ed_'+y),obj=raw?JSON.parse(raw):{},day=((obj[months[m]]||{})[d]||{});
+      var raw=CTAStorage.getItem('cta_ed_'+y),obj=raw?JSON.parse(raw):{},day=((obj[months[m]]||{})[d]||{});
       if(!e1)e1=day.e1||sel.entry||'';
       if(!s1)s1=day.s1||'';
       if(!e2)e2=day.e2||'';
@@ -17743,7 +17890,7 @@ else etInit();
   }
   function splitPendingLoad(){
     var o=null;
-    try{o=JSON.parse(localStorage.getItem(SPLIT_PENDING_KEY)||'null')}catch(e){}
+    try{o=JSON.parse(CTAStorage.getItem(SPLIT_PENDING_KEY)||'null')}catch(e){}
     if(!o||!o.e2||!o.created||Date.now()-o.created>20*60*1000){
       try{localStorage.removeItem(SPLIT_PENDING_KEY)}catch(e){}
       return null;
@@ -17952,7 +18099,7 @@ else etInit();
   window.addEventListener('resize',function(){
     if($('ctaSplitSuggest')&&$('ctaSplitSuggest').classList.contains('show'))liftAlarmToastAboveSplit();
   });
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initAlarmMethodUI);
+  if((CTAStorage.booting||document.readyState==='loading'))CTAStorage.onDOMReady(initAlarmMethodUI);
   else setTimeout(initAlarmMethodUI,0);
   setInterval(function(){bindSplitUI();bindClock()},700);
 })();
@@ -18150,6 +18297,34 @@ body:has(#login-screen[style*="display: flex"]) #bottom-nav{
 }
 </style>
 
+<script id="cta-storage-bootstrap">
+(async function(){
+  var cover=document.createElement('div');
+  cover.id='cta-storage-loading';
+  cover.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#0d1623;color:white;display:grid;place-content:center;text-align:center;padding:24px;font:16px sans-serif';
+  cover.textContent='Abriendo tus datos de CTA…';
+  document.body.appendChild(cover);
+  try{
+    var mode=await CTAStorage.start();
+    // Preserve classic-script globals, execution order and inline event handlers.
+    for(var source of document.querySelectorAll('script[type="text/cta-deferred"]')){
+      var script=document.createElement('script');
+      script.textContent=source.textContent;
+      if(source.id)script.id=source.id;
+      source.replaceWith(script);
+    }
+    CTAStorage.booting=false;
+    cover.remove();
+    if(mode==='fallback')CTAStorage.notice('La memoria ampliada no está disponible. CTA conserva el sistema anterior; si se llena, la importación no se guardará.');
+    window.__ctaStorageBooted=true;
+  }catch(e){
+    cover.textContent=e.message+' ';
+    var button=document.createElement('button');button.textContent='Volver a intentar';
+    button.onclick=function(){location.reload();};cover.appendChild(button);
+  }
+})();
+
+</script>
 </body>
 </html>
 
@@ -18284,5 +18459,5 @@ CORRECCION WEB PUBLICADA:
 <!-- CTA_V13_4_MAS_SEPARACION_VINETAS_2026-08-18
 - Añadido un poco más de separación vertical entre las viñetas principales.
 - Mantiene login limpio, enlaces nuevos, APK v12 y alarmas.
-- PWA versionada como 20260818-login-v13-4.
+- PWA versionada como 20260927-login-v13-4-idb1.
 -->
