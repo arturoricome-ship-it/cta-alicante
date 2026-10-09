@@ -1,3 +1,4 @@
+<!-- CTA_EMPLEADOS_IMPORT_TRYP_SELECTOR_MESES_SCROLL_V13_5_2026-10-08 -->
 <!-- CTA_LOGIN_ACTIVO_MEDIA_VACACIONES_8H_FINAL_2026-07-28 -->
 <!-- CTA_MEDIA_VACACIONES_DISFRUTADAS_REALES_PENDIENTES_8H_2026-07-28 -->
 <!-- CTA_ERRORES_SOLO_EXCEL_SIN_CAMBIOS_EMPLEADOS_V1_2026-07-28 -->
@@ -21,7 +22,7 @@
   var cache=Object.create(null), records=Object.create(null), db=null;
   var initialized=false, pending=0, queue=Promise.resolve(), stale=false;
   var channel=typeof BroadcastChannel==='function'?new BroadcastChannel(DB):null;
-  function managed(k){return /^(cta_(?:hp_)?grupo_\d{4}_map(?:_backup)?|cta_ed_\d{4}|cta_ta_memory_v1(?:_backup)?|cta_turn_errors_(?:direct_v1|direct_result_v1|resolved_employees_v1)|cta_live_timeline_cache_v2)$/.test(k);}
+  function managed(k){return /^(cta_(?:hp_)?grupo_\d{4}_map(?:_backup)?|cta_ed_\d{4}|cta_ta_memory_v1(?:_backup)?|cta_turn_errors_(?:direct_v1|direct_result_v1|resolved_employees_v1)|cta_live_timeline_cache_v2|cta_ed_import_undo_v1)$/.test(k);}
   function localKeys(){var a=[];try{for(var i=0;i<localStorage.length;i++)a.push(localStorage.key(i));}catch(e){}return a;}
   function localGet(k){return localStorage.getItem(k);}
   function owns(o,k){return Object.prototype.hasOwnProperty.call(o,k);}
@@ -158,7 +159,7 @@
 </script>
 <script id="cta-build-guard">
 (function(){
-  var BUILD="20260927-login-v13-4-idb1";
+  var BUILD="20261008-login-v13-6-tryp-seguro";
   try{
     var u=new URL(location.href);
     if((location.protocol==="https:"||location.protocol==="http:") &&
@@ -4197,7 +4198,7 @@ function renderAvisosDefault(container){
 }
 
 // PWA
-var manifest={name:"CTA Alicante",short_name:"CTA",id:"./",start_url:"./?cta_build=20260927-login-v13-4-idb1",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
+var manifest={name:"CTA Alicante",short_name:"CTA",id:"./",start_url:"./?cta_build=20261008-login-v13-6-tryp-seguro",display:"standalone",background_color:"#0d1623",theme_color:"#1a2744",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='22' fill='%231a2744'/%3E%3Crect x='6' y='6' width='84' height='84' rx='18' fill='%23c8a84b'/%3E%3Ctext x='48' y='62' font-family='Arial Black' font-size='26' font-weight='900' fill='%231a2744' text-anchor='middle'%3ECTA%3C/text%3E%3C/svg%3E",sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"}]};
 var ml=document.createElement("link");ml.rel="manifest";ml.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/json"}));document.head.appendChild(ml);
 var dp;
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;setTimeout(function(){document.getElementById("install-banner").classList.add("show");},4000);});
@@ -5342,9 +5343,10 @@ function initGoogleWhenReady(intentos){
 </script>
 
 
+<!-- CTA_EMPLEADOS_v13_6_TRYP_IMPORT_SEGURO_2026_10_08 -->
 <!-- ─── TRYP IMPORT MODAL ──────────────────────────────────── -->
 <div id="tryp-import-bg" onclick="closeTrypImport()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;backdrop-filter:blur(6px)"></div>
-<div id="tryp-import-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:601;display:flex;flex-direction:column;overflow:hidden;transform:translateY(120%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
+<div id="tryp-import-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#182135;border-radius:22px 22px 0 0;z-index:601;flex-direction:column;overflow:hidden;min-height:0;transform:translateY(120%);transition:transform .3s cubic-bezier(.4,0,.2,1)">
   <!-- Handle + tabs -->
   <div style="padding:14px 16px 0;flex-shrink:0">
     <div style="width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto 14px"></div>
@@ -5365,11 +5367,11 @@ function initGoogleWhenReady(intentos){
   </div>
 
   <!-- PANE Excel -->
-  <div id="ti-pane-excel" style="flex:1;min-height:0;overflow-y:auto;padding:0 16px 24px;display:block;min-height:0">
+  <div id="ti-pane-excel" style="flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding:0 16px 24px;display:block">
     <div style="font-size:11px;color:var(--gray);margin-bottom:12px">Importa tu calendario desde el Excel del Tryp</div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       <span style="font-size:12px;color:var(--gray);white-space:nowrap">Año:</span>
-      <select id="ti-year" style="flex:1;background:#1f2d47;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#f0eee8;font-family:'Outfit',sans-serif;font-size:13px;padding:7px 10px">
+      <select id="ti-year" onchange="tiRenderMonthSelector()" style="flex:1;background:#1f2d47;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#f0eee8;font-family:'Outfit',sans-serif;font-size:13px;padding:7px 10px">
         <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
       </select>
     </div>
@@ -5382,19 +5384,30 @@ function initGoogleWhenReady(intentos){
       <div id="ti-drop-txt" style="font-size:13px;color:var(--gray)">Toca para seleccionar el .xlsx del Tryp</div>
     </div>
     <input type="file" id="ti-file" accept=".xlsx,.xls" style="display:none" onchange="tiHandleFile(this.files[0])">
-    <label style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--gray);cursor:pointer;margin-bottom:8px">
-      <input type="checkbox" id="ti-overwrite" style="width:16px;height:16px;accent-color:var(--gold)">
-      Sobreescribir días que ya tengan datos
-    </label>
-    <label style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--gray);cursor:pointer;margin-bottom:12px">
-      <input type="checkbox" id="ti-skip-empty" checked style="width:16px;height:16px;accent-color:var(--gold)">
-      Ignorar meses sin datos
-    </label>
-    <div id="ti-preview" style="display:none;background:rgba(0,0,0,.3);border-radius:10px;padding:10px;margin-bottom:12px;font-size:11px;color:var(--gray);line-height:1.8"></div>
+    <div style="font-size:12px;font-weight:800;color:var(--white);margin:0 0 10px">¿Qué quieres hacer con el calendario?</div>
+    <div style="display:grid;gap:8px;margin-bottom:12px">
+      <label id="ti-mode-new-box" style="display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid rgba(74,222,128,.45);background:rgba(34,197,94,.09);border-radius:12px;cursor:pointer">
+        <input type="radio" name="ti-import-mode" value="new" checked onchange="tiSetImportMode('new')" style="accent-color:#4ade80;width:18px;height:18px;flex-shrink:0;margin-top:1px">
+        <span style="font-size:12px;color:var(--white);line-height:1.45"><b>Añadir meses nuevos</b> <span style="font-size:9px;font-weight:900;color:#86efac">RECOMENDADO</span><br><span style="font-size:11px;color:var(--gray)">No modifica ningún mes ya guardado, aunque hayas cambiado turnos a mano.</span></span>
+      </label>
+      <label id="ti-mode-replace-box" style="display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.02);border-radius:12px;cursor:pointer">
+        <input type="radio" name="ti-import-mode" value="replace" onchange="tiSetImportMode('replace')" style="accent-color:#fbbf24;width:18px;height:18px;flex-shrink:0;margin-top:1px">
+        <span style="font-size:12px;color:var(--white);line-height:1.45"><b>Sustituir un mes existente</b><br><span style="font-size:11px;color:var(--gray)">Para actualizar un cuadrante corregido por la empresa. Necesita elegir el mes y confirmar.</span></span>
+      </label>
+    </div>
+    <div style="font-size:10px;color:var(--gray);line-height:1.5;margin-bottom:10px">Los meses vacíos del Excel se ignoran siempre. Antes de importar se guarda automáticamente una copia para poder deshacer.</div>
+    <div id="ti-preview" style="display:none;background:rgba(0,0,0,.3);border-radius:10px;padding:11px;margin-bottom:12px;font-size:11px;color:var(--gray);line-height:1.6"></div>
+    <button id="ti-undo-btn" onclick="tiUndoLastImport()" style="display:none;width:100%;border:1px solid rgba(96,165,250,.38);background:rgba(96,165,250,.10);color:#bfdbfe;border-radius:11px;padding:12px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;cursor:pointer;margin-bottom:8px">↩ Deshacer última importación</button>
+    <div id="ti-undo-desc" style="font-size:10px;line-height:1.45;color:var(--gray);margin-bottom:12px"></div>
+    <details id="ti-advanced" style="border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:11px 12px;margin-bottom:12px">
+      <summary style="font-size:11px;font-weight:700;color:var(--gray);cursor:pointer">Otras opciones (avanzado)</summary>
+      <button onclick="abrirSelectorMesesICS()" style="width:100%;background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.25);border-radius:11px;padding:11px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;color:var(--gold);cursor:pointer;margin-top:12px">📅 Exportar calendario (.ics) con alarmas</button>
+      <button onclick="tiResetData()" style="width:100%;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:11px;padding:11px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;color:#f87171;cursor:pointer;margin-top:8px">🗑️ Borrar todos los turnos importados</button>
+    </details>
   </div>
 
   <!-- PANE Backup -->
-  <div id="ti-pane-backup" style="flex:1;min-height:0;overflow-y:auto;padding:0 16px 24px;display:none;min-height:0">
+  <div id="ti-pane-backup" style="flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 24px;display:none">
     <div style="font-size:11px;color:var(--gray);margin-bottom:12px">Restaura desde el archivo .json exportado en el Dashboard de Nóminas (💾 Exportar datos)</div>
     <div onclick="document.getElementById('ti-backup-file').click()"
       style="border:2px dashed rgba(200,168,75,.3);border-radius:14px;padding:28px 16px;text-align:center;cursor:pointer;margin-bottom:12px">
@@ -5412,7 +5425,7 @@ function initGoogleWhenReady(intentos){
   </div>
 
   <!-- Footer buttons -->
-  <div style="flex-shrink:0;position:sticky;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);background:#182135;z-index:2">
+  <div style="order:10;flex-shrink:0;position:relative;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);background:#182135;z-index:2">
     <div style="display:flex;gap:8px;margin-bottom:8px">
       <button onclick="closeTrypImport()"
         style="flex:1;background:var(--card2);border:none;border-radius:12px;padding:13px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--gray);cursor:pointer">
@@ -5423,16 +5436,10 @@ function initGoogleWhenReady(intentos){
         ✅ Importar turnos
       </button>
     </div>
-    <button onclick="abrirSelectorMesesICS()" style="width:100%;background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.25);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--gold);cursor:pointer;margin-bottom:8px">
-      📅 Exportar calendario (.ics) con alarmas
-    </button>
-    <button onclick="tiResetData()" style="width:100%;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;color:#f87171;cursor:pointer;margin-bottom:6px">
-      🗑️ Borrar todos los turnos importados
-    </button>
   </div>
 
   <!-- PANE Export -->
-  <div id="ti-pane-export" style="flex:1;min-height:0;overflow-y:auto;padding:0 16px 24px;display:none;min-height:0">
+  <div id="ti-pane-export" style="flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 24px;display:none">
     <div style="font-size:11px;color:var(--gray);margin-bottom:16px">Guarda una copia de todos tus datos: turnos, ajustes y configuración.</div>
     <div id="ti-exp-preview" style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;font-size:11px;color:var(--gray);line-height:1.8">
       <div style="color:var(--white);font-weight:700;margin-bottom:6px">📊 Datos disponibles</div>
@@ -5516,18 +5523,17 @@ var _tiActiveTab='excel';
 function tiUpdateApplyBtn(){
   var btn=document.getElementById('ti-apply-btn');
   if(!btn)return;
-  var ready=_tiActiveTab==='excel'?(!document.getElementById('ti-apply-btn').disabled):(_tiBackupRaw!==null);
-  // re-enable based on parsed data
+  var ready=false;
   if(_tiActiveTab==='excel'){
-    ready=(_tiParsed!==null);
-  } else {
-    ready=(_tiBackupRaw!==null);
-    if(ready){btn.disabled=false;btn.style.opacity='1';}
-    else{btn.disabled=true;btn.style.opacity='.4';}
-    return;
+    ready=!!_tiParsed&&tiSelectedMonths().length>0&&_tiPreviewValid;
+  }else if(_tiActiveTab==='backup'){
+    ready=_tiBackupRaw!==null;
   }
-  if(ready){btn.disabled=false;btn.style.opacity='1';}
-  else{btn.disabled=true;btn.style.opacity='.4';}
+  btn.disabled=!ready;
+  btn.style.opacity=ready?'1':'.4';
+  btn.textContent=_tiActiveTab==='backup'?'✅ Restaurar backup':
+    (_tiActiveTab==='export'?'📤 Exportar desde arriba':
+    (_tiImportMode==='replace'?'⚠️ Revisar sustitución':'✅ Añadir meses nuevos'));
 }
 
 
@@ -5607,7 +5613,8 @@ function tiDoExport(){
   setTimeout(function(){URL.revokeObjectURL(url);document.body.removeChild(a);},1000);
 }
 async function tiResetData(){
-  if(!confirm('¿Seguro que quieres borrar TODOS los turnos importados? Esta acción no se puede deshacer.'))return;
+  if(!confirm('Vas a borrar TODOS los turnos importados, incluidos los cambios hechos a mano. Esta función NO usa el botón Deshacer. Guarda primero una copia desde Exportar. ¿Quieres continuar?'))return;
+  if(prompt('Para confirmar el borrado de TODOS tus turnos, escribe BORRAR:')!=='BORRAR')return;
   var year=new Date().getFullYear();
   // Remove current year and adjacent years
   for(var y of [year-1,year,year+1]){
@@ -5864,17 +5871,25 @@ var _NOTA_TIPO={
 
 function openTrypImport(){
   _tiParsed=null;
+  _tiImportMode='new';
+  _tiReplaceMonth='';
+  _tiPreviewYear=null;
+  _tiPreviewValid=false;
+  var radio=document.querySelector('input[name="ti-import-mode"][value="new"]');if(radio)radio.checked=true;
+  tiUpdateModeCards();
   _tiBackupRaw=null;
+  tiSwitchTab('excel');
   document.getElementById('ti-drop-txt').textContent='Toca para seleccionar el archivo .xlsx del Tryp';
   document.getElementById('ti-preview').style.display='none';
   document.getElementById('ti-preview').innerHTML='';
   document.getElementById('ti-apply-btn').disabled=true;
   document.getElementById('ti-apply-btn').style.opacity='.5';
   document.getElementById('ti-file').value='';
+  tiUpdateUndoUI();
   document.getElementById('tryp-import-bg').style.display='block';
   positionImportPanel();
   var panel=document.getElementById('tryp-import-panel');
-  panel.style.display='block';
+  panel.style.display='flex';
   setTimeout(function(){panel.style.transform='translateY(0)';},10);
 }
 
@@ -6161,11 +6176,18 @@ function tiHandleFile(file){
         _guardarMiIdentidadTryp(_extraerNombreDeTituloTryp(tiCellVal(sheet,1,0)),'');
       }
       tiParseSheet(sheet,file.name);
-    }catch(err){alert('Error al leer el archivo: '+err.message);}
+    }catch(err){
+      _tiParsed=null;_tiReplaceMonth='';_tiPreviewValid=false;
+      document.getElementById('ti-apply-btn').disabled=true;
+      document.getElementById('ti-apply-btn').style.opacity='.4';
+      document.getElementById('ti-preview').style.display='none';
+      document.getElementById('ti-drop-txt').textContent='Toca para seleccionar el archivo .xlsx del Tryp';
+      alert('Error al leer el archivo: '+err.message);
+    }
   };
   reader.readAsArrayBuffer(file);
   // Reset so same file can be re-imported
-  document.getElementById('grupo-file-input').value='';
+  document.getElementById('ti-file').value='';
 }
 function tiCellVal(sheet,row,col){
   var addr=XLSX.utils.encode_cell({r:row,c:col});
@@ -6280,18 +6302,153 @@ function tiParseSheet(sheet,filename){
     stats.push({month:monthKey,work:cW,libre:cL,empty:cE,hasData:cW>0||cL>0});
   }
   _tiParsed={data:result,stats:stats,filename:filename};
-  var skipEmpty=document.getElementById('ti-skip-empty').checked;
-  var prev=document.getElementById('ti-preview');
-  prev.style.display='block';
-  var html='<b style="color:#f0eee8">'+filename+'</b><br><br>';
-  stats.forEach(function(s){
-    var skip=skipEmpty&&!s.hasData;
-    html+='<span style="color:'+(skip?'rgba(255,255,255,.2)':'#4ade80')+'">'+s.month+': '+(skip?'sin datos (omitido)':s.work+' trab · '+s.libre+' libres')+'</span><br>';
-  });
-  prev.innerHTML=html;
-  document.getElementById('ti-apply-btn').disabled=false;
-  document.getElementById('ti-apply-btn').style.opacity='1';
+  _tiImportMode='new';
+  _tiReplaceMonth='';
+  _tiPreviewYear=null;
+  var defaultRadio=document.querySelector('input[name="ti-import-mode"][value="new"]');if(defaultRadio)defaultRadio.checked=true;
+  tiUpdateModeCards();
+  tiRenderMonthSelector();
   document.getElementById('ti-drop-txt').textContent='✅ Cargado: '+filename;
+}
+// Importación simplificada TRYP PERSONAL (independiente del Analizador).
+var _tiImportMode='new';
+var _tiReplaceMonth='';
+var _tiPreviewYear=null;
+var _tiPreviewValid=false;
+var _TI_UNDO_KEY='cta_ed_import_undo_v1';
+var _tiImportBusy=false;
+function tiSafeHtml(v){return String(v||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function tiOwn(o,k){return Object.prototype.hasOwnProperty.call(o,k);}
+function tiReadYear(year){
+  var raw=CTAStorage.getItem('cta_ed_'+year);
+  var data=raw?JSON.parse(raw):{};
+  if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('El calendario guardado no es válido');
+  return {raw:raw,data:data};
+}
+function tiValidIncoming(){
+  if(!_tiParsed||!_tiParsed.stats)return [];
+  return _tiParsed.stats.filter(function(s){
+    return s.hasData&&_tiParsed.data&&tiOwn(_tiParsed.data,s.month)&&
+      Object.keys(_tiParsed.data[s.month]||{}).length>0;
+  }).map(function(s){return s.month;});
+}
+function tiGetPlan(){
+  if(!_tiParsed)return null;
+  var year=parseInt(document.getElementById('ti-year').value,10);
+  if(!Number.isInteger(year)||year<2000||year>2100)throw new Error('Elige un año válido');
+  var stored=tiReadYear(year);
+  var valid=tiValidIncoming();
+  var nuevos=valid.filter(function(m){return !tiOwn(stored.data,m);});
+  var existentes=valid.filter(function(m){return tiOwn(stored.data,m);});
+  var months=_tiImportMode==='replace'?(existentes.indexOf(_tiReplaceMonth)>=0?[_tiReplaceMonth]:[]):nuevos;
+  return {year:year,raw:stored.raw,data:stored.data,valid:valid,nuevos:nuevos,existentes:existentes,months:months,mode:_tiImportMode};
+}
+function tiSelectedMonths(){
+  try{var p=tiGetPlan();return p?p.months:[];}catch(e){return [];}
+}
+function tiUpdateModeCards(){
+  var n=document.getElementById('ti-mode-new-box'),r=document.getElementById('ti-mode-replace-box');
+  if(n){n.style.borderColor=_tiImportMode==='new'?'rgba(74,222,128,.45)':'rgba(255,255,255,.12)';n.style.background=_tiImportMode==='new'?'rgba(34,197,94,.09)':'rgba(255,255,255,.02)';}
+  if(r){r.style.borderColor=_tiImportMode==='replace'?'rgba(251,191,36,.5)':'rgba(255,255,255,.12)';r.style.background=_tiImportMode==='replace'?'rgba(251,191,36,.08)':'rgba(255,255,255,.02)';}
+}
+function tiSetImportMode(mode){
+  if(mode!=='new'&&mode!=='replace')return;
+  _tiImportMode=mode;
+  _tiReplaceMonth=''; // Cambiar de modo exige elegir de nuevo el mes a sustituir.
+  tiUpdateModeCards();
+  tiRenderMonthSelector();
+}
+function tiSetReplaceMonth(month){
+  _tiReplaceMonth=month;
+  tiRenderMonthSelector();
+}
+function tiRenderMonthSelector(){
+  var prev=document.getElementById('ti-preview');
+  if(!prev)return;
+  _tiPreviewValid=false;
+  if(!_tiParsed){prev.style.display='none';tiUpdateApplyBtn();return;}
+  var year=parseInt(document.getElementById('ti-year').value,10);
+  if(_tiPreviewYear!==year){_tiReplaceMonth='';_tiPreviewYear=year;}
+  var p;
+  try{p=tiGetPlan();}catch(e){
+    prev.style.display='block';prev.textContent='No se pueden leer los turnos guardados: '+e.message+' No se ha modificado nada.';
+    tiUpdateApplyBtn();return;
+  }
+  _tiPreviewValid=true;
+  var html='<div style="font-weight:800;color:var(--white);margin-bottom:8px;overflow-wrap:anywhere">'+tiSafeHtml(_tiParsed.filename)+'</div>';
+  html+='<div style="color:var(--gold);font-weight:800;margin-bottom:8px">Año '+year+'</div>';
+  if(p.mode==='new'){
+    html+='<div style="border:1px solid rgba(74,222,128,.25);background:rgba(34,197,94,.06);border-radius:9px;padding:10px;margin-bottom:8px"><b style="color:#86efac">Se añadirán ('+p.nuevos.length+'):</b><div style="margin-top:4px;color:var(--white)">'+(p.nuevos.length?p.nuevos.map(tiSafeHtml).join(', '):'No hay meses nuevos en este archivo')+'</div></div>';
+    html+='<div style="border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:10px"><b style="color:#cbd5e1">Se conservarán ('+p.existentes.length+'):</b><div style="margin-top:4px">'+(p.existentes.length?p.existentes.map(tiSafeHtml).join(', '):'No hay meses existentes en el archivo')+'</div></div>';
+    html+='<p style="margin-top:8px;font-size:10px">No se sobrescribe ningún mes guardado, incluidos tus cambios manuales.</p>';
+  }else{
+    html+='<div style="border:1px solid rgba(251,191,36,.38);background:rgba(251,191,36,.08);border-radius:9px;padding:11px;margin-bottom:9px">';
+    html+='<b style="color:#fcd34d">Selecciona UN mes que quieras sustituir:</b>';
+    if(p.existentes.length){
+      html+='<select id="ti-replace-month" aria-label="Mes a sustituir" onchange="tiSetReplaceMonth(this.value)" style="width:100%;margin-top:9px;padding:11px 9px;border-radius:9px;background:#1f2d47;border:1px solid rgba(251,191,36,.45);color:white;font:600 13px Outfit,sans-serif">';
+      html+='<option value="">-- Elige un mes --</option>';
+      p.existentes.forEach(function(m){html+='<option value="'+m+'"'+(_tiReplaceMonth===m?' selected':'')+'>'+m+' '+year+'</option>';});
+      html+='</select>';
+      html+='<div style="margin-top:10px;color:#fcd34d;font-size:11px">⚠️ Perderás los cambios manuales de ESE mes. Los demás meses no se tocarán. Se creará una copia automática antes de sustituir.</div>';
+    }else{
+      _tiReplaceMonth='';
+      html+='<p style="margin-top:8px">El Excel no contiene meses que ya tengas guardados. Usa «Añadir meses nuevos».</p>';
+    }
+    html+='</div>';
+    if(_tiReplaceMonth&&p.months.length)html+='<div style="color:#fcd34d;font-weight:800">Se sustituirá únicamente: '+tiSafeHtml(_tiReplaceMonth)+' '+year+'</div>';
+  }
+  html+='<div style="margin-top:8px;font-size:10px">Meses sin turnos en el Excel: omitidos automáticamente.</div>';
+  prev.innerHTML=html;
+  prev.style.display='block';
+  tiUpdateApplyBtn();
+}
+function tiReadUndo(){
+  var raw=CTAStorage.getItem(_TI_UNDO_KEY);
+  if(!raw)return null;
+  var b=JSON.parse(raw);
+  if(!b||b.version!==1||!Number.isInteger(b.year)||!Array.isArray(b.months)||!b.months.length||!b.before||!b.after)throw new Error('La copia no tiene un formato válido');
+  if(b.months.some(function(m){return _MONTHS_ALL.indexOf(m)<0||!tiOwn(b.before,m)||!tiOwn(b.after,m);}))throw new Error('La copia contiene meses inválidos');
+  return b;
+}
+function tiUpdateUndoUI(){
+  var btn=document.getElementById('ti-undo-btn'),desc=document.getElementById('ti-undo-desc');
+  if(!btn||!desc)return;
+  try{
+    var b=tiReadUndo();
+    btn.style.display=b?'block':'none';
+    desc.textContent=b?'Copia local de la última importación: '+b.months.join(', ')+' '+b.year+'. Se conserva hasta la siguiente importación.':'No hay ninguna importación reciente para deshacer en este dispositivo.';
+  }catch(e){btn.style.display='none';desc.textContent='No se ha podido consultar la copia de seguridad: '+e.message;}
+}
+async function tiUndoLastImport(){
+  if(_tiImportBusy)return;
+  var backup,p;
+  try{
+    backup=tiReadUndo();
+    if(!backup){alert('No existe una importación anterior para deshacer.');return;}
+    p=tiReadYear(backup.year);
+  }catch(e){alert('No se puede deshacer: '+e.message);return;}
+  // No permitir que "Deshacer" elimine ajustes manuales posteriores a la importación.
+  var differs=backup.months.some(function(m){
+    var now={exists:tiOwn(p.data,m),value:tiOwn(p.data,m)?p.data[m]:null};
+    return JSON.stringify(now)!==JSON.stringify(backup.after[m]);
+  });
+  if(differs){alert('Uno de esos meses se ha modificado después de importar. Para no borrar cambios manuales, no se puede deshacer automáticamente. Exporta primero tu calendario si necesitas recuperarlo.');return;}
+  if(!confirm('¿Deshacer la última importación de '+backup.months.join(', ')+' '+backup.year+'?\n\nSe recuperarán exactamente esos meses. Los demás no cambiarán.'))return;
+  _tiImportBusy=true;
+  var btn=document.getElementById('ti-undo-btn');if(btn)btn.disabled=true;
+  try{
+    backup.months.forEach(function(m){if(backup.before[m].exists)p.data[m]=backup.before[m].value;else delete p.data[m];});
+    await CTAStorage.setItem('cta_ed_'+backup.year,JSON.stringify(p.data),p.raw);
+    try{await CTAStorage.removeItem(_TI_UNDO_KEY);}catch(e){
+      alert('Calendario recuperado, pero no se pudo limpiar el aviso de copia. No pulses Deshacer otra vez. '+e.message);
+    }
+    if(typeof mcRender==='function')mcRender();
+    if(typeof initTurnoWidget==='function')initTurnoWidget();
+    tiRenderMonthSelector();
+    alert('✅ Última importación deshecha. Se han recuperado los turnos anteriores de '+backup.months.join(', ')+'.');
+    logActividad('deshacer_importacion_tryp','meses: '+backup.months.join(', '));
+  }catch(e){alert('No se ha podido deshacer: '+e.message);}
+  finally{_tiImportBusy=false;if(btn)btn.disabled=false;tiUpdateUndoUI();}
 }
 function tiToMin(t){if(!t||t.indexOf(':')<0)return null;var p=t.split(':');return+p[0]*60+ +p[1];}
 
@@ -7280,35 +7437,67 @@ function taRenderResultado(r){
 }
 
 async function tiApply(){
-  if(!_tiParsed)return;
-  var overwrite=document.getElementById('ti-overwrite').checked;
-  var skip=document.getElementById('ti-skip-empty').checked;
-  var year=parseInt(document.getElementById('ti-year').value)||new Date().getFullYear();
-  var raw;try{raw=CTAStorage.getItem('cta_ed_'+year);}catch(e){raw=null;}
-  var ue;try{ue=raw?JSON.parse(raw):{};}catch(e){ue={};}
-  var imported=0;
-  Object.keys(_tiParsed.data).forEach(function(month){
-    var mDays=_tiParsed.data[month];
-    var hasData=Object.keys(mDays).some(function(k){return mDays[k].tipo!=='libre'||mDays[k].e1;});
-    if(skip&&!hasData)return;
-    if(!ue[month])ue[month]={};
-    Object.keys(mDays).forEach(function(dayStr){
-      var d=parseInt(dayStr),p=mDays[dayStr];
-      if(!overwrite&&ue[month][d]&&ue[month][d].tipo&&ue[month][d].tipo!=='libre')return;
-      var obj={tipo:p.tipo,total:p.total||0};
-      if(p.e1)obj.e1=p.e1;if(p.s1)obj.s1=p.s1;
-      if(p.e2)obj.e2=p.e2;if(p.s2)obj.s2=p.s2;
-      ue[month][d]=obj;imported++;
+  if(!_tiParsed||_tiImportBusy)return;
+  var p;
+  try{p=tiGetPlan();}catch(e){alert('No se puede importar: '+e.message);return;}
+  if(!p||!p.months.length){
+    alert(p&&p.mode==='replace'?'Selecciona un único mes ya guardado.':'No hay meses nuevos que añadir. No se ha cambiado el calendario.');return;
+  }
+  if(p.mode==='replace'){
+    var m=p.months[0];
+    if(!confirm('⚠️ VAS A SUSTITUIR '+m+' '+p.year+' COMPLETAMENTE.\n\nSe perderán todos los turnos anteriores de ese mes, también los que hayas cambiado a mano. Los demás meses NO cambiarán.\n\nSe guardará una copia de seguridad para poder deshacer.\n\n¿Confirmas la sustitución?'))return;
+  }
+  // Última comprobación inmediatamente antes de empezar la escritura.
+  try{p=tiGetPlan();}catch(e){alert('No se pudo comprobar el calendario: '+e.message);return;}
+  if(!p.months.length)return;
+  if(p.mode==='replace'&&p.months.length!==1){alert('Solo se puede sustituir UN mes cada vez.');return;}
+  _tiImportBusy=true;
+  var applyBtn=document.getElementById('ti-apply-btn');
+  if(applyBtn){applyBtn.disabled=true;applyBtn.style.opacity='.4';}
+  var months=p.months.slice();
+  var undo={version:1,createdAt:new Date().toISOString(),year:p.year,mode:p.mode,months:months,before:{},after:{}};
+  var updated=Object.assign({},p.data),importedDays=0;
+  try{
+    months.forEach(function(month){
+      undo.before[month]={exists:tiOwn(p.data,month),value:tiOwn(p.data,month)?JSON.parse(JSON.stringify(p.data[month])):null};
+      var mDays=_tiParsed.data[month]||{},newMonth={};
+      Object.keys(mDays).forEach(function(dayStr){
+        var x=mDays[dayStr];if(!x)return;
+        var obj={tipo:x.tipo,total:x.total||0};
+        if(x.e1)obj.e1=x.e1;if(x.s1)obj.s1=x.s1;
+        if(x.e2)obj.e2=x.e2;if(x.s2)obj.s2=x.s2;
+        newMonth[dayStr]=obj;importedDays++;
+      });
+      if(!Object.keys(newMonth).length)throw new Error('El mes '+month+' no contiene datos válidos');
+      updated[month]=newMonth; // NO fusionar datos antiguos con el mes sustituto.
+      undo.after[month]={exists:true,value:newMonth};
     });
-  });
-  try{await CTAStorage.setItem('cta_ed_'+year,JSON.stringify(ue));}catch(e){alert('Error al guardar: '+e.message);return;}
-  closeTrypImport();
-  setTimeout(function(){
-    logActividad('import_excel');
-    alert('✅ '+imported+' días importados para '+year+'.\nAhora verás tu turno del día en la barra inferior.');
-    mcRender();
+    // Guardado verificado ANTES de modificar el calendario. Se conserva en IndexedDB.
+    var previousUndo=CTAStorage.getItem(_TI_UNDO_KEY);
+    await CTAStorage.setItem(_TI_UNDO_KEY,JSON.stringify(undo),previousUndo);
+    try{
+      await CTAStorage.setItem('cta_ed_'+p.year,JSON.stringify(updated),p.raw);
+    }catch(writeError){
+      // Si no se pudo importar, recuperar la copia anterior de Deshacer.
+      try{
+        if(previousUndo===null)await CTAStorage.removeItem(_TI_UNDO_KEY);
+        else await CTAStorage.setItem(_TI_UNDO_KEY,previousUndo);
+      }catch(restoreError){
+        alert('No se importó el calendario. Además, no se pudo recuperar el registro anterior de Deshacer: '+restoreError.message);
+      }
+      throw writeError;
+    }
+    closeTrypImport();
+    if(typeof mcRender==='function')mcRender();
     if(typeof initTurnoWidget==='function')initTurnoWidget();
-  },400);
+    logActividad('import_excel',p.mode+' · '+months.join(', '));
+    alert('✅ '+(p.mode==='replace'?'Mes sustituido: '+months[0]:'Meses nuevos añadidos: '+months.join(', '))+'.\n'+importedDays+' días importados para '+p.year+'.\nLos demás meses se han conservado.\nPuedes deshacer desde Importar TRYP.');
+  }catch(e){alert('No se ha completado la importación: '+e.message+'\nNo borres tus datos ni cierres el navegador si aparece un error de memoria.');}
+  finally{
+    _tiImportBusy=false;
+    tiUpdateApplyBtn();
+    tiUpdateUndoUI();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
